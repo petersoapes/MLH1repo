@@ -1,20 +1,29 @@
 ---
 title: "MLH1_md"
 author: "April"
-date: "August 29, 2017"
+date: "August 25, 2017"
 output: html_document
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
 library(plyr) 
-library(gplots)
 library(ggplot2)
-library(knitr) #for md tables 
+```
+
+
+```{r }
+
+#library(knitr) #for md tables 
 #read in working environment that was already set
 setwd("C:/Users/alpeterson7/Documents/MLH1repo")
 load(file="MLH1_data_setup.RData")
 
+```
 
+
+
+```{r orderdf, echo=FALSE}
 ##FIX ORDER HERE
 MLH1_data$strain<- factor(MLH1_data$strain,levels =c("G", "LEWES",
                                      "WSB", "PWD","MSM","CAST"), order=T )
@@ -30,23 +39,27 @@ MLH1_data <- MLH1_data %>%
 MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 
 
-#save a figure of boxplots for each mouse
-ggplot(MLH1_data, aes(x = mouse, y = nMLH1.foci)) + 
-  geom_boxplot(data = MLH1_data, aes(fill = factor(strain), color = factor(sex) ) ) 
-                                    
-
-ggsave("boxplots_mice.png")
-
 MLH1_by_F_strain <- MLH1_data[MLH1_data$sex == "female", ]
 MLH1_by_M_strain <- MLH1_data[MLH1_data$sex == "male", ]
 
 
 ggplot(MLH1_by_F_strain, aes(x = mouse, y = nMLH1.foci)) + geom_boxplot(data = MLH1_by_F_strain, aes(fill = factor(strain) ) )
-ggsave("Female_boxplots.png")
 
 
 ggplot(MLH1_by_M_strain, aes(x = mouse, y = nMLH1.foci)) + geom_boxplot(data = MLH1_by_F_strain, aes(fill = factor(strain) ) )
-ggsave("Male_boxplots.png")
+```
+
+### PLOTS
+
+```{r plots, echo=FALSE}
+#save a figure of boxplots for each mouse
+bb <- ggplot(MLH1_data, aes(x = mouse, y = nMLH1.foci)) + 
+  geom_boxplot(data = MLH1_data, aes(fill = factor(strain), color = factor(sex) ) ) 
+bb  
+
+ff <- ggplot(MLH1_by_F_strain, aes(x = mouse, y = nMLH1.foci)) + geom_boxplot(data = MLH1_by_F_strain, aes(fill = factor(strain) ) )
+ff
+
 ```
 
 This is where the plot is discribed.
@@ -99,7 +112,7 @@ Pass_mice_category_kable
 another table
 
 passed_mice_kable
-```{r setup, include=FALSE, echo=FALSE} 
+```{r setup, include=FALSE} 
 
 passed_mice_kable
 
