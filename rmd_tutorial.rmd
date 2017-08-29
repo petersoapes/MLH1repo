@@ -1,29 +1,38 @@
 ---
-title: "MLH1_md"
+title: "kableExtraTutorial"
 author: "April"
-date: "August 25, 2017"
-output: github_document
+date: "August 29, 2017"
+output: html_document
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(plyr) 
-library(ggplot2)
+#install.packages("kableExtra")
+
+# For dev version
+# install.packages("devtools")
+#devtools::install_github("haozhu233/kableExtra")
 ```
 
+```{r}
+library(knitr)
+library(kableExtra)
+dt <- mtcars[1:5, 1:6]
 
-```{r }
-
-#library(knitr) #for md tables 
-#read in working environment that was already set
 setwd("C:/Users/alpeterson7/Documents/MLH1repo")
 load(file="MLH1_data_setup.RData")
 
 ```
 
 
+options(knitr.table.format = "html") 
+## If you don't define format here, you'll need put `format = "html"` in every kable function.
 
-```{r orderdf, echo=FALSE}
+```{r}
+kable(dt)
+
+kable(head(MLH1_data) )
+```
+```{r}
 ##FIX ORDER HERE
 MLH1_data$strain<- factor(MLH1_data$strain,levels =c("G", "LEWES",
                                      "WSB", "PWD","MSM","CAST"), order=T )
@@ -37,34 +46,17 @@ MLH1_data <- MLH1_data %>%
 
 # sort your dataframe, by the focal categories
 MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
-
-
-MLH1_by_F_strain <- MLH1_data[MLH1_data$sex == "female", ]
-MLH1_by_M_strain <- MLH1_data[MLH1_data$sex == "male", ]
-
-
-ggplot(MLH1_by_F_strain, aes(x = mouse, y = nMLH1.foci)) + geom_boxplot(data = MLH1_by_F_strain, aes(fill = factor(strain) ) )
-
-
-ggplot(MLH1_by_M_strain, aes(x = mouse, y = nMLH1.foci)) + geom_boxplot(data = MLH1_by_F_strain, aes(fill = factor(strain) ) )
 ```
 
-### PLOTS
-
-```{r plots, echo=FALSE}
+```{r}
 #save a figure of boxplots for each mouse
-bb <- ggplot(MLH1_data, aes(x = mouse, y = nMLH1.foci)) + 
+ggplot(MLH1_data, aes(x = mouse, y = nMLH1.foci)) + 
   geom_boxplot(data = MLH1_data, aes(fill = factor(strain), color = factor(sex) ) ) 
-bb  
-
-ff <- ggplot(MLH1_by_F_strain, aes(x = mouse, y = nMLH1.foci)) + geom_boxplot(data = MLH1_by_F_strain, aes(fill = factor(strain) ) )
-ff
 
 ```
 
-This is where the plot is discribed.
 
-```{r setup, include=FALSE, echo=FALSE}                 
+```{r}
 #Quality / number of passing mice
 q_cutoff_table <- ddply(MLH1_data, .(mouse), summarise,
                         total =  length(nMLH1.foci),
@@ -97,23 +89,15 @@ not_passed_mice <- setdiff(q_cutoff_table$mouse, passed_mice$mouse)
 not_passed_mice <- data.frame(not_passed_mice)
 colnames(not_passed_mice) <- c("mouse")
 
-setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
-
-#convert tables into md useing Kable
-Pass_mice_category_kable <- kable(Pass_mice_category, format = "markdown")
-passed_mice_kable <- kable(passed_mice, format = "markdown")
-not_passed_mice_kable <- kable(not_passed_mice, format = "markdown")
-
 ```
 
-#### Tables of Passing mice
-Pass_mice_category_kable
+```{r}
+kable(passed_mice)
+kable(not_passed_mice)
+kable(Pass_mice_category)
+```
 
-another table
-
-passed_mice_kable
-```{r setup, include=FALSE} 
-
-passed_mice_kable
-
+```{r}
+kable(dt) %>%
+  kable_styling()
 ```
