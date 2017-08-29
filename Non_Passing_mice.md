@@ -6,8 +6,8 @@ A
 1026
 1
 262153
-15
-not_passed_mice
+21
+not_passed_mice_kable
 784
 31
 262153
