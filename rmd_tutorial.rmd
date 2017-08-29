@@ -2,23 +2,19 @@
 title: "kableExtraTutorial"
 author: "April"
 date: "August 29, 2017"
-output: html_document
+output: github_document
 ---
 
-```{r setup, include=FALSE, echo=FALSE}
-#install.packages("kableExtra")
-
-# For dev version
-# install.packages("devtools")
-#devtools::install_github("haozhu233/kableExtra")
-```
 
 ```{r}
 library(knitr)
 library(kableExtra)
+library(ggplot2)
+library(dplyr)
+library(dplyr)
 dt <- mtcars[1:5, 1:6]
 
-setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+#setwd("C:/Users/alpeterson7/Documents/MLH1repo")
 load(file="MLH1_data_setup.RData")
 
 ```
@@ -27,11 +23,7 @@ load(file="MLH1_data_setup.RData")
 options(knitr.table.format = "html") 
 ## If you don't define format here, you'll need put `format = "html"` in every kable function.
 
-```{r}
-kable(dt)
 
-kable(head(MLH1_data) )
-```
 ```{r}
 ##FIX ORDER HERE
 MLH1_data$strain<- factor(MLH1_data$strain,levels =c("G", "LEWES",
@@ -63,7 +55,7 @@ q_cutoff_table <- ddply(MLH1_data, .(mouse), summarise,
                         q5 = sum(as.numeric(quality) >= 4, na.rm = TRUE ), 
                         q_l3 = sum(as.numeric(as.numeric(quality)) <= 4, na.rm = TRUE )
 )
-#q_cutoff_table
+q_cutoff_table
 
 passed_mice <- as.data.frame(q_cutoff_table[q_cutoff_table$q_l3 >= 15,]$mouse, 
                              col.names= "mouse")
