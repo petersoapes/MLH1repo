@@ -5,26 +5,102 @@ date: "August 29, 2017"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, include=FALSE, echo=FALSE}
+library(plyr) 
+library(gplots)
+library(ggplot2)
+library(knitr) #for md tables 
+#read in working environment that was already set
+setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+load(file="MLH1_data_setup.RData")
+
+
+##FIX ORDER HERE
+MLH1_data$strain<- factor(MLH1_data$strain,levels =c("G", "LEWES",
+                                     "WSB", "PWD","MSM","CAST"), order=T )
+#order the data frame
+MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
+#set the order of another column, based on another variable (so that when)
+library(dplyr)
+MLH1_data <- MLH1_data %>%
+  arrange(strain, sex, mouse) %>%
+  mutate(file.name = factor(file.name)) #another category that you want the order to match
+
+# sort your dataframe, by the focal categories
+MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
+
+
+#save a figure of boxplots for each mouse
+ggplot(MLH1_data, aes(x = mouse, y = nMLH1.foci)) + 
+  geom_boxplot(data = MLH1_data, aes(fill = factor(strain), color = factor(sex) ) ) 
+                                    
+
+ggsave("boxplots_mice.png")
+
+MLH1_by_F_strain <- MLH1_data[MLH1_data$sex == "female", ]
+MLH1_by_M_strain <- MLH1_data[MLH1_data$sex == "male", ]
+
+
+ggplot(MLH1_by_F_strain, aes(x = mouse, y = nMLH1.foci)) + geom_boxplot(data = MLH1_by_F_strain, aes(fill = factor(strain) ) )
+ggsave("Female_boxplots.png")
+
+
+ggplot(MLH1_by_M_strain, aes(x = mouse, y = nMLH1.foci)) + geom_boxplot(data = MLH1_by_F_strain, aes(fill = factor(strain) ) )
+ggsave("Male_boxplots.png")
 ```
 
-## R Markdown
+This is where the plot is discribed.
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r setup, include=FALSE, echo=FALSE}                 
+#Quality / number of passing mice
+q_cutoff_table <- ddply(MLH1_data, .(mouse), summarise,
+                        total =  length(nMLH1.foci),
+                        q5 = sum(as.numeric(quality) >= 4, na.rm = TRUE ), 
+                        q_l3 = sum(as.numeric(as.numeric(quality)) <= 4, na.rm = TRUE )
+)
+#q_cutoff_table
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+passed_mice <- as.data.frame(q_cutoff_table[q_cutoff_table$q_l3 >= 15,]$mouse, 
+                             col.names= "mouse")
+colnames(passed_mice) <- c("mouse")
 
-```{r cars}
-summary(cars)
+passed_mice$strain <- ifelse(grepl("WSB", passed_mice$mouse), "WSB", 
+                   ifelse(grepl("G", passed_mice$mouse), "G",
+                    ifelse(grepl("CAST", passed_mice$mouse), "CAST",
+                   ifelse(grepl("MSM", passed_mice$mouse), "MSM",
+                  ifelse(grepl("LEW", passed_mice$mouse), "LEWES", 
+                   ifelse(grepl("LEWES", passed_mice$mouse), "LEWES",                                          
+                  ifelse(grepl("PWD", passed_mice$mouse), "PWD", "other")))))))
+
+passed_mice$sex <- ifelse(grepl("_f", passed_mice$mouse), "female",                                         
+                          ifelse(grepl("_m", passed_mice$mouse), "male", "other"))
+
+#make a table of the number of mice passed for each category.
+Pass_mice_category <- ddply(passed_mice, .(strain, sex), summarise,
+                    "Passing Mice" =  length(mouse)
+)
+
+not_passed_mice <- setdiff(q_cutoff_table$mouse, passed_mice$mouse)
+not_passed_mice <- data.frame(not_passed_mice)
+colnames(not_passed_mice) <- c("mouse")
+
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+
+#convert tables into md useing Kable
+Pass_mice_category_kable <- kable(Pass_mice_category, format = "markdown")
+passed_mice_kable <- kable(passed_mice, format = "markdown")
+not_passed_mice_kable <- kable(not_passed_mice, format = "markdown")
+
 ```
 
-## Including Plots
+#### Tables of Passing mice
+Pass_mice_category_kable
 
-You can also embed plots, for example:
+another table
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+passed_mice_kable
+```{r setup, include=FALSE, echo=FALSE} 
+
+passed_mice_kable
+
 ```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
