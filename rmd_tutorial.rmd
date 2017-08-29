@@ -1,95 +1,76 @@
 ---
 title: "kableExtraTutorial"
-author: "April"
+author: "April Peterson"
 date: "August 29, 2017"
 output: github_document
 ---
 
 
-```{r}
+```{r setup, echo=FALSE}
 library(knitr)
 library(kableExtra)
 library(ggplot2)
 library(dplyr)
-library(dplyr)
-dt <- mtcars[1:5, 1:6]
 
 #setwd("C:/Users/alpeterson7/Documents/MLH1repo")
 load(file="MLH1_data_setup.RData")
 
 ```
 
+This Rmd file displays the boxplots of MLH1 distributions.
 
-options(knitr.table.format = "html") 
-## If you don't define format here, you'll need put `format = "html"` in every kable function.
-
-
-```{r}
+```{r, echo=FALSE}
 ##FIX ORDER HERE
 MLH1_data$strain<- factor(MLH1_data$strain,levels =c("G", "LEWES",
                                      "WSB", "PWD","MSM","CAST"), order=T )
 #order the data frame
 MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
 #set the order of another column, based on another variable (so that when)
-library(dplyr)
+
 MLH1_data <- MLH1_data %>%
   arrange(strain, sex, mouse) %>%
   mutate(file.name = factor(file.name)) #another category that you want the order to match
-
 # sort your dataframe, by the focal categories
 MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
+
+MLH1_by_F_strain <- MLH1_data[MLH1_data$sex == "female", ]
+MLH1_by_M_strain <- MLH1_data[MLH1_data$sex == "male", ]
 ```
 
-```{r}
+Below is a figure of boxplots all mice from current data batches.
+
+```{r, echo=FALSE}
 #save a figure of boxplots for each mouse
-ggplot(MLH1_data, aes(x = mouse, y = nMLH1.foci)) + 
+bb <- ggplot(MLH1_data, aes(x = mouse, y = nMLH1.foci)) + 
   geom_boxplot(data = MLH1_data, aes(fill = factor(strain), color = factor(sex) ) ) 
 
+bb
 ```
 
+Below are the boxplots for female MLH1 distributions.
+
+```{r, echo=FALSE}
+ff <- ggplot(MLH1_by_F_strain, aes(x = mouse, y = nMLH1.foci)) + geom_boxplot(data = MLH1_by_F_strain, aes(fill = factor(strain) ) )
+ff
+
+```
+
+Below are the boxplots for male MLH1 distributions.
+
+```{r, echo=FALSE}
+mm <- ggplot(MLH1_by_M_strain, aes(x = mouse, y = nMLH1.foci)) + geom_boxplot(data = MLH1_by_F_strain, aes(fill = factor(strain) ) )
+mm
+```
+
+Entering tables is currently broken Rmd.
 
 ```{r}
-#Quality / number of passing mice
+
 q_cutoff_table <- ddply(MLH1_data, .(mouse), summarise,
                         total =  length(nMLH1.foci),
                         q5 = sum(as.numeric(quality) >= 4, na.rm = TRUE ), 
-                        q_l3 = sum(as.numeric(as.numeric(quality)) <= 4, na.rm = TRUE )
+                        q_l3 = sum(as.numeric(as.numeric(quality)) <= 4, na.rm = TRUE)
 )
 q_cutoff_table
-
-passed_mice <- as.data.frame(q_cutoff_table[q_cutoff_table$q_l3 >= 15,]$mouse, 
-                             col.names= "mouse")
-colnames(passed_mice) <- c("mouse")
-
-passed_mice$strain <- ifelse(grepl("WSB", passed_mice$mouse), "WSB", 
-                   ifelse(grepl("G", passed_mice$mouse), "G",
-                    ifelse(grepl("CAST", passed_mice$mouse), "CAST",
-                   ifelse(grepl("MSM", passed_mice$mouse), "MSM",
-                  ifelse(grepl("LEW", passed_mice$mouse), "LEWES", 
-                   ifelse(grepl("LEWES", passed_mice$mouse), "LEWES",                                          
-                  ifelse(grepl("PWD", passed_mice$mouse), "PWD", "other")))))))
-
-passed_mice$sex <- ifelse(grepl("_f", passed_mice$mouse), "female",                                         
-                          ifelse(grepl("_m", passed_mice$mouse), "male", "other"))
-
-#make a table of the number of mice passed for each category.
-Pass_mice_category <- ddply(passed_mice, .(strain, sex), summarise,
-                    "Passing Mice" =  length(mouse)
-)
-
-not_passed_mice <- setdiff(q_cutoff_table$mouse, passed_mice$mouse)
-not_passed_mice <- data.frame(not_passed_mice)
-colnames(not_passed_mice) <- c("mouse")
-
 ```
 
-```{r}
-kable(passed_mice)
-kable(not_passed_mice)
-kable(Pass_mice_category)
-```
-
-```{r}
-kable(dt) %>%
-  kable_styling()
-```
