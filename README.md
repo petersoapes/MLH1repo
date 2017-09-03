@@ -1,5 +1,10 @@
-This is the README for current MLH1 results.
+TODO:
 
+- start R script for processing / formating raw MLH1 count data into cleaned data files.
+- find place to explain batches of data.
+- place with Rmd more? ... try to get the stats tables working.
+
+This is the README for current MLH1 results.
 
  * Writing .md compatible tables in R is harder than it seems.
  * library(knitr)'s kable() converts R dataframes into different markdown formats.
