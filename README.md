@@ -1,26 +1,11 @@
-RDA2 A 2 197379 131840 1026 1 262153 15 not\_passed\_mice 784 31 262153
-19 |mouse\040\040\040\040\040\040\040\040\040\040\040\040| 262153 19
-|:----------------| 262153 19 |1apr16\_G\_m4\040\040\040\040\040\040|
-262153 19 |6mar16\_G\_m1\040\040\040\040\040\040| 262153 19
-|4jan17\_LEW\_f3\040\040\040\040| 262153 19
-|4jan17\_LEW\_f6\040\040\040\040| 262153 19
-|4jan17\_LEW\_f7\040\040\040\040| 262153 19
-|20dec16\_LEW\_m3\040\040\040| 262153 19 |13nov16\_LEWES\_m1\040| 262153
-19 |16jun15\_WSB\_f4\040\040\040| 262153 19
-|12jun15\_WSB\_f1\040\040\040| 262153 19 |23apr15\_WSB\_f1\040\040\040|
-262153 19 |12jun15\_WSB\_f2\040\040\040| 262153 19
-|4apr15\_WSB\_f1\040\040\040\040| 262153 19
-|4apr15\_WSB\_f2\040\040\040\040| 262153 19
-|31mar15\_WSB\_m1\040\040\040| 262153 19 |12jun15\_WSB\_m1\040\040\040|
-262153 19 |28feb15\_PWD\_f1\040\040\040| 262153 19
-|17apr15\_PWD\_f4\040\040\040| 262153 19
-|1apr15\_PWD\_f1\040\040\040\040| 262153 19
-|8oct14\_PWD\_f4\040\040\040\040| 262153 19
-|17apr15\_PWD\_f3\040\040\040| 262153 19 |23apr15\_PWD\_f1\040\040\040|
-262153 19 |17apr15\_PWD\_f1\040\040\040| 262153 19
-|17apr15\_PWD\_f2\040\040\040| 262153 19 |23apr15\_PWD\_f2\040\040\040|
-262153 19 |6mar16\_PWD\_m1\040\040\040\040| 262153 19
-|1mar15\_PWD\_m1\040\040\040\040| 262153 19
-|12sep16\_MSM\_f1\040\040\040| 262153 19 |30sep16\_MSM\_m1\040\040\040|
-262153 19 |30jun16\_CAST\_m1\040\040| 1026 1 262153 6 format 16 1 262153
-8 markdown 1026 1 262153 5 class 16 1 262153 11 knitr\_kable 254 254
+TODO:
+
+- start R script for processing / formating raw MLH1 count data into cleaned data files.
+- find place to explain batches of data.
+- place with Rmd more? ... try to get the stats tables working.
+
+This is the README for current MLH1 results.
+
+ * Writing .md compatible tables in R is harder than it seems.
+ * library(knitr)'s kable() converts R dataframes into different markdown formats.
+ * .Rmd files can be displayed as github pages.
