@@ -3,7 +3,8 @@ MLH1 data report
 April Peterson
 August 29, 2017
 
-TODO data set up page; remove non quality observations
+TODO data set up page; remove non quality observations, set strain colors to manual, remove the custom sizing for the later tables. 
+make/include Rsetupdata script, power qualq, 'approved mouse list', start metadata merging and analysis
 
 include is for blocking output messages. echo false is for silencing the code commands.
 
