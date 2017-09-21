@@ -51,19 +51,17 @@ Table for assessing the number of passed mice
 
 ![](rmd_report_files/figure-markdown_github-ascii_identifiers/show%20boxplots-3.png)
 
-##### Header for effects of quality
+##### Effects of quality
 
-Assess pattern of quality score and nMLH1. why? The human scoring the cells may have introcudced biases by giving a higher quality to cells with more foci. Unbiased cell quality assignment, would not show a positive correlation with quality and nMLH1.
+Human quantification seems to be biased towards rating cells with more MLH1 foci as higher quality. Unbiased cell quality assignment, would not show a positive correlation with quality and nMLH1.
 
-Quality score is 1 based, to a correlation of nMLH1 and quality will have a right dowward line. ![caption](rmd_report_files/figure-markdown_github-ascii_identifiers/scatter%20plots%20of%20nMLH1%20by%20score-1.png)
+![caption](rmd_report_files/figure-markdown_github-ascii_identifiers/scatter%20plots%20of%20nMLH1%20by%20score-1.png)
 
-I ploted the mean of each quality bin with a red dot. From the pattern of the red dots, there is definately a negative relationship with quality and nMLH1 foci across the data. This is most pronounced in MSM males and least pronounced in G males.
+I ploted the mean of each quality bin with a red dot. From the pattern of the red dots, there is definately a negative relationship with quality and nMLH1 foci across the data. This is most pronounced in MSM males and least pronounced in G males. The CAST female data is dummy data.
 
-Potential solutions? admit that the quality criteria are stupid..? does RW's data have this pattern? should the data be transformed/adjusted? Will looking at these figures bias how I score here on out?!
+Potential solutions?
 
 > *do some mice have better quality cells?* *Does this cause bias in the data?*
-
-    ## Warning: Removed 8 rows containing non-finite values (stat_bin).
 
 ![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-1.png)
 
@@ -132,23 +130,25 @@ latice plot of scatter plots for jitter plots of cell oberservations by quality
 
 ![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-5-12.png)
 
-Making all of these scatter plots, allows us to look at the whole distributions.
+Making all of these scatter plots, allows us to look at the whole distributions. In some mice there seems to be bimodel cell populations, those of clearly high quality and those of lower quality. This may be due to the screeign of images before quantification, and allowing more bad cells data remain in the data set, instead of deleting them.
 
-In this analysis each mouse will have a sample of cells that are used to estimate the *true* distribution of nMLH1 foci per cell. Power calculations can be done to assess if the current sample of cells gives a good estimate of the true distrubtion of nMLH1 foci.
+#### Power Calculations
 
-### power calqs
+Main questions to address:
+
+> *How many cells per mouse should be sampled?*
+
+> *How many mice per strain should be sampled?*
 
 Think about a loop that will -- i) take ~100 different sized samples of total images (10%, 25%, 50%, 75%, 90%) (with varying degrees of quality) ii) then run t.tests across those samples, and report the p value iii) make a table of the p values for these sample permutations
 
-Find those old R scripts and recreate here.
-
 Diminishing return analysis. Take some of the mice identified above, simulate random sampling of 10,15,20,30. Display the raw mean and sd, and results from 10 simulations.
 
-use 10mar15\_PWD\_m2 as example set,
+omg finally that took so long. main interpertations: the variance grows with larger sample size.
+================================================================================================
 
-make mouse specific data sets, and take different sized samples -- then display in boxplots by sample size.
-
-![](rmd_report_files/figure-markdown_github-ascii_identifiers/comparing%20sample%20sizes-1.png) \#omg finally that took so long. main interpertations: the variance grows with larger sample size. \#these are representations of independant samples -- I need to think of a way to show an average of the stats for multiple simulations.
+these are representations of independant samples -- I need to think of a way to show an average of the stats for multiple simulations.
+======================================================================================================================================
 
 ``` r
 G_f_example = MLH1_data[MLH1_data$mouse == '17mar16_G_f1', ]
@@ -167,9 +167,7 @@ v
 v + ggtitle("varying sample sizes") 
 ```
 
-![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-6-2.png) Can the above code be repeated for a larger number of mice (both passing and non-passing) to show the different effects across samples sizes?
-
-power calculations.... from a preivous document --- I showed myself that for 15 (good) cells, would provide a sample big enough to detect a difference of 3 foci. I only did this for a couple mice, I'll try to re-code for every mouse
+![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-6-2.png) Can the above code be repeated for a larger number of mice (both passing and non-passing) to show the different effects across samples sizes? power calculations.... from a preivous document --- I showed myself that for 15 (good) cells, would provide a sample big enough to detect a difference of 3 foci. I only did this for a couple mice, I'll try to re-code for every mouse
 
 ``` r
 passed_mice_data <- MLH1_data[MLH1_data$mouse %in% passed_mice, ]
@@ -200,10 +198,6 @@ sc + theme(legend.position="none")
 #  count= count +1
 #}
 ```
-
-#### 2. Power calculations
-
-##### Strain specific
 
 The code chunck below makes a table of t.test results. Each category has 2 rows. When I tried changing equal variance to false, the code breaks. c("strain", "sex"),
 
@@ -284,16 +278,6 @@ plot(category_pwr_stat$category, category_pwr_stat$ttest.est)
 ```
 
 ![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-9-1.png) I am not sure how to interpert these power calqs. The estimates are all overlapping.. I guess I shouldn't be suprised by this?
-
-### initial inferences of nMLH1 Patterns
-
-(make boxplots, note differences, include caveats for low numbers or quality differences)
-
-This Rmd file displays the boxplots of MLH1 distributions.
-
-Below is a figure of boxplots all mice from current data batches.
-
-This is the text above the table, this will show category wide stats of current MLH1 data set.
 
 | strain | sex    |  Nmice|  Ncells| mean\_co | var    |     sd|     se| subsp     | dataset |
 |:-------|:-------|------:|-------:|:---------|:-------|------:|------:|:----------|:--------|

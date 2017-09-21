@@ -308,11 +308,9 @@ dat <- data.frame(
   MLH1_sample = c(sample(PWD_m_example$adj_nMLH1.foci, 10, replace=FALSE),  sample(PWD_m_example$adj_nMLH1.foci, 15, replace=FALSE),    sample(PWD_m_example$adj_nMLH1.foci, 20, replace=FALSE), sample(PWD_m_example$adj_nMLH1.foci, 30, replace=FALSE), sample(PWD_m_example$adj_nMLH1.foci, 35, replace=FALSE), sample(PWD_m_example$adj_nMLH1.foci, 40, replace=FALSE)),   
   samplesize = c(rep("10", 10), rep("15", 15), rep("20", 20), rep("30", 30), rep("35", 35), rep("40", 40)) )
 
-bb <- ggplot(data = dat, aes(x=samplesize, y=MLH1_sample)) + geom_boxplot(aes(fill=samplesize))
+bb <- ggplot(data = dat, aes(x=samplesize, y=MLH1_sample)) + #geom_boxplot(aes(fill=samplesize))
 
 ```
-#omg finally that took so long. main interpertations: the variance grows with larger sample size.
-#these are representations of independant samples -- I need to think of a way to show an average of the stats for multiple simulations.
 
 ```{r}
 G_f_example = MLH1_data[MLH1_data$mouse == '17mar16_G_f1', ]
@@ -322,8 +320,8 @@ datf <- data.frame(
   samplesize = c(rep("10", 10), rep("15", 15), rep("20", 20), rep("30", 30), rep("35", 35)) )
 
 v <- ggplot(data = datf, aes(x=samplesize, y=MLH1_sample)) + geom_boxplot(aes(fill=samplesize) ) 
-v                                                                         
-v + ggtitle("varying sample sizes") 
+#v                                                                         
+#v + ggtitle("varying sample sizes") 
 ```
 Can the above code be repeated for a larger number of mice (both passing and non-passing) to show the different effects across samples sizes?
 power calculations.... from a preivous document --- I showed myself that for 15 (good) cells, would provide a sample big enough to detect a difference of 3 foci. I only did this for a couple mice, I'll try to re-code for every mouse
@@ -335,10 +333,10 @@ non_passed_mice_data <- MLH1_data[MLH1_data$mouse %in% not_passed, ]
 #make a column to mark if observation comes from passed or not passed mouse
 #turn this into boxplot and sort the category order, otherwise it's hard to any patterns
 sc <- qplot(mouse, nMLH1.foci,  colour = category, data = non_passed_mice_data, main="s", xlab="s", ylab="es")
-sc + theme(legend.position="none")
+#sc + theme(legend.position="none")
 
 sc <- qplot(mouse, nMLH1.foci,  colour = category, data = passed_mice_data, main="s", xlab="s", ylab="es")
-sc + theme(legend.position="none")
+#sc + theme(legend.position="none")
 
 # not working not sure of the purpose
 #count =1
@@ -371,13 +369,10 @@ data.frame(Nmice=Nmice, cv.count = cv, ttest=ttest, CIlower = ttestCI.lowr,
            CIupr = ttestCI.upr,
  pwr = pwr5mice, ttest.est=ttest.est)
 })
-category_pwr_stat
+#category_pwr_stat
 ```
 
 
-```{r}
-plot(category_pwr_stat$category, category_pwr_stat$ttest.est)
-```
 I am not sure how to interpert these power calqs. The estimates are all overlapping.. I guess I shouldn't be suprised by this?
 
 ```{r, fig.height=2, fig.width=4, echo=FALSE}
