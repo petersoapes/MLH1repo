@@ -1,0 +1,386 @@
+---
+title: "MLH1 data report "
+author: "April Peterson"
+date: "August 29, 2017"
+output: github_document
+---
+
+TODO
+remove the output for the plots
+data set up page; remove non quality observations
+Solve the cells per mouse problem
+figure out figure captions
+add a place to record the 'batches' that make up the data
+category has CAST female, this might be messing things up, since there is not CAST data
+
+include is for blocking output messages. echo false is for silencing the code commands.
+```{r setup, echo=FALSE, include = FALSE}
+library(knitr)
+library(ggplot2)
+library(pwr)
+library(plyr)
+library(lattice)
+library(dplyr)
+#setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+load(file="MLH1_data_setup.RData")
+
+```
+
+#### goals of research
+Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse strains of house mice (rodents). Comparisons the differences in recombination rates across sexes and genetic background to inform models of how meiotic recombination rates evolve. (insert small picture of meixyte)
+
+### Goal / Discription of Report
+Goal of this report;
+
+> *to keep track of the number of images for each category and mouse*
+
+This is important for getting an idea of the 'power' I have to accurately estimate MLH1 distributions across the categories of cells I am quantifying.
+
+#### Discription of data and quantification process
+data frames are loaded of MLH1 data 
+imagename, mouse name, strain, sex, nMLH1.
+
+quanti process. anonymized, given quality score
+
+
+```{r, echo=FALSE, include = FALSE}
+##FIX ORDER HERE (this should be put in the data setup script)
+MLH1_data$strain<- factor(MLH1_data$strain,levels =c("G", "LEWES",
+                              "WSB", "PWD","MSM","CAST"), order=T )
+#order the data frame
+MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
+#set the order of another column, based on another variable (so that when)
+
+MLH1_data <- MLH1_data %>%
+  arrange(strain, sex, mouse) %>%
+  mutate(file.name = factor(file.name)) #another category that you want the order to match
+# sort your dataframe, by the focal categories
+MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
+
+#Add fake CAST female data
+
+last_row <-data.frame(file.name=c("12dec18_20dec20_CAST_f1_sp1_12_1_rev.tif", "12dec18_20dec20_CAST_f1_sp1_12_2_rev.tif"), Random.Name = c("1234567.tif","123456789.tif"), quality=c(1,1),nMLH1.foci =c(25,22), XY.paired =c("no","no"), REDO.crop =c("no","no"),n =c(20,20), achiasmate=c(0,0),asynased=c(0,0),notes=c("",""),category = c("CAST female","CAST female"), strain= c("CAST","CAST"), sex=c("female","female"),adj_nMLH1.foci=c(25,22),mouse=c("20dec20_CAST_f1","20dec20_CAST_f1") )
+
+MLH1_data <- rbind(MLH1_data, last_row)
+
+
+
+#count the non-quality measures,  #remove non qualit
+#length(MLH1_data[ !(is.na(MLH1_data$quality) | MLH1_data$quality==""), ] )  #15 rows with out quality scores, remove.
+MLH1_data <- MLH1_data[ !(is.na(MLH1_data$quality) | MLH1_data$quality==""), ]
+
+MLH1_by_F_strain <- MLH1_data[MLH1_data$sex == "female", ]
+MLH1_by_M_strain <- MLH1_data[MLH1_data$sex == "male", ]
+
+```
+
+#### Initial Patterns from MLH1 distributions
+
+Use these figures to identify outliers and if there is variance in the means and variance.
+
+```{r first boxplots, echo=FALSE, fig.caption="boxplots of MLH1 distributions", fig.height=5, fig.width=5, fig.align='center'}
+
+ff <- ggplot(MLH1_data, aes(x = mouse, y = nMLH1.foci)) + geom_boxplot(data = MLH1_data, aes(fill = factor(strain) ) )+ theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",
+  "coral1", "#E69F00", "yellowgreen"))
+ff <- ff + facet_wrap(~ sex)
+
+
+
+```
+
+### Tests for quality and nMLH1 foci number
+
+> *How do the distributions change across different quality scores?*
+
+> *How do the distributions change across mice with a good number of cells?*
+
+
+Boxplots of mice distributions with quality score of 1
+
+```{r high qual, fig.caption="boxplots of MLH1 distributions", fig.height=5, fig.width=5, echo=FALSE}
+
+#MLH1_data$quality <- as.numeric(MLH1_data$quality) #this needs to be run for the subsetting to work
+
+highest_qual_df <-  subset(MLH1_data, as.numeric(MLH1_data$quality) <= 2 )
+
+qq <- ggplot(highest_qual_df, aes(x = mouse, y = nMLH1.foci)) + geom_boxplot(data = highest_qual_df, aes(fill = factor(strain) ) ) +  ggtitle("Cells with quality scores of 2 or 1") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",
+  "coral1", "#E69F00", "yellowgreen"))
+high_qual_boxplot <- qq + facet_wrap(~ sex) #this is breaking the kniting... 
+
+```
+
+
+The spacing in these boxplots is off because of 'ghost' cells, which are in the data frame, but not in the subsetted data. (Iguess)
+
+
+Table for assessing the number of passed mice
+```{r, passing mice, echo=FALSE}
+q_cutoff_table <- ddply(MLH1_data, .(mouse), summarise,
+                        total =  length(nMLH1.foci),
+                        q5 = sum(as.numeric(quality) >= 4, na.rm = TRUE ), 
+                        above5 = sum(as.numeric(quality) <= 4, na.rm = TRUE )
+                       # q_l3 = sum(as.numeric(as.numeric(quality)) <= 4, na.rm = TRUE )
+)
+#q_cutoff_table
+
+mice_25cells <- q_cutoff_table[q_cutoff_table$above5 > 25,]$mouse
+#12 mice have more than 25 cells
+mice_20cells <- q_cutoff_table[q_cutoff_table$above5 > 20,]$mouse
+#26 mice have over 20 cells
+mice_15cells <- q_cutoff_table[q_cutoff_table$above5 > 14,]$mouse
+
+passed_mice <- as.vector(q_cutoff_table[q_cutoff_table$above5 > 15,]$mouse)
+
+not_passed <- as.vector(unique(MLH1_data[!(unique(MLH1_data$mouse) %in% passed_mice),]$mouse) )
+
+#mnake dataframe with just passing mice -- so that it can be ploted
+passed_mice_df <- MLH1_data[ ( MLH1_data$quality < 5), ]
+
+
+```
+
+#### Boxplots of 'passing' mice distributions
+
+```{r, echo=FALSE}
+pp <- ggplot(passed_mice_df, aes(x = mouse, y = nMLH1.foci)) + geom_boxplot(data = passed_mice_df, aes(fill = factor(strain) ) )+ theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",
+  "coral1", "#E69F00", "yellowgreen"))
+passed_mice_plot <- pp + facet_wrap(~ sex)
+
+
+```
+```{r,  show boxplots, fig.height=5, fig.width=8, echo=FALSE}
+
+ff
+high_qual_boxplot
+passed_mice_plot
+```
+
+
+##### Effects of quality
+
+Human quantification seems to be biased towards rating cells with more MLH1 foci as higher quality. Unbiased cell quality assignment, would not show a positive correlation with quality and nMLH1.
+
+```{r, scatter plots of nMLH1 by score, echo=FALSE, fig.cap="caption"}
+#make lattice / plots seperated by strain and sex
+#facet
+
+#quality scores are now 1:7?
+qual_means <- MLH1_data %>% 
+        group_by(category, quality) %>% 
+        summarise(
+          adj_nMLH1.foci = mean(adj_nMLH1.foci)
+        )
+
+p <- ggplot(MLH1_data,(aes(adj_nMLH1.foci,quality)))
+p <- p + geom_point(stat = "identity")
+p <- p  + geom_point(data = qual_means, colour="red") 
+p <- p + facet_wrap(~ category)
+p
+
+```
+
+I ploted the mean of each quality bin with a red dot. From the pattern of the red dots, there is definately a negative relationship with quality and nMLH1 foci across the data. This is most pronounced in MSM males and least pronounced in G males. The CAST female data is dummy data.
+
+Potential solutions? 
+
+> *do some mice have better quality cells?* *Does this cause bias in the data?*
+
+
+```{r, fig.height=4, fig.width=4, echo=FALSE, fig.caption= "histogrms", warning=FALSE}
+# do the same thing as above but geom_hist
+
+histM <- ggplot(MLH1_data,(aes(adj_nMLH1.foci))) + xlim(c(16, 38))
+histM <- histM + geom_histogram(stat = "bin", binwidth = 1)
+histM <- histM + facet_wrap(~ category)
+histM
+```
+
+
+It seems like there is a population of lower cells in MSM males. This could be from slides which had bad staining.
+
+
+#### Assessing the number of cells per mouse
+
+latice plot of scatter plots for jitter plots of cell oberservations by quality
+```{r, echo=FALSE, include=FALSE, message=FALSE, warning=FALSE}
+#TODO, add a line for mouse and strain
+
+#this creates a slot for CAST female, but no data
+#each of the indiviual dataframes can be acessed with df_list$ ---- category
+# for each sub-data frame, make mouse specific table,
+#
+#add mouse mean to the df
+df_list <- split(MLH1_data, as.factor(MLH1_data$category))
+
+o=0
+i=0
+
+for(i in 1:(length(df_list))){
+ # print(i)
+  df_list[[i]] <- df_list[[i]][!(is.na(df_list[[i]]$quality) | df_list[[i]]$quality==""), ]
+  sub_mouse_means <- ddply(df_list[[i]], .(mouse), summarise,
+                       mouse_nMLH1 = mean(adj_nMLH1.foci)
+  )
+ # print(sub_mouse_means)
+  #below should work -- I think I need to go througheach row of the df_list[[i]]
+  for(o in 1:length(df_list[[i]]$file.name)){
+    df_list[[i]]$mouse_mean_MLH1[o] <- sub_mouse_means$mouse_nMLH1[ (df_list[[i]]$mouse[o] == sub_mouse_means$mouse) ]
+        }
+}
+#remove CAST, this column isn't added to MLH1 col, it's added to df_list
+#The above adds a column of mouse specific averages to a giant list of dataframes. Each dataframe in the list is specific to a category.
+#the next step is to make plots from this giant list of dataframes
+# I can delete all of the code below that by hand makes 
+
+### not make a loop for ggplot... or giant ggplot base that uses latice smartly
+# make new ggplots -- that are replaces
+
+plot_list = list()
+for (h in 1:length(df_list)) {
+  pf <- ggplot(df_list[[h]],(aes(y= adj_nMLH1.foci, x= quality)))
+  pf <- pf + geom_point(stat = "identity")+ geom_jitter()
+  pf <- pf + geom_hline(yintercept = c( mean(df_list[[h]]$adj_nMLH1.foci) ), color="black" )
+  pf <- pf + facet_wrap(~ mouse) + geom_hline(aes(yintercept = mouse_mean_MLH1), color="red")
+  plot_list[[h]] =   pf
+}
+
+#aes must be same length --- 
+# the last one is correct....?
+
+#so plot list is some wride dataframe, but indeces 1:12 in plot list are ggplots
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE }
+#geom_hline(aes(yintercept = med, group = gr), colour = 'red')
+for (gg in 1:length(plot_list) ){
+  show(plot_list[gg])
+}
+```
+
+Making all of these scatter plots, allows us to look at the whole distributions. In some mice there seems to be bimodel cell populations, those of clearly high quality and those of lower quality. This may be due to the screeign of images before quantification, and allowing more bad cells data remain in the data set, instead of deleting them.
+
+
+#### Power Calculations
+
+Main questions to address:
+ 
+ > *How many cells per mouse should be sampled?*
+ 
+ > *How many mice per strain should be sampled?*
+
+Think about a loop that will -- i) take ~100 different sized samples of total images (10%, 25%, 50%, 75%, 90%) (with varying degrees of quality)
+ii) then run t.tests across those samples, and report the p value
+iii) make a table of the p values for these sample permutations
+
+
+Diminishing return analysis. Take some of the mice identified above, simulate random sampling of 10,15,20,30. Display the raw mean and sd, and results from 10 simulations.
+```{r, comparing sample sizes, echo=FALSE}
+PWD_m_example = MLH1_data[MLH1_data$mouse == '10mar15_PWD_m2', ]
+
+smp10dist = sample(PWD_m_example$nMLH1.foci, 10, replace=FALSE)
+samplesize = rep("10", 10)
+smp10 <- data.frame(smp10dist, samplesize)
+
+smp15dist = sample(PWD_m_example$nMLH1.foci, 15, replace=FALSE)
+samplesize = rep("15", 15)
+smp15 <- data.frame(smp15dist, samplesize)
+
+smp20dist = sample(PWD_m_example$nMLH1.foci, 20, replace=FALSE)
+samplesize = rep("20", 20)
+smp20 <- data.frame(smp20dist, samplesize)
+
+smp30dist = sample(PWD_m_example$nMLH1.foci, 30, replace=FALSE)
+samplesize = rep("30", 30)
+smp10 <- data.frame(smp30dist, samplesize)
+
+
+#this mouse has 40 cells 
+#make a dataframe (so that I can finally make boxplots)
+dat <- data.frame(
+  MLH1_sample = c(sample(PWD_m_example$adj_nMLH1.foci, 10, replace=FALSE),  sample(PWD_m_example$adj_nMLH1.foci, 15, replace=FALSE),    sample(PWD_m_example$adj_nMLH1.foci, 20, replace=FALSE), sample(PWD_m_example$adj_nMLH1.foci, 30, replace=FALSE), sample(PWD_m_example$adj_nMLH1.foci, 35, replace=FALSE), sample(PWD_m_example$adj_nMLH1.foci, 40, replace=FALSE)),   
+  samplesize = c(rep("10", 10), rep("15", 15), rep("20", 20), rep("30", 30), rep("35", 35), rep("40", 40)) )
+
+bb <- ggplot(data = dat, aes(x=samplesize, y=MLH1_sample)) + geom_boxplot(aes(fill=samplesize))
+
+```
+#omg finally that took so long. main interpertations: the variance grows with larger sample size.
+#these are representations of independant samples -- I need to think of a way to show an average of the stats for multiple simulations.
+
+```{r}
+G_f_example = MLH1_data[MLH1_data$mouse == '17mar16_G_f1', ]
+
+datf <- data.frame(
+  MLH1_sample = c(sample(G_f_example$nMLH1.foci, 10, replace=FALSE),  sample(G_f_example$nMLH1.foci, 15, replace=FALSE),    sample(G_f_example$nMLH1.foci, 20, replace=FALSE), sample(G_f_example$nMLH1.foci, 30, replace=FALSE), sample(G_f_example$nMLH1.foci, 35, replace=FALSE) ),   
+  samplesize = c(rep("10", 10), rep("15", 15), rep("20", 20), rep("30", 30), rep("35", 35)) )
+
+v <- ggplot(data = datf, aes(x=samplesize, y=MLH1_sample)) + geom_boxplot(aes(fill=samplesize) ) 
+v                                                                         
+v + ggtitle("varying sample sizes") 
+```
+Can the above code be repeated for a larger number of mice (both passing and non-passing) to show the different effects across samples sizes?
+power calculations.... from a preivous document --- I showed myself that for 15 (good) cells, would provide a sample big enough to detect a difference of 3 foci. I only did this for a couple mice, I'll try to re-code for every mouse
+
+```{r}
+passed_mice_data <- MLH1_data[MLH1_data$mouse %in% passed_mice, ]
+non_passed_mice_data <- MLH1_data[MLH1_data$mouse %in% not_passed, ]
+
+#make a column to mark if observation comes from passed or not passed mouse
+#turn this into boxplot and sort the category order, otherwise it's hard to any patterns
+sc <- qplot(mouse, nMLH1.foci,  colour = category, data = non_passed_mice_data, main="s", xlab="s", ylab="es")
+sc + theme(legend.position="none")
+
+sc <- qplot(mouse, nMLH1.foci,  colour = category, data = passed_mice_data, main="s", xlab="s", ylab="es")
+sc + theme(legend.position="none")
+
+# not working not sure of the purpose
+#count =1
+#for(i in MLH1_data$file.name){
+#  templist= strsplit(i, split="_")[[1]]
+#  if(MLH1_data$mouse %in% passed_mice) 
+#  MLH1_data$mouse[count] <- c
+#  count= count +1
+#}
+```
+
+The code chunck below makes a table of t.test results. Each category has 2 rows. When I tried changing equal variance to false, the code breaks.
+ c("strain", "sex"),
+
+```{r}
+#for the record, this is a way to make a table with pwr and t.test results
+category_pwr_stat <- ddply(MLH1_data, "category", function(x) {
+Nmice <- length( unique(x$mouse) )
+mean.count <- mean(x$adj_nMLH1.foci)
+sd.count <- sd(x$adj_nMLH1.foci)
+cv <- sd.count/mean.count
+
+ttest <- t.test(x$adj_nMLH1.foci, (20), alternative = "two", var.equal=TRUE)$p.value
+ttestCI.lowr <- t.test(x$adj_nMLH1.foci, (20), alternative = "two", var.equal=TRUE)$conf.int[1]
+ttestCI.upr <- t.test(x$adj_nMLH1.foci, (20), alternative = "two", var.equal=TRUE)$conf.int[2]
+ttest.est <- t.test(x$adj_nMLH1.foci, (20), alternative = "two", var.equal=TRUE)$estimate
+
+pwr5mice <- pwr.norm.test(d = (3/sd.count), n = 20, sig.level = 0.05, alternative = "two")$power
+data.frame(Nmice=Nmice, cv.count = cv, ttest=ttest, CIlower = ttestCI.lowr, 
+           CIupr = ttestCI.upr,
+ pwr = pwr5mice, ttest.est=ttest.est)
+})
+category_pwr_stat
+```
+
+
+```{r}
+plot(category_pwr_stat$category, category_pwr_stat$ttest.est)
+```
+I am not sure how to interpert these power calqs. The estimates are all overlapping.. I guess I shouldn't be suprised by this?
+
+```{r, fig.height=2, fig.width=4, echo=FALSE}
+#use kable to make tables. warning this might not work for github Rmd.
+kable(AP_strain_table)
+```
