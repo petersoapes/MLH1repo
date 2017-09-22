@@ -281,6 +281,80 @@ ii) then run t.tests across those samples, and report the p value
 iii) make a table of the p values for these sample permutations
 
 
+```{r}
+dataset <- cbind (idorg,x,y)
+attempt <- list()
+for (i in 1:6)  {
+  attempt[[i]] <- dataset[sample(1:nrow(dataset), 3, replace=FALSE),]
+
+}
+attempt[6][[1]][,'idorg']# 6th mini df, the column 'idorg'
+
+# apply functions across dataframe for mice, #create a dataframe from the variables made #isolate data set for mice with enough cells (or find a way to code around the errors)
+
+df_sample_size_test <-  ddply(MLH1_data, .(mouse), function(x) {
+#for each mouse in big data set, make samples of different sizes 10 times
+              ncell <- length(unique(x$file.name))       
+              smpl10 <- mean( sample(x$adj_nMLH1.foci, ncell*0.1, replace=FALSE) )
+             # smpl10x10 <- mean( sample(x$adj_nMLH1.foci, ncell*0.1, replace=FALSE) )
+              attempt = list()
+              for (i in 1:10)  {
+                  attempt[[i]] <- dataset[sample(1:nrow(x$adj_nMLH1.foci), 10, replace=FALSE),]
+              }
+              smple_10x10 = mean(attempt[1:10][[1]][,'adj_nMLH1.foci'])
+              
+      data.frame(ncell=ncell, mean10 = smpl10, s10x10 = smple_10x10)
+})
+attempt[6][[1]][,'idorg']# 6th mini df, the column 'idorg'
+
+
+PWD_m_example = MLH1_data[MLH1_data$mouse == '10mar15_PWD_m2', ]
+
+dataset <- cbind (idorg,x,y)
+ attempt = c()
+              for (i in 1:3)  {
+                  attempt[[i]] <- sample(PWD_m_example$nMLH1.foci, 10, replace=FALSE)
+              }
+              smple_10x10 = mean(attempt[1:10][[1]][,'nMLH1.foci'])#col isn't name ... don't need the name
+
+
+idorg <- c(1,2,3,4,5)
+x <- c(14,20,21,16,17)
+y <- c(31,21,20,50,13)
+
+#loop below simulates sampling 6 times, from the dataset. a mini df is made out of the samples
+#
+dataset <- cbind (idorg,x,y)
+attempt <- list()
+for (i in 1:6)  {
+  attempt[[i]] <- dataset[sample(1:nrow(dataset), 3, replace=FALSE),]
+
+}
+attempt[6][[1]][,'idorg']# 6th mini df, the column 'idorg'
+
+category_pwr_stat <- ddply(MLH1_data, "category", function(x) {
+Nmice <- length( unique(x$mouse) )
+mean.count <- mean(x$adj_nMLH1.foci)
+sd.count <- sd(x$adj_nMLH1.foci)
+cv <- sd.count/mnea.count
+
+ttest.p <- t.test(x$adj_nMLH1.foci, (20), alternative = "two", var.equal=TRUE)$p.value
+ttestCI.lowr <- t.test(x$adj_nMLH1.foci, (20), alternative = "two", var.equal=TRUE)$conf.int[1]
+ttestCI.upr <- t.test(x$adj_nMLH1.foci, (20), alternative = "two", var.equal=TRUE)$conf.int[2]
+ttest.est <- t.test(x$adj_nMLH1.foci, (20), alternative = "two", var.equal=TRUE)$estimate
+
+pwr5mice <- pwr.norm.test(d = (3/sd.count), n = 20, sig.level = 0.05, alternative = "two")$power
+
+data.frame(Nmice=Nmice, cv = cv, ttest=ttest.p, CIlower = ttestCI.lowr, 
+           CIupr = ttestCI.upr,
+ pwr = pwr5mice, ttest.est=ttest.est)
+})
+
+
+
+```
+
+
 Diminishing return analysis. Take some of the mice identified above, simulate random sampling of 10,15,20,30. Display the raw mean and sd, and results from 10 simulations.
 ```{r, comparing sample sizes, echo=FALSE}
 PWD_m_example = MLH1_data[MLH1_data$mouse == '10mar15_PWD_m2', ]
