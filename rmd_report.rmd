@@ -56,7 +56,6 @@ MLH1_data <- MLH1_data[ !(is.na(MLH1_data$quality) | MLH1_data$quality==""), ]
 
 MLH1_by_F_strain <- MLH1_data[MLH1_data$sex == "female", ]
 MLH1_by_M_strain <- MLH1_data[MLH1_data$sex == "male", ]
-
 ```
 
 #### Mice table
@@ -253,6 +252,50 @@ iii) make a table of the p values for these sample permutations
 iv) plot the p values or mean p values across sample sizes
 
 Currently this section is under construction.
+```{r}
+# use q_cut_off table, to find the mice to use
+listOmice <- q_cutoff_table$mouse[ (q_cutoff_table$total >= 25) ]
+#mke new df with from 
+df.pasd.mice <- MLH1_data[MLH1_data$mouse %in% listOmice, ]
+
+
+#write function --- for taking 100 samples of 10
+
+permut.df <- function(df){
+  #semperate by mouse
+    mouse.data    <- ddply(df, c("mouse"), summarise,
+       df <- data.frame(
+              samp = sample(nMLH1.foci,5)
+            ) 
+        )
+    
+  return(mouse.data)
+}
+
+mouse.data <- ddply(df.pasd.mice, c("mouse"), summarise,
+          
+  m.df <- data.frame(sample(nMLH1.foci, 5, replace = FALSE) )
+  )
+
+
+
+# this creates dataframe, which is a subset of larger dataframe ... not sure se_alone, but samples 40 of 
+this =ddply (df.pasd.mice, .(mouse), subset, sample(seq_along(nMLH1.foci)<=5))
+
+ss <- sample(df.pasd.mice$nMLH1.foci)
+
+Table_BD_mouse <- ddply(BDMLH1_data, c("ANIMAL_ID", "Cross"), summarise,
+                       N  = length(nMLH1_foci),
+                       mean_co = format(round( mean(nMLH1_foci), 3), nsmall = 3),
+                       var = format(round( var(nMLH1_foci),3), nsmall = 3),
+                       sd   = round(sd(nMLH1_foci),3),
+                       se   = round(sd / sqrt(N),3)
+                       #text=paste(Cross, collapse=""))
+)
+
+```
+
+
 
 ```{r, include=FALSE}
 passed_mice_data <- MLH1_data[MLH1_data$mouse %in% passed_mice, ]
