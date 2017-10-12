@@ -253,14 +253,78 @@ iv) plot the p values or mean p values across sample sizes
 
 Currently this section is under construction.
 ```{r}
+
+colnms = c("mouse", "rep")
+
+#makes dfs, with the samples 
+permut.mouse.numb <- function(x, rep_size, samp_size){
+  new.df = matrix(nrow=rep_size, ncol=samp_size)
+for(i in 1:rep_size) {
+  new.df[i,] = sample(x, samp_size)
+  }
+return(as.data.frame(new.df, colnames(colnms) ) )
+}
+
+ply_data <- df.pasd.mice[df.pasd.mice$mouse == "8oct14_PWD_f8",]
+
+
+
+#make this the function that I apply over the mice in the data
+t.test(sample(ply_data$nMLH1.foci, 5), sample(ply_data$nMLH1.foci, 5))$p.value
+t.test(sample(ply_data$nMLH1.foci, 13), sample(ply_data$nMLH1.foci, 13))$p.value
+
+
+
+
+#this works
+vv <-permut.mouse.numb(df.pasd.mice$nMLH1.foci,5,2)
+
+##
+## I think this does it! this makes a list of 23 dfs (for each mouse in the large df)
+kk<-dlply(df.pasd.mice, .(mouse), function(x) permut.mouse.numb(x$nMLH1.foci,2,5) )
+
+
+jj<-ddply(df.pasd.mice, .(mouse), function(x) permut.mouse.numb(x$nMLH1.foci,2,10) )
+
+#t.test and p values
+#maybe I should just choose 2 samples, do a t.test, do that 100 times..?
+#below runs t.tests on 
+bb <-ddply(jj, .(mouse), function(x) t.test(x[1,2:5],x[2,2:5])$p.value )#t.test for 2 samples of size 10
+
+#figure out a way to plot/visualize these pvalues
+#2 samples are good for t.tests, but I need to repeat 100 times
+#I think I need to ... add the replicates that can be xxply through
+
+## for 1:100, cal permt(10,2) then call 
+ll=c()
+ty <- for(i in 1:10){
+  print(i)
+  jj <-ddply(df.pasd.mice, .(mouse), function(x) permut.mouse.numb(x$nMLH1.foci,2,10) )
+  
+  bb <-ddply(jj, .(mouse), function(x) t.test(x[1,2:5],x[2,2:5])$p.value )
+  #the t.test$p.values are not exactly what they should be
+#put p values into a list? (100 pvalues )
+  ll[i] = bb$V1[i]#this returns a list of p values for different mice? one mouse?
+}
+
+#for 
+
+gg<-t.test(kk$`10mar15_PWD_m2`[1,2:5], kk$`10mar15_PWD_m2`$V3)  
+#jj$`10mar15_PWD_m2`
+#jj[1,1:5]
+#$`10mar15_PWD_m2`
+#[1] 0.6071011
+
+##then do t.test to test the distributions 
+## data is the data frames, by mouse, function is t.test
+
+
 # use q_cut_off table, to find the mice to use
 listOmice <- q_cutoff_table$mouse[ (q_cutoff_table$total >= 25) ]
 #mke new df with from 
 df.pasd.mice <- MLH1_data[MLH1_data$mouse %in% listOmice, ]
 
-
 #write function --- for taking 100 samples of 10
-
 permut.df <- function(df){
   #semperate by mouse
     mouse.data    <- ddply(df, c("mouse"), summarise,
