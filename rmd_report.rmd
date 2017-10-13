@@ -266,14 +266,34 @@ return(as.data.frame(new.df, colnames(colnms) ) )
 }
 
 ply_data <- df.pasd.mice[df.pasd.mice$mouse == "8oct14_PWD_f8",]
-
-
-
 #make this the function that I apply over the mice in the data
+
+#simplify the t.test
 t.test(sample(ply_data$nMLH1.foci, 5), sample(ply_data$nMLH1.foci, 5))$p.value
 t.test(sample(ply_data$nMLH1.foci, 13), sample(ply_data$nMLH1.foci, 13))$p.value
 
+#repeat the sampling 100 times
 
+bb <-ddply(jj, .(mouse), function(x) t.test(x[1,2:5],x[2,2:5])$p.value )#t.test for 2 
+
+#try with do
+blah <- df.pasd.mice %>% group_by(mouse) %>% do(head(.))
+
+plist=data.frame(pv=as.numeric(), mean1=as.numeric(), mean2=as.numeric())
+
+hundred <- function(x){
+  plist=data.frame(pv=as.numeric(), mean1=as.numeric(), mean2=as.numeric())
+  for(eye in 1:100){
+    samp1 = sample(x, 5)
+    samp2 = sample(x, 5)
+    plist$pv[eye] <- t.test(samp1,samp2)$p.value
+    plist$mean1[eye] <- mean(samp1)
+    plist$mean2[eye] <- mean(samp2)
+  }
+  return(plist)
+} 
+
+mm <- hundred(ply_data$nMLH1.foci)
 
 
 #this works
