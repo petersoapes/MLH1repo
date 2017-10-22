@@ -15,7 +15,6 @@ library(lattice)
 library(dplyr)
 #setwd("C:/Users/alpeterson7/Documents/MLH1repo")
 load(file="MLH1_data_setup.RData")
-
 ```
 
 #### Research Discription
@@ -255,16 +254,6 @@ Currently this section is under construction.
 ```{r}
 
 colnms = c("mouse", "rep")
-
-#makes dfs, with the samples 
-permut.mouse.numb <- function(x, rep_size, samp_size){
-  new.df = matrix(nrow=rep_size, ncol=samp_size)
-for(i in 1:rep_size) {
-  new.df[i,] = sample(x, samp_size)
-  }
-return(as.data.frame(new.df, colnames(colnms) ) )
-}
-
 ply_data <- df.pasd.mice[df.pasd.mice$mouse == "8oct14_PWD_f8",]
 #make this the function that I apply over the mice in the data
 
@@ -273,7 +262,6 @@ t.test(sample(ply_data$nMLH1.foci, 5), sample(ply_data$nMLH1.foci, 5))$p.value
 t.test(sample(ply_data$nMLH1.foci, 13), sample(ply_data$nMLH1.foci, 13))$p.value
 
 #repeat the sampling 100 times
-
 bb <-ddply(jj, .(mouse), function(x) t.test(x[1,2:5],x[2,2:5])$p.value )#t.test for 2 
 
 #try with do
@@ -292,24 +280,66 @@ hundred <- function(x){
   }
   return(plist)
 } 
-
 mm <- hundred(ply_data$nMLH1.foci)
 
 
-#this works
-vv <-permut.mouse.numb(df.pasd.mice$nMLH1.foci,5,2)
+#makes dfs, with the samples. // sampling from MLH1
+permut.mouse.numb <- function(x, rep_size, samp_size){
+  new.df = matrix(nrow=rep_size, ncol=samp_size)
+for(i in 1:rep_size) {
+  new.df[i,] = sample(x, samp_size)
+  }
+return(as.data.frame(new.df, colnames(colnms) ) )
+  #return sampled
+}
+#can I integrate the sampling and t.test here?
 
-##
+#function for 
+
+#this works. sampling x permutations, y sample size
+vv <- permut.mouse.numb(df.pasd.mice$nMLH1.foci,5,4)
+
 ## I think this does it! this makes a list of 23 dfs (for each mouse in the large df)
+##this makes dfs for doing the t.tests
 kk<-dlply(df.pasd.mice, .(mouse), function(x) permut.mouse.numb(x$nMLH1.foci,2,5) )
+#applies permut function over mouse -- then run a t.test and return pvalue
+jj<-ddply(df.pasd.mice, .(mouse), function(x) permut.mouse.numb(x$nMLH1.foci,2,20) )
 
-
-jj<-ddply(df.pasd.mice, .(mouse), function(x) permut.mouse.numb(x$nMLH1.foci,2,10) )
+#
+pval <- function()
 
 #t.test and p values
 #maybe I should just choose 2 samples, do a t.test, do that 100 times..?
-#below runs t.tests on 
-bb <-ddply(jj, .(mouse), function(x) t.test(x[1,2:5],x[2,2:5])$p.value )#t.test for 2 samples of size 10
+#below runs t.tests on
+#this is making a new tab;e, 
+bb <- ddply(jj, .(mouse), function(x) t.test(x[1,2:5],x[2,2:5])$p.value )#t.test for 2 samples of size 20
+
+# figure out a way to mush dd into a matrix
+
+repeats = 10
+new.p.matrix = matrix(ncol=length(unique(jj$mouse)), nrow = repeats)
+for(e in 1:repeats){
+  new.p.matrix[e]<- ddply(jj, .(mouse), function(x) t.test(x[1,2:5],x[2,2:5])$p.value )
+
+  }
+
+powrange <- seq(0.4, .9, .1)
+n <- sapply(powrange, function(i) power.prop.test(p1=0.4,p2=0.24,power=i,sig.level=0.05)$n)
+plot(powrange, n)
+
+
+bb$mouse[(bb$V1 < 0.05)]
+#mice which had significantly difference in samples of size 20
+#16jan16_G_f2  20feb16_G_f3  3nov15_WSB_f1
+#17mar16_G_f1
+#16jan16_G_f2   20dec16_LEW_m3
+#30sep16_MSM_f2
+#22jun15_G_m2
+
+#figure out how to permute these tests. repeat the above... then return distributions of p values
+
+#10
+#20feb16_G_f3   13nov16_MSM_m1
 
 #figure out a way to plot/visualize these pvalues
 #2 samples are good for t.tests, but I need to repeat 100 times
@@ -365,8 +395,7 @@ mouse.data <- ddply(df.pasd.mice, c("mouse"), summarise,
 
 # this creates dataframe, which is a subset of larger dataframe ... not sure se_alone, but samples 40 of 
 this =ddply (df.pasd.mice, .(mouse), subset, sample(seq_along(nMLH1.foci)<=5))
-
-ss <- sample(df.pasd.mice$nMLH1.foci)
+#ss <- sample(df.pasd.mice$nMLH1.foci)
 
 Table_BD_mouse <- ddply(BDMLH1_data, c("ANIMAL_ID", "Cross"), summarise,
                        N  = length(nMLH1_foci),
