@@ -1,5 +1,3 @@
-
-
 library(knitr)
 library(ggplot2)
 library(pwr)
@@ -7,9 +5,11 @@ library(plyr)
 library(lattice)
 library(dplyr)
 
-setwd("C:/Users/alpeterson7/Documents/MLH1repo")
-load(file="MLH1_data_setup.RData")
+#setwd("C:/Users/alpeterson7/Documents/MLH1repo")
 
+setwd("Documents/MLH1repo")
+
+load(file="MLH1_data_setup.RData")
 
 q_cutoff_table <- ddply(MLH1_data, .(mouse), summarise,
                         total =  length(adj_nMLH1.foci),
@@ -28,37 +28,35 @@ listOmice <- q_cutoff_table$mouse[ (q_cutoff_table$total >= 25) ]
 #mke new df with from 
 df.pasd.mice <- MLH1_data[MLH1_data$mouse %in% listOmice, ]
 
-
 ply_data <- df.pasd.mice[df.pasd.mice$mouse == "8oct14_PWD_f8",]
-
 
 #make a dataframe of many p values
 #makes dfs, with the samples. // sampling from MLH1
+
 resample_df <- function(x, samp_size){
-#rep could always be two, since the test is a t.test  
-  
-  new.df = matrix(nrow=2, ncol=samp_size)
+  new.df = data.frame(nrow=2, ncol=samp_size)
   for(i in 1:2) {
     new.df[i,] = sample(x, samp_size)
-    
     }
-  mmm = list(as.data.frame(new.df, colnames(c("mouse", "rep")) ),  t.test(new.df[,1], new.df[,2])$p.value)
-
-  return(mmm )
-  
-  
-  #return(as.data.frame(new.df, colnames(c("mouse", "rep")) ) )#colnms = 
-  #return sampled
+#  mmm = list(as.data.frame(new.df, colnames(c("mouse", "rep")) ),  t.test(new.df[,1], new.df[,2])$p.value)
+#  return(mmm )
+  return(try(t.test(new.df[,1], new.df[,2])$p.value, silent = TRUE))
 }
-
-
 #this works. sampling x permutations, y sample size
-vv <- resample_df(df.pasd.mice$nMLH1.foci,4)
+vv <- resample_df(df.pasd.mice$nMLH1.foci,10)
+files <- lapply(1:10, dlply(df.pasd.mice, .(mouse), function(x) resample_df(x$nMLH1.foci,10) ) )
+f <- ddply(df.pasd.mice, .(mouse), function(x) resample_df(x$nMLH1.foci,10) ) 
+#maybe the size of df has to be increased
+files <- replicate(10, ddply(df.pasd.mice, .(mouse), function(x) resample_df(x$nMLH1.foci,10)))
+#when this is ddply, th
 
+#can't tell the output different tween da and dl
 
 ## I think this does it! this makes a list of 23 dfs (for each mouse in the large df)
 ##this makes dfs for doing the t.tests
-kk<-dlply(df.pasd.mice, .(mouse), function(x) resample_df(x$nMLH1.foci,2,5) )
+kk<-dlply(df.pasd.mice, .(mouse), function(x) resample_df(x$nMLH1.foci,10) )
+
+
 #applies permut function over mouse -- then run a t.test and return pvalue
 
 #two
