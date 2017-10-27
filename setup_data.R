@@ -11,24 +11,22 @@ library(plyr)
 
 #TODO: remove observations without quality scores.
 #Write a make file that will merge all of the batch files and record the batch
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+MLH1_data = read.csv("data/AnonData.csv", header=TRUE)
 
-
-#setwd("C:/Users/alpeterson7/Documents/MLH1data/Results/figures/")
-MLH1_data = read.csv("full_anon_data_cleaned.csv")
-
-MLH1_data$category <- ifelse(grepl("_WSB_m", MLH1_data$file.name), "WSB male", 
-                      ifelse(grepl("_WSB_f", MLH1_data$file.name), "WSB female",
-                      ifelse(grepl("_G_f", MLH1_data$file.name), "G female",
-                      ifelse(grepl("_G_m", MLH1_data$file.name), "G male",
-                   ifelse(grepl("_CAST_m", MLH1_data$file.name), "CAST male",
-                    ifelse(grepl("_CAST_f", MLH1_data$file.name), "CAST female",
-                    ifelse(grepl("_MSM_m", MLH1_data$file.name), "MSM male",
-                  ifelse(grepl("_MSM_f", MLH1_data$file.name), "MSM female",
-                   ifelse(grepl("_LEW_f", MLH1_data$file.name), "LEWES female", 
-                   ifelse(grepl("_LEW_m", MLH1_data$file.name), "LEWES male",
-                   ifelse(grepl("_LEWES_m", MLH1_data$file.name), "LEWES male",                                       
-                 ifelse(grepl("_PWD_m", MLH1_data$file.name), "PWD male",     
-                  ifelse(grepl("_PWD_f", MLH1_data$file.name), "PWD female", "other")))))))))))))
+MLH1_data$category <- ifelse(grepl("_WSB_m", MLH1_data$Original.Name), "WSB male", 
+                  ifelse(grepl("_WSB_f", MLH1_data$Original.Name), "WSB female",
+                  ifelse(grepl("_G_f", MLH1_data$Original.Name), "G female",
+                  ifelse(grepl("_G_m", MLH1_data$Original.Name), "G male",
+                  ifelse(grepl("_CAST_m", MLH1_data$Original.Name), "CAST male",
+                  ifelse(grepl("_CAST_f", MLH1_data$Original.Name), "CAST female",
+                  ifelse(grepl("_MSM_m", MLH1_data$Original.Name), "MSM male",
+                  ifelse(grepl("_MSM_f", MLH1_data$Original.Name), "MSM female",
+                  ifelse(grepl("_LEW_f", MLH1_data$Original.Name), "LEWES female", 
+                  ifelse(grepl("_LEW_m", MLH1_data$Original.Name), "LEWES male",
+                  ifelse(grepl("_LEWES_m", MLH1_data$Original.Name), "LEWES male",                                       
+                 ifelse(grepl("_PWD_m", MLH1_data$Original.Name), "PWD male",     
+                  ifelse(grepl("_PWD_f", MLH1_data$Original.Name), "PWD female", "other")))))))))))))
 
 #set the order of categories (female, male) (cast, dom, musc)
 MLH1_data$category<- factor(MLH1_data$category,levels =c( "G female", "G male", 
@@ -36,27 +34,32 @@ MLH1_data$category<- factor(MLH1_data$category,levels =c( "G female", "G male",
                       "PWD female", "PWD male", "MSM female", "MSM male",
                       "CAST female", "CAST male"), order=T )
 
-MLH1_data$strain <- ifelse(grepl("_WSB", MLH1_data$file.name), "WSB", 
-                    ifelse(grepl("_G", MLH1_data$file.name), "G",
-                   ifelse(grepl("CAST", MLH1_data$file.name), "CAST",
-                  ifelse(grepl("MSM", MLH1_data$file.name), "MSM",
-                   ifelse(grepl("LEW", MLH1_data$file.name), "LEWES",                                         
-                   ifelse(grepl("PWD", MLH1_data$file.name), "PWD", "other"))))))
+MLH1_data$strain <- ifelse(grepl("_WSB", MLH1_data$Original.Name), "WSB", 
+                    ifelse(grepl("_G", MLH1_data$Original.Name), "G",
+                   ifelse(grepl("CAST", MLH1_data$Original.Name), "CAST",
+                  ifelse(grepl("MSM", MLH1_data$Original.Name), "MSM",
+                   ifelse(grepl("LEW", MLH1_data$Original.Name), "LEWES",                                         
+                   ifelse(grepl("PWD", MLH1_data$Original.Name), "PWD", "other"))))))
 
-
-MLH1_data$sex <- ifelse(grepl("_m", MLH1_data$file.name), "male", 
-                      ifelse(grepl("_f", MLH1_data$file.name), "female", "other"
+MLH1_data$sex <- ifelse(grepl("_m", MLH1_data$Original.Name), "male", 
+                      ifelse(grepl("_f", MLH1_data$Original.Name), "female", "other"
                       )) 
+original_length = length(MLH1_data$Original.Name)
+MLH1_data <- MLH1_data[MLH1_data$X != "X",]
+
+change <- MLH1_data[MLH1_data$quality == "",]
+
+MLH1_data$category <- as.factor(MLH1_data$category)
+
+MLH1_data$nMLH1.foci <- as.numeric(MLH1_data$nMLH1.foci) #make these numeric just in case there are other characters
+
+MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
 
 #add a column with male adjusted MLH1 values (+1 to all males)
 MLH1_data$adj_nMLH1.foci <- ifelse(MLH1_data$sex=="male", MLH1_data$nMLH1.foci+1, MLH1_data$nMLH1.foci)
 
-MLH1_data$category <- as.factor(MLH1_data$category)
-MLH1_data$nMLH1.foci <- as.numeric(MLH1_data$nMLH1.foci) #make these numeric just in case there are other characters
-MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
-
 count =1
-for(i in MLH1_data$file.name){
+for(i in MLH1_data$Original.Name){
   #print(i)
   templist= strsplit(i, split="_")[[1]]
   c = paste(templist[2], templist[3],templist[4], sep = "_")
@@ -64,14 +67,10 @@ for(i in MLH1_data$file.name){
   count= count +1
 }
 
-#one of the quality levels is '3?'
-change <- subset(MLH1_data, MLH1_data$quality == "")
-MLH1_data[1467,]$quality <- "3"
-
-
 #remove mice that had bad stains
 #12sep16_MSM_f3(centromere signal bled into MLH1 signal)
 MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f3", MLH1_data$mouse) , ]
+#make a list of bad mice
 
 ##order data by subspeces (dom, musc, musc-cast(mol), cast, spret, spic...ect)! ordering is the worst.
 #example. (variable needs to be a ordered factor)
@@ -80,7 +79,8 @@ MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f3", MLH1_data$mouse) , ]
 #load Lynn et al 2002 data. 12 CAST female MLH1 measurements (probably 1 female)
 #Lynn_CASTf = c(20,21, 23, 25, 26, 26,26,27.5, 28, 28,28,33)
 
-#load BD's data. Only PWD female and F1 females ()
+
+#load BD's data. Only PWD female and F1 females missing
 fullBD_MLH1_data = read.csv("C:/Users/alpeterson7/Documents/MLH1data/data/BD_MLH1data/BD_RecombinationPhenotypes_input.csv")
 #unique(fullBD_MLH1_data$Cross)
 #subset P0s
@@ -89,7 +89,6 @@ BDMLH1_data <- subset(fullBD_MLH1_data, (Cross %in%  c("PANCEVO","RAT","CIM", "P
 
 #now that I have the mice of Beth's I want, remove the big BD df with F2s to save space.
 rm(fullBD_MLH1_data)
-
 
 Table_BD_mouse <- ddply(BDMLH1_data, c("ANIMAL_ID", "Cross"), summarise,
                        N  = length(nMLH1_foci),
@@ -176,16 +175,16 @@ AP_strain_table <- cbind(AP_strain_table, subsp, dataset)
 ###################
 #same number of cols, but in wrong order and named wrong
 #change name of Cross
-colnames(BD_strain_table)[1] <- "strain"
+colnames(Table_BD_strain)[1] <- "strain"
 #reorder
-BD_strain_table <- BD_strain_table[c("strain", "sex","Nmice", "Ncells", "mean_co","var", "sd","se", "subsp", "dataset" )]
+Table_BD_strain <- Table_BD_strain[c("strain", "sex","Nmice", "Ncells", "mean_co","var", "sd","se", "subsp", "dataset" )]
 
 #add lynn data
 Lynn_CASTf_foci = c(20,21, 23, 25, 26, 26,26,27.5, 28, 28,28,33)
 cast_f = c("CAST", "female", 1, length(Lynn_CASTf_foci), round(mean(Lynn_CASTf_foci),3), round(var(Lynn_CASTf_foci),3), round(sd(Lynn_CASTf_foci),3), 
            round(sd(Lynn_CASTf_foci)/sqrt(length(Lynn_CASTf_foci)),3 ), "Cast", as.character("Ln") )
 
-MLH1_data_table <- rbind(AP_strain_table, BD_strain_table, cast_f)#error from dataset thing
+MLH1_data_table <- rbind(AP_strain_table, Table_BD_strain, cast_f)#error from dataset thing
 
 #set the order
 MLH1_data_table$strain <- factor(MLH1_data_table$strain,
@@ -196,10 +195,6 @@ MLH1_data_table$subsp <- factor(MLH1_data_table$subsp,
                         levels =c( "Dom", "Musc", "Musc-Cast", "Cast",
                                    "Spic", "Caroli","Outgroup", "other" ), order=T )
 MLH1_data_table <- with(MLH1_data_table, MLH1_data_table[order(subsp, strain, sex),])
-
-
-#passing mice 
-
 
 ############
 # SAVE DFs #
