@@ -52,11 +52,9 @@ change <- MLH1_data[MLH1_data$quality == "",]
 MLH1_data$category <- as.factor(MLH1_data$category)
 
 MLH1_data$nMLH1.foci <- as.numeric(MLH1_data$nMLH1.foci) #make these numeric just in case there are other characters
-
-MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
-
 #add a column with male adjusted MLH1 values (+1 to all males)
 MLH1_data$adj_nMLH1.foci <- ifelse(MLH1_data$sex=="male", MLH1_data$nMLH1.foci+1, MLH1_data$nMLH1.foci)
+MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
 
 count =1
 for(i in MLH1_data$Original.Name){
