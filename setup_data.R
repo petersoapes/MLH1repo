@@ -14,36 +14,20 @@ library(plyr)
 setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 MLH1_data = read.csv("data/AnonData.csv", header=TRUE)
 
-MLH1_data$category <- ifelse(grepl("_WSB_m", MLH1_data$Original.Name), "WSB male", 
-                  ifelse(grepl("_WSB_f", MLH1_data$Original.Name), "WSB female",
-                  ifelse(grepl("_G_f", MLH1_data$Original.Name), "G female",
-                  ifelse(grepl("_G_m", MLH1_data$Original.Name), "G male",
-                  ifelse(grepl("_CAST_m", MLH1_data$Original.Name), "CAST male",
-                  ifelse(grepl("_CAST_f", MLH1_data$Original.Name), "CAST female",
-                  ifelse(grepl("_MSM_m", MLH1_data$Original.Name), "MSM male",
-                  ifelse(grepl("_MSM_f", MLH1_data$Original.Name), "MSM female",
-                  ifelse(grepl("_LEW_f", MLH1_data$Original.Name), "LEWES female", 
-                  ifelse(grepl("_LEW_m", MLH1_data$Original.Name), "LEWES male",
-                  ifelse(grepl("_LEWES_m", MLH1_data$Original.Name), "LEWES male",                                       
-                 ifelse(grepl("_PWD_m", MLH1_data$Original.Name), "PWD male",     
-                  ifelse(grepl("_PWD_f", MLH1_data$Original.Name), "PWD female", "other")))))))))))))
-
+source("Func_addCategory.R")
+MLH1_data <- add_category(MLH1_data)
 #set the order of categories (female, male) (cast, dom, musc)
 MLH1_data$category<- factor(MLH1_data$category,levels =c( "G female", "G male", 
                       "WSB female", "WSB male", "LEWES female", 'LEWES male', 
                       "PWD female", "PWD male", "MSM female", "MSM male",
                       "CAST female", "CAST male"), order=T )
 
-MLH1_data$strain <- ifelse(grepl("_WSB", MLH1_data$Original.Name), "WSB", 
-                    ifelse(grepl("_G", MLH1_data$Original.Name), "G",
-                   ifelse(grepl("CAST", MLH1_data$Original.Name), "CAST",
-                  ifelse(grepl("MSM", MLH1_data$Original.Name), "MSM",
-                   ifelse(grepl("LEW", MLH1_data$Original.Name), "LEWES",                                         
-                   ifelse(grepl("PWD", MLH1_data$Original.Name), "PWD", "other"))))))
 
-MLH1_data$sex <- ifelse(grepl("_m", MLH1_data$Original.Name), "male", 
-                      ifelse(grepl("_f", MLH1_data$Original.Name), "female", "other"
-                      )) 
+source("Func_addStrain.R")
+MLH1_data <- add_strain(MLH1_data)
+source("Func_addSex.R")
+MLH1_data <- add_sex(MLH1_data)
+
 original_length = length(MLH1_data$Original.Name)
 MLH1_data <- MLH1_data[MLH1_data$X != "X",]
 
@@ -56,14 +40,9 @@ MLH1_data$nMLH1.foci <- as.numeric(MLH1_data$nMLH1.foci) #make these numeric jus
 MLH1_data$adj_nMLH1.foci <- ifelse(MLH1_data$sex=="male", MLH1_data$nMLH1.foci+1, MLH1_data$nMLH1.foci)
 MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
 
-count =1
-for(i in MLH1_data$Original.Name){
-  #print(i)
-  templist= strsplit(i, split="_")[[1]]
-  c = paste(templist[2], templist[3],templist[4], sep = "_")
-  MLH1_data$mouse[count] <- c
-  count= count +1
-}
+source("Func_addMouse.R")
+MLH1_data <- add_mouse(MLH1_data)
+
 
 #remove mice that had bad stains
 #12sep16_MSM_f3(centromere signal bled into MLH1 signal)
@@ -108,27 +87,6 @@ Table_BD_strain <- ddply(BDMLH1_data, c("Cross"), summarise,
                          #text=paste(Cross, collapse=""))
 )#format(round(   var(nMLH1.foci),3), nsmall=3),
 
-#assign subspecies to tables
-subsp <- ifelse(grepl("WSB", Table_BD_strain$Cross), "Dom", 
-        ifelse(grepl("G", Table_BD_strain$Cross), "Dom",
-         ifelse(grepl("LEW", Table_BD_strain$Cross), "Dom", 
-      ifelse(grepl("LEWES", Table_BD_strain$Cross), "Dom",    
-     ifelse(grepl("PERA", Table_BD_strain$Cross), "Dom",
-                                            
-    ifelse(grepl("CAST", Table_BD_strain$Cross), "Cast",
-   ifelse(grepl("CIM", Table_BD_strain$Cross), "Cast",
-                                                        
-    ifelse(grepl("MSM", Table_BD_strain$Cross), "Musc-Cast",                                       
-   ifelse(grepl("PWD", Table_BD_strain$Cross), "Musc", 
-    ifelse(grepl("CZECHI", Table_BD_strain$Cross), "Musc", 
-   ifelse(grepl("PWDFemale", Table_BD_strain$Cross), "Musc",         
-                                                                               
-     ifelse(grepl("PANCEVO", Table_BD_strain$Cross), "Spic", 
-    ifelse(grepl("CAROLI", Table_BD_strain$Cross), "Caroli", 
-                                                                                           
-     ifelse(grepl("RAT", Table_BD_strain$Cross), "Outgroup", 
-    ifelse(grepl("Peromyscus", Table_BD_strain$Cross), "Outgroup", 
-    ifelse(grepl("Microtus", Table_BD_strain$Cross), "Outgroup", "other"))))))))))))))))
 
 dataset <- rep("BD", length(Table_BD_strain$Cross) )
 
