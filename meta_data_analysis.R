@@ -19,7 +19,7 @@ library(dplyr)
 #load meta data csv file 
 #finalize the coding (NAs, ect)
 meta_data = read.csv("C:/Users/alpeterson7/Documents/MLH1data/data/ALP_MouseMetadata2.csv")
-
+save.image("play_data_for_meta.RData")
 #data needs to be cleaned up (all NA's removed before calculating )
 
 
