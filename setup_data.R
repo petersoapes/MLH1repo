@@ -88,6 +88,9 @@ rm(fullBD_MLH1_data)
 print(c("initial data set of ", original_length, " cells, was slimed down to ", 
         length(MLH1_data$Original.Name)) )
 
+print(c("The mean MLH1 foci number is  ", mean(MLH1_data$nMLH1.foci, na.rm =TRUE), 
+"the distribution of quality scores is ", table(MLH1_data$quality)  ) )
+
 save.image("MLH1_data_setup.RData")
 #OutPut: big large MLH1_data (AP's) df, big DF of BD with just the mice I want.
 # MLH1_data_table, means and variance of AP and BD MLH1 values. made from seperate tables from AP and BD data.
