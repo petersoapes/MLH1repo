@@ -29,7 +29,7 @@ Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse s
 
 Aquired microscope cell images are quantified in batches after being anonimzed. The number of MLH1 foci, number of "achiasmate" and asynasped bivalents are quantified. A quality score is given; 1 to 5 (best to worst).
 
-```{r}
+```{r,echo=FALSE}
 
 #set the order of another column, based on another variable (so that when)
 
@@ -43,10 +43,7 @@ MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
 # sort your dataframe, by the focal categories
 #MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 
-#Add fake CAST female data
-last_row <-data.frame(Batch = c("100", "100"), X= c("",""), Original.Name=c("12dec18_20dec20_CAST_f1_sp1_12_1_rev.tif", "12dec18_20dec20_CAST_f1_sp1_12_2_rev.tif"), Random.Name = c("1234567.tif","123456789.tif"), quality=c(1,1),nMLH1.foci =c(25,22), XY.paired =c("no","no"), REDO.crop =c("no","no"),n =c(20,20), achiasmate=c(0,0),asynased=c(0,0),notes=c("",""),category = c("CAST female","CAST female"), strain= c("CAST","CAST"), sex=c("female","female"),adj_nMLH1.foci=c(25,22),mouse=c("20dec20_CAST_f1","20dec20_CAST_f1") )
 
-MLH1_data <- rbind(MLH1_data, last_row)
 
 #count the non-quality measures,  #remove non qualit
 #length(MLH1_data[ !(is.na(MLH1_data$quality) | MLH1_data$quality==""), ] )  #15 rows with out quality scores, remove.
@@ -78,7 +75,7 @@ MLH1_data <- with(MLH1_data, MLH1_data[order(category),])
 ```{r first boxplots, echo=FALSE, fig.align='center'}
 #the below ordering works!! keep it
 MLH1_data$strain<- factor(MLH1_data$strain, levels =c("G", "LEWES",
-                              "WSB", "PWD","MSM","CAST", "HIM", "SPRET"), order=T )
+                              "WSB", "PWD","MSM","CAST","HMI","SPRET", "other"), order=T )
 #order the data frame
 MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
 #set the order of another column, based on another variable (so that when)
@@ -95,10 +92,16 @@ ff <- ggplot(MLH1_data, aes(x = as.factor(mouse), y = adj_nMLH1.foci, fill= stra
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00", "yellowgreen", "green", "grey" ))
 ff <- ff   + facet_wrap(~ sex, scales="free")
+
+
+#boxplots by strain
+ss <- ggplot(MLH1_data, aes(x = as.factor(strain), y = adj_nMLH1.foci, fill= strain )) + geom_boxplot()  + ggtitle("Boxplots of MLH1 distributions by mouse") + theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00", "yellowgreen", "green", "grey" ))
+ss <- ss   + facet_wrap(~ sex, scales="free")
+
 ff
-
-#
-
+ss
 ```
 
 After taking the data from 2 highest cell quality, some but not all mouse means converge.
@@ -122,8 +125,7 @@ highest_qual_df <-  subset(MLH1_data, as.numeric(MLH1_data$quality) <= 2 )
 qq <- ggplot(highest_qual_df, aes(x = mouse, y = adj_nMLH1.foci)) + geom_boxplot(data = highest_qual_df, aes(fill = factor(strain) ) ) +  ggtitle("Cells with quality scores of 2 or 1") +
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) + scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",
-  "coral1", "#E69F00", "yellowgreen","black", "grey"  ))
+        axis.ticks.x=element_blank()) + scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00", "yellowgreen", "green", "grey" ))
 high_qual_boxplot <- qq + facet_wrap(~ sex, scales="free") #this is breaking the kniting... 
 ```
 

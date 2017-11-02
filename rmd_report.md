@@ -30,10 +30,7 @@ MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
 # sort your dataframe, by the focal categories
 #MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 
-#Add fake CAST female data
-last_row <-data.frame(Batch = c("100", "100"), X= c("",""), Original.Name=c("12dec18_20dec20_CAST_f1_sp1_12_1_rev.tif", "12dec18_20dec20_CAST_f1_sp1_12_2_rev.tif"), Random.Name = c("1234567.tif","123456789.tif"), quality=c(1,1),nMLH1.foci =c(25,22), XY.paired =c("no","no"), REDO.crop =c("no","no"),n =c(20,20), achiasmate=c(0,0),asynased=c(0,0),notes=c("",""),category = c("CAST female","CAST female"), strain= c("CAST","CAST"), sex=c("female","female"),adj_nMLH1.foci=c(25,22),mouse=c("20dec20_CAST_f1","20dec20_CAST_f1") )
 
-MLH1_data <- rbind(MLH1_data, last_row)
 
 #count the non-quality measures,  #remove non qualit
 #length(MLH1_data[ !(is.na(MLH1_data$quality) | MLH1_data$quality==""), ] )  #15 rows with out quality scores, remove.
@@ -51,7 +48,7 @@ MLH1\_data &lt;- MLH1\_data %&gt;% arrange(category) %&gt;% mutate(Original.Name
 
 #### Initial Patterns from MLH1 distributions
 
-<img src="rmd_report_files/figure-markdown_github-ascii_identifiers/first boxplots-1.png" style="display: block; margin: auto;" />
+<img src="rmd_report_files/figure-markdown_github-ascii_identifiers/first boxplots-1.png" style="display: block; margin: auto;" /><img src="rmd_report_files/figure-markdown_github-ascii_identifiers/first boxplots-2.png" style="display: block; margin: auto;" />
 
 After taking the data from 2 highest cell quality, some but not all mouse means converge.
 
