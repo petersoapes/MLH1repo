@@ -18,6 +18,11 @@ add_strain <- function(dat){
              ifelse(grepl("_SPIC_", dframe$Original.Name), "SPIC",
           ifelse(grepl("_CAROLI_", dframe$Original.Name), "CAROLI",
                                        "other"))))))))))
-  dframe$strain <- as.character(dframe$strain)
+  
+  #the ordering factor below deletes all strain entries
+  dframe$strain<- factor(dframe$strain,levels =c( "G", "WSB", "LEWES", "PERC",
+                                                        "PWD", "MSM",
+                                                        "CAST", "HMI",
+                                                        "SPRET", "other"), order=T )
   return(dframe)
 }

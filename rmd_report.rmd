@@ -30,15 +30,41 @@ Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse s
 Aquired microscope cell images are quantified in batches after being anonimzed. The number of MLH1 foci, number of "achiasmate" and asynasped bivalents are quantified. A quality score is given; 1 to 5 (best to worst).
 
 ```{r}
-#order the data frame
-MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
+
 #set the order of another column, based on another variable (so that when)
 
+MLH1_data <- add_strain(MLH1_data)
+MLH1_data$strain <- as.factor(MLH1_data$strain)
+
+MLH1_data$strain<- factor(MLH1_data$strain,levels =c( "G", "WSB", "LEWES", 
+                                                        "PWD", "MSM",
+                                                       "CAST", "HMI",
+                                                        "SPRET", "other"), order=T )
+
+MLH1_data$sex<- factor(MLH1_data$sex,levels =c( "female", "male"), order=T )
+
+MLH1_data$category<- factor(MLH1_data$category,levels =c( "G female", "G male", 
+                      "WSB female", "WSB male", "LEWES female", 'LEWES male', "PERC male",
+                      "PWD female", "PWD male", "MSM female", "MSM male",
+                      "CAST female", "CAST male", "HMI female", "HMI male",
+                      "SPRET female", "SPRET male"), order=T )
+
 MLH1_data <- MLH1_data %>%
-  arrange(strain, sex, mouse) %>%
+  arrange(strain, sex, category, mouse) %>%
   mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
+
+MLH1_data <- MLH1_data %>%
+  arrange(category, mouse) %>%
+  mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
+
+
+
+
+#order the data frame
+MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
+
 # sort your dataframe, by the focal categories
-MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
+#MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 
 #Add fake CAST female data
 last_row <-data.frame(Batch = c("100", "100"), X= c("",""), Original.Name=c("12dec18_20dec20_CAST_f1_sp1_12_1_rev.tif", "12dec18_20dec20_CAST_f1_sp1_12_2_rev.tif"), Random.Name = c("1234567.tif","123456789.tif"), quality=c(1,1),nMLH1.foci =c(25,22), XY.paired =c("no","no"), REDO.crop =c("no","no"),n =c(20,20), achiasmate=c(0,0),asynased=c(0,0),notes=c("",""),category = c("CAST female","CAST female"), strain= c("CAST","CAST"), sex=c("female","female"),adj_nMLH1.foci=c(25,22),mouse=c("20dec20_CAST_f1","20dec20_CAST_f1") )
@@ -47,10 +73,10 @@ MLH1_data <- rbind(MLH1_data, last_row)
 
 #count the non-quality measures,  #remove non qualit
 #length(MLH1_data[ !(is.na(MLH1_data$quality) | MLH1_data$quality==""), ] )  #15 rows with out quality scores, remove.
-MLH1_data <- MLH1_data[ !(is.na(MLH1_data$quality) | MLH1_data$quality==""), ]
+#MLH1_data <- MLH1_data[ !(is.na(MLH1_data$quality) | MLH1_data$quality==""), ]
 
-MLH1_by_F_strain <- MLH1_data[MLH1_data$sex == "female", ]
-MLH1_by_M_strain <- MLH1_data[MLH1_data$sex == "male", ]
+#MLH1_by_F_strain <- MLH1_data[MLH1_data$sex == "female", ]
+#MLH1_by_M_strain <- MLH1_data[MLH1_data$sex == "male", ]
 ```
 
 #### Mice table
@@ -60,7 +86,7 @@ Table of the number of mice used and MLH1 stats. (made with kable).
 ```{r, fig.height=2, fig.width=4, echo=FALSE}
 #this table is saved in the .RData file
 #use kable to make tables. warning this might not work for github Rmd.
-kable(AP_strain_table)
+#kable(AP_strain_table)
 ```
 
 
@@ -69,11 +95,15 @@ kable(AP_strain_table)
 #### Initial Patterns from MLH1 distributions
 
 ```{r first boxplots, echo=FALSE, fig.align='center'}
-ff <- ggplot(MLH1_data, aes(x = as.factor(mouse), y = adj_nMLH1.foci)) + geom_boxplot(data = MLH1_data, aes(fill = factor(strain) ) ) + ggtitle("Boxplots of MLH1 distributions by mouse") + theme(axis.title.x=element_blank(),
+ff <- ggplot(MLH1_data, aes(x = as.factor(mouse), y = adj_nMLH1.foci, fill= as.factor(strain)  )) + geom_boxplot()  + ggtitle("Boxplots of MLH1 distributions by mouse") + theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) + scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00", "yellowgreen", "black", "grey", "lightgrey"))
-ff <- ff + facet_wrap(~ sex, scales="free")
+        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00", "yellowgreen", "green", "grey", "black" ))
+ff <- ff   + facet_wrap(~ sex, scales="free")
 ff
+
+#
+#scale_fill_brewer(palette="Dark2")
+
 ```
 
 After taking the data from 2 highest cell quality, some but not all mouse means converge.

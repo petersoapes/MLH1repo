@@ -1,8 +1,8 @@
 #Make File for MLH1 repo file
 
 #run report file
-rmd_report.md : depen rmd_report.rmd
-	Rscript rmd_report.rmd
+#rmd_report.md : depen rmd_report.rmd
+#	Rscript rmd_report.rmd
 
 #setup Rdata file
 MLH1_data_setup.RData : data/AnonData.csv setup_data.R

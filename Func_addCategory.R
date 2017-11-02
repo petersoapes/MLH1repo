@@ -12,15 +12,16 @@ add_category <- function(oldframe){
   dframe <- oldframe
   dframe$category <- "other"
   
-  dframe$category <- ifelse(grepl("_WSB_f", dframe$Original.Name), "WSB female", 
+  dframe$category <- ifelse(grepl("_WSB_f", dframe$Original.Name), "WSB female",
                     ifelse(grepl("_WSB_m",dframe$Original.Name), "WSB male",
                  ifelse(grepl("_G_f", dframe$Original.Name), "G female",
               ifelse(grepl("_G_m",dframe$Original.Name), "G male",
-               ifelse(grepl("_LEW_f", dframe$Original.Name), "LEW female",
-              ifelse(grepl("_LEW_m",dframe$Original.Name), "LEW male",          
-           ifelse(grepl("_LEWES_m", MLH1_data$Original.Name), "LEWES male",    
+                     ifelse(grepl("_LEWES_m", dframe$Original.Name), "LEW male",
+                     ifelse(grepl("_LEW_f", dframe$Original.Name), "LEW female",
+              ifelse(grepl("_LEW_m",dframe$Original.Name), "LEW male",        
+           
             ifelse(grepl("_PERC_f", dframe$Original.Name), "PERC female",
-            ifelse(grepl("_PERC_m",dframe$Original.Name), "PERC male",   
+            ifelse(grepl("_PERC_m",dframe$Original.Name), "PERC male",
                             
                ifelse(grepl("_CAST_m", dframe$Original.Name), "CAST male",
               ifelse(grepl("_CAST_f", dframe$Original.Name), "CAST female",
@@ -40,7 +41,11 @@ add_category <- function(oldframe){
        ifelse(grepl("_CAROLI_f", dframe$Original.Name), "CAROLI female",
                             "other")))))))))))))))))))))))
        
-  dframe$category <- as.character(dframe$category)
+  dframe$category<- factor(dframe$category,levels =c( "G female", "G male", 
+                        "WSB female", "WSB male", "LEW female", 'LEW male', "PERC male",
+                          "PWD female", "PWD male", "MSM female", "MSM male",
+                              "CAST female", "CAST male", "HMI female", "HMI male",
+                                "SPRET female", "SPRET male", "other"), order=T )
   return(dframe)
 }
 #tried writing this with mutate, couldn't get it to work

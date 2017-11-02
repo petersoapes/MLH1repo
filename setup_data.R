@@ -5,8 +5,9 @@
 ## df of MLH1 should go from 12cols to 17cols
 #import MLH1 measures across data sets; AP, BD's and Cast female Koehler
 # 1. MLH1_data, tables: AP strains
-library(dplyr)
+
 library(plyr)
+library(dplyr)
 
 ########################
 # Setup main dataframe #
@@ -42,19 +43,27 @@ source("Func_addCategory.R")
 MLH1_data <- add_category(MLH1_data)
 #set the order of categories (female, male) (cast, dom, musc)
 MLH1_data$category<- factor(MLH1_data$category,levels =c( "G female", "G male", 
-                      "WSB female", "WSB male", "LEWES female", 'LEWES male', 
+                      "WSB female", "WSB male", "LEWES female", 'LEWES male', "PERC male",
                       "PWD female", "PWD male", "MSM female", "MSM male",
-                      "CAST female", "CAST male", "SPRET female", "SPRET male"), order=T )
-
+                      "CAST female", "CAST male", "HMI female", "HMI male",
+                      "SPRET female", "SPRET male"), order=T )
 
 source("Func_addStrain.R")
 MLH1_data <- add_strain(MLH1_data)
+
+#the ordering factor below deletes all strain entries
+#MLH1_data$strain<- factor(MLH1_data$category,levels =c( "G", "WSB", "LEWES", "PERC",
+#                                                        "PWD", "MSM",
+ #                                                       "CAST", "HMI",
+#                                                        "SPRET"), order=T )
+
 source("Func_addSex.R")
 MLH1_data <- add_sex(MLH1_data)
-
+#MLH1_data$sex<- factor(MLH1_data$category,levels =c( "female", "male"), order=T )
 
 #add a column with male adjusted MLH1 values (+1 to all males)
 MLH1_data$adj_nMLH1.foci <- ifelse(MLH1_data$sex=="male", MLH1_data$nMLH1.foci+1, MLH1_data$nMLH1.foci)
+
 MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
 
 source("Func_addMouse.R")
