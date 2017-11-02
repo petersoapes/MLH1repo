@@ -195,16 +195,17 @@ I ploted the mean of each quality bin with a red dot. From the pattern of the re
 #### Assessing the Distributions by mouse
 
 latice plot of scatter plots for jitter plots of cell oberservations by quality. The category mean is in black and the mouse specific mean is in red.
-```{r, echo=FALSE, include=FALSE, message=FALSE, warning=FALSE}
-#TODO, add a line for mouse and strain
+```{r, echo=FALSE, message=FALSE,results='hide', warning=FALSE}
+#what is the purpose of this block
 
-#this creates a slot for CAST female, but no data
-#each of the indiviual dataframes can be acessed with df_list$ ---- category
-# for each sub-data frame, make mouse specific table,
-#
-#add mouse mean to the df
-df_list <- split(MLH1_data, as.factor(MLH1_data$category))
+df_list <- split(MLH1_data, (MLH1_data$category))
 
+#remove sections which are in category but have no data
+df_list <- df_list[ -c(7, 12, 14,16, 18) ]
+#7, PERC. 12 CASTF, 14 HMI f , 16 SPRET f. 18 other
+
+
+df_list 
 o=0
 i=0
 
@@ -243,13 +244,12 @@ for (h in 1:length(df_list)) {
 #so plot list is some wride dataframe, but indeces 1:12 in plot list are ggplots
 ```
 
-
 ```{r, echo=FALSE, message=FALSE,results='hide', warning=FALSE }
-#geom_hline(aes(yintercept = med, group = gr), colour = 'red')
-#for (gg in 1:length(plot_list) ){
-#  show(plot_list[gg])
-  #invisible(lapply(obj,function(x) plot(x,main="some plot")))
-#}
+geom_hline(aes(yintercept = med, group = gr), colour = 'red')
+for (gg in 1:length(plot_list) ){
+  show(plot_list[gg])
+  #invisible(lapply(obj, function(x) plot(x,main="some plot")))
+}
 ```
 
 Making all of these scatter plots, allows us to look at the whole distributions of the data for each mouse. The distance of the red line from the black could be a indicator of slides or mice with slide specific technical noise.

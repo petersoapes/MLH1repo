@@ -17,29 +17,6 @@ Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse s
 
 Aquired microscope cell images are quantified in batches after being anonimzed. The number of MLH1 foci, number of "achiasmate" and asynasped bivalents are quantified. A quality score is given; 1 to 5 (best to worst).
 
-``` r
-#set the order of another column, based on another variable (so that when)
-
-
-MLH1_data <- MLH1_data %>%
-  arrange(strain, sex, category, mouse) %>%
-  mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
-
-MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
-
-# sort your dataframe, by the focal categories
-#MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
-
-
-
-#count the non-quality measures,  #remove non qualit
-#length(MLH1_data[ !(is.na(MLH1_data$quality) | MLH1_data$quality==""), ] )  #15 rows with out quality scores, remove.
-#MLH1_data <- MLH1_data[ !(is.na(MLH1_data$quality) | MLH1_data$quality==""), ]
-
-#MLH1_by_F_strain <- MLH1_data[MLH1_data$sex == "female", ]
-#MLH1_by_M_strain <- MLH1_data[MLH1_data$sex == "male", ]
-```
-
 #### Mice table
 
 Table of the number of mice used and MLH1 stats. (made with kable).
@@ -81,6 +58,8 @@ I ploted the mean of each quality bin with a red dot. From the pattern of the re
 #### Assessing the Distributions by mouse
 
 latice plot of scatter plots for jitter plots of cell oberservations by quality. The category mean is in black and the mouse specific mean is in red.
+
+![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-1.png)![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-2.png)![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-3.png)![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-4.png)![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-5.png)![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-6.png)![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-7.png)![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-8.png)![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-9.png)![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-10.png)![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-11.png)![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-12.png)![](rmd_report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-13.png)
 
 Making all of these scatter plots, allows us to look at the whole distributions of the data for each mouse. The distance of the red line from the black could be a indicator of slides or mice with slide specific technical noise.
 
