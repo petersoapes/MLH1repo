@@ -44,7 +44,3 @@ add_category <- function(oldframe){
   return(dframe)
 }
 #tried writing this with mutate, couldn't get it to work
-
-
-
-

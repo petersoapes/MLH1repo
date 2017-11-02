@@ -10,29 +10,21 @@ library(plyr)
 library(lattice)
 library(dplyr)
 
-
-#age, mat and pat age, Gough Line, staining batch
-
-#count the number of mice with missing meta-data
-
+#age, mat and pat age, Gough Line, (staining batch for cells)
 
 #load meta data csv file 
 #finalize the coding (NAs, ect)
-meta_data = read.csv("C:/Users/alpeterson7/Documents/MLH1data/data/ALP_MouseMetadata2.csv")
+meta_data = read.csv("C:/Users/alpeterson7/Documents/MLH1data/data/mouseDOBs.csv")
+
 save.image("play_data_for_meta.RData")
 #data needs to be cleaned up (all NA's removed before calculating )
-
 
 #mouse column already included,
 #change category, sex -- there is no file name...
 #using the functions will be a little tricky
 
-
-
 meta_data$mouse <- as.character(meta_data$mouse)
 #format euth date (from mouse)
-ply_set <- meta_data[5:9,]
-
 #all NA's need to be removed
 
 for( t in 1:length(meta_data$mouse)){
@@ -42,14 +34,16 @@ for( t in 1:length(meta_data$mouse)){
   fomt_euth_nrm <- as.Date(fomt_euth, "%Y-%m-%d")
   vv <- as.numeric(difftime(fomt_euth, as.Date(meta_data$DOB[t], '%m/%d/%Y')), units="weeks" )#whoo, this works
   hh <- as.numeric(difftime(fomt_euth, as.Date(meta_data$DOB[t], '%m/%d/%Y')), units="hours" )
-  meta_data$diffy_weeks[t] <- vv
-  meta_data$diffy_hours[t] <- hh
-  meta_data$calq_age[t] <- fomt_euth
+  meta_data$age_weeks[t] <- vv
+  meta_data$age_hours[t] <- hh
 
+  #mat age, DOB -Mat_dob
+  mat_dob <- as.Date(meta_data$maternal.age..DOB.[t], format= '%m/%d/%Y')
+#  hh <- as.numeric(difftime(fomt_euth, as.Date(meta_data$DOB[t], '%m/%d/%Y')), units="hours" )
+  gg <- as.numeric(difftime(as.Date(meta_data$DOB[t], '%m/%d/%Y'),mat_dob), units="weeks" )
+  meta_data$mat_age_wk[t] <- gg
 }
 
-mouse[1]
-strsplit(i, split="_")  #as.Date(first part of mouse,format='%d%b%y' )
 
 as.Date(first part of mouse,format='%d%b%y' )
 euth_date <- as.Date(p[[1]][1],format='%d%b%y' )
@@ -73,25 +67,32 @@ load(file="MLH1_data_setup.RData")
 ##############
 # MERGE DATA #
 ##############
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+load("MLH1_data_setup.RData")
 #add euth date and calc age
-merged = merge(MLH1_data, meta_data, by.x = "mouse")
+mergedDF = merge(MLH1_data, meta_data, by = "mouse") #4000 cells by table of 1178 mice
+
+dissected_mice <- unique(meta_data$mouse)#180
+imaged_mice <- unique(MLH1_data$mouse)#62
+n.overlapping_mice <- length(imaged_mice)/length(dissected_mice)
+
+############
+#count the number of mice with missing meta-data
+##############
+dfn <- mergedDF[(mergedDF$DOB == '' ),]
+dfm <- mergedDF[(is.na(mergedDF$DOB) ), ]
+
+unique(dfn$mouse)
+
+unique((dfm$mouse))
 
 
-#make table for counting data,
-#for all mice in MLH1 table
+#### 
+# Assess effects
+#
 
+F_merged_DF <- mergedDF[mergedDF$sex == "female",]
+M_merged_DF <- mergedDF[mergedDF$sex == "male", ]
 
+#calc mouse average, MLH1 and age
 
-# "passing an
-#for 'passing mice' (figure out what table or list this will be)
-
-
-#source("Func_addCategory.R")
-#function would work for this csv file
-#MLH1_data <- add_category(MLH1_data)
-#set the order of categories (female, male) (cast, dom, musc)
-#MLH1_data$category<- factor(MLH1_data$category,levels =c( "G female", "G male", 
-#                       "WSB female", "WSB male", "LEWES female", 'LEWES male', 
-#                     "PWD female", "PWD male", "MSM female", "MSM male",
-#                                    "CAST female", "CAST male"), order=T )
-#MLH1_data$category <- as.factor(MLH1_data$category)

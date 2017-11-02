@@ -1,5 +1,8 @@
 #Make File for MLH1 repo file
 
+#run report file
+rmd_report.md : depen rmd_report.rmd
+	Rscript rmd_report.rmd
 
 #setup Rdata file
 MLH1_data_setup.RData : data/AnonData.csv setup_data.R
@@ -15,4 +18,4 @@ data/bigdata.csv : data/*.csv
 
 #make header file
 data/anonheader.csv : data/*.csv
-	head -1 `ls data/*.csv -S | head -1` >> data/anonheader.csv
+	head -1 `ls data/*.csv -S | head -1` > data/anonheader.csv
