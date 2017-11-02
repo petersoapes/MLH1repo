@@ -33,34 +33,11 @@ Aquired microscope cell images are quantified in batches after being anonimzed. 
 
 #set the order of another column, based on another variable (so that when)
 
-MLH1_data <- add_strain(MLH1_data)
-MLH1_data$strain <- as.factor(MLH1_data$strain)
-
-MLH1_data$strain<- factor(MLH1_data$strain,levels =c( "G", "WSB", "LEWES", 
-                                                        "PWD", "MSM",
-                                                       "CAST", "HMI",
-                                                        "SPRET", "other"), order=T )
-
-MLH1_data$sex<- factor(MLH1_data$sex,levels =c( "female", "male"), order=T )
-
-MLH1_data$category<- factor(MLH1_data$category,levels =c( "G female", "G male", 
-                      "WSB female", "WSB male", "LEWES female", 'LEWES male', "PERC male",
-                      "PWD female", "PWD male", "MSM female", "MSM male",
-                      "CAST female", "CAST male", "HMI female", "HMI male",
-                      "SPRET female", "SPRET male"), order=T )
 
 MLH1_data <- MLH1_data %>%
   arrange(strain, sex, category, mouse) %>%
   mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
 
-MLH1_data <- MLH1_data %>%
-  arrange(category, mouse) %>%
-  mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
-
-
-
-
-#order the data frame
 MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
 
 # sort your dataframe, by the focal categories
@@ -89,20 +66,38 @@ Table of the number of mice used and MLH1 stats. (made with kable).
 #kable(AP_strain_table)
 ```
 
-
+MLH1_data <- MLH1_data %>%
+  arrange(category) %>%
+  mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
+#order the data frame
+MLH1_data <- with(MLH1_data, MLH1_data[order(category),])
 
 
 #### Initial Patterns from MLH1 distributions
 
 ```{r first boxplots, echo=FALSE, fig.align='center'}
-ff <- ggplot(MLH1_data, aes(x = as.factor(mouse), y = adj_nMLH1.foci, fill= as.factor(strain)  )) + geom_boxplot()  + ggtitle("Boxplots of MLH1 distributions by mouse") + theme(axis.title.x=element_blank(),
+#the below ordering works!! keep it
+MLH1_data$strain<- factor(MLH1_data$strain, levels =c("G", "LEWES",
+                              "WSB", "PWD","MSM","CAST", "HIM", "SPRET"), order=T )
+#order the data frame
+MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
+#set the order of another column, based on another variable (so that when)
+
+MLH1_data <- MLH1_data %>%
+  arrange(strain, sex, mouse) %>%
+  mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
+# sort your dataframe, by the focal categories
+MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
+
+
+
+ff <- ggplot(MLH1_data, aes(x = as.factor(mouse), y = adj_nMLH1.foci, fill= strain )) + geom_boxplot()  + ggtitle("Boxplots of MLH1 distributions by mouse") + theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00", "yellowgreen", "green", "grey", "black" ))
+        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00", "yellowgreen", "green", "grey" ))
 ff <- ff   + facet_wrap(~ sex, scales="free")
 ff
 
 #
-#scale_fill_brewer(palette="Dark2")
 
 ```
 

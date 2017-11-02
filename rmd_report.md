@@ -18,15 +18,17 @@ Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse s
 Aquired microscope cell images are quantified in batches after being anonimzed. The number of MLH1 foci, number of "achiasmate" and asynasped bivalents are quantified. A quality score is given; 1 to 5 (best to worst).
 
 ``` r
-#order the data frame
-MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
 #set the order of another column, based on another variable (so that when)
 
+
 MLH1_data <- MLH1_data %>%
-  arrange(strain, sex, mouse) %>%
+  arrange(strain, sex, category, mouse) %>%
   mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
+
+MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
+
 # sort your dataframe, by the focal categories
-MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
+#MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 
 #Add fake CAST female data
 last_row <-data.frame(Batch = c("100", "100"), X= c("",""), Original.Name=c("12dec18_20dec20_CAST_f1_sp1_12_1_rev.tif", "12dec18_20dec20_CAST_f1_sp1_12_2_rev.tif"), Random.Name = c("1234567.tif","123456789.tif"), quality=c(1,1),nMLH1.foci =c(25,22), XY.paired =c("no","no"), REDO.crop =c("no","no"),n =c(20,20), achiasmate=c(0,0),asynased=c(0,0),notes=c("",""),category = c("CAST female","CAST female"), strain= c("CAST","CAST"), sex=c("female","female"),adj_nMLH1.foci=c(25,22),mouse=c("20dec20_CAST_f1","20dec20_CAST_f1") )
@@ -35,32 +37,17 @@ MLH1_data <- rbind(MLH1_data, last_row)
 
 #count the non-quality measures,  #remove non qualit
 #length(MLH1_data[ !(is.na(MLH1_data$quality) | MLH1_data$quality==""), ] )  #15 rows with out quality scores, remove.
-MLH1_data <- MLH1_data[ !(is.na(MLH1_data$quality) | MLH1_data$quality==""), ]
+#MLH1_data <- MLH1_data[ !(is.na(MLH1_data$quality) | MLH1_data$quality==""), ]
 
-MLH1_by_F_strain <- MLH1_data[MLH1_data$sex == "female", ]
-MLH1_by_M_strain <- MLH1_data[MLH1_data$sex == "male", ]
+#MLH1_by_F_strain <- MLH1_data[MLH1_data$sex == "female", ]
+#MLH1_by_M_strain <- MLH1_data[MLH1_data$sex == "male", ]
 ```
 
 #### Mice table
 
 Table of the number of mice used and MLH1 stats. (made with kable).
 
-| strain | sex    |  Nmice|  Ncells| mean\_co | var    |     sd|     se| dataset |
-|:-------|:-------|------:|-------:|:---------|:-------|------:|------:|:--------|
-| CAST   | male   |      2|      51| 11.176   | 11.748 |  3.428|  0.480| AP      |
-| G      | female |      7|     230| 18.639   | 17.935 |  4.235|  0.279| AP      |
-| G      | male   |      8|     179| 13.341   | 7.012  |  2.648|  0.198| AP      |
-| HMI    | male   |      1|       8| 15.125   | 28.125 |  5.303|  1.875| AP      |
-| LEWES  | female |      4|      80| 15.713   | 25.043 |  5.004|  0.559| AP      |
-| LEWES  | male   |      5|     166| 14.602   | 12.350 |  3.514|  0.273| AP      |
-| MSM    | female |      4|      90| 17.011   | 19.764 |  4.446|  0.469| AP      |
-| MSM    | male   |      6|     148| 19.615   | 17.245 |  4.153|  0.341| AP      |
-| other  | male   |      1|      25| 14.160   | 11.057 |  3.325|  0.665| AP      |
-| PWD    | female |     13|     257| 15.747   | 14.221 |  3.771|  0.235| AP      |
-| PWD    | male   |      7|     162| 18.858   | 9.166  |  3.028|  0.238| AP      |
-| SPRET  | male   |      1|      31| 14.774   | 5.647  |  2.376|  0.427| AP      |
-| WSB    | female |      7|     134| 13.791   | 11.339 |  3.367|  0.291| AP      |
-| WSB    | male   |      5|      96| 13.052   | 8.787  |  2.964|  0.303| AP      |
+MLH1\_data &lt;- MLH1\_data %&gt;% arrange(category) %&gt;% mutate(Original.Name = factor(Original.Name)) \#another category that you want the order to match \#order the data frame MLH1\_data &lt;- with(MLH1\_data, MLH1\_data\[order(category),\])
 
 #### Initial Patterns from MLH1 distributions
 
@@ -85,6 +72,10 @@ After taking the data from 2 highest cell quality, some but not all mouse means 
 ##### Effects of quality
 
 Human quantification seems to be biased towards rating cells with more MLH1 foci as higher quality. Unbiased cell quality assignment, would not show a positive correlation with quality and nMLH1. (CAST female data is fake)
+
+    ## Warning: Removed 7 rows containing missing values (geom_point).
+
+    ## Warning: Removed 5 rows containing missing values (geom_point).
 
 ![caption](rmd_report_files/figure-markdown_github-ascii_identifiers/scatter%20plots%20of%20nMLH1%20by%20score-1.png)
 

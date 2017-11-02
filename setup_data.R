@@ -21,6 +21,8 @@ MLH1_data = read.csv("data/AnonData.csv", header=TRUE )
 original_DF = MLH1_data
 original_length <- length(MLH1_data$Original.Name)
 
+MLH1_data$Original.Name <- as.character(MLH1_data$Original.Name)
+
 MLH1_data$n <- as.character(MLH1_data$n)
 MLH1_data$nMLH1.foci<- as.character(MLH1_data$nMLH1.foci)
 MLH1_data$quality<- as.character(MLH1_data$quality)
@@ -42,24 +44,11 @@ MLH1_data <- MLH1_data[MLH1_data$nMLH1.foci != "x",]
 source("Func_addCategory.R")
 MLH1_data <- add_category(MLH1_data)
 #set the order of categories (female, male) (cast, dom, musc)
-MLH1_data$category<- factor(MLH1_data$category,levels =c( "G female", "G male", 
-                      "WSB female", "WSB male", "LEWES female", 'LEWES male', "PERC male",
-                      "PWD female", "PWD male", "MSM female", "MSM male",
-                      "CAST female", "CAST male", "HMI female", "HMI male",
-                      "SPRET female", "SPRET male"), order=T )
 
 source("Func_addStrain.R")
 MLH1_data <- add_strain(MLH1_data)
-
-#the ordering factor below deletes all strain entries
-#MLH1_data$strain<- factor(MLH1_data$category,levels =c( "G", "WSB", "LEWES", "PERC",
-#                                                        "PWD", "MSM",
- #                                                       "CAST", "HMI",
-#                                                        "SPRET"), order=T )
-
 source("Func_addSex.R")
 MLH1_data <- add_sex(MLH1_data)
-#MLH1_data$sex<- factor(MLH1_data$category,levels =c( "female", "male"), order=T )
 
 #add a column with male adjusted MLH1 values (+1 to all males)
 MLH1_data$adj_nMLH1.foci <- ifelse(MLH1_data$sex=="male", MLH1_data$nMLH1.foci+1, MLH1_data$nMLH1.foci)
@@ -69,16 +58,20 @@ MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
 source("Func_addMouse.R")
 MLH1_data <- add_mouse(MLH1_data)
 
+#reorder dataframe
+MLH1_data <- MLH1_data %>%
+  arrange(strain, sex, mouse) %>%
+  mutate(Original.Name = factor(Original.Name))
+
+
 #remove mice that had bad stains
 #12sep16_MSM_f3(centromere signal bled into MLH1 signal)
 MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f3", MLH1_data$mouse) , ]
 #make a list of bad mice
 
-
 #MLH1_by_M_mouse <- with(MLH1_by_M_mouse, MLH1_by_M_mouse[order(subsp),])
 #load Lynn et al 2002 data. 12 CAST female MLH1 measurements (probably 1 female)
 #Lynn_CASTf = c(20,21, 23, 25, 26, 26,26,27.5, 28, 28,28,33)
-
 
 #load BD's data. Only PWD female and F1 females missing
 fullBD_MLH1_data = read.csv("C:/Users/alpeterson7/Documents/MLH1data/data/BD_MLH1data/BD_RecombinationPhenotypes_input.csv")

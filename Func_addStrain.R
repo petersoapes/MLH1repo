@@ -7,7 +7,7 @@ add_strain <- function(dat){
   
   dframe$strain <- ifelse(grepl("_WSB", dframe$Original.Name), "WSB", 
               ifelse(grepl("_G_",dframe$Original.Name), "G",
-           ifelse(grepl("_LEW_", dframe$Original.Name), "LEWES",
+           ifelse(grepl("_LEW", dframe$Original.Name), "LEWES",
                                   
             ifelse(grepl("_MSM_", dframe$Original.Name), "MSM",           
            ifelse(grepl("_PWD_", dframe$Original.Name), "PWD",
@@ -20,7 +20,7 @@ add_strain <- function(dat){
                                        "other"))))))))))
   
   #the ordering factor below deletes all strain entries
-  dframe$strain<- factor(dframe$strain,levels =c( "G", "WSB", "LEWES", "PERC",
+  dframe$strain<- factor(dframe$strain,levels =c( "WSB", "G", "LEWES", "PERC",
                                                         "PWD", "MSM",
                                                         "CAST", "HMI",
                                                         "SPRET", "other"), order=T )
