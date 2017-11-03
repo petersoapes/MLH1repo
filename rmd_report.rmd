@@ -221,24 +221,17 @@ for(i in 1:(length(df_list))){
     df_list[[i]]$mouse_mean_MLH1[o] <- sub_mouse_means$mouse_nMLH1[ (df_list[[i]]$mouse[o] == sub_mouse_means$mouse) ]
         }
 }
-#remove CAST, this column isn't added to MLH1 col, it's added to df_list
-#The above adds a column of mouse specific averages to a giant list of dataframes. Each dataframe in the list is specific to a category.
-#the next step is to make plots from this giant list of dataframes
-# I can delete all of the code below that by hand makes 
-
-### not make a loop for ggplot... or giant ggplot base that uses latice smartly
-# make new ggplots -- that are replaces
 
 plot_list = list()
 for (h in 1:length(df_list)) {
   pf <- ggplot(df_list[[h]],(aes(y= adj_nMLH1.foci, x= quality)))
-  pf <- pf + geom_point(stat = "identity")+ geom_jitter()
+  pf <- pf + geom_jitter(width = 0.25, aes(colour = factor(Batch)) )
   pf <- pf + geom_hline(yintercept = c( mean(df_list[[h]]$adj_nMLH1.foci) ), color="black" )
   pf <- pf + facet_wrap(~ mouse) + geom_hline(aes(yintercept = mouse_mean_MLH1), color="red")
   plot_list[[h]] =   pf
 }
 
-#aes must be same length --- 
+#aes must be same length ---   #geom_point(stat = "identity") +
 # the last one is correct....?
 
 #so plot list is some wride dataframe, but indeces 1:12 in plot list are ggplots
