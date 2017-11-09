@@ -4,13 +4,19 @@
 
 library(plyr)
 library(gplots)
-library(ggplot2)
-
+library(reshape2)
+library(devEMF)
 #############
 # load data #
 #############
 setwd("C:/Users/alpeterson7/Documents/MLH1repo")
 load(file="MLH1_data_setup.RData")
+
+#create file to save image first
+png("adj_HetC.png")
+
+#emf(file="example.emf", bg="white", width=10, height=10, family="Calibri", pointsize=20)
+#emf is not vectorized in emf file in powrpnt
 
 #remake the table -- specific strains
 
@@ -31,7 +37,7 @@ cast_f_row = c("CAST", "female", 1, length(Lynn_CASTf_foci), round(mean(Lynn_CAS
            round(sd(Lynn_CASTf_foci)/sqrt(length(Lynn_CASTf_foci)),3 ), 
          round(sd(Lynn_CASTf_foci) / (mean(Lynn_CASTf_foci) ), 3)  )
 
-AP_strain_table <- rbind(AP_strain_table, cast_f)
+AP_strain_table <- rbind(AP_strain_table, cast_f_row)
 
 #make casted rows
 casted_co <- dcast(data = AP_strain_table, formula= strain~sex, value.var="mean_co")
@@ -49,8 +55,6 @@ colnames(HetC_table) <- c("strain","f_CO_mean","m_CO_mean","f_CO_var","m_CO_var"
 
 #remove NA's (those without females)
 HetC_table <- na.omit(HetC_table)
-
-H
 
 ######################
 # MAKE ADJUSTED PLOT #
@@ -77,7 +81,7 @@ plotCI(x = as.numeric(HetC_table[,3]),   #male mean_co
        uiw = as.numeric(HetC_table[,8])*2, #female se
        
 #change the colors       
-       col = c("#56B4E9","cadetblue4", "cadetblue", #blues, 
+       col = c("#56B4E9","cadetblue4", "cadetblue", #blues, W, Lew, G,
                "coral1", "#E69F00", "yellowgreen"),        #reds   "indianred",
        #   "seagreen3"           #green
        pch = 16, lwd = 2, gap = 0, sfrac = 0.01, add = TRUE, cex=1.4)
@@ -94,11 +98,11 @@ segments(  (as.numeric(HetC_table[1,3]) - as.numeric(HetC_table[1,9])*2 ), as.nu
 #lew
 segments(  (as.numeric(HetC_table[3,3]) - as.numeric(HetC_table[3,9])*2 ), as.numeric(HetC_table[3,2]), 
            ( as.numeric(HetC_table[3,3]) + as.numeric(HetC_table[3,9])*2 ), as.numeric(HetC_table[3,2]),
-           lwd=2, col="cadetblue4") 
+           lwd=2, col="cadetblue") 
 #G
 segments(  (as.numeric(HetC_table[2,3]) - as.numeric(HetC_table[2,9])*2 ), as.numeric(HetC_table[2,2]), 
            ( as.numeric(HetC_table[2,3]) + as.numeric(HetC_table[2,9])*2 ), as.numeric(HetC_table[2,2]),
-           lwd=2, col="cadetblue") 
+           lwd=2, col="cadetblue4")
 
 #pwd
 segments(  (as.numeric(HetC_table[4,3]) - as.numeric(HetC_table[4,9])*2 ), as.numeric(HetC_table[4,2]), 
@@ -113,11 +117,13 @@ segments(  (as.numeric(HetC_table[6,3]) - as.numeric(HetC_table[6,9])*2 ), as.nu
            ( as.numeric(HetC_table[6,3]) + as.numeric(HetC_table[6,9])*2 ), as.numeric(HetC_table[6,2]),
            lwd=2, col="yellowgreen")
 
-dev.copy(png,'HetC_adj_nov17.png')
-dev.off()
-
-#dev.copy(win.metafile, "HetC_adj.wmf")
 #dev.off()
 
-
-
+#setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+#dev.copy(png,'adj_HetC.png')
+#library(devEMF)
+#emf(file="example.emf", bg="white", width=12, height=8, family="Calibri", pointsize=20)
+#dev.off()
+dev.off()#emf
+#dev.copy(png,'Biv_scatter_plot_female.png')
+#dev.off()

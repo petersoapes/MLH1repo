@@ -4,6 +4,10 @@
 #rmd_report.md : depen rmd_report.rmd
 #	Rscript rmd_report.rmd
 
+#HetC Figure
+adj_HetC.png : src/HetC_plot.R data/AnonData.csv
+	Rscript src/HetC_plot.R
+
 #setup Rdata file
 MLH1_data_setup.RData : data/AnonData.csv setup_data.R
 	Rscript setup_data.R
