@@ -4,6 +4,10 @@
 #rmd_report.md : depen rmd_report.rmd
 #	Rscript rmd_report.rmd
 
+#MLH1 by strain figures
+femaleMLH1_plot.png : src/MLH1_mouse_means.R data/AnonData.csv
+	Rscript src/MLH1_mouse_means.R
+
 #HetC Figure
 adj_HetC.png : src/HetC_plot.R data/AnonData.csv
 	Rscript src/HetC_plot.R

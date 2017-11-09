@@ -8,7 +8,7 @@
 #..maybe there should be a R code for saving processing the data
 #but for now, just construct the make file when dataframe is pasted into the dir
 library(plyr)
-library(gplots)
+library(dplyr)
 library(ggplot2)
 
 #############
@@ -23,7 +23,6 @@ load(file="MLH1_data_setup.RData")
 ###################
 
 #make sure the levels are in the correct order for the graph plotting
-MLH1_data <- with(MLH1_data, MLH1_data[order(subsp, strain),])
 
 AP_strain_table <- ddply(MLH1_data, c("strain", "sex"), summarise,
                          Nmice = length(unique(mouse)),
@@ -74,12 +73,12 @@ MLH1_by_M_strain <- AP_strain_table[AP_strain_table$sex == "male", ]
 #text has to be changed outside of ggplot?
 bold.italic.12.text <- element_text(face = "bold.italic", size = 12)
 
-#sort by subspecies
-dom_seq <- seq(length(MLH1_by_F_strain$strain[MLH1_by_F_strain$subsp == "M.m. domesticus"]))
-
+#
+#make dom points closer
+dom_seq <- seq(length(MLH1_by_F_strain$strain[MLH1_by_F_strain$subsp == "M.m. domesticus"]) )#, by=0.5)
 #musc and space
 musc_seq <- seq(length(dom_seq)+2, length(dom_seq)+length(MLH1_by_F_strain$strain[MLH1_by_F_strain$subsp == "M.m. musculus"])+1,1)
-
+#
 cast_seq <- seq(musc_seq[length(musc_seq)]+1, musc_seq[length(musc_seq)]+length(MLH1_by_F_strain$strain[MLH1_by_F_strain$subsp == "M.m. castaneus"]))
 
 #length of MLH1_by_F_strain, dom vs musc, vs outgroup
@@ -87,11 +86,12 @@ x_space_scale = c(dom_seq, musc_seq, cast_seq)
 
 
 ## subspecies annotate texts
-grob <- grobTree(textGrob(c("M.m. \n domesticus", "M.m. \n musculus", "M.m.\n castaneus"),x = c(2,5,7),y=22,
-                  gp=gpar(col="red", fontsize=13, fontface="italic")))
+#grob <- grobTree(textGrob(c("M.m. \n domesticus", "M.m. \n musculus", "M.m.\n castaneus"),x = c(2,5,7),y=22,
+#                  gp=gpar(col="red", fontsize=13, fontface="italic")))
 # Plot
-sp2 + annotation_custom(grob)
+#sp2 + annotation_custom(grob)
 
+png('femaleMLH1_plot.png')
 
 #okay .. plot is coming along
 #not perfect...
@@ -110,7 +110,7 @@ try
 
 
 #below script prepares a file for saving in working dir
-dev.copy(png,'NOV_female_plot.png')
+
 dev.off()
 #dev.off() #there's an extra layer?
 
