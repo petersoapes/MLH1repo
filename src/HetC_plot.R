@@ -9,50 +9,48 @@ library(ggplot2)
 #############
 # load data #
 #############
-setwd("C:/Users/alpeterson7/Documents/MLH1data/Results/figures/")
-
+setwd("C:/Users/alpeterson7/Documents/MLH1repo")
 load(file="MLH1_data_setup.RData")
-#file for saving #png("HetC.png")
 
 #remake the table -- specific strains
 
-g_row <- c(subset(MLH1_data, strain == "G" & sex == "male" & dataset =="AP")$mean_co,
-           subset(MLH1_data, strain == "G" & sex == "female" & dataset =="AP")$mean_co,
-           subset(MLH1_data, strain == "G" & sex == "male" & dataset =="AP")$se,
-           subset(MLH1_data, strain == "G" & sex == "female" & dataset =="AP")$se)
+AP_strain_table <- ddply(MLH1_data, c("strain", "sex"), summarise,
+                         Nmice = length(unique(mouse)),
+                         Ncells  = length(adj_nMLH1.foci),
+                         mean_co = format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3),
+                         var = format(round(   var(nMLH1.foci),3), nsmall=3),
+                         sd   = round(sd(adj_nMLH1.foci), 3),
+                         se   = round(sd / sqrt(Ncells), 3),
+                         cV = round( (as.numeric(sd) / as.numeric(mean_co) ),3)
+)
 
-lew_row <- c(subset(MLH1_data, strain == "LEWES" & sex == "male" & dataset =="AP")$mean_co,
-             subset(MLH1_data, strain == "LEWES" & sex == "female" & dataset =="AP")$mean_co,
-             subset(MLH1_data, strain == "LEWES" & sex == "male" & dataset =="AP")$se,
-             subset(MLH1_data, strain == "LEWES" & sex == "female" & dataset =="AP")$se)
+#add Lynn Cast female data
+Lynn_CASTf_foci = c(20,21, 23, 25, 26, 26,26,27.5, 28, 28,28,33)
+cast_f_row = c("CAST", "female", 1, length(Lynn_CASTf_foci), round(mean(Lynn_CASTf_foci),3), 
+           round(var(Lynn_CASTf_foci),3), round(sd(Lynn_CASTf_foci),3), 
+           round(sd(Lynn_CASTf_foci)/sqrt(length(Lynn_CASTf_foci)),3 ), 
+         round(sd(Lynn_CASTf_foci) / (mean(Lynn_CASTf_foci) ), 3)  )
 
-wsb_row <- c(subset(MLH1_data, strain == "WSB" & sex == "male" & dataset =="AP")$mean_co,
-             subset(MLH1_data, strain == "WSB" & sex == "female" & dataset =="AP")$mean_co,
-             subset(MLH1_data, strain == "WSB" & sex == "male" & dataset =="AP")$se,
-             subset(MLH1_data, strain == "WSB" & sex == "female" & dataset =="AP")$se)  
+AP_strain_table <- rbind(AP_strain_table, cast_f)
 
-pwd_row <- c(subset(MLH1_data, strain == "PWD" & sex == "male" & dataset =="AP")$mean_co,
-             subset(MLH1_data, strain == "PWD" & sex == "female" & dataset =="AP")$mean_co,
-             subset(MLH1_data, strain == "PWD" & sex == "male" & dataset =="AP")$se,
-             subset(MLH1_data, strain == "PWD" & sex == "female" & dataset =="AP")$se)  
+#make casted rows
+casted_co <- dcast(data = AP_strain_table, formula= strain~sex, value.var="mean_co")
+casted_var <- dcast(data = AP_strain_table, formula= strain~sex, value.var="var")
+casted_sd <- dcast(data = AP_strain_table, formula= strain~sex, value.var="sd")
+casted_se <- dcast(data = AP_strain_table, formula= strain~sex, value.var="se")
+casted_cV <- dcast(data = AP_strain_table, formula= strain~sex, value.var="cV")
 
-msm_row <-c(subset(MLH1_data, strain == "MSM" & sex == "male" & dataset =="AP")$mean_co,
-            subset(MLH1_data, strain == "MSM" & sex == "female" & dataset =="AP")$mean_co,
-            subset(MLH1_data, strain == "MSM" & sex == "male" & dataset =="AP")$se,
-            subset(MLH1_data, strain == "MSM" & sex == "female" & dataset =="AP")$se)  
+#strain variance table
+HetC_table <- cbind(casted_co, casted_var[,2:3], casted_sd[,2:3], casted_se[,2:3], casted_cV[,2:3])
 
-cast_row <-c(subset(MLH1_data, strain == "CAST" & sex == "male" & dataset =="AP")$mean_co,
-             subset(MLH1_data, strain == "CAST" & sex == "female")$mean_co,
-            subset(MLH1_data, strain == "CAST" & sex == "male" & dataset =="AP")$se,
-            subset(MLH1_data, strain == "CAST" & sex == "female")$se)
+#rename the colnames
+colnames(HetC_table) <- c("strain","f_CO_mean","m_CO_mean","f_CO_var","m_CO_var","f_CO_sd","m_CO_sd",
+                  "f_CO_se","m_CO_se","f_CO_cV","m_CO_cV" )
 
-vals4plot <- rbind(g_row, lew_row, wsb_row, pwd_row, msm_row, cast_row)
-#this turns everything to characters
-colnames(vals4plot) <- c("male_CO", "female_CO", "male_se", "female_se")
-vals4plot_adj <- vals4plot
+#remove NA's (those without females)
+HetC_table <- na.omit(HetC_table)
 
-#make an adjusted table, (just add 1 to the male means
-vals4plot_adj[,1] <- as.numeric(vals4plot_adj[,1]) +1
+H
 
 ######################
 # MAKE ADJUSTED PLOT #
@@ -60,7 +58,8 @@ vals4plot_adj[,1] <- as.numeric(vals4plot_adj[,1]) +1
 
 par(mfrow=c(1,1))
 par(cex = 1)
-plot(x =  vals4plot_adj[,1], y = vals4plot_adj[,2], main = "",
+#points ploted with means, F-y, M-x
+plot(x =as.numeric(HetC_table[,3]), y = as.numeric(HetC_table[,2]), main = "",
      xlim=c(20,35), ylim=c(20,35),
      xlab ="Male MLH1 Foci", ylab = "Female MLH1 Foci", axes = F, type = "n", font.axis = 6)
 axis(side = 1, at = c(0,21,23,25,27,29,31,33,35), labels = c("","21","23","25","27","29","31","33",""), lwd = 2)
@@ -73,55 +72,52 @@ m = lm(x~y)
 abline(m, lwd=2) 
 
 #change labels
-plotCI(x = as.numeric(vals4plot_adj[,1]),   #male mean_co
-       y = as.numeric(vals4plot_adj[,2]),  #female mean_co
-       uiw = as.numeric(vals4plot_adj[,4])*2, #female se
+plotCI(x = as.numeric(HetC_table[,3]),   #male mean_co
+       y = as.numeric(HetC_table[,2]),  #female mean_co
+       uiw = as.numeric(HetC_table[,8])*2, #female se
        
+#change the colors       
        col = c("#56B4E9","cadetblue4", "cadetblue", #blues, 
                "coral1", "#E69F00", "yellowgreen"),        #reds   "indianred",
-               #   "seagreen3"           #green
+       #   "seagreen3"           #green
        pch = 16, lwd = 2, gap = 0, sfrac = 0.01, add = TRUE, cex=1.4)
 
 
-#g, row 1.  (coordinates, male mean x, female mean y  - female xse)
-segments(  (as.numeric(vals4plot_adj[1,1]) - as.numeric(vals4plot_adj[1,3])*2 ), as.numeric(vals4plot_adj[1,2]), 
-        ( as.numeric(vals4plot_adj[1,1]) + as.numeric(vals4plot_adj[1,3])*2 ), as.numeric(vals4plot_adj[1,2]),
-           lwd=2, col="#56B4E9") 
+#figure out a way to automate the segments....
+
+#WSB
+#, row 1.  (coordinates, male mean x, female mean y  - female xse)
+segments(  (as.numeric(HetC_table[1,3]) - as.numeric(HetC_table[1,9])*2 ), as.numeric(HetC_table[1,2]), 
+           ( as.numeric(HetC_table[1,3]) + as.numeric(HetC_table[1,9])*2 ), as.numeric(HetC_table[1,2]),
+           lwd=2, col="#56B4E9") #
+
 #lew
-segments(  (as.numeric(vals4plot_adj[2,1]) - as.numeric(vals4plot_adj[2,3])*2 ), as.numeric(vals4plot_adj[2,2]), 
-           ( as.numeric(vals4plot_adj[2,1]) + as.numeric(vals4plot_adj[2,3])*2 ), as.numeric(vals4plot_adj[2,2]),
+segments(  (as.numeric(HetC_table[3,3]) - as.numeric(HetC_table[3,9])*2 ), as.numeric(HetC_table[3,2]), 
+           ( as.numeric(HetC_table[3,3]) + as.numeric(HetC_table[3,9])*2 ), as.numeric(HetC_table[3,2]),
            lwd=2, col="cadetblue4") 
-#wsb
-segments(  (as.numeric(vals4plot_adj[3,1]) - as.numeric(vals4plot_adj[3,3])*2 ), as.numeric(vals4plot_adj[3,2]), 
-           ( as.numeric(vals4plot_adj[3,1]) + as.numeric(vals4plot_adj[3,3])*2 ), as.numeric(vals4plot_adj[3,2]),
+#G
+segments(  (as.numeric(HetC_table[2,3]) - as.numeric(HetC_table[2,9])*2 ), as.numeric(HetC_table[2,2]), 
+           ( as.numeric(HetC_table[2,3]) + as.numeric(HetC_table[2,9])*2 ), as.numeric(HetC_table[2,2]),
            lwd=2, col="cadetblue") 
+
 #pwd
-segments(  (as.numeric(vals4plot_adj[4,1]) - as.numeric(vals4plot_adj[4,3])*2 ), as.numeric(vals4plot_adj[4,2]), 
-           ( as.numeric(vals4plot_adj[4,1]) + as.numeric(vals4plot_adj[4,3])*2 ), as.numeric(vals4plot_adj[4,2]),
+segments(  (as.numeric(HetC_table[4,3]) - as.numeric(HetC_table[4,9])*2 ), as.numeric(HetC_table[4,2]), 
+           ( as.numeric(HetC_table[4,3]) + as.numeric(HetC_table[4,9])*2 ), as.numeric(HetC_table[4,2]),
            lwd=2, col="coral1")
 #msm
-segments(  (as.numeric(vals4plot_adj[5,1]) - as.numeric(vals4plot_adj[5,3])*2 ), as.numeric(vals4plot_adj[5,2]), 
-           ( as.numeric(vals4plot_adj[5,1]) + as.numeric(vals4plot_adj[5,3])*2 ), as.numeric(vals4plot_adj[5,2]),
+segments(  (as.numeric(HetC_table[5,3]) - as.numeric(HetC_table[5,9])*2 ), as.numeric(HetC_table[5,2]), 
+           ( as.numeric(HetC_table[5,3]) + as.numeric(HetC_table[5,9])*2 ), as.numeric(HetC_table[5,2]),
            lwd=2, col="#E69F00")
 #cast
-segments(  (as.numeric(vals4plot_adj[6,1]) - as.numeric(vals4plot_adj[6,3])*2 ), as.numeric(vals4plot_adj[6,2]), 
-           ( as.numeric(vals4plot_adj[6,1]) + as.numeric(vals4plot_adj[6,3])*2 ), as.numeric(vals4plot_adj[6,2]),
+segments(  (as.numeric(HetC_table[6,3]) - as.numeric(HetC_table[6,9])*2 ), as.numeric(HetC_table[6,2]), 
+           ( as.numeric(HetC_table[6,3]) + as.numeric(HetC_table[6,9])*2 ), as.numeric(HetC_table[6,2]),
            lwd=2, col="yellowgreen")
 
-dev.copy(png,'HetC_adj.png')
+dev.copy(png,'HetC_adj_nov17.png')
 dev.off()
 
-dev.copy(win.metafile, "HetC_adj.wmf")
-dev.off()
+#dev.copy(win.metafile, "HetC_adj.wmf")
+#dev.off()
 
 
-#####
-#mus_tble <- ddply(MLH1_by_mouse, c("strain", "sex"), summarise,
-  #                N  = length(mean_co),
- #                 meanCO = mean(mean_co),#means of mouse means
-   #               #av_var = mean(var),
-  #                sd   = sd(mean_co),  #sd of the means across mice (not average sd or var..that is dumb)
-  #                se   = sd / sqrt(N)
-#)
 
-#mus_tble <- MLH1_by_strain
