@@ -21,7 +21,6 @@ load(file="MLH1_data_setup.RData")
 ###################
 # DATA TREATMENTS #
 ###################
-
 #make sure the levels are in the correct order for the graph plotting
 AP_strain_table <- ddply(MLH1_data, c("strain", "sex"), summarise,
                          Nmice = length(unique(mouse)),
@@ -58,7 +57,7 @@ AP_strain_table$subsp<- factor(AP_strain_table$subsp,levels =c("M.m. domesticus"
                  "M.m. castaneus","Mus spretus"), order=T )
 
 AP_strain_table$strain<- factor(AP_strain_table$strain,levels =c("G", "LEWES",
-                                      "WSB", "PWD","MSM",  "CAST", "HMI", "SPRET"), order=T )
+                        "WSB", "PWD","MSM",  "CAST", "HMI", "SPRET"), order=T )
 
 #puts table in the right order
 AP_strain_table <- AP_strain_table %>%
@@ -74,74 +73,55 @@ MLH1_by_M_strain <- AP_strain_table[AP_strain_table$sex == "male", ]
 ####################
 png('femaleMLH1_plot.png')
 
-buffer = 1
-man_x_space <- c(1, 1.5, 2, 
+man_x_fspace <- c(1.2, 1.5, 1.75, 
                  3, 3.5, 
                  5)
 
-ttyy <- ggplot(MLH1_by_F_strain, aes(y = as.numeric(mean_co), x=man_x_space, color=strain))+ 
-  geom_point(size = 4) + ylim(20, 32)+xlim(0,10)+
-  geom_errorbar(aes(ymin = as.numeric(mean_co) - as.numeric(se), ymax = as.numeric(mean_co)+ as.numeric(se)), size=1.5, width=0.15)+
+ff_plot <- ggplot(MLH1_by_F_strain, aes(y = as.numeric(mean_co), x=man_x_fspace, color=strain))+ 
+  geom_point(size = 4) + ylim(20, 32)+xlim(0,8)+
+  geom_errorbar(aes(ymin = as.numeric(mean_co) - as.numeric(se), ymax = as.numeric(mean_co)+ as.numeric(se)), size=1, width=0.2)+
   scale_color_manual(values=c("#56B4E9","cadetblue4","cadetblue","coral1","#E69F00", "yellowgreen") )+
- 
    labs(x="", y= "Female MLH1 Foci") +
- 
    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), 
         axis.line.y = element_line(colour = "black", size = 1.5), legend.position="none",
         axis.ticks.y = element_line(colour = "black", size = 1.5),
         axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0), size=14),
         axis.text.y = element_text(size=12, face="bold"),
-        
       axis.title.x=element_blank(), axis.line.x = element_blank(), axis.text.x=element_blank(), axis.ticks.x = element_blank() ) +
 
-    annotate("text", x = c(mean(man_x_space[1:3]), mean(man_x_space[1:3]), 
-    mean(man_x_space[4:5]), mean(man_x_space[4:5]), 
-               man_x_space[6]+.25, man_x_space[6]+.25),
+    annotate("text", x = c(mean(man_x_fspace[1:3]), mean(man_x_fspace[1:3]), 
+    mean(man_x_fspace[4:5]), mean(man_x_fspace[4:5]), 
+    man_x_fspace[6]+.25, man_x_fspace[6]+.25),
            y = c(21,20.5, 21,20.5,21,20.5),
-       
-     label = c("M.m.","domesticus","M.m.","musculus","M.m.","castaneus") , fontface = 'italic' ) +
+    label = c("M.m.","domesticus","M.m.","musculus","M.m.","castaneus"),fontface = 'italic',hjust = 0.5) +
 
-  annotate("segment", x= mean(man_x_space[1:3])-1, xend=mean(man_x_space[1:3])+1, y=21.5, yend=21.5, colour="black",
-         size=1.5) +
-  annotate("segment", x=mean(man_x_space[4:5])-.5,xend=mean(man_x_space[4:5])+.5, y=21.5, yend=21.5, colour="black",
-           size=1.5) +
-  annotate("segment", x=man_x_space[6]-.5, xend=man_x_space[6]+1, y=21.5, yend=21.5, colour="black",
-           size=1.5)
+  annotate("segment", x= mean(man_x_fspace[1:3])-.75, xend=mean(man_x_fspace[1:3])+.75, y=21.5, yend=21.5, colour="black",
+         size=1.2) +
+  annotate("segment", x=mean(man_x_fspace[4:5])-.5,xend=mean(man_x_fspace[4:5])+.5, y=21.5, yend=21.5, colour="black",
+           size=1.2) +
+  annotate("segment", x=man_x_fspace[6]-.5, xend=man_x_fspace[6]+1, y=21.5, yend=21.5, colour="black",
+           size=1.2)
 
-ttyy
+ff_plot
 
 
-dev.off()
-#dev.off() #there's an extra layer?
-
-#ttyy <- ttyy + geom_segment(data = seg_table, aes(x=, xend=man_x_space[3], y=20,yend=20 ) )
-#seg_table <- data.frame(x=c(2,4.5,5.5), xend=c(3,5,6.5), y=c(20,20,20), yend=c(20,20,20))
-#p + annotate("text", x=3, y=48, label="Group 1", family="serif",
-#             fontface="italic", colour="darkred", size=3) +
-#  annotate("text", x=4.5, y=66, label="Group 2", family="serif",
-#           fontface="italic", colour="darkred", size=3)
 
 ####################
 # Male strain plot #
 ####################
-
 png('maleMLH1_plot.png')
+man_x_mspace <- c(1, 1.5, 2, 
+            3, 3.5, 
+            5, 5.5, 
+            7)
 
-man_x_space <- c(2.5, 3, 3.5, 5, 5.5, 7.5)
-buffer = 1
-man_x_space <- c(1, 1.5, 2, 
-                 3, 3.5, 
-                 5, 5.5, 
-                 7)
-
-ttyy <- ggplot(MLH1_by_M_strain, aes(y = as.numeric(mean_co), x=man_x_space, color=strain))+ 
+mm_plot <- ggplot(MLH1_by_M_strain, aes(y = as.numeric(mean_co), x=man_x_mspace, color=strain))+ 
   geom_point(size = 4) + ylim(20, 32)+xlim(0,10)+
-  geom_errorbar(aes(ymin = as.numeric(mean_co) - as.numeric(se), ymax = as.numeric(mean_co)+ as.numeric(se)), size=1.5, width=0.15)+
-  scale_color_manual(values=c("#56B4E9","cadetblue4","cadetblue","coral1","#E69F00", "yellowgreen", "yellow", "purple") )+
-  
-  labs(x="", y= "Female MLH1 Foci") +
-  
+  geom_errorbar(aes(ymin = as.numeric(mean_co) - as.numeric(se), ymax = as.numeric(mean_co)+ as.numeric(se)), size=1, width=0.2)+
+  scale_color_manual(values=c("#56B4E9","cadetblue4","cadetblue",
+                "coral1","#E69F00", "yellowgreen", "olivedrab2", "orchid") )+
+  labs(x="", y= "Male MLH1 Foci") +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), 
         axis.line.y = element_line(colour = "black", size = 1.5), legend.position="none",
@@ -149,26 +129,25 @@ ttyy <- ggplot(MLH1_by_M_strain, aes(y = as.numeric(mean_co), x=man_x_space, col
         axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0), size=14),
         axis.text.y = element_text(size=12, face="bold"),
         
-      axis.title.x=element_blank(), axis.line.x = element_blank(), axis.text.x=element_blank(), axis.ticks.x = element_blank() ) +
+  axis.title.x=element_blank(), axis.line.x = element_blank(), axis.text.x=element_blank(), axis.ticks.x = element_blank() ) +
   
-  annotate("text", x = c(mean(man_x_space[1:3]), mean(man_x_space[1:3]), 
-                         mean(man_x_space[4:5]), mean(man_x_space[4:5]),
-                         mean(man_x_space[6:7]), mean(man_x_space[6:7]),
-                         man_x_space[8],man_x_space[8] ),
-           
+  annotate("text", x = c(mean(man_x_mspace[1:3]), mean(man_x_mspace[1:3]), 
+                         mean(man_x_mspace[4:5]), mean(man_x_mspace[4:5]),
+                         mean(man_x_mspace[6:7]), mean(man_x_mspace[6:7]),
+                         man_x_mspace[8],man_x_mspace[8] ),
            y = c(21,20.5, 21,20.5,21,20.5,21,20.5),
            
-           label = c("M.m.","domesticus","M.m.","musculus","M.m.","castaneus", "Mus", "spretus") , fontface = 'italic' ) +
+  label = c("M.m.","domesticus","M.m.","musculus","M.m.","castaneus", "Mus", "spretus"),fontface='italic',hjust = 0.5) +
   
-  annotate("segment", x= mean(man_x_space[1:3])-1, xend=mean(man_x_space[1:3])+1, y=21.5, yend=21.5, colour="black",
-           size=1.5) +
-  annotate("segment", x=mean(man_x_space[4:5])-.5,xend=mean(man_x_space[4:5])+.5, y=21.5, yend=21.5, colour="black",
-           size=1.5) +
-  annotate("segment", x=man_x_space[6]-.5, xend=man_x_space[6]+1, y=21.5, yend=21.5, colour="black",
-           size=1.5) +
-  annotate("segment", x=man_x_space[8]-.5, xend=man_x_space[8]+1, y=21.5, yend=21.5, colour="black",
-           size=1.5)
-ttyy
+  annotate("segment", x= mean(man_x_mspace[1:3])-1, xend=mean(man_x_mspace[1:3])+1, y=21.5, yend=21.5, colour="black",
+           size=1) +
+  annotate("segment", x=mean(man_x_mspace[4:5])-.5,xend=mean(man_x_mspace[4:5])+.5, y=21.5, yend=21.5, colour="black",
+           size=1) +
+  annotate("segment", x=man_x_mspace[6]-.5, xend=man_x_mspace[6]+1, y=21.5, yend=21.5, colour="black",
+           size=1) +
+  annotate("segment", x=man_x_mspace[8]-.5, xend=man_x_mspace[8]+1, y=21.5, yend=21.5, colour="black",
+           size=1)
+mm_plot
 
 dev.off()
-
+dev.off()
