@@ -23,7 +23,6 @@ load(file="MLH1_data_setup.RData")
 ###################
 
 #make sure the levels are in the correct order for the graph plotting
-
 AP_strain_table <- ddply(MLH1_data, c("strain", "sex"), summarise,
                          Nmice = length(unique(mouse)),
                          Ncells  = length(adj_nMLH1.foci),
@@ -52,11 +51,14 @@ AP_strain_table$subsp  <- ifelse(grepl("WSB", AP_strain_table$strain), "M.m. dom
                    ifelse(grepl("HMI", AP_strain_table$strain), "M.m. castaneus", 
             ifelse(grepl("SPRET", AP_strain_table$strain), "Mus spretus", ""))))))))
 
-#adjust the order...
+#("black", "#56B4E9","cadetblue4","cadetblue","coral1","#E69F00", "yellowgreen") )
 
 #set the order for a factor
 AP_strain_table$subsp<- factor(AP_strain_table$subsp,levels =c("M.m. domesticus", "M.m. musculus",
                  "M.m. castaneus","Mus spretus"), order=T )
+
+AP_strain_table$strain<- factor(AP_strain_table$strain,levels =c("G", "LEWES",
+                                      "WSB", "PWD","MSM",  "CAST", "HMI", "SPRET"), order=T )
 
 #puts table in the right order
 AP_strain_table <- AP_strain_table %>%
@@ -67,54 +69,106 @@ AP_strain_table <- AP_strain_table %>%
 MLH1_by_F_strain <- AP_strain_table[AP_strain_table$sex == "female", ]
 MLH1_by_M_strain <- AP_strain_table[AP_strain_table$sex == "male", ]
 
-################
-# Strain Plots #
-################
-#text has to be changed outside of ggplot?
-bold.italic.12.text <- element_text(face = "bold.italic", size = 12)
-
-#
-#make dom points closer
-dom_seq <- seq(length(MLH1_by_F_strain$strain[MLH1_by_F_strain$subsp == "M.m. domesticus"]) )#, by=0.5)
-#musc and space
-musc_seq <- seq(length(dom_seq)+2, length(dom_seq)+length(MLH1_by_F_strain$strain[MLH1_by_F_strain$subsp == "M.m. musculus"])+1,1)
-#
-cast_seq <- seq(musc_seq[length(musc_seq)]+1, musc_seq[length(musc_seq)]+length(MLH1_by_F_strain$strain[MLH1_by_F_strain$subsp == "M.m. castaneus"]))
-
-#length of MLH1_by_F_strain, dom vs musc, vs outgroup
-x_space_scale = c(dom_seq, musc_seq, cast_seq)
-
-
-## subspecies annotate texts
-#grob <- grobTree(textGrob(c("M.m. \n domesticus", "M.m. \n musculus", "M.m.\n castaneus"),x = c(2,5,7),y=22,
-#                  gp=gpar(col="red", fontsize=13, fontface="italic")))
-# Plot
-#sp2 + annotation_custom(grob)
-
+####################
+# Female strain plot #
+####################
 png('femaleMLH1_plot.png')
 
-#okay .. plot is coming along
-#not perfect...
-try <- ggplot(MLH1_by_F_strain, aes(y = as.numeric(mean_co), x=x_space_scale, color=strain))+ geom_point(size = 4)+ylim(20, 32)
-try <- try + geom_errorbar(aes(ymin = as.numeric(mean_co) - as.numeric(se), ymax = as.numeric(mean_co) + as.numeric(se)), size=1.5, width=0.15)+
-  scale_color_manual(values=c("#56B4E9","cadetblue4","cadetblue","coral1","#E69F00", "yellowgreen") )
+buffer = 1
+man_x_space <- c(1, 1.5, 2, 
+                 3, 3.5, 
+                 5)
 
-try <- try + labs(x="", y= "Female MLH1 Foci") + theme(axis.text = bold.italic.12.text)
+ttyy <- ggplot(MLH1_by_F_strain, aes(y = as.numeric(mean_co), x=man_x_space, color=strain))+ 
+  geom_point(size = 4) + ylim(20, 32)+xlim(0,10)+
+  geom_errorbar(aes(ymin = as.numeric(mean_co) - as.numeric(se), ymax = as.numeric(mean_co)+ as.numeric(se)), size=1.5, width=0.15)+
+  scale_color_manual(values=c("#56B4E9","cadetblue4","cadetblue","coral1","#E69F00", "yellowgreen") )+
+ 
+   labs(x="", y= "Female MLH1 Foci") +
+ 
+   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        axis.line.y = element_line(colour = "black", size = 1.5), legend.position="none",
+        axis.ticks.y = element_line(colour = "black", size = 1.5),
+        axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0), size=14),
+        axis.text.y = element_text(size=12, face="bold"),
+        
+      axis.title.x=element_blank(), axis.line.x = element_blank(), axis.text.x=element_blank(), axis.ticks.x = element_blank() ) +
 
-try <- try + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-      panel.background = element_blank(), axis.line = element_line(colour = "black"))
+    annotate("text", x = c(mean(man_x_space[1:3]), mean(man_x_space[1:3]), 
+    mean(man_x_space[4:5]), mean(man_x_space[4:5]), 
+               man_x_space[6]+.25, man_x_space[6]+.25),
+           y = c(21,20.5, 21,20.5,21,20.5),
+       
+     label = c("M.m.","domesticus","M.m.","musculus","M.m.","castaneus") , fontface = 'italic' ) +
 
-try <- try +annotate("text", x = c(2,2, 5,5,8, 8), y = c(22,21,22,21,22,21),
-        label = c("M.m.","domesticus","M.m.","musculus","M.m.","castaneus") , fontface = 'italic' )
-try
+  annotate("segment", x= mean(man_x_space[1:3])-1, xend=mean(man_x_space[1:3])+1, y=21.5, yend=21.5, colour="black",
+         size=1.5) +
+  annotate("segment", x=mean(man_x_space[4:5])-.5,xend=mean(man_x_space[4:5])+.5, y=21.5, yend=21.5, colour="black",
+           size=1.5) +
+  annotate("segment", x=man_x_space[6]-.5, xend=man_x_space[6]+1, y=21.5, yend=21.5, colour="black",
+           size=1.5)
 
+ttyy
 
-#below script prepares a file for saving in working dir
 
 dev.off()
 #dev.off() #there's an extra layer?
 
+#ttyy <- ttyy + geom_segment(data = seg_table, aes(x=, xend=man_x_space[3], y=20,yend=20 ) )
+#seg_table <- data.frame(x=c(2,4.5,5.5), xend=c(3,5,6.5), y=c(20,20,20), yend=c(20,20,20))
+#p + annotate("text", x=3, y=48, label="Group 1", family="serif",
+#             fontface="italic", colour="darkred", size=3) +
+#  annotate("text", x=4.5, y=66, label="Group 2", family="serif",
+#           fontface="italic", colour="darkred", size=3)
+
 ####################
 # Male strain plot #
 ####################
+
+png('maleMLH1_plot.png')
+
+man_x_space <- c(2.5, 3, 3.5, 5, 5.5, 7.5)
+buffer = 1
+man_x_space <- c(1, 1.5, 2, 
+                 3, 3.5, 
+                 5, 5.5, 
+                 7)
+
+ttyy <- ggplot(MLH1_by_M_strain, aes(y = as.numeric(mean_co), x=man_x_space, color=strain))+ 
+  geom_point(size = 4) + ylim(20, 32)+xlim(0,10)+
+  geom_errorbar(aes(ymin = as.numeric(mean_co) - as.numeric(se), ymax = as.numeric(mean_co)+ as.numeric(se)), size=1.5, width=0.15)+
+  scale_color_manual(values=c("#56B4E9","cadetblue4","cadetblue","coral1","#E69F00", "yellowgreen", "yellow", "purple") )+
+  
+  labs(x="", y= "Female MLH1 Foci") +
+  
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        axis.line.y = element_line(colour = "black", size = 1.5), legend.position="none",
+        axis.ticks.y = element_line(colour = "black", size = 1.5),
+        axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0), size=14),
+        axis.text.y = element_text(size=12, face="bold"),
+        
+      axis.title.x=element_blank(), axis.line.x = element_blank(), axis.text.x=element_blank(), axis.ticks.x = element_blank() ) +
+  
+  annotate("text", x = c(mean(man_x_space[1:3]), mean(man_x_space[1:3]), 
+                         mean(man_x_space[4:5]), mean(man_x_space[4:5]),
+                         mean(man_x_space[6:7]), mean(man_x_space[6:7]),
+                         man_x_space[8],man_x_space[8] ),
+           
+           y = c(21,20.5, 21,20.5,21,20.5,21,20.5),
+           
+           label = c("M.m.","domesticus","M.m.","musculus","M.m.","castaneus", "Mus", "spretus") , fontface = 'italic' ) +
+  
+  annotate("segment", x= mean(man_x_space[1:3])-1, xend=mean(man_x_space[1:3])+1, y=21.5, yend=21.5, colour="black",
+           size=1.5) +
+  annotate("segment", x=mean(man_x_space[4:5])-.5,xend=mean(man_x_space[4:5])+.5, y=21.5, yend=21.5, colour="black",
+           size=1.5) +
+  annotate("segment", x=man_x_space[6]-.5, xend=man_x_space[6]+1, y=21.5, yend=21.5, colour="black",
+           size=1.5) +
+  annotate("segment", x=man_x_space[8]-.5, xend=man_x_space[8]+1, y=21.5, yend=21.5, colour="black",
+           size=1.5)
+ttyy
+
+dev.off()
 
