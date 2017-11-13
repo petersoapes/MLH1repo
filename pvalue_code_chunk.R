@@ -1,4 +1,13 @@
 
+#below will plot pvalues
+bb<- replicate(1000, t.test(sample(Dom_f$nMLH1.foci, 5), sample(Dom_f$nMLH1.foci, 30) )$p.value )
+
+ggplot(data.frame(bb), aes(y=bb, x=seq(1:1000))) + 
+  #geom_histogram(aes(y=..density..)) +
+  geom_point()
+#still thinking of the right set-up for comparisons
+
+
 #pieces from Rmd Report
 
 ```{r}
