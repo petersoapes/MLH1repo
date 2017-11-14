@@ -1,0 +1,203 @@
+---
+title: "Poly Divr Simulations"
+author: "April Peterson"
+date: "November 13, 2017"
+output: html_document
+---
+
+Rmd file for walking through the logic of how I'm setting up my Polymorphism and Divergence simulations. Map out inference plan.
+
+```{r, setup}
+library(plyr)
+library(dplyr)
+library(ggplot2)
+
+setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+load(file="MLH1_data_setup.RData")
+
+PnD_female <- MLH1_data[MLH1_data$sex == "female",]
+PnD_male <- MLH1_data[MLH1_data$sex == "male",]
+
+Dom_f <- PnD_female[( PnD_female$strain == "WSB" | PnD_female$strain == "G" |PnD_female$strain == "LEWES"),]
+Musc_f <- PnD_female[( PnD_female$strain == "PWD" | PnD_female$strain == "MSM"),]
+
+Dom_m <- PnD_male[( PnD_male$strain == "WSB" | PnD_male$strain == "G" |PnD_male$strain == "LEWES"),]
+Musc_m <- PnD_male[( PnD_male$strain == "PWD" | PnD_male$strain == "MSM"),]
+Cast_m <- PnD_male[( PnD_male$strain == "CAST" | PnD_male$strain == "HMI"),]
+
+```
+
+Why do these P and D simulations?
+To test if the ratios for females and males are different (than a random sample).
+
+Polymorphism measures are SE.
+```{r, Polymorphism Measures}
+F_poly_table <- ddply(PnD_female, c("strain"), summarise,
+                     Nmice = length(unique(mouse)),
+                     Ncells  = length(adj_nMLH1.foci),
+                     mean_co = format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3),
+                     var = format(round(   var(nMLH1.foci),3), nsmall=3),
+                     sd   = round(sd(adj_nMLH1.foci), 3),
+                     se   = round(sd / sqrt(Ncells), 3),
+                     cV = round( (as.numeric(sd) / as.numeric(mean_co) ),3)
+)
+DomF_poly_var <- var(F_poly_table$mean_co[1:3])
+DomF_poly_sd <- sd(F_poly_table$mean_co[1:3])
+DomF_poly_se <- (DomF_poly_sd / sqrt(3) )
+
+MuscF_poly_var <- var(F_poly_table$mean_co[2:5])
+MuscF_poly_sd <- sd(F_poly_table$mean_co[2:5])
+MuscF_poly_se <- (MuscF_poly_sd / sqrt(2))
+
+
+M_poly_table <- ddply(PnD_male, c("strain"), summarise,
+                      Nmice = length(unique(mouse)),
+                      Ncells  = length(adj_nMLH1.foci),
+                      mean_co = format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3),
+                      var = format(round(   var(nMLH1.foci),3), nsmall=3),
+                      sd   = round(sd(adj_nMLH1.foci), 3),
+                      se   = round(sd / sqrt(Ncells), 3),
+                      cV = round( (as.numeric(sd) / as.numeric(mean_co) ),3)
+)
+
+DomM_poly_var <- var(M_poly_table$mean_co[1:3])
+DomM_poly_sd <- sd(M_poly_table$mean_co[1:3])
+DomM_poly_se <- (DomM_poly_sd / sqrt(3))
+
+MuscM_poly_var <- var(M_poly_table$mean_co[2:5])
+MuscM_poly_sd <- sd(M_poly_table$mean_co[2:5])
+MuscM_poly_se <- (MuscM_poly_sd / sqrt(2) )
+
+CastM_poly_var <- var(M_poly_table$mean_co[6:7])
+CastM_poly_sd <- sd(M_poly_table$mean_co[6:7])
+CastM_poly_se <- (CastM_poly_sd / sqrt(2) )
+```
+Above are the Polymorphism measures.
+
+Divergence measures are paired, there will be mulitple divergent measures per strain
+```{r, Divergence Measures}
+#calq subsp wide averages
+DomF_D_mean <- mean(as.numeric(F_poly_table$mean_co[1:3]) )
+MuscF_D_mean <- mean(as.numeric(F_poly_table$mean_co[2:5]) )
+
+DomM_D_mean <- mean(as.numeric(M_poly_table$mean_co[1:3]) )
+MuscM_D_mean <- mean(as.numeric(M_poly_table$mean_co[2:5]) )
+CastM_D_mean <- mean(as.numeric(M_poly_table$mean_co[6:7]) )
+
+# divergence can only be calq in pairwise manner
+# Musc - Dom, Musc - spretus(spic), Musc - caroli,
+F_D_HMdm_se <- ( sd(c(DomF_D_mean, MuscF_D_mean)) / sqrt(2) )
+
+M_D_HMdm_se <- ( sd(c(DomM_D_mean, MuscM_D_mean) ) / sqrt(2) )
+M_D_HMdc_se <- ( sd(c(DomM_D_mean, CastM_D_mean) ) / sqrt(2) )
+M_D_HMmc_se <- ( sd(c(CastM_D_mean, MuscM_D_mean) ) / sqrt(2) )
+
+```
+
+Now start simulations for making random samples from the database.
+start sampling througheach type of mouse
+```{r, simulations}
+
+#3 calqs of SE from random samples
+n3 <-  replicate(3, (sd(sample(Dom_f$nMLH1.foci, 30) ) / sqrt(30) ) )
+#se of the simulated se's       
+se_per <- sd( replicate(3, (sd(sample(Dom_f$nMLH1.foci, 30) ) / sqrt(30) ) ) ) / sqrt(3)
+
+#100 simulated se's / P values for fDom
+per100se <- replicate(1000,
+                      sd( replicate(3, (sd(sample(Dom_f$nMLH1.foci, 30) ) / sqrt(30) ) ) ) / sqrt(3)
+)
+#this will show a hist of the simulated P values, with R line for the real
+hist(per100se, xlim = range(0,.5) )
+abline(v=DomM_poly_se,col="red")
+
+```
+
+#### Comparisons for simulations.
+
+Comparing the histograms of simulated Polymorphism values by the size,
+
+
+
+```{r, poly simulations}
+#3 calqs of SE from random samples
+male_musc <-  replicate(3, (sd(sample(Musc_m$nMLH1.foci, 30) ) / sqrt(30) ) )
+#se of the simulated se's       
+se_per <- sd( replicate(3, (sd(sample(Musc_m$nMLH1.foci, 30) ) / sqrt(30) ) ) ) / sqrt(3)
+
+
+#100 simulated se's / P values for fDom
+male_musc_ss30 <- replicate(1000,
+        sd( replicate(3, (sd(sample(Musc_m$nMLH1.foci, 30) ) / sqrt(30) ) ) ) / sqrt(3)
+)
+male_musc_ss15 <- replicate(1000,
+        sd( replicate(3, (sd(sample(Musc_m$nMLH1.foci, 15) ) / sqrt(15) ) ) ) / sqrt(3)
+)
+male_musc_ss10 <- replicate(1000,
+        sd( replicate(3, (sd(sample(Musc_m$nMLH1.foci, 10) ) / sqrt(10) ) ) ) / sqrt(3)
+)
+
+#this will show a hist of the simulated P values, with R line for the real
+
+
+par(mfrow=c(1, 3))
+hist(male_musc_ss30, xlim = range(0,3) )
+hist(male_musc_ss15, xlim = range(0,3) )
+hist(male_musc_ss10, xlim = range(0,3) )
+abline(v=MuscM_poly_se,col="red")
+
+Dom_m <- PnD_male[( PnD_male$strain == "WSB" | PnD_male$strain == "G" |PnD_male$strain == "LEWES"),]
+Musc_m <- PnD_male[( PnD_male$strain == "PWD" | PnD_male$strain == "MSM"),]
+Cast_m <- PnD_male[( PnD_male$strain == "CAST" | PnD_male$strain == "HMI"),]
+```
+
+
+
+Compare the effects of drawing MLH1 from specific strains, instead of pooled values.
+
+```{r}
+# sample from strain
+male_musc_ss10 <- replicate(1000, c(
+  sample( PnD_male$nMLH1.foci[PnD_male$strain == "PWD"], 10),
+  sample( PnD_male$nMLH1.foci[PnD_male$strain == "MSM"], 10) ) 
+)
+
+hist(male_pwd_ss10, xlim = range(15,40) )
+
+male_dom_ss10 <- replicate(1000, c(
+  sample( PnD_male$nMLH1.foci[PnD_male$strain == "G"], 10),
+  sample( PnD_male$nMLH1.foci[PnD_male$strain == "LEWES"], 10),
+  sample( PnD_male$nMLH1.foci[PnD_male$strain == "WSB"], 10)
+  ) 
+)
+
+#b <- hist(male_dom_ss10, xlim = range(10,40) )
+#b <- abline( v=mean( PnD_male$nMLH1.foci[(PnD_male$strain == "WSB")] #), col="red")
+
+ # mean(PnD_male$nMLH1.foci[(PnD_male$strain == "G")] ),
+#  mean(PnD_male$nMLH1.foci[(PnD_male$strain == "LEWES")] ) ), col="red")
+#PnD_male[( PnD_male$strain == "WSB" | PnD_male$strain == "G" |PnD_male$strain == "LEWES")
+
+
+male_msm_ss10 <- sample( PnD_male$nMLH1.foci[PnD_male$strain == "MSM"], 10)
+
+male_musc_ss15 <- replicate(1000,
+        sd( replicate(3, (sd(sample(Musc_m$nMLH1.foci, 15) ) / sqrt(15) ) ) ) / sqrt(3)
+)
+male_musc_ss10 <- replicate(1000,
+        sd( replicate(3, (sd(sample(Musc_m$nMLH1.foci, 10) ) / sqrt(10) ) ) ) / sqrt(3)
+)
+
+```
+```{r, divergence simulations}
+
+#simulating divergence --- take the 3 strain sampes from the polymorphism sims
+# calq se / var from a constant measure of divergence
+
+
+
+#take a list of the polymorphis measures -- pair cbind/rbind with simulations for D, plot the ratios
+
+
+```
+
