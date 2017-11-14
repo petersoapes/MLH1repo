@@ -187,11 +187,8 @@ sample_size = 20 #samples across all mice (maybe should do mouse averages)
 
 #1. make the poly sims for Dom.m and Dom.f
 DomF_poly_sims <- replicate(100,sample(Dom_f$nMLH1.foci, sample_size) )
-DomM_poly_sims <- replicate(100,sample(Dom_m$nMLH1.foci, sample_size) )
 #1000*20 MLH1 measures
-
 #x1 <- sapply(1:reps, function(i){sum(rexp(n=nexps, rate=rate))}))
-
 # pair the DomF_poly_sims[i] with DomF_D_sim --> sd( c(mean(DomF_poly_sims[,i]), mean(cast) ) / sqrt(2)
 #  mean(DomF_poly_sims[,i]) - this is mean for each sample
 #2. 
@@ -214,17 +211,29 @@ plot(c(DomF_poly_se,  simPnD_df$Poly),
      c(F_D_HMdm_se, simPnD_df$Div), col=c("red", rep("black", length(simPnD_df$Poly)))
 )
 
+
+#male sims
+DomM_poly_sims <- replicate(100,sample(Dom_m$nMLH1.foci, sample_size) )
+
 #make a male version!
 MsimPnD_df = data.frame(Poly=as.numeric(c(1)), Div=as.numeric(c(1)))
 for(i in 1:100 ){ #replicate
-  MsimPnD_df[i,1] <- sd(DomF_poly_sims[,i])/sqrt(sample_size)
-  MsimPnD_df[i,2] <- sd(c(mean(DomF_poly_sims[,i]), mean(Musc_f$nMLH1.foci) ) / sqrt(2) )
-  print(c(i,  sd(DomF_poly_sims[,i])/sqrt(sample_size),  (sd(c(mean(DomF_poly_sims[,i]), mean(Musc_f$nMLH1.foci) ) / sqrt(2) ) ) ) )
+  MsimPnD_df[i,1] <- sd(DomM_poly_sims[,i])/sqrt(sample_size)
+  
+  MsimPnD_df[i,2] <- sd(c(mean(DomM_poly_sims[,i]), mean(Musc_m$nMLH1.foci) ) / sqrt(2) )
+  print(c(i,  sd(DomM_poly_sims[,i])/sqrt(sample_size),  
+          (sd(c(mean(DomM_poly_sims[,i]), mean(Musc_m$nMLH1.foci) ) / sqrt(2) ) ) ) )
 }
 
 
-#Dom_f$nMLH1.foci
-#
+#male plot. (dom.male_poly,  dom/musc - male)
+plot(c(DomM_poly_se,  MsimPnD_df$Poly), 
+     c(M_D_HMdm_se, MsimPnD_df$Div), col=c("red", rep("black", length(MsimPnD_df$Poly)))
+main="Dom male P and D simulation"
+     )
+#this plot
+
+#par(1,2)
 
 # For the Dom colm
 #  sd( mean(DomF_poly_sims), mean(muscF_MLH1) ) / sqrt(2)
