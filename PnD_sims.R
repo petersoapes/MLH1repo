@@ -36,6 +36,7 @@ Cast_m <- PnD_male[( PnD_male$strain == "CAST" | PnD_male$strain == "HMI"),]
 
 #consider writing a function for these...
 Dom_f <- MLH1_data[( MLH1_data$strain == "WSB" | MLH1_data$strain == "G" |MLH1_data$strain == "LEWES"),]
+Musc_f <- MLH1_data[( MLH1_data$strain == "PWD" | MLH1_data$strain == "MSM"),]
 
 F_poly_table <- ddply(PnD_female, c("strain"), summarise,
                      Nmice = length(unique(mouse)),
@@ -165,10 +166,6 @@ plot(y=c(sim_poly_dom_se, sim_poly_dom_se, sim_poly_dom_se, #static poly for sim
 
 #red is real data, black is sim (simulations for polymorphism, static musc and spret)
 #merge the values -- that makes ploting easier
-
-
-
-
 #low polymorphism for simulations
 
 #I think my true comparison of D and P, has 
@@ -186,20 +183,48 @@ M_D_HMmc_se <- ( sd(c(CastM_D_mean, MuscM_D_mean) ) / sqrt(2) )
 ##########################
 # pair P and D estimates #
 ##########################
-sample_size = 20
+sample_size = 20 #samples across all mice (maybe should do mouse averages)
 
 #1. make the poly sims for Dom.m and Dom.f
-DomF_poly_sims <- replicate(1000,sample(Dom_f$nMLH1.foci, sample_size) )
-DomM_poly_sims <- replicate(1000,sample(Dom_m$nMLH1.foci, sample_size) )
+DomF_poly_sims <- replicate(100,sample(Dom_f$nMLH1.foci, sample_size) )
+DomM_poly_sims <- replicate(100,sample(Dom_m$nMLH1.foci, sample_size) )
 #1000*20 MLH1 measures
 
 #x1 <- sapply(1:reps, function(i){sum(rexp(n=nexps, rate=rate))}))
 
-# pair the DomF_poly_sims[i] with DomF_D_sim --> sd( c(mean(DomF_poly_sims[i]), mean(cast) ) / sqrt(2)
+# pair the DomF_poly_sims[i] with DomF_D_sim --> sd( c(mean(DomF_poly_sims[,i]), mean(cast) ) / sqrt(2)
+#  mean(DomF_poly_sims[,i]) - this is mean for each sample
 #2. 
 
+simPnD_df = data.frame(Poly=as.numeric(c(1)), Div=as.numeric(c(1)))
+for(i in 1:100 ){ #replicate
+    simPnD_df[i,1] <- sd(DomF_poly_sims[,i])/sqrt(sample_size)
+    simPnD_df[i,2] <- sd(c(mean(DomF_poly_sims[,i]), mean(Musc_f$nMLH1.foci) ) / sqrt(2) )
+    print(c(i,  sd(DomF_poly_sims[,i])/sqrt(sample_size),  (sd(c(mean(DomF_poly_sims[,i]), mean(Musc_f$nMLH1.foci) ) / sqrt(2) ) ) ) )
+}
+# making a simD measure
 #make -- the df or matrix with columns, 1) Polysim_SE 2) Divsim_SE
 
+jj <- ggplot(data=simPnD_df, aes(x=Div, y=Poly))+
+  geom_point(x=Div, y=Poly)
+jj
+
+#NEAT I made a plot that shows simulated and the real data
+plot(c(DomF_poly_se,  simPnD_df$Poly), 
+     c(F_D_HMdm_se, simPnD_df$Div), col=c("red", rep("black", length(simPnD_df$Poly)))
+)
+
+#make a male version!
+MsimPnD_df = data.frame(Poly=as.numeric(c(1)), Div=as.numeric(c(1)))
+for(i in 1:100 ){ #replicate
+  MsimPnD_df[i,1] <- sd(DomF_poly_sims[,i])/sqrt(sample_size)
+  MsimPnD_df[i,2] <- sd(c(mean(DomF_poly_sims[,i]), mean(Musc_f$nMLH1.foci) ) / sqrt(2) )
+  print(c(i,  sd(DomF_poly_sims[,i])/sqrt(sample_size),  (sd(c(mean(DomF_poly_sims[,i]), mean(Musc_f$nMLH1.foci) ) / sqrt(2) ) ) ) )
+}
+
+
+#Dom_f$nMLH1.foci
+#
 
 # For the Dom colm
 #  sd( mean(DomF_poly_sims), mean(muscF_MLH1) ) / sqrt(2)
