@@ -1,8 +1,18 @@
 #Make File for MLH1 repo file
-
 #run report file
 #rmd_report.md : depen rmd_report.rmd
 #	Rscript rmd_report.rmd
+
+#all
+all : adj_HetC.png maleMLH1_plot.png femaleMLH1_plot.png
+
+#MLH1 strain plots
+maleMLH1_plot.png femaleMLH1_plot.png : src/MLH1_strain_means.R data/AnonData.csv
+	Rscript src/MLH1_strain_means.R src/HetC_plot.R
+
+#HetC Figure
+adj_HetC.png : src/HetC_plot.R data/AnonData.csv
+	Rscript src/HetC_plot.R
 
 #setup Rdata file
 MLH1_data_setup.RData : data/AnonData.csv setup_data.R

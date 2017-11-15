@@ -2,6 +2,8 @@
 # input:
 # output: dplyr tables (strain/category) and mouse
 #
+library(plyr)
+library(dplyr)
 
 Table_BD_mouse <- ddply(BDMLH1_data, c("ANIMAL_ID", "Cross"), summarise,
                         N  = length(nMLH1_foci),

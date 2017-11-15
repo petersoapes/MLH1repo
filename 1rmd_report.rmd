@@ -105,7 +105,6 @@ histM
 ```{r high qual, fig.caption="boxplots of MLH1 distributions", fig.height=5, fig.width=5, echo=FALSE, warnings=FALSE}
 
 #MLH1_data$quality <- as.numeric(MLH1_data$quality) #this needs to be run for the subsetting to work
-
 highest_qual_df <-  subset(MLH1_data, as.numeric(MLH1_data$quality) <= 2 )
 
 qq <- ggplot(highest_qual_df, aes(x = mouse, y = adj_nMLH1.foci)) + geom_boxplot(data = highest_qual_df, aes(fill = factor(strain) ) ) +  ggtitle("Cells with quality scores of 2 or 1") +
@@ -183,13 +182,10 @@ I ploted the mean of each quality bin with a red dot. From the pattern of the re
 latice plot of scatter plots for jitter plots of cell oberservations by quality. The category mean is in black and the mouse specific mean is in red.
 ```{r, echo=FALSE, message=FALSE,results='hide', warning=FALSE}
 #what is the purpose of this block
-
 df_list <- split(MLH1_data, (MLH1_data$category))
-
 #remove sections which are in category but have no data
 df_list <- df_list[ -c(7, 12, 14,16, 18) ]
 #7, PERC. 12 CASTF, 14 HMI f , 16 SPRET f. 18 other
-
 
 df_list 
 o=0
@@ -225,6 +221,7 @@ for (h in 1:length(df_list)) {
 
 ```{r, echo=FALSE, message=FALSE,results='hide', warning=FALSE }
 geom_hline(aes(yintercept = med, group = gr), colour = 'red')
+
 for (gg in 1:length(plot_list) ){
   show(plot_list[gg])
   #invisible(lapply(obj, function(x) plot(x,main="some plot")))

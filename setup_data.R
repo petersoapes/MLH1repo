@@ -41,13 +41,13 @@ MLH1_data <- MLH1_data[!(is.na(MLH1_data$nMLH1.foci) | MLH1_data$nMLH1.foci=="")
 MLH1_data <- MLH1_data[MLH1_data$nMLH1.foci != "X",]
 MLH1_data <- MLH1_data[MLH1_data$nMLH1.foci != "x",]
 
-source("Func_addCategory.R")
+source("src/Func_addCategory.R")
 MLH1_data <- add_category(MLH1_data)
 #set the order of categories (female, male) (cast, dom, musc)
 
-source("Func_addStrain.R")
+source("src/Func_addStrain.R")
 MLH1_data <- add_strain(MLH1_data)
-source("Func_addSex.R")
+source("src/Func_addSex.R")
 MLH1_data <- add_sex(MLH1_data)
 
 #add a column with male adjusted MLH1 values (+1 to all males)
@@ -55,7 +55,7 @@ MLH1_data$adj_nMLH1.foci <- ifelse(MLH1_data$sex=="male", MLH1_data$nMLH1.foci+1
 
 MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
 
-source("Func_addMouse.R")
+source("src/Func_addMouse.R")
 MLH1_data <- add_mouse(MLH1_data)
 
 #reorder dataframe
