@@ -15,7 +15,7 @@ add_strain <- function(dat){
                 ifelse(grepl("_CAST_", dframe$Original.Name), "CAST",           
          ifelse(grepl("_HMI_", dframe$Original.Name), "HMI",
               ifelse(grepl("_SPRET_", dframe$Original.Name), "SPRET",           
-             ifelse(grepl("_SPIC_", dframe$Original.Name), "SPIC",
+             ifelse(grepl("_SPI_", dframe$Original.Name), "SPIC",
           ifelse(grepl("_CAROLI_", dframe$Original.Name), "CAROLI",
                                        "other"))))))))))
   
@@ -23,6 +23,6 @@ add_strain <- function(dat){
   dframe$strain<- factor(dframe$strain,levels =c( "WSB", "G", "LEWES", "PERC",
                                                         "PWD", "MSM",
                                                         "CAST", "HMI",
-                                                        "SPRET", "other"), order=T )
+                                                        "SPRET", "SPIC", "other"), order=T )
   return(dframe)
 }

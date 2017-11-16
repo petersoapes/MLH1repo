@@ -2,28 +2,34 @@
 
 #the column might need to be changed
 
-add_subsp <- function(dat) {
+add_subsp <- function(oldframe) {
 #assign subspecies to tables
-subsp <- ifelse(grepl("WSB", Table_BD_strain$Cross), "Dom", 
-           ifelse(grepl("G", Table_BD_strain$Cross), "Dom",
-            ifelse(grepl("LEW", Table_BD_strain$Cross), "Dom", 
-             ifelse(grepl("LEWES", Table_BD_strain$Cross), "Dom",    
-            ifelse(grepl("PERA", Table_BD_strain$Cross), "Dom",
+  dframe <- oldframe
+  dframe$subsp <- "other"
+  
+  dframe$subsp <- ifelse(grepl("WSB", dframe$strain), "Dom", 
+           ifelse(grepl("G", dframe$strain), "Dom",
+            ifelse(grepl("LEW", dframe$strain), "Dom", 
+             ifelse(grepl("LEWES", dframe$strain), "Dom",    
+            ifelse(grepl("PERA", dframe$strain), "Dom",
                                             
-        ifelse(grepl("CAST", Table_BD_strain$Cross), "Cast",
-           ifelse(grepl("CIM", Table_BD_strain$Cross), "Cast",
+        ifelse(grepl("CAST", dframe$strain), "Cast",
+           ifelse(grepl("CIM", dframe$strain), "Cast",
+                  ifelse(grepl("HMI", dframe$strain), "Cast",
                                                           
-        ifelse(grepl("MSM", Table_BD_strain$Cross), "Musc-Cast",                                       
-           ifelse(grepl("PWD", Table_BD_strain$Cross), "Musc", 
-            ifelse(grepl("CZECHI", Table_BD_strain$Cross), "Musc", 
-         ifelse(grepl("PWDFemale", Table_BD_strain$Cross), "Musc",         
-                                                                                      
-        ifelse(grepl("PANCEVO", Table_BD_strain$Cross), "Spic", 
-             ifelse(grepl("CAROLI", Table_BD_strain$Cross), "Caroli", 
+        ifelse(grepl("MSM", dframe$strain), "Musc",                                       
+           ifelse(grepl("PWD", dframe$strain), "Musc", 
+            ifelse(grepl("CZECHI", dframe$strain), "Musc", 
+         ifelse(grepl("PWDFemale", dframe$strain), "Musc",         
+        
+      ifelse(grepl("SPRET", dframe$strain), "Spretus",
+   ifelse(grepl("SPIC", dframe$strain), "Spic",      
+        ifelse(grepl("PANCEVO", dframe$strain), "Spic", 
+             ifelse(grepl("CAROLI", dframe$strain), "Caroli", 
                                                                                                     
-          ifelse(grepl("RAT", Table_BD_strain$Cross), "Outgroup", 
-       ifelse(grepl("Peromyscus", Table_BD_strain$Cross), "Outgroup", 
-          ifelse(grepl("Microtus", Table_BD_strain$Cross), "Outgroup", "other"))))))))))))))))
-
+          ifelse(grepl("RAT", dframe$strain), "Outgroup", 
+       ifelse(grepl("Peromyscus", dframe$strain), "Outgroup", 
+          ifelse(grepl("Microtus", dframe$strain), "Outgroup", "other")))))))))))))))))))
+  return(dframe)
 
 }

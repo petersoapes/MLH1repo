@@ -36,8 +36,8 @@ add_category <- function(oldframe){
      
         ifelse(grepl("_SPRET_f", dframe$Original.Name), "SPRET female",
         ifelse(grepl("_SPRET_m", dframe$Original.Name), "SPRET male",
-        ifelse(grepl("_SPIC_m", dframe$Original.Name), "SPIC male",
-        ifelse(grepl("_SPIC_f", dframe$Original.Name), "SPIC female",          
+        ifelse(grepl("_SPI_m", dframe$Original.Name), "SPIC male",
+        ifelse(grepl("_SPI_f", dframe$Original.Name), "SPIC female",          
         ifelse(grepl("_CAROLI_m", dframe$Original.Name), "CAROLI male",
        ifelse(grepl("_CAROLI_f", dframe$Original.Name), "CAROLI female",
                             "other")))))))))))))))))))))))
@@ -46,7 +46,7 @@ add_category <- function(oldframe){
                          "LEW female", 'LEW male', "PERC male",
                           "PWD female", "PWD male", "MSM female", "MSM male",
                               "CAST female", "CAST male", "HMI female", "HMI male",
-                                "SPRET female", "SPRET male", "other"), order=T )
+                                "SPRET female", "SPRET male", "SPIC female", "SPIC male", "other"), order=T )
   return(dframe)
 }
 #tried writing this with mutate, couldn't get it to work
