@@ -10,6 +10,11 @@ load(file="MLH1_data_setup.RData")
 #this WSB female mouse is likely skweing the data -- few cells
 #there's a Dom female 4apr15_WSB_f2 that could be skewing results
 MLH1_data<- MLH1_data[!grepl("4apr15_WSB_f2", MLH1_data$mouse) , ] #1649
+MLH1_data<- MLH1_data[!grepl("12sep16_MSM_f1", MLH1_data$mouse) , ]
+
+MLH1_data<- MLH1_data[!grepl("4jan17_LEW_f1", MLH1_data$mouse) , ]#one duplicate image found
+#SPRET females from batch5, are not that good
+#
 #leweS FEMALES also seem to have a high variance across means
 
 #1. subset data by sex
@@ -111,6 +116,10 @@ Polymorphism_DF <- data.frame(subsp=c("Dom","Dom","Musc","Musc"),
               sex= c("female", "male", "female", "male"),
             SE.means= c(DomF_se_of_means, DomM_se_of_means, MuscF_se_of_means, MuscM_se_of_means))
 
+Polymorphism_DF$SE.means <- as.character(Polymorphism_DF$SE.means)
+Polymorphism_DF$SE.means <- as.numeric(Polymorphism_DF$SE.means)
+
+
 #4. Calq observed Divergence variance levels
 ##############
 # Divergence #
@@ -157,6 +166,9 @@ Divergence_DF <- data.frame(
                         "NA", Div_MaHM.Spret_se,
                         "NA","NA"))
 
+Divergence_DF$SE <- as.character(Divergence_DF$SE)
+Divergence_DF$SE <- as.numeric(Divergence_DF$SE)
+
 ################
 # SIMULATIONS! #
 ################
@@ -166,21 +178,29 @@ Divergence_DF <- data.frame(
 # 1. Sample mouse means from the whole sex-pool with the same number of obs
 # 2. Calq the Poly, (SE of mouse means)
 # 3. Calq D, the variance sampled means
+
+
+
+
+
 Nrep = 5000
 
 ##make female dataset to draw samples from
 PnD_female <- Mouse_table[Mouse_table$sex == "female",] #sample from within 
+PnD_female<- PnD_female[!grepl("SPRET", PnD_female$strain) , ]
+
 PnD_male <- Mouse_table[Mouse_table$sex == "male",]
+
 #remove non-HM from males
 PnD_male<- PnD_male[!grepl("SPRET", PnD_male$strain) , ]
+#but cast, mice means can still be drawn
+
 
 #Dom_F
 Rand_Dom_F = data.frame(smp_mean=as.numeric(c(1)), Poly=as.numeric(c(1)), Div.Dom_Musc=as.numeric(c(1)), Subsp = c(1))
 for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
   mouse_means <- sample(PnD_female$mean_co, nDomF_obs) #sample mouse
-  
   Rand_Dom_F[i,1] <- mean(as.numeric(mouse_means))
-
     Rand_Dom_F[i,2] <- sd(as.numeric(mouse_means))/sqrt(nDomF_obs)
 #Div  
   Rand_Dom_F[i,3] = sd( c(  mean(as.numeric(mouse_means) ), MuscF_sbsp_mean ) / sqrt(2) )
@@ -207,17 +227,18 @@ obs_F <-  data.frame(smp_mean = c("NA", "NA"), Poly = c(Polymorphism_DF$SE.means
                      Subsp = c("obsDomF", "obsMuscF")) #Poly, Div.Dom_Musc, Subsp
 Full_sim_F <- rbind(Full_sim_F, obs_F)
 juju <- ggplot(data = Full_sim_F, aes(x=Div.Dom_Musc, y=Poly, fill=Subsp, color=Subsp)) + 
-  ylim(0,1.5)+geom_point()
+  ylim(0,1.7)+geom_point()
 juju
 dev.off()
 
-#simulations for Male
+#simulations for Male .. when sampling size is the same, the subspecies samples, still diverge.. but less so
+#they seem like mirror images
 #Dom_M
 Rand_Dom_M = data.frame(smp_mean=as.numeric(c(1)),Poly=as.numeric(c(1)), Div.Dom_Musc=as.numeric(c(1)), Subsp = c(1))
 for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
   mouse_means <- sample(PnD_male$mean_co, nDomM_obs)
   Rand_Dom_M[i,1] = mean(as.numeric(mouse_means))
-  Rand_Dom_M[i,2] = sd(as.numeric(mouse_means))/sqrt(nDomM_obs)
+  Rand_Dom_M[i,2] = sd(as.numeric(mouse_means))/sqrt(nDomM_obs)#nDomM_obs
   Rand_Dom_M[i,3] = sd( c(mean(  as.numeric(mouse_means) ), MuscM_sbsp_mean ) / sqrt(2) )
   Rand_Dom_M[i,4] <- "Rand-Dom-male"
   # print(c(i,  sd(sampld_DomF[,i])/sqrt(sample_size),  (sd( c( mean(  as.numeric(sampld_DomF[,i]) ), DomM_sbsp_mean ) / sqrt(2) ) ) ) )
@@ -225,10 +246,10 @@ for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
 #Musc_M
 Rand_Musc_M = data.frame(smp_mean=as.numeric(c(1)),Poly=as.numeric(c(1)), Div.Dom_Musc=as.numeric(c(1)), Subsp = c(1))
 for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
-  mouse_means <- sample(PnD_male$mean_co, nMuscM_obs)
+  mouse_means <- sample(PnD_male$mean_co, nMuscM_obs) #if the number of observations was changd
   Rand_Musc_M[i,1] = mean(as.numeric(mouse_means))
   Rand_Musc_M[i,2] = sd(as.numeric(mouse_means))/sqrt(nMuscM_obs)
-  Rand_Musc_M[i,3] = sd( c(mean(  as.numeric(mouse_means) ), DomM_sbsp_mean ) / sqrt(2) )
+  Rand_Musc_M[i,3] = sd( c(mean(  as.numeric(mouse_means) ), DomM_sbsp_mean ) / sqrt(2) ) #
   Rand_Musc_M[i,4] <- "Rand-Musc-male"
   # print(c(i,  sd(sampld_DomF[,i])/sqrt(sample_size),  (sd( c( mean(  as.numeric(sampld_DomF[,i]) ), DomM_sbsp_mean ) / sqrt(2) ) ) ) )
 }
@@ -236,15 +257,25 @@ for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
 #Make plot
 png('PnD_Male_sim.png')
 
+#the tables seem to behave werid
+
 Full_sim_M <- rbind(Rand_Dom_M, Rand_Musc_M)
 #Dom.F Musc.F
-obs_M <-  data.frame(smp_mean=c("NA","NA"), Poly = c(Polymorphism_DF$SE.means[2],Polymorphism_DF$SE.means[4] ),
-                     Div.Dom_Musc = c(Divergence_DF$SE[2],Divergence_DF$SE[2]),
-                     Subsp = c("obsDomM", "obsMuscM")) #Poly, Div.Dom_Musc, Subsp
+obs_M <-  data.frame(smp_mean=c("NA","NA", "NA", "NA", "NA", "NA"),
+  Poly = c(Polymorphism_DF$SE.means[2],Polymorphism_DF$SE.means[4], 
+           Polymorphism_DF$SE.means[2],Polymorphism_DF$SE.means[4],
+           Polymorphism_DF$SE.means[2],Polymorphism_DF$SE.means[4]),
+   
+   Div.Dom_Musc = c(Divergence_DF$SE[2],Divergence_DF$SE[2], 
+                     Divergence_DF$SE[4],Divergence_DF$SE[4],
+                     Divergence_DF$SE[6],Divergence_DF$SE[6]
+                     ),
+    Subsp = c("obsDomM", "obsMuscM", "obsDomM", "obsMuscM", "obsDomM", "obsMuscM")) #Poly, Div.Dom_Musc, Subsp
+
 Full_sim_M <- rbind(Full_sim_M, obs_M)
 
 mumu <- ggplot(data = Full_sim_M, aes(x=Div.Dom_Musc, y=Poly, fill=Subsp, color=Subsp))+
-  ylim(0,1.5)+geom_point()
+  ylim(0,1.7)+geom_point()
 mumu
 
 dev.off()
