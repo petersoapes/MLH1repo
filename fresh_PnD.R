@@ -178,11 +178,6 @@ Divergence_DF$SE <- as.numeric(Divergence_DF$SE)
 # 1. Sample mouse means from the whole sex-pool with the same number of obs
 # 2. Calq the Poly, (SE of mouse means)
 # 3. Calq D, the variance sampled means
-
-
-
-
-
 Nrep = 5000
 
 ##make female dataset to draw samples from
@@ -197,23 +192,31 @@ PnD_male<- PnD_male[!grepl("SPRET", PnD_male$strain) , ]
 
 
 #Dom_F
+#dom subsp str
+# mean(   mean(mouse_means[1:6]), mean(mouse_means[7:14]), mean(mouse_means[15:16]) )
+
 Rand_Dom_F = data.frame(smp_mean=as.numeric(c(1)), Poly=as.numeric(c(1)), Div.Dom_Musc=as.numeric(c(1)), Subsp = c(1))
 for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
   mouse_means <- sample(PnD_female$mean_co, nDomF_obs) #sample mouse
   Rand_Dom_F[i,1] <- mean(as.numeric(mouse_means))
-    Rand_Dom_F[i,2] <- sd(as.numeric(mouse_means))/sqrt(nDomF_obs)
+    Rand_Dom_F[i,2] <- sd(  as.numeric(mouse_means))/sqrt(nDomF_obs)
 #Div  
-  Rand_Dom_F[i,3] = sd( c(  mean(as.numeric(mouse_means) ), MuscF_sbsp_mean ) / sqrt(2) )
+  Rand_Dom_F[i,3] = sd( c(  mean(   mean(mouse_means[1:6]), mean(mouse_means[7:13]), mean(mouse_means[14:16]) ),
+                            MuscF_sbsp_mean ) ) / sqrt(2)
   Rand_Dom_F[i,4] <- "Rand-Dom-Female"
 }
 
 #Musc_F
+#musc data str
 Rand_Musc_F = data.frame(smp_mean=as.numeric(c(1)),Poly=as.numeric(c(1)), Div.Dom_Musc=as.numeric(c(1)), Subsp = c(1))
 for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
   mouse_means <- sample(PnD_female$mean_co, nMuscF_obs)
   Rand_Musc_F[i,1] <- mean(as.numeric(mouse_means))
   Rand_Musc_F[i,2] <- sd(as.numeric(mouse_means))/sqrt(nMuscF_obs)
-  Rand_Musc_F[i,3] <- sd( c(mean(  as.numeric(mouse_means) ), DomF_sbsp_mean ) / sqrt(2) )
+  
+  Rand_Musc_F[i,3] <- sd( c(mean(  mean(mouse_means[1:13]), mean(mouse_means[14:17] ) ), 
+                            DomF_sbsp_mean ) ) / sqrt(2)
+  
   Rand_Musc_F[i,4] <- "Rand-Musc-Female"
 }
 
@@ -239,17 +242,26 @@ for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
   mouse_means <- sample(PnD_male$mean_co, nDomM_obs)
   Rand_Dom_M[i,1] = mean(as.numeric(mouse_means))
   Rand_Dom_M[i,2] = sd(as.numeric(mouse_means))/sqrt(nDomM_obs)#nDomM_obs
-  Rand_Dom_M[i,3] = sd( c(mean(  as.numeric(mouse_means) ), MuscM_sbsp_mean ) / sqrt(2) )
+  
+#replicate the data structure for strain mean calculations
+# mean(  mean( smp[1:5]), mean(smpl[6:13]), mean(smpl[14:20]) )
+  Rand_Dom_M[i,3] = sd( c(  mean(  mean(mouse_means[1:5]), mean(mouse_means[6:13]), mean(mouse_means[14:19]) ), 
+                            MuscM_sbsp_mean ) ) / sqrt(2)
   Rand_Dom_M[i,4] <- "Rand-Dom-male"
   # print(c(i,  sd(sampld_DomF[,i])/sqrt(sample_size),  (sd( c( mean(  as.numeric(sampld_DomF[,i]) ), DomM_sbsp_mean ) / sqrt(2) ) ) ) )
 }
 #Musc_M
+#strain mean str
+# mean( mean(smpl[1:7]), mean(smpl[8:14])  )
+
 Rand_Musc_M = data.frame(smp_mean=as.numeric(c(1)),Poly=as.numeric(c(1)), Div.Dom_Musc=as.numeric(c(1)), Subsp = c(1))
 for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
   mouse_means <- sample(PnD_male$mean_co, nMuscM_obs) #if the number of observations was changd
   Rand_Musc_M[i,1] = mean(as.numeric(mouse_means))
   Rand_Musc_M[i,2] = sd(as.numeric(mouse_means))/sqrt(nMuscM_obs)
-  Rand_Musc_M[i,3] = sd( c(mean(  as.numeric(mouse_means) ), DomM_sbsp_mean ) / sqrt(2) ) #
+  
+  Rand_Musc_M[i,3] = sd( c(  mean(  mean(mouse_means[1:7] ), mean(mouse_means[8:13] ) ),
+                           DomM_sbsp_mean ) ) / sqrt(2) #
   Rand_Musc_M[i,4] <- "Rand-Musc-male"
   # print(c(i,  sd(sampld_DomF[,i])/sqrt(sample_size),  (sd( c( mean(  as.numeric(sampld_DomF[,i]) ), DomM_sbsp_mean ) / sqrt(2) ) ) ) )
 }
@@ -257,20 +269,19 @@ for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
 #Make plot
 png('PnD_Male_sim.png')
 
-#the tables seem to behave werid
 
+#
 Full_sim_M <- rbind(Rand_Dom_M, Rand_Musc_M)
-#Dom.F Musc.F
-obs_M <-  data.frame(smp_mean=c("NA","NA", "NA", "NA", "NA", "NA"),
-  Poly = c(Polymorphism_DF$SE.means[2],Polymorphism_DF$SE.means[4], 
-           Polymorphism_DF$SE.means[2],Polymorphism_DF$SE.means[4],
-           Polymorphism_DF$SE.means[2],Polymorphism_DF$SE.means[4]),
+#Dom.F
+obs_M <-  data.frame(smp_mean=c("NA","NA", "NA", "NA"),
+  Poly = c(Polymorphism_DF$SE.means[2],Polymorphism_DF$SE.means[4], #Dom   #musc
+           Polymorphism_DF$SE.means[4],Polymorphism_DF$SE.means[2]), #musc #dom
    
-   Div.Dom_Musc = c(Divergence_DF$SE[2],Divergence_DF$SE[2], 
-                     Divergence_DF$SE[4],Divergence_DF$SE[4],
-                     Divergence_DF$SE[6],Divergence_DF$SE[6]
+   Div.Dom_Musc = c(Divergence_DF$SE[2],Divergence_DF$SE[2],  #dom-musc
+                     Divergence_DF$SE[4], #musc- cast
+                     Divergence_DF$SE[6] #dom-cast - remove musc point
                      ),
-    Subsp = c("obsDomM", "obsMuscM", "obsDomM", "obsMuscM", "obsDomM", "obsMuscM")) #Poly, Div.Dom_Musc, Subsp
+    Subsp = c("obsDomM", "obsMuscM", "obsMuscM", "obsDomM")) #Poly, Div.Dom_Musc, Subsp
 
 Full_sim_M <- rbind(Full_sim_M, obs_M)
 
