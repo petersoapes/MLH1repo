@@ -229,10 +229,16 @@ obs_F <-  data.frame(smp_mean = c("NA", "NA"), Poly = c(Polymorphism_DF$SE.means
                      Div.Dom_Musc = c(Divergence_DF$SE[1],Divergence_DF$SE[1]),
                      Subsp = c("obsDomF", "obsMuscF")) #Poly, Div.Dom_Musc, Subsp
 Full_sim_F <- rbind(Full_sim_F, obs_F)
+
 juju <- ggplot(data = Full_sim_F, aes(x=Div.Dom_Musc, y=Poly, fill=Subsp, color=Subsp)) + 
-  ylim(0,1.7)+geom_point()
+  ylim(0,1.7)+xlim(0,4)+geom_point()+theme_bw()
 juju
 dev.off()
+
+#panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+library(car)
+data.ellipse(x, y, levels=c(0.5, 0.975))
+
 
 #simulations for Male .. when sampling size is the same, the subspecies samples, still diverge.. but less so
 #they seem like mirror images
@@ -286,7 +292,7 @@ obs_M <-  data.frame(smp_mean=c("NA","NA", "NA", "NA"),
 Full_sim_M <- rbind(Full_sim_M, obs_M)
 
 mumu <- ggplot(data = Full_sim_M, aes(x=Div.Dom_Musc, y=Poly, fill=Subsp, color=Subsp))+
-  ylim(0,1.7)+geom_point()
+  ylim(0,1.7)+xlim(0,4)+geom_point()+theme_bw()
 mumu
 
 dev.off()

@@ -58,6 +58,10 @@ MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
 source("src/Func_addMouse.R")
 MLH1_data <- add_mouse(MLH1_data)
 
+#add subsp
+source("src/Func_addSubsp.R")
+MLH1_data <- add_subsp(MLH1_data)
+
 #reorder dataframe
 MLH1_data <- MLH1_data %>%
   arrange(strain, sex, mouse) %>%
@@ -65,8 +69,11 @@ MLH1_data <- MLH1_data %>%
 
 
 #remove mice that had bad stains
-#12sep16_MSM_f3(centromere signal bled into MLH1 signal)
+#12sep16_MSM_f3(centromere signal bled into MLH1 signal), bad stain
 MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f3", MLH1_data$mouse) , ]
+MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f1", MLH1_data$mouse) , ]
+#
+
 #make a list of bad mice
 
 #MLH1_by_M_mouse <- with(MLH1_by_M_mouse, MLH1_by_M_mouse[order(subsp),])
