@@ -12,9 +12,6 @@ library(dplyr)
 setwd("C:/Users/alpeterson7/Documents/MLH1repo")
 load(file="MLH1_data_setup.RData")
 
-# MLH1 data
-source("src/Func_addSubsp.R")
-MLH1_data <- add_subsp(MLH1_data)
 #seperate by sex
 
 MLH1_data$subsp <- as.factor(MLH1_data$subsp)
@@ -36,12 +33,25 @@ ffq <- aov(nMLH1.foci ~  subsp + strain %in% subsp + mouse %in% strain,
           data= MLf)
 
 op <- par(mfrow = c(2, 2))
-plot(ffq)
+plot(ff)
 par(op)
 
-
+simp <- aov(nMLH1.foci ~  subsp * strain * mouse, 
+            data= MLfvv)
 ff <- aov(nMLH1.foci ~  subsp + strain %in% subsp + mouse %in% strain, 
            data= MLfvv)
+# this is the same SS results as by nested notation... %in% doesn't change
+# 
+ffgg <- aov(nMLH1.foci ~ subsp/strain/mouse, 
+          data= MLfvv)
+#MLf
+ll <- anova(lm(nMLH1.foci ~ subsp/strain/mouse, 
+               data= MLf))
+
+hh <- anova(lm(nMLH1.foci ~ subsp/strain/mouse, 
+          data= MLfvv))
+# all of the above models give the same summary results
+# #i don't think I should expect the models to change that much...?
 
 mm <- aov(nMLH1.foci ~  subsp + strain %in% subsp + mouse %in% strain, 
           data= MLm)

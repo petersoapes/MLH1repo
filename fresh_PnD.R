@@ -119,7 +119,6 @@ Polymorphism_DF <- data.frame(subsp=c("Dom","Dom","Musc","Musc"),
 Polymorphism_DF$SE.means <- as.character(Polymorphism_DF$SE.means)
 Polymorphism_DF$SE.means <- as.numeric(Polymorphism_DF$SE.means)
 
-
 #4. Calq observed Divergence variance levels
 ##############
 # Divergence #
@@ -183,13 +182,10 @@ Nrep = 5000
 ##make female dataset to draw samples from
 PnD_female <- Mouse_table[Mouse_table$sex == "female",] #sample from within 
 PnD_female<- PnD_female[!grepl("SPRET", PnD_female$strain) , ]
-
 PnD_male <- Mouse_table[Mouse_table$sex == "male",]
 
-#remove non-HM from males
-PnD_male<- PnD_male[!grepl("SPRET", PnD_male$strain) , ]
-#but cast, mice means can still be drawn
-
+PnD_poold <- Mouse_table[!grepl("SPRET", Mouse_table$strain),]
+PnD_poold <- PnD_poold[!grepl("SPIC", PnD_poold$strain),]
 
 #Dom_F
 #dom subsp str
@@ -197,7 +193,7 @@ PnD_male<- PnD_male[!grepl("SPRET", PnD_male$strain) , ]
 
 Rand_Dom_F = data.frame(smp_mean=as.numeric(c(1)), Poly=as.numeric(c(1)), Div.Dom_Musc=as.numeric(c(1)), Subsp = c(1))
 for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
-  mouse_means <- sample(PnD_female$mean_co, nDomF_obs) #sample mouse
+  mouse_means <- sample(PnD_poold$mean_co, nDomF_obs) #sample mouse
   Rand_Dom_F[i,1] <- mean(as.numeric(mouse_means))
     Rand_Dom_F[i,2] <- sd(  as.numeric(mouse_means))/sqrt(nDomF_obs)
 #Div  
@@ -210,7 +206,7 @@ for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
 #musc data str
 Rand_Musc_F = data.frame(smp_mean=as.numeric(c(1)),Poly=as.numeric(c(1)), Div.Dom_Musc=as.numeric(c(1)), Subsp = c(1))
 for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
-  mouse_means <- sample(PnD_female$mean_co, nMuscF_obs)
+  mouse_means <- sample(PnD_poold$mean_co, nMuscF_obs)
   Rand_Musc_F[i,1] <- mean(as.numeric(mouse_means))
   Rand_Musc_F[i,2] <- sd(as.numeric(mouse_means))/sqrt(nMuscF_obs)
   
@@ -245,7 +241,7 @@ data.ellipse(x, y, levels=c(0.5, 0.975))
 #Dom_M
 Rand_Dom_M = data.frame(smp_mean=as.numeric(c(1)),Poly=as.numeric(c(1)), Div.Dom_Musc=as.numeric(c(1)), Subsp = c(1))
 for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
-  mouse_means <- sample(PnD_male$mean_co, nDomM_obs)
+  mouse_means <- sample(PnD_poold$mean_co, nDomM_obs)
   Rand_Dom_M[i,1] = mean(as.numeric(mouse_means))
   Rand_Dom_M[i,2] = sd(as.numeric(mouse_means))/sqrt(nDomM_obs)#nDomM_obs
   
@@ -262,7 +258,7 @@ for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
 
 Rand_Musc_M = data.frame(smp_mean=as.numeric(c(1)),Poly=as.numeric(c(1)), Div.Dom_Musc=as.numeric(c(1)), Subsp = c(1))
 for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
-  mouse_means <- sample(PnD_male$mean_co, nMuscM_obs) #if the number of observations was changd
+  mouse_means <- sample(PnD_poold$mean_co, nMuscM_obs) #if the number of observations was changd
   Rand_Musc_M[i,1] = mean(as.numeric(mouse_means))
   Rand_Musc_M[i,2] = sd(as.numeric(mouse_means))/sqrt(nMuscM_obs)
   
@@ -296,3 +292,10 @@ mumu <- ggplot(data = Full_sim_M, aes(x=Div.Dom_Musc, y=Poly, fill=Subsp, color=
 mumu
 
 dev.off()
+
+#######################
+# Save this framework #
+#######################
+setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+save.image("PnD_environment.RData")
+
