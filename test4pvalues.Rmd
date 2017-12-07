@@ -1,0 +1,82 @@
+---
+title: "test_for_p.values"
+author: "April Peterson"
+date: "December 6, 2017"
+output: html_document
+---
+
+first the larger data 
+
+
+I am trying to display plots for each mouse. For each mouse I want to run the replicate line code. 
+
+
+```{r, echo=FALSE, message=FALSE,results='hide', warning=FALSE}
+#what is the purpose of this block
+pMLH1_data <- MLH1_data[MLH1_data$category == "PWD male", ]
+
+#4jan17_LEW_f3, 4jan17_LEW_f6
+two_mouse_data <- MLH1_data[ (MLH1_data$mouse == "4jan17_LEW_f3" | MLH1_data$mouse == "4jan17_LEW_f6"), ]
+
+cat_list <- split(pMLH1_data, (pMLH1_data$mouse))
+#list of dfs, that are split by mouse
+#cat_list$'4jan17_LEW_f3'$quality  AND  cat_list[[1]]$quality
+#cat_list[1]$quality
+
+#remove sections which are in category but have no data
+cat_list <- cat_list[ -c(7, 12, 14,19, 20) ]
+#7: PERC male, 12:CAST female, 14:HMI female, 19:SPIC male
+
+#df_list 
+o=0
+i=0
+
+#split str.  # PWD - split by mouse, 
+
+new_dat = list()
+for(i in 1:(length(cat_list))){
+  new_dat[i] <- data.frame()
+  new_dat[i]$pvals <- replicate(100, t.test(sample(cat_list[[i]]$nMLH1.foci, 5) ,    sample(cat_list[[i]]$nMLH1.foci, 5))$p.value )
+  
+new_dat$m <- cat_list[[i]]$mouse 
+}
+
+g <- as.data.frame(new_dat)
+
+
+# ggplot only works with DFs
+
+# g 7 columns, 
+plot_list = list()
+gcolnames <- colnames(g)
+for(h in 1:length(gcolnames)){
+  print(h)
+  pf <- ggplot(g, aes(x = g[h])) + geom_histogram() + xlim(c(0,1))
+  pf
+  plot_list[[h]] =   pf
+}
+
+for (gg in 1:length(plot_list) ){
+  print(gg)
+  plot_list[gg][[1]]
+  #show(plot_list[gg])
+  #invisible(lapply(obj, function(x) plot(x,main="some plot")))
+}
+
+
+
+```
+
+The above code made a big dataframe with pvalues for small sample sizes
+
+
+
+```{r}
+plyMLH1_data <- MLH1_data[MLH1_data$mouse == "18may15_PWD_m1", ]
+
+bb <- replicate(1000, t.test(sample(plyMLH1_data$nMLH1.foci, length(plyMLH1_data$nMLH1.foci)/2) ,    sample(plyMLH1_data$nMLH1.foci, 20))$p.value )
+
+ggplot(data.frame(bb), aes(x=bb)) + 
+  geom_histogram() #+ geom_tile()
+
+```

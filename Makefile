@@ -4,10 +4,10 @@
 #	Rscript rmd_report.rmd
 
 #all
-all : adj_HetC.png maleMLH1_plot.png femaleMLH1_plot.png PnD_Male_sim.png PnD_Female.png
+all : adj_HetC.png maleMLH1_plot.png femaleMLH1_plot.png PnD_poold_sim.png
 
 #PnD figs
-PnD_Male_sim.png PnD_Female_sim.png : fresh_PnD.R
+PnD_poold_sim.png : fresh_PnD.R
 	Rscript fresh_PnD.R
 
 #MLH1 strain plots
