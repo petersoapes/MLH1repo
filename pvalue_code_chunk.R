@@ -1,16 +1,45 @@
 
 #below will plot pvalues
-bb<- replicate(1000, t.test(sample(Dom_f$nMLH1.foci, 5), sample(Dom_f$nMLH1.foci, 30) )$p.value )
+
+ply_data <- df.pasd.mice[df.pasd.mice$mouse == "8oct14_PWD_f8",]
+ply_data2 <- df.pasd.mice[df.pasd.mice$mouse == "10mar15_PWD_m2",]
+
+#in one line, this perfoms a t-test of two different samples
+bb<- replicate(100, t.test(sample(ply_data2$nMLH1.foci, 10), sample(ply_data2$nMLH1.foci, 20) )$p.value )
+# so I should look at how 
 
 ggplot(data.frame(bb), aes(y=bb, x=seq(1:1000))) + 
   #geom_histogram(aes(y=..density..)) +
   geom_point()
 #still thinking of the right set-up for comparisons
+#general pattern I'm observing is that the smaller the sample, 
+
+#histogram might show the distribution better
+ggplot(data.frame(bb), aes(x=bb)) + 
+  geom_histogram() #+ geom_tile()
 
 
-#pieces from Rmd Report
+#add title informaiton that shows parameters  
+#sample size 20, for both is heavily right skewed
+#sample size of 20,10 is slightly less right skewed
+# comparing different sample sizes..
 
-```{r}
+#increasing the iterations, maintains a pretty wide range, but shifts the skew (looks like half a bell curve)
+# the pattern looks different for the female and male I compare. Female is much more linear increase, male is
+# more curved and levels off almost.
+
+
+#sample from 1 PWD female, 1 PWD male (10 cells), is very left skewed
+#increasing the sample size and iterations, increases the leftskewed-ness (all below .05)
+  
+
+# how would I diagnosis, low power? or sample size affect?
+# for each mouse, I should compare p value distributions for different sample sizes ... compare the pattern for relative
+# and absolute sample sizes
+#quarter, )
+
+
+
 colnms = c("mouse", "rep")
 ply_data <- df.pasd.mice[df.pasd.mice$mouse == "8oct14_PWD_f8",]
 #make this the function that I apply over the mice in the data

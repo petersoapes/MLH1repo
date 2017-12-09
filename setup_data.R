@@ -8,6 +8,7 @@
 
 library(plyr)
 library(dplyr)
+library(raster)#for cV
 
 ########################
 # Setup main dataframe #
@@ -58,6 +59,10 @@ MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
 source("src/Func_addMouse.R")
 MLH1_data <- add_mouse(MLH1_data)
 
+#add subsp
+source("src/Func_addSubsp.R")
+MLH1_data <- add_subsp(MLH1_data)
+
 #reorder dataframe
 MLH1_data <- MLH1_data %>%
   arrange(strain, sex, mouse) %>%
@@ -65,8 +70,23 @@ MLH1_data <- MLH1_data %>%
 
 
 #remove mice that had bad stains
-#12sep16_MSM_f3(centromere signal bled into MLH1 signal)
+#12sep16_MSM_f3(centromere signal bled into MLH1 signal), bad stain
 MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f3", MLH1_data$mouse) , ]
+MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f1", MLH1_data$mouse) , ]
+
+#Make a mouse table
+AP_mouse_table <- ddply(MLH1_data, c("mouse"), summarise,
+                         Nmice = length(unique(mouse)),
+                         Ncells  = length(adj_nMLH1.foci),
+                         mean_co = format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3),
+                         cV = cv(adj_nMLH1.foci),
+                          var = format(round(   var(adj_nMLH1.foci),3), nsmall=3),
+                         sd   = round(sd(adj_nMLH1.foci), 3),
+                         se   = round(sd / sqrt(Ncells), 3)
+)
+
+
+
 #make a list of bad mice
 
 #MLH1_by_M_mouse <- with(MLH1_by_M_mouse, MLH1_by_M_mouse[order(subsp),])

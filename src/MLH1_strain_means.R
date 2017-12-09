@@ -93,7 +93,6 @@ ff_plot <- ggplot(MLH1_by_F_strain, aes(y = as.numeric(mean_co), x=man_x_fspace,
         panel.background = element_blank(), 
         axis.line.y = element_line(colour = "black", size = 1.5), legend.position="none",
         axis.ticks.y = element_line(colour = "black", size = 1.5),
-        
         axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0), size=20),
         
         axis.text.y = element_text(size=15, face="bold"),

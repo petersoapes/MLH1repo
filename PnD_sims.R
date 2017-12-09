@@ -1,7 +1,7 @@
 # simulations for Polymorphism and Divergence
 # input: RData of MLH1data
 # output: plot of PandD values and simulations
-
+# for make pipeline --PnD sim plots of Domf, Domm, MuscM, MuscF
 
 library(plyr)
 library(dplyr)

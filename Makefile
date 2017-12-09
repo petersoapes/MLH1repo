@@ -4,7 +4,11 @@
 #	Rscript rmd_report.rmd
 
 #all
-all : adj_HetC.png maleMLH1_plot.png femaleMLH1_plot.png
+all : adj_HetC.png maleMLH1_plot.png femaleMLH1_plot.png PnD_poold_sim.png
+
+#PnD figs
+PnD_poold_sim.png : fresh_PnD.R
+	Rscript fresh_PnD.R
 
 #MLH1 strain plots
 maleMLH1_plot.png femaleMLH1_plot.png : src/MLH1_strain_means.R data/AnonData.csv

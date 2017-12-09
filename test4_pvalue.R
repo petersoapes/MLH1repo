@@ -5,9 +5,8 @@ library(plyr)
 library(lattice)
 library(dplyr)
 
-#setwd("C:/Users/alpeterson7/Documents/MLH1repo")
-
-setwd("Documents/MLH1repo")
+setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+#setwd("Documents/MLH1repo")
 
 load(file="MLH1_data_setup.RData")
 
