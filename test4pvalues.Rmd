@@ -6,11 +6,15 @@ output: html_document
 ---
 
 ```{r}
-#setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+setwd("C:/Users/alpeterson7/Documents/MLH1repo")
 #setwd("Documents/MLH1repo")
-setwd("C:/Users/April/Desktop/MLH1repo")
+#setwd("C:/Users/April/Desktop/MLH1repo")
 load(file="MLH1_data_setup.RData")
 library(ggplot2)
+library(plyr)
+library(dplyr)
+library(raster)
+library(reshape2)
 ```
 
 first the larger data 
@@ -21,54 +25,192 @@ twenty <- AP_mouse_table[AP_mouse_table$Ncells >= 20,]
 lessTwenty <- AP_mouse_table[AP_mouse_table$Ncells < 20,]
 #these will give the list of mice
 
-#subset MLH1_data by these lists
+#subset MLH1_data by these lists. (fixed line below, )
+twenty_data <- MLH1_data[MLH1_data$mouse %in% twenty$mouse, ]
 
-twenty_data <- MLH1_data[(unique(MLH1_data$mouse) %in% twenty$mouse),]
+twenty_data_table <- ddply(twenty_data, c("mouse"), summarise,
+                         Nmice = length(unique(mouse)),
+                         Ncells  = length(adj_nMLH1.foci),
+                         mean_co = format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3),
+                         cV = cv(adj_nMLH1.foci),
+                          var = format(round(   var(adj_nMLH1.foci),3), nsmall=3),
+                         sd   = round(sd(adj_nMLH1.foci), 3),
+                         se   = round(sd / sqrt(Ncells), 3)
+)
+
+
 lessTwenty_data <- MLH1_data[(unique(MLH1_data$mouse) %in% lessTwenty$mouse),]
+
+#there -- the data counted in for AP_mouse_table doesn't match how 
+#my smaller df made for each mouse in the loops.
+#the table said Ncells was 21, but the smaller df is only 13 long
 
 ```
 I am trying to display plots for each mouse. For each mouse I want to run the replicate line code. 
 
 ```{r}
+sim_iterations <- 1000
 
-outlist = list()
-for(o in 1:length(unique(twenty$mouse))){
-  print(twenty$mouse[o])
-  mus_data <- twenty_data[twenty_data$mouse == twenty$mouse[o],]
+outlist15 = list()
+for(fif in 1:length(unique(twenty$mouse))){
+  print(twenty$mouse[fif])
+  #
+  mus_data <- twenty_data[twenty_data$mouse == twenty$mouse[fif],]
   
-  outlist[o] <- list(replicate(100, t.test(sample(mus_data$adj_nMLH1.foci, 15, replace = TRUE),
-                        sample(mus_data$adj_nMLH1.foci, 15, replace = TRUE) )$p.value ) )
+  outlist15[fif] <- list(replicate(sim_iterations, t.test(sample(mus_data$adj_nMLH1.foci, 15, replace = FALSE),
+                        sample(mus_data$adj_nMLH1.foci, 15, replace = FALSE) )$p.value ) )
   }
-names(outlist) <- twenty$mouse
+names(outlist15) <- twenty$mouse
 #outlist is not a list of p-value list. ()
 
 
-#find a way to print out histogrms 
-plot_list = list()
+outlist10 = list()
+for(ten in 1:length(unique(twenty$mouse))){
+  print(twenty$mouse[ten])
+  mus_data <- twenty_data[twenty_data$mouse == twenty$mouse[ten],]
+  
+  outlist10[ten] <- list(replicate(sim_iterations, t.test(sample(mus_data$adj_nMLH1.foci, 10, replace = FALSE),
+                        sample(mus_data$adj_nMLH1.foci, 10, replace = FALSE) )$p.value ) )
+  }
+names(outlist10) <- twenty$mouse
+
+
+outlist20 = list()
+for(tw in 1:length(unique(twenty$mouse))){
+  print(twenty$mouse[tw])
+  mus_data <- twenty_data[twenty_data$mouse == twenty$mouse[tw],]
+  
+  outlist20[tw] <- list(replicate(sim_iterations, t.test(sample(mus_data$adj_nMLH1.foci, 20, replace = FALSE),
+                sample(mus_data$adj_nMLH1.foci, 20, replace = FALSE) )$p.value ) )
+  }
+names(outlist20) <- twenty$mouse
+#outlist is not a list of p-value list. ()
+
+
+plot_list20 = list()
 for (i in 1:length(twenty$mouse)){
   print(i)  
-  try_df <- as.data.frame(outlist[[i]])
+  try_df <- as.data.frame(outlist20[[i]])
   colnames(try_df) <- "pvals"
-  p = ggplot(try_df) +
+  Title_mus_name <- paste("1000 iterations\n, Test of 2 Samples of 20, \n", names(outlist20[i]) )
+  p20 <- ggplot(try_df) + ggtitle( Title_mus_name ) + xlim(0,1)+
         geom_histogram(aes(x=pvals) )#xlim
-    plot_list[[i]] = p
+    plot_list20[[i]] <- p20
 }
 
-# Save plots to tiff. Makes a separate file for each plot.
-for(i in 1:length(plot_list) ) {
-    file_name = paste("histy_", i, ".tiff", sep="")
+plot_list10 = list()
+for (i in 1:length(twenty$mouse)){
+  print(i)  
+  try_df <- as.data.frame(outlist10[[i]])
+  Title_mus_name <- paste("1000 iterations\n Test of 2 Samples of 10, \n", names(outlist10[i]) )
+  colnames(try_df) <- "pvals"
+  p10 <- ggplot(try_df) + ggtitle( Title_mus_name ) +xlim(0,1)+
+        geom_histogram(aes(x=pvals) )#xlim
+  #tryfiting 3 plots 
+  
+    plot_list10[[i]] <- p10
+}
+
+
+plot_list15 = list()
+for (i in 1:length(twenty$mouse)){
+  print(i)  
+  try_df <- as.data.frame(outlist15[[i]])
+  Title_mus_name <- paste("1000 iterations\n Test of 2 Samples of 15, \n", names(outlist15[i]) )
+  colnames(try_df) <- "pvals"
+  p15 <- ggplot(try_df) + ggtitle( Title_mus_name ) + xlim(0,1)+
+        geom_histogram(aes(x=pvals) )#xlim
+  #tryfiting 3 plots
+    plot_list15[[i]] <- p15
+}
+
+
+
+#make list of scatter plots
+sctr_plot = list()
+for (i in 1:length(twenty$mouse)){
+  print(i)  
+  df10 <- as.data.frame(outlist10[[i]])
+  df15 <- as.data.frame(outlist15[[i]])
+  df20 <-as.data.frame(outlist20[[i]])
+  names(df10) = "pvals"
+  names(df15)= "pvals"
+  names(df20)= "pvals"
+  allDF <- data.frame(pvals = rbind(df10, df15, df20),
+    DFsets = c (rep("samp10",length(df10[,1]) ), 
+              rep("samp15",length(df10[,1])), 
+              rep("samp20", length(df10[,1])) )
+                      )
+    Title_mus_name <- paste("1000 iterations\n Pvalues of T-tests \n", names(outlist15[i]) )
+  colnames(try_df) <- "pvals"
+  
+  scplot <- ggplot(allDF) + ggtitle( Title_mus_name) +
+        geom_jitter(aes(x=DFsets, y=pvals) )
+    sctr_plot[[i]] <- scplot
+}
+
+
+source("src/MultiPlot.R")
+
+multiplot(plot_list10[[8]],plot_list20[[8]], cols=1)
+
+# Saves multiple plots to a tiff file for each mouse
+for(i in 1:5) {
+    file_name = paste("Sample_sizes_p_", i, ".tiff", sep="")
     tiff(file_name)
-    print(plot_list[[i]])
+    #par( mfrow=c(1,2) )
+    multiplot(sctr_plot[[i]], plot_list10[[i]], plot_list15[[i]], plot_list20[[i]],cols=2)
     dev.off()
 }
 
+```
 
 
+```{r}
 
+#scatterplot of pvales
+# the x scales should be the different sample sizes
+#so one ggplot per mouse
 
-hist(outlist[[5]])
-plot()
+#mush all of the outlists into 1 DF
+#
 
+#make list of plots
+sctr_plot = list()
+for (i in 1:length(twenty$mouse)){
+  print(i)  
+  df10 <- as.data.frame(outlist10[[i]])
+  df15 <- as.data.frame(outlist15[[i]])
+  df20 <-as.data.frame(outlist20[[i]])
+  names(df10) = "pvals"
+  names(df15)= "pvals"
+  names(df20)= "pvals"
+  
+  allDF <- data.frame(pvals = rbind(df10, df15, df20),
+    DFsets = c (rep("samp10",length(df10[,1]) ), 
+              rep("samp15",length(df10[,1])), 
+              rep("samp20", length(df10[,1])) )
+                      )
+
+    Title_mus_name <- paste("1000 iterations\n Pvalues of T-tests \n", names(outlist15[i]) )
+  colnames(try_df) <- "pvals"
+  
+  scplot <- ggplot(allDF) + ggtitle( Title_mus_name) +
+        geom_jitter(aes(x=DFsets, y=pvals) )#xlim
+  #tryfiting 3 plots
+    sctr_plot[[i]] <- scplot
+}
+
+for(i in 1:5) {
+    file_name = paste("Scatter_plots_", i, ".tiff", sep="")
+    tiff(file_name)
+    #par( mfrow=c(1,2) )
+    print(sctr_plot[[i]] )
+    #multiplot(plot_list10[[i]], plot_list15[[i]], plot_list20[[i]])
+    #print(c(plot_list[[i]], plot_list20[[i]]) )
+
+    dev.off()
+}
 
 
 ```
