@@ -27,7 +27,6 @@ library(dplyr)
 library(raster)
 library(reshape2)
 
-
 #seperate large dataframe by how many cells are in the samples
 twenty <- AP_mouse_table[AP_mouse_table$Ncells >= 20,]
 lessTwenty <- AP_mouse_table[AP_mouse_table$Ncells < 20,]
@@ -73,6 +72,8 @@ for(tw in 1:length(unique(twenty$mouse))){
 }
 names(outlist20) <- twenty$mouse
 
+#think of saving these DF, as they take time 
+save.image("SampleSizePvalues.RData")
 
 #make plots to display Pvalues
 #1. histograms
@@ -163,4 +164,88 @@ for(i in 1:15) {
 # OR make a table that calculated the means ect of each...
 # add mouse col, and sample size col
 
-#make a table / ddplyr on a merged df
+#make a table / ddplyr on a merged df. (outlist is a list)
+#outlists are lists of lists -- 
+
+#this merges all lists into cols of a df
+dd  <-  as.data.frame(matrix(unlist(outlist10), 
+                  nrow=length(unlist(outlist10[1]))))
+names(dd) <- twenty$mouse
+
+ff <- as.data.frame(matrix(unlist(outlist15), 
+                 nrow=length(unlist(outlist15[1]))))
+names(ff) <- twenty$mouse
+
+tt <- as.data.frame(matrix(unlist(outlist20), 
+                           nrow=length(unlist(outlist20[1]))))
+names(tt) <- twenty$mouse
+
+allouts <- rbind(dd,ff,tt)
+allouts$SampleSize <- c(rep(10, sim_iterations), rep(15, sim_iterations), 
+                        rep(20, sim_iterations))
+
+
+#all of the means for the columns can be calulated with colMeans
+Sample10_means <- colMeans(allouts[1:(sim_iterations),])
+Sample15_means <- colMeans(allouts[(sim_iterations+1):((sim_iterations*2)),])
+Sample20_means <- colMeans(allouts[((sim_iterations*2)+1):(sim_iterations*3),])
+#this table shows the 
+sumdiffs <- abs(Sample10_means-Sample15_means) + abs(Sample15_means-Sample20_means)
+#list of mice where the difference in means between sample sizes is more than 0.2.
+# Mice that should have more 
+SampleSizeEffects <- sumdiffs[sumdiffs > 0.2]
+
+
+## Assess mice with less than 20 cells, which ones have a sufficient amount
+sim_its <- 100
+
+#exclude mice with less than 10
+TenCells <- lessTwenty[lessTwenty$Ncells >= 10,]
+
+#subset MLH1_data by these lists. (fixed line below, )
+TenCells_data <- MLH1_data[MLH1_data$mouse %in% TenCells$mouse,]
+
+
+olist5 = list()
+for(ten in 1:length(unique(TenCells$mouse))){
+  print(TenCells$mouse[ten])
+  mus_data <- TenCells_data[TenCells_data$mouse == TenCells$mouse[ten],]
+  olist5[ten] <- list(replicate(sim_its, t.test(sample(mus_data$adj_nMLH1.foci, 5, replace = FALSE),
+                                                          sample(mus_data$adj_nMLH1.foci, 5, replace = FALSE) )$p.value ) )
+}
+names(olist5) <- TenCells$mouse
+
+olist10 = list()
+for(fif in 1:length(unique(TenCells$mouse))){
+  print(TenCells$mouse[fif])
+  mus_data <- TenCells_data[TenCells_data$mouse == TenCells$mouse[fif],]
+  olist10[fif] <- list(replicate(sim_its, t.test(sample(mus_data$adj_nMLH1.foci, 10, replace = FALSE),
+                                                          sample(mus_data$adj_nMLH1.foci, 10, replace = FALSE) )$p.value ) )
+}
+names(outlist10) <- TenCells$mouse
+#outlist is not a list of p-value list. ()
+
+
+#
+dd  <-  as.data.frame(matrix(unlist(olist5), 
+                             nrow=length(unlist(olist5[1]))))
+names(dd) <- TenCells$mouse
+
+ff <- as.data.frame(matrix(unlist(olist10), 
+                           nrow=length(unlist(olist10[1]))))
+names(ff) <- TenCells$mouse
+
+allouts <- rbind(dd,ff)
+allouts$SampleSize <- c(rep(5, sim_its), rep(10, sim_its))
+
+sample5_means <- colMeans(allouts[1:(sim_its),])
+sample10_means <- colMeans(allouts[(sim_its+1):((sim_its*2)),])
+
+#this table shows the 
+somdiffs <- abs(sample5_means-sample10_means)
+
+plot(somdiffs[1:20])
+
+#list of mice where the difference in means between sample sizes is more than 0.2.
+# Mice that should have more 
+SampleSizeEffects <- somdiffs[somdiffs > 0.2]
