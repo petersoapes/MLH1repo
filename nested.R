@@ -17,6 +17,7 @@ load(file="MLH1_data_setup.RData")
 MLH1_data$subsp <- as.factor(MLH1_data$subsp)
 MLH1_data$mouse <- as.factor(MLH1_data$mouse)
 
+#how do I treat the quality
 good_Q <- MLH1_data[MLH1_data$quality <= 4,]
 
 #build nested nova model
@@ -26,9 +27,10 @@ MLfvv <- MLH1_data[MLH1_data$sex == "female",]
 gdMLm <- good_Q[good_Q$sex == "male",]
 MLm <- MLH1_data[MLH1_data$sex == "male",]
 
-
 #aov(Y ~ A/B, data=d)
 #aov(MLH1.foci ~ subsp + strain %in% subsp, + mouse %in% strain, data= MLH1)
+
+#potential Nesting coding
 ffq <- aov(nMLH1.foci ~  subsp + strain %in% subsp + mouse %in% strain, 
           data= MLf)
 

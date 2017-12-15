@@ -5,7 +5,7 @@ setwd("C:/Users/alpeterson7/Documents/MLH1repo")
 load(file="MLH1_data_setup.RData")
 
 ## ToDO change SE to Sd ##
-
+# transform()  is the important function to use for permuting a column in a dataframe
 
 ###################
 # Setting up Data #
@@ -34,7 +34,15 @@ Mouse_table <- ddply(MLH1_data, c("strain", "sex", "mouse"), summarise,
 source("src/Func_addSubsp.R")
 Mouse_table <- add_subsp(Mouse_table)
 
-#create a mouse level table of best quality cells
+# Divide up mouse table by Dom and Musc
+# (use transform to randomize sex!! !)
+#
+
+Dom_Mouse_table <- subset(Mouse_table, strain == "WSB" | strain == "G" | strain == "LEWES")
+Musc_Mouse_table <- subset(Mouse_table, strain == "PWD" | strain == "MSM")
+Cast_Mouse_table <- subset(Mouse_table, strain == "CAST" | strain == "HMI")
+
+
 
 Q1_Mouse_table <- ddply(MLH1_data[MLH1_data$quality <= 2,], c("strain", "sex", "mouse"), summarise,
                      Nmice = length(unique(mouse)),
@@ -210,7 +218,9 @@ Nrep = 10000
 
 ##make female dataset to draw samples from
 
-#Dom
+#this is how to permute the sex label in the mouse average table!! yayay!
+Dom_per <- transform(Dom_Mouse_table, sex = sample(sex))
+
 #dom subsp str
 # mean(   mean(mouse_means[1:6]), mean(mouse_means[7:14]), mean(mouse_means[15:16]) )
 Rand_Dom = data.frame(smp_mean=as.numeric(c(1)), Poly=as.numeric(c(1)), Div.Dom_Musc=as.numeric(c(1)), Subsp = c(1))
