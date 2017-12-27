@@ -7,6 +7,9 @@ load(file="MLH1_data_setup.RData")
 ## ToDO change SE to Sd ##
 # transform()  is the important function to use for permuting a column in a dataframe
 
+# maked a nested linear model of MLH1 counts
+# decide what is random and fixed, set the levels
+
 ###################
 # Setting up Data #
 ###################
@@ -21,26 +24,39 @@ MLH1_data<- MLH1_data[!grepl("4jan17_LEW_f1", MLH1_data$mouse) , ]#one duplicate
 #leweS FEMALES also seem to have a high variance across means
 
 #1. Create table of mouse level stats for MLH1 foci count
-Mouse_table <- ddply(MLH1_data, c("strain", "sex", "mouse"), summarise,
-                      Nmice = length(unique(mouse)),
-                      Ncells  = length(adj_nMLH1.foci),
-                      mean_co = as.numeric(format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3) ),
-                      var = format(round(   var(adj_nMLH1.foci),3), nsmall=3),
-                      sd   = round(sd(adj_nMLH1.foci), 3),
-                      se   = round(sd / sqrt(Ncells), 3),
-                      cV = round( (as.numeric(sd) / as.numeric(mean_co) ),3)
-)
+#already in Rdata file
+#Mouse_table <- ddply(MLH1_data, c("strain", "sex", "mouse"), summarise,
+#                      Nmice = length(unique(mouse)),
+#                      Ncells  = length(adj_nMLH1.foci),
+#                      mean_co = as.numeric(format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3) ),
+#                      var = format(round(   var(adj_nMLH1.foci),3), nsmall=3),
+#                      sd   = round(sd(adj_nMLH1.foci), 3),
+#                      se   = round(sd / sqrt(Ncells), 3),
+#                      cV = round( (as.numeric(sd) / as.numeric(mean_co) ),3)
+#)
 #add subsp to this table
-source("src/Func_addSubsp.R")
-Mouse_table <- add_subsp(Mouse_table)
+#source("src/Func_addSubsp.R")
+#Mouse_table <- add_subsp(Mouse_table)
 
 # Divide up mouse table by Dom and Musc
 # (use transform to randomize sex!! !)
 #
 
-Dom_Mouse_table <- subset(Mouse_table, strain == "WSB" | strain == "G" | strain == "LEWES")
-Musc_Mouse_table <- subset(Mouse_table, strain == "PWD" | strain == "MSM")
-Cast_Mouse_table <- subset(Mouse_table, strain == "CAST" | strain == "HMI")
+dom_mouse_table <- AP_mouse_table[AP_mouse_table$subsp == "Dom", ]
+musc_mouse_table <- AP_mouse_table[AP_mouse_table$subsp == "Musc", ]
+
+
+#below is a mouse average table with sex randomized
+rand_sex_dom_table <- transform(dom_mouse_table, sex = sample(sex) )
+#Dom_per <- transform(Dom_Mouse_table, sex = sample(sex))
+
+#permute this process many times.
+
+
+
+###################
+# start making LM #
+###################
 
 
 
@@ -73,32 +89,8 @@ Strain_table <- ddply(Mouse_table, c("strain", "sex"), summarise,
                     cV = round( (as.numeric(strain.sd) / as.numeric(strain.mean) ),3)
 )
 
-#fewer mice as the denominator results in a large SE estimate...
-# DON"T mix levels 
 
 
-#2. subset by subsp
-Dom <- MLH1_data[( MLH1_data$strain == "WSB" | MLH1_data$strain == "G" |MLH1_data$strain == "LEWES"),]
-Musc <- MLH1_data[( MLH1_data$strain == "PWD" | MLH1_data$strain == "MSM"),]
-#number of mice
-Dom_Mouse_table <- subset(Mouse_table, strain == "WSB" | strain == "G" | strain == "LEWES")
-Musc_Mouse_table <- subset(Mouse_table, strain == "PWD" | strain == "MSM")
-Cast_Mouse_table <- subset(Mouse_table, strain == "CAST" | strain == "HMI")
-
-nDomF_obs <- length(filter(Dom_Mouse_table, sex=="female")$mouse)
-nDomM_obs<- length(filter(Dom_Mouse_table, sex=="male")$mouse)
-nMuscF_obs<- length(filter(Musc_Mouse_table, sex=="female")$mouse)
-nMuscM_obs<- length(filter(Musc_Mouse_table, sex=="male")$mouse)
-
-#3. Calq the observed Polymorphism (SE)
-Dom_strain_table <- subset(Strain_table, strain == "WSB" | strain == "G" | strain == "LEWES")
-Musc_strain_table <- subset(Strain_table, strain == "PWD" | strain == "MSM")
-Cast_strain_table <- subset(Strain_table, strain == "CAST" | strain == "HMI")
-
-nDomM_strains = length(unique(filter(Dom_Mouse_table, sex=="male")$strain) )
-nDomF_strains = length(unique(filter(Dom_Mouse_table, sex=="female")$strain) )
-nMuscM_strains = length(unique(filter(Musc_Mouse_table, sex=="male")$strain) )
-nMuscF_strains = length(unique(filter(Musc_Mouse_table, sex=="female")$strain) )
 
 #########
 # FOR P #
@@ -219,20 +211,35 @@ Nrep = 10000
 ##make female dataset to draw samples from
 
 #this is how to permute the sex label in the mouse average table!! yayay!
-Dom_per <- transform(Dom_Mouse_table, sex = sample(sex))
+Dom_per <- transform(dom_mouse_table, sex = sample(sex))
+
+Permut_table = data.frame(Rand_Dmale_means=as.numeric(c(1)), Rand_Dfemale_means=as.numeric(c(1)), 
+                      Rand_Mmale_means=as.numeric(c(1)), Rand_Mfemale_means = c(1))
+#loop that makes 
+for(j in 1:100){
+  Tformed_Table <- transform(AP_mouse_table, sex = sample(sex))
+  Rand_Dmale_means <- subset(Tformed_Table, subsp == "Dom" & sex == "male")$mean_co
+  Rand_Dfemale_means <- subset(Tformed_Table, subsp == "Dom" & sex == "female")$mean_co
+  
+  Rand_Mmale_means <- subset(Tformed_Table, subsp == "Musc" & sex == "male")$mean_co
+  Rand_Mfemale_means <- subset(Tformed_Table, subsp == "Musc" & sex == "female")$mean_co
+}
+
 
 #dom subsp str
 # mean(   mean(mouse_means[1:6]), mean(mouse_means[7:14]), mean(mouse_means[15:16]) )
 Rand_Dom = data.frame(smp_mean=as.numeric(c(1)), Poly=as.numeric(c(1)), Div.Dom_Musc=as.numeric(c(1)), Subsp = c(1))
 for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
-  Dommouse_means <- sample(Dom_Mouse_table$mean_co, 15) #sample mouse
-  Muscmouse_means <- sample(Musc_Mouse_table$mean_co, 15) #create random Musc data
+  Dommouse_means <- sample(dom_mouse_table$mean_co, 15) #sample mouse
+  Muscmouse_means <- sample(musc_mouse_table$mean_co, 15) #create random Musc data
   Rand_Dom[i,1] <- mean(as.numeric(Dommouse_means))
   Rand_Dom[i,2] <- sd(  as.numeric(Dommouse_means))
 #Div  
   Rand_Dom[i,3] = sd( Muscmouse_means, Dommouse_means)#don't think this calculation is right
   Rand_Dom[i,4] <- "Rand-Dom"
 }
+
+
 #Musc_
 #musc data str
 rm(Muscmouse_means,Dommouse_means)
