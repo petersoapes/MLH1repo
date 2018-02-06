@@ -20,8 +20,9 @@ add_subsp <- function(oldframe) {
         ifelse(grepl("MSM", dframe$strain), "Musc",                                       
            ifelse(grepl("PWD", dframe$strain), "Musc", 
             ifelse(grepl("CZECHI", dframe$strain), "Musc", 
-         ifelse(grepl("PWDFemale", dframe$strain), "Musc",         
-        
+         ifelse(grepl("PWDFemale", dframe$strain), "Musc",  
+        ifelse(grepl("KAZ", dframe$strain), "Musc",
+                       
       ifelse(grepl("SPRET", dframe$strain), "Spretus",
    ifelse(grepl("SPIC", dframe$strain), "Spic",      
         ifelse(grepl("PANCEVO", dframe$strain), "Spic", 
@@ -29,7 +30,7 @@ add_subsp <- function(oldframe) {
                                                                                                     
           ifelse(grepl("RAT", dframe$strain), "Outgroup", 
        ifelse(grepl("Peromyscus", dframe$strain), "Outgroup", 
-          ifelse(grepl("Microtus", dframe$strain), "Outgroup", "other")))))))))))))))))))
+          ifelse(grepl("Microtus", dframe$strain), "Outgroup", "other"))))))))))))))))))))
   return(dframe)
 
 }
