@@ -1,19 +1,20 @@
 ---
 title: "MLH1 data report "
 author: "April Peterson"
-date: "August 29, 2017"
+date: "Feb 6, 2018"
 output: github_document
 ---
 
 ```{r setup, echo=FALSE, include = FALSE}
+#
 library(knitr)
 library(ggplot2)
 #library(pwr)
 library(plyr)
 library(lattice)
 library(dplyr)
-#setwd("C:/Users/alpeterson7/Documents/MLH1repo")
-setwd("C:/Users/April/Desktop/MLH1repo")
+setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+#setwd("C:/Users/April/Desktop/MLH1repo")
 load(file="MLH1_data_setup.RData")
 ```
 
@@ -57,25 +58,22 @@ Table of the number of mice used and MLH1 stats. (made with kable).
 ```{r, fig.height=2, fig.width=4, echo=FALSE}
 #this table is saved in the .RData file
 #use kable to make tables. warning this might not work for github Rmd.
-#kable(AP_strain_table)
+n <- kable(AP_mouse_table)
+n
 ```
 
-<<<<<<< HEAD:1rmd_report.rmd
-=======
 MLH1_data <- MLH1_data %>%
   arrange(category) %>%
   mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
 
 MLH1_data <- with(MLH1_data, MLH1_data[order(category),])
 
-
->>>>>>> 6622e18a348458c3a2f816d5eb5efcd570c4cc4c:rmd_report.rmd
 #### Initial Patterns from MLH1 distributions
 
 ```{r first boxplots, echo=FALSE, fig.align='center'}
 #the below ordering works!! keep it
 MLH1_data$strain<- factor(MLH1_data$strain, levels =c("G", "LEWES",
-                              "WSB", "PWD","MSM","CAST","HMI","SPRET", "other"), order=T )
+                              "WSB", "PWD","MSM","KAZ","CAST","HMI","SPRET","SPIC", "other"), order=T )
 #order the data frame
 MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
 #set the order of another column, based on another variable (so that when)
@@ -89,13 +87,13 @@ MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
 
 ff <- ggplot(MLH1_data, aes(x = as.factor(mouse), y = adj_nMLH1.foci, fill= strain ))+geom_boxplot()+ ggtitle("Boxplots of MLH1 distributions by mouse") + theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00", "yellowgreen", "green", "grey" ))
+        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00","red", "yellowgreen", "green","purple","grey1", "grey" ))
 ff <- ff   + facet_wrap(~ sex, scales="free")
 
 #boxplots by strain
 ss <- ggplot(MLH1_data, aes(x = as.factor(strain), y = adj_nMLH1.foci, fill= strain )) + geom_boxplot()  + ggtitle("Boxplots of MLH1 distributions by mouse") + theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00", "yellowgreen", "green", "grey" ))
+        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00","red", "yellowgreen", "green", "purple","grey1","grey" ))
 ss <- ss   + facet_wrap(~ sex, scales="free")
 
 ff
@@ -105,10 +103,8 @@ ss
 After taking the data from 2 highest cell quality, some but not all mouse means converge.
 
 ```{r, histogram, echo=FALSE, fig.caption= "histograms", warning=FALSE, fig.align='center'}
-<<<<<<< HEAD:1rmd_report.rmd
-=======
 #consider making distribution with quality considered...
->>>>>>> 6622e18a348458c3a2f816d5eb5efcd570c4cc4c:rmd_report.rmd
+
 histM <- ggplot(MLH1_data,(aes(adj_nMLH1.foci))) + xlim(c(16, 38))
 histM <- histM + geom_histogram(stat = "bin", binwidth = 1)
 histM <- histM + facet_wrap(~ category)
@@ -121,10 +117,11 @@ histM
 #MLH1_data$quality <- as.numeric(MLH1_data$quality) #this needs to be run for the subsetting to work
 highest_qual_df <-  subset(MLH1_data, as.numeric(MLH1_data$quality) <= 2 )
 
+#are there no KAZ cells of high quality?
 qq <- ggplot(highest_qual_df, aes(x = mouse, y = adj_nMLH1.foci)) + geom_boxplot(data = highest_qual_df, aes(fill = factor(strain) ) ) +  ggtitle("Cells with quality scores of 2 or 1") +
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) + scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00", "yellowgreen", "green", "grey" ))
+        axis.ticks.x=element_blank()) + scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00", "red","yellowgreen", "green","purple", "black", "grey" ))
 high_qual_boxplot <- qq + facet_wrap(~ sex, scales="free") #this is breaking the kniting... 
 ```
 
@@ -151,8 +148,9 @@ passed_mice_df <- MLH1_data[ (as.numeric(MLH1_data$quality) < 5), ]
 
 
 ```{r,  show boxplots, fig.height=5, fig.width=8, echo=FALSE}
-ff
+qq
 high_qual_boxplot
+#not sure why order got messed up again...
 ```
 
 After taking the data from 2 highest cell quality, some but not all mouse means converge. For some mice (mostly female) the majority of cells are excluded. This is especially true for PWD and WSB females.
@@ -198,21 +196,22 @@ latice plot of scatter plots for jitter plots of cell oberservations by quality.
 #what is the purpose of this block
 df_list <- split(MLH1_data, (MLH1_data$category))
 #remove sections which are in category but have no data
-df_list <- df_list[ -c(7, 12, 14,19, 20) ]
-#7: PERC male, 12:CAST female, 14:HMI female, 19:SPIC male
+df_list <- df_list[ -c(7, 12, 14,16,19, 21) ]
+#7: PERC male,   12: #KAZ female! 14:CAST female 16:HMI female,19:SPIC male, 21:SPIC male
 
+#df list, is a list of df's which were split() from BIG df by category
 df_list 
 o=0
 i=0
 
+#make a new empty df. create a ddply thing with mean calculations (this is like a list for matching up later)
 for(i in 1:(length(df_list))){
- # print(i)
+ # only include data with quality values, then create a ddply for specific sub-df that calqs mean by each mouse
   df_list[[i]] <- df_list[[i]][!(is.na(df_list[[i]]$quality) | df_list[[i]]$quality==""), ]
   sub_mouse_means <- ddply(df_list[[i]], .(mouse), summarise,
                        mouse_nMLH1 = mean(adj_nMLH1.foci)
   )
- # print(sub_mouse_means)
-  #below should work -- I think I need to go througheach row of the df_list[[i]]
+# this loop is going though each row of dataframes within the df.list and assining the mouse mean
   for(o in 1:length(df_list[[i]]$Original.Name)){
     df_list[[i]]$mouse_mean_MLH1[o] <- sub_mouse_means$mouse_nMLH1[ (df_list[[i]]$mouse[o] == sub_mouse_means$mouse) ]
         }
