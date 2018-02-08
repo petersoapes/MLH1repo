@@ -15,6 +15,8 @@
 # or observing more cells wouldn't change the distribution.
 
 
+#Todo: add mouse name, total cell number and average quality score to plots
+
 #LOAD data
 
 setwd("C:/Users/alpeterson7/Documents/MLH1repo")
@@ -28,8 +30,10 @@ library(raster)
 library(reshape2)
 
 #seperate large dataframe by how many cells are in the samples
-twenty <- AP_mouse_table[AP_mouse_table$Ncells >= 20,]
-lessTwenty <- AP_mouse_table[AP_mouse_table$Ncells < 20,]
+twenty <- AP_mouse_table[AP_mouse_table$Ncells >= 20,] #53
+#are these assumed to have passed?
+
+lessTwenty <- AP_mouse_table[AP_mouse_table$Ncells < 20,] #28
 #these will give the list of mice
 
 #subset MLH1_data by these lists. (fixed line below, )
@@ -42,35 +46,31 @@ lessTwenty_data <- MLH1_data[MLH1_data$mouse %in% lessTwenty$mouse,]
 # Q: How do the 20cells or greater mice observations compare with the lessthan 20 cell
 # mouse observations.
 
+
+#consider during this into function since it's so long, and then has to be done on the less than twenty list
 sim_iterations <- 10000
 
-outlist10 = list()
-for(ten in 1:length(unique(twenty$mouse))){
-  print(twenty$mouse[ten])
-  mus_data <- twenty_data[twenty_data$mouse == twenty$mouse[ten],]
-  outlist10[ten] <- list(replicate(sim_iterations, t.test(sample(mus_data$adj_nMLH1.foci, 10, replace = FALSE),
-                                                          sample(mus_data$adj_nMLH1.foci, 10, replace = FALSE) )$p.value ) )
-}
-names(outlist10) <- twenty$mouse
+#list, DF, ncells, sim_num
 
-outlist15 = list()
-for(fif in 1:length(unique(twenty$mouse))){
-  print(twenty$mouse[fif])
-  mus_data <- twenty_data[twenty_data$mouse == twenty$mouse[fif],]
-  outlist15[fif] <- list(replicate(sim_iterations, t.test(sample(mus_data$adj_nMLH1.foci, 15, replace = FALSE),
-                                                          sample(mus_data$adj_nMLH1.foci, 15, replace = FALSE) )$p.value ) )
-}
-names(outlist15) <- twenty$mouse
-#outlist is not a list of p-value list. ()
+source("src/Func_sampleCells.R")
+lessTwenty_pvals_5_10 <- sample_cells_pvals(lessTwenty, lessTwenty_data, 5, 10)#this returns a list (of vectors?) pvalues  for each mouse in a list
 
-outlist20 = list()
-for(tw in 1:length(unique(twenty$mouse))){
-  print(twenty$mouse[tw])
-  mus_data <- twenty_data[twenty_data$mouse == twenty$mouse[tw],]
-  outlist20[tw] <- list(replicate(sim_iterations, t.test(sample(mus_data$adj_nMLH1.foci, 20, replace = FALSE),
-                                                         sample(mus_data$adj_nMLH1.foci, 20, replace = FALSE) )$p.value ) )
-}
-names(outlist20) <- twenty$mouse
+#nn[[4]] is the syntax to get just the pvalues
+#names(nn[4]) is now you get the name of the vector / list
+
+
+#sample >twenty mice
+lessTwenty_pvals_10_1k <- sample_cells_pvals(lessTwenty, lessTwenty_data, 10, 1000)#this returns a list (of vectors?) pvalues  for each mouse in a list
+
+
+Twenty_pvals_10_1k <- sample_cells_pvals(twenty, twenty_data, 10, 1000)#this returns a list (of vectors?) pvalues  for each mouse in a list
+
+Twenty_pvals_15_1k <- sample_cells_pvals(twenty, twenty_data, 15, 1000)#this returns a list (of vectors?) pvalues  for each mouse in a list
+
+Twenty_pvals_20_1k <- sample_cells_pvals(twenty, twenty_data, 20, 1000)#this returns a list (of vectors?) pvalues  for each mouse in a list
+
+
+#make all these outlist of pvalues...
 
 #think of saving these DF, as they take time 
 save.image("SampleSizePvalues.RData")
@@ -83,9 +83,12 @@ save.image("SampleSizePvalues.RData")
 plot_list10 = list()
 for (i in 1:length(twenty$mouse)){
   print(i)  
-  try_df <- as.data.frame(outlist10[[i]])
+  try_df <- as.data.frame(outlist10[[i]]) #turning a list into df
   Title_mus_name <- paste("10000 iterations\n Test of 2 Samples of 10, \n", twenty$mouse[i] )
+  #add mouse name, total cells 
+  
   colnames(try_df) <- "pvals"
+  #create ggplot, and putting it into a list of ggplots
   p10 <- ggplot(try_df) + ggtitle( Title_mus_name ) +xlim(0,1)+
     geom_histogram(aes(x=pvals) )
   plot_list10[[i]] <- p10
@@ -125,12 +128,12 @@ for (i in 1:length(twenty$mouse)){
   names(df10) = "pvals"
   names(df15)= "pvals"
   names(df20)= "pvals"
-  allDF <- data.frame(pvals = rbind(df10, df15, df20),
+#merging smaller dfs
+    allDF <- data.frame(pvals = rbind(df10, df15, df20),
                       DFsets = c (rep("samp10",length(df10[,1]) ), 
                                   rep("samp15",length(df10[,1])), 
                                   rep("samp20", length(df10[,1])) )
   )
-  #the mouse name is not working
   Title_mus_name <- paste("10000 iterations\n Pvalues of T-tests \n", twenty$mouse[i] )
   colnames(try_df) <- "pvals"
   
@@ -241,7 +244,7 @@ allouts$SampleSize <- c(rep(5, sim_its), rep(10, sim_its))
 sample5_means <- colMeans(allouts[1:(sim_its),])
 sample10_means <- colMeans(allouts[(sim_its+1):((sim_its*2)),])
 
-#this table shows the 
+#
 somdiffs <- abs(sample5_means-sample10_means)
 
 plot(somdiffs[1:20])
