@@ -40,10 +40,13 @@ add_category <- function(oldframe){
         ifelse(grepl("_SPRET_f", dframe$Original.Name), "SPRET female",
         ifelse(grepl("_SPRET_m", dframe$Original.Name), "SPRET male",
         ifelse(grepl("_SPI_m", dframe$Original.Name), "SPIC male",
-        ifelse(grepl("_SPI_f", dframe$Original.Name), "SPIC female",          
+        ifelse(grepl("_SPI_f", dframe$Original.Name), "SPIC female",
+       ifelse(grepl("_SPIC_m", dframe$Original.Name), "SPIC male",
+      ifelse(grepl("_SPIC_f", dframe$Original.Name), "SPIC female",        
+               
         ifelse(grepl("_CAROLI_m", dframe$Original.Name), "CAROLI male",
        ifelse(grepl("_CAROLI_f", dframe$Original.Name), "CAROLI female",
-                            "other")))))))))))))))))))))))))
+                            "other")))))))))))))))))))))))))))
        
   dframe$category<- factor(dframe$category,levels =c( "WSB female", "WSB male","G female", "G male", 
                          "LEW female", 'LEW male', "PERC male",
