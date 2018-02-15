@@ -41,7 +41,9 @@ MLH1_data <- MLH1_data %>%
 MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
 
 # sort your dataframe, by the focal categories
-#MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
+MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
+#use the above line for when order is out of wak
+
 
 #count the non-quality measures,  #remove non qualit
 #length(MLH1_data[ !(is.na(MLH1_data$quality) | MLH1_data$quality==""), ] )  #15 rows with out quality scores, remove.
@@ -148,7 +150,6 @@ passed_mice_df <- MLH1_data[ (as.numeric(MLH1_data$quality) < 5), ]
 
 
 ```{r,  show boxplots, fig.height=5, fig.width=8, echo=FALSE}
-qq
 high_qual_boxplot
 #not sure why order got messed up again...
 ```
@@ -196,8 +197,8 @@ latice plot of scatter plots for jitter plots of cell oberservations by quality.
 #what is the purpose of this block
 df_list <- split(MLH1_data, (MLH1_data$category))
 #remove sections which are in category but have no data
-df_list <- df_list[ -c(7, 12, 14,16,19, 21) ]
-#7: PERC male,   12: #KAZ female! 14:CAST female 16:HMI female,19:SPIC male, 21:SPIC male
+df_list <- df_list[ -c(7, 12,14,16,22) ]
+#7: PERC male, 12: KAZ female! (14:CAST female, fake data) 16:HMI female
 
 #df list, is a list of df's which were split() from BIG df by category
 df_list 

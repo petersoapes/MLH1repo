@@ -15,6 +15,8 @@ library(raster)#for cV
 ########################
 
 #TODO: remove observations without quality scores.
+#12jan17_4jan17_LEW_f1_sp1_34_rev, 8feb17_4jan17_LEW_f1_sp1_3_rev, potential outliers
+
 #Write a make file that will merge all of the batch files and record the batch
 setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 MLH1_data = read.csv("data/AnonData.csv", header=TRUE )
@@ -78,15 +80,50 @@ MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f1", MLH1_data$mouse) , ]
 AP_mouse_table <- ddply(MLH1_data, c("mouse"), summarise,
                          Nmice = length(unique(mouse)),
                          Ncells  = length(adj_nMLH1.foci),
-                         mean_co = format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3),
+                         mean_co = as.numeric(format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3) ),
                          cV = cv(adj_nMLH1.foci),
                           var = format(round(   var(adj_nMLH1.foci),3), nsmall=3),
                          sd   = round(sd(adj_nMLH1.foci), 3),
                          se   = round(sd / sqrt(Ncells), 3)
 )
 
+#add strain, sex ect #function won't work
+# format so that mean_co is numer
+AP_mouse_table$subsp <-  ifelse(grepl("_WSB_", AP_mouse_table$mouse), "Dom", 
+                               ifelse(grepl("_G_", AP_mouse_table$mouse), "Dom",
+                                ifelse(grepl("_LEW", AP_mouse_table$mouse), "Dom",
+                                  ifelse(grepl("PWD", AP_mouse_table$mouse), "Musc",
+                               ifelse(grepl("MSM", AP_mouse_table$mouse), "Musc",  
+                              ifelse(grepl("KAZ", AP_mouse_table$mouse), "Musc",        
+                                      
+                                      ifelse(grepl("CAST", AP_mouse_table$mouse), "Cast",         
+                              ifelse(grepl("HMI", AP_mouse_table$mouse), "Cast",    
+                               ifelse(grepl("SPI", AP_mouse_table$mouse), "outgroup",         
+                                ifelse(grepl("CAROLI", AP_mouse_table$mouse), "outgroup",   
+                                       ifelse(grepl("SPRET", AP_mouse_table$mouse), "outgroup",       
+                                        "other")))))))))))
+
+AP_mouse_table$strain <-  ifelse(grepl("_WSB_", AP_mouse_table$mouse), "WSB", 
+                           ifelse(grepl("_G_", AP_mouse_table$mouse), "G",
+                          ifelse(grepl("_LEW", AP_mouse_table$mouse), "LEW",
+                          ifelse(grepl("PWD", AP_mouse_table$mouse), "PWD",
+                          ifelse(grepl("MSM", AP_mouse_table$mouse), "MSM", 
+                          ifelse(grepl("KAZ", AP_mouse_table$mouse), "KAZ",          
+                          ifelse(grepl("CAST", AP_mouse_table$mouse), "CAST",         
+                          ifelse(grepl("HMI", AP_mouse_table$mouse), "HMI",    
+                         ifelse(grepl("SPI", AP_mouse_table$mouse), "SPIC",         
+                          ifelse(grepl("CAROLI", AP_mouse_table$mouse), "CAROLI",   
+                        ifelse(grepl("SPRET", AP_mouse_table$mouse), "SPRET",       
+                                                "other")))))))))))
 
 
+AP_mouse_table$sex <-  ifelse(grepl("_f", AP_mouse_table$mouse), "female", 
+                       ifelse(grepl("_m", AP_mouse_table$mouse), "male",
+                                                "other"))
+
+AP_mouse_table$sex <- as.factor(AP_mouse_table$sex)
+AP_mouse_table$strain <- as.factor(AP_mouse_table$strain)
+  AP_mouse_table$subsp <-  as.factor(AP_mouse_table$subsp)
 #make a list of bad mice
 
 #MLH1_by_M_mouse <- with(MLH1_by_M_mouse, MLH1_by_M_mouse[order(subsp),])
