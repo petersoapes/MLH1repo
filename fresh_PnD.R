@@ -1,6 +1,7 @@
 library(plyr)
 library(dplyr)
 library(ggplot2)
+library(reshape2)
 setwd("C:/Users/alpeterson7/Documents/MLH1repo")
 load(file="MLH1_data_setup.RData")
 
@@ -45,148 +46,12 @@ MLH1_data<- MLH1_data[!grepl("4jan17_LEW_f1", MLH1_data$mouse) , ]#one duplicate
 dom_mouse_table <- AP_mouse_table[AP_mouse_table$subsp == "Dom", ]
 musc_mouse_table <- AP_mouse_table[AP_mouse_table$subsp == "Musc", ]
 
-
 #below is a mouse average table with sex randomized
 rand_sex_dom_table <- transform(dom_mouse_table, sex = sample(sex) )
 #Dom_per <- transform(Dom_Mouse_table, sex = sample(sex))
 
 #permute this process many times.
 
-
-
-###################
-# start making LM #
-###################
-
-
-
-Q1_Mouse_table <- ddply(MLH1_data[MLH1_data$quality <= 2,], c("strain", "sex", "mouse"), summarise,
-                     Nmice = length(unique(mouse)),
-                     Ncells  = length(adj_nMLH1.foci),
-                     mean_co = as.numeric(format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3) ),
-                     var = format(round(   var(adj_nMLH1.foci),3), nsmall=3),
-                     sd   = round(sd(adj_nMLH1.foci), 3),
-                     se   = round(sd / sqrt(Ncells), 3),
-                     cV = round( (as.numeric(sd) / as.numeric(mean_co) ),3)
-)
-#remove Na's  
-
-#add subspecies
-Q1_Mouse_table <- add_subsp(Q1_Mouse_table)
-
-#(strain table needed for Poly calq)
-
-#calq'd from mouse averages
-Strain_table <- ddply(Mouse_table, c("strain", "sex"), summarise,
-                            Nmice = length(unique(mouse)),
-                            Ncells  = sum(Ncells),
-                            strain.mean = format( round(  mean(mean_co), 3 ), nsmall=3),
-                            strain.var = round( var(mean_co), 3),
-                            strain.sd   = round( sd(mean_co), 3),
-#decide if se denominator is n mice or ncells                       
-                       strain.se1   = round( strain.sd / sqrt(Nmice), 3),
-                       strain.se2   = round( strain.sd / sqrt(Ncells), 3),
-                    cV = round( (as.numeric(strain.sd) / as.numeric(strain.mean) ),3)
-)
-
-
-
-
-#########
-# FOR P #
-#########
-#these are from strains
-DomF_sd_of_means <- sapply(subset(Dom_strain_table, sex=="female", select= strain.mean), sd)
-names(DomF_sd_of_means) <- NULL
-DomF_se_of_means <- (DomF_sd_of_means / sqrt(nDomF_strains) )
-DomF_var_means <- sapply(subset(Musc_strain_table, sex=="male", select= strain.mean), var)
-names(DomF_var_means) <- NULL
-
-DomM_sd_of_means <- sapply(subset(Dom_strain_table, sex=="male", select= strain.mean), sd)
-names(DomM_sd_of_means) <- NULL
-DomM_se_of_means <- (DomM_sd_of_means / sqrt(nDomM_strains) )
-DomM_var_means<- sapply(subset(Dom_strain_table, sex=="male", select= strain.mean), var)
-names(DomM_var_means) <- NULL
-
-MuscF_sd_of_means <- sapply(subset(Musc_strain_table, sex=="female", select= strain.mean), sd)
-names(MuscF_sd_of_means) <- NULL
-MuscF_se_of_means <- (MuscF_sd_of_means / sqrt(nMuscF_strains) )
-MuscF_var_means <- sapply(subset(Musc_strain_table, sex=="male", select= strain.mean), var)
-names(MuscF_var_means) <- NULL
-
-MuscM_sd_of_means <- sapply(subset(Musc_strain_table, sex=="male", select= strain.mean), sd)
-names(MuscM_sd_of_means) <- NULL
-MuscM_se_of_means <- (MuscM_sd_of_means / sqrt(nMuscM_strains) )
-MuscM_var_means <- sapply(subset(Musc_strain_table, sex=="male", select= strain.mean), var)
-names(MuscM_var_means) <- NULL
-
-#make a poly table
-#use SD instead of SE
-Polymorphism_DF <- data.frame(subsp=c("Dom","Dom","Musc","Musc"),
-            n.strains = c(nDomF_strains, nDomM_strains,nMuscF_strains,nMuscM_strains),      
-            n.mouse.obs = c(nDomF_obs,nDomM_obs,nMuscF_obs,nMuscM_obs),
-              sex= c("female", "male", "female", "male"),
-            SD.means = c(DomF_sd_of_means,DomM_sd_of_means, MuscF_sd_of_means, MuscM_sd_of_means),
-            SE.means= c(DomF_se_of_means, DomM_se_of_means, MuscF_se_of_means, MuscM_se_of_means))
-
-Polymorphism_DF$SD.means <- as.character(Polymorphism_DF$SD.means)
-Polymorphism_DF$SD.means <- as.numeric(Polymorphism_DF$SD.means)
-
-#4. Calq observed Divergence variance levels
-##############
-# Divergence #
-##############
-#  HM: Dom/Musc, Musc/Cast, Cast/Dom.
-#  Mus: Dom/Spret, Musc/Spret
-
-#calq SE of strain means across subspecies
-DomF_sbsp_mean <- mean(as.numeric(subset(Dom_strain_table, sex=="female")$strain.mean) ) #mean( strain means)
-DomM_sbsp_mean <- mean(as.numeric(subset(Dom_strain_table, sex=="male")$strain.mean) )
-
-MuscF_sbsp_mean <- mean(as.numeric(subset(Musc_strain_table, sex=="female")$strain.mean) )
-MuscM_sbsp_mean <- mean(as.numeric(subset(Musc_strain_table, sex=="male")$strain.mean) )
-
-CastM_sbsp_mean <- mean(as.numeric(subset(Cast_strain_table, sex=="male")$strain.mean) )
-
-HouseMusF_sp_mean <- mean(c(DomF_sbsp_mean,MuscF_sbsp_mean)) #female HM (missing cast)
-HouseMusM_sp_mean <- mean(c(DomM_sbsp_mean,MuscM_sbsp_mean,CastM_sbsp_mean))
-SpretM_sp_mean <- mean(as.numeric(subset(Strain_table, strain=="SPRET")$strain.mean) ) #not spret female measure yet
-
-# divergence SE, calq in pairwise manner
-# Musc - Dom, Musc - spretus(spic), Musc - caroli,
-#Div_FeDom.Musc_se <- ( sd(c(DomF_sbsp_mean, MuscF_sbsp_mean)) / sqrt(2) )
-Div_FeDom.Musc_sd <- sd(c(DomF_sbsp_mean, MuscF_sbsp_mean))
-
-#some of these should be the same
-#Div_MaMusc.Dom_se <- ( sd(c(DomM_sbsp_mean, MuscM_sbsp_mean)) / sqrt(2) )
-#Div_MaDom.Musc_se <- ( sd(c(MuscM_sbsp_mean, DomM_sbsp_mean)) / sqrt(2) )
-#Div_MaDom.Cast_se <- ( sd(c(DomM_sbsp_mean, CastM_sbsp_mean)) / sqrt(2) )
-#Div_MaMusc.Cast_se <- ( sd(c(MuscM_sbsp_mean, CastM_sbsp_mean)) / sqrt(2) )
-
-Div_MaMusc.Dom_sd <- sd(c(DomM_sbsp_mean, MuscM_sbsp_mean))
-Div_MaDom.Musc_sd <- sd(c(MuscM_sbsp_mean, DomM_sbsp_mean))
-Div_MaDom.Cast_sd <- sd(c(DomM_sbsp_mean, CastM_sbsp_mean))
-Div_MaMusc.Cast_sd <- sd(c(MuscM_sbsp_mean, CastM_sbsp_mean))
-
-#species divergence, house mouse mean and spretus mean
-Div_MaHM.Spret_se <- sd(c(HouseMusM_sp_mean, SpretM_sp_mean)) / sqrt(2)
-Div_MaHM.Spret_sd <- sd(c(HouseMusM_sp_mean, SpretM_sp_mean))
-#Div_FeHM.Spret_se <- sd(c(HouseMusF_sp_mean, SpretF_sp_mean)) / sqrt(2)
-
-#make a Divergence table # the full table should be 12 obs long
-Divergence_DF <- data.frame(
-                  sex= c("female", "male", "female", "male","female", "male","female", "male","female", "male"),
-                  Div_pair = c("Dom/Musc","Dom/Musc","Musc/Cast","Musc/Cast","Dom/Cast","Dom/Cast",
-                               "HM/SPRET","HM/SPRET","HM/SPIC","HM/SPIC"
-                               ),
-                  SD= c(Div_FeDom.Musc_sd,Div_MaDom.Musc_sd,
-                        "NA",Div_MaMusc.Cast_sd,
-                        "NA",Div_MaDom.Cast_sd,
-                        "NA", Div_MaHM.Spret_sd,
-                        "NA","NA"))
-
-Divergence_DF$SE <- as.character(Divergence_DF$SE)
-Divergence_DF$SE <- as.numeric(Divergence_DF$SE)
 
 ################
 # SIMULATIONS! #
@@ -198,113 +63,108 @@ Divergence_DF$SE <- as.numeric(Divergence_DF$SE)
 # 2. Calq the Poly, (SE of mouse means)
 # 3. Calq D, the variance sampled means
 
-# i think sims should
-# (draw from the same strains. .... but randomize sex)
-
-
-# the simulation should be varying just sex (should have strain pooled data)
-# <question is, if you pick 50 random mice, from the same subspecies randomizing sex,
-# what are the ranges of Polymorphism and Divergence?
-#
 Nrep = 10000
-
 ##make female dataset to draw samples from
 
-#this is how to permute the sex label in the mouse average table!! yayay!
-Dom_per <- transform(dom_mouse_table, sex = sample(sex))
-
-Permut_table = data.frame(Rand_Dmale_means=as.numeric(c(1)), Rand_Dfemale_means=as.numeric(c(1)), 
-                      Rand_Mmale_means=as.numeric(c(1)), Rand_Mfemale_means = c(1))
+#make seperate dataframes, then merge them together
+#Permut_Dommale = data.frame(Poly = as.numeric(c(1) ), Div = as.numeric(c(1)), sex=c("x"), subsp=c("x") )
+Permut_Dommale = matrix(ncol=5, nrow=Nrep)
+Permut_DomFemale= matrix(ncol=5, nrow=Nrep)
+Permut_Mscmale= matrix(ncol=5, nrow=Nrep)
+Permut_MscFemale= matrix(ncol=5, nrow=Nrep)
 #loop that makes 
-for(j in 1:100){
+for(j in 1:Nrep){
+  print(j)
   Tformed_Table <- transform(AP_mouse_table, sex = sample(sex))
   Rand_Dmale_means <- subset(Tformed_Table, subsp == "Dom" & sex == "male")$mean_co
   Rand_Dfemale_means <- subset(Tformed_Table, subsp == "Dom" & sex == "female")$mean_co
   
   Rand_Mmale_means <- subset(Tformed_Table, subsp == "Musc" & sex == "male")$mean_co
   Rand_Mfemale_means <- subset(Tformed_Table, subsp == "Musc" & sex == "female")$mean_co
+  # poly, sex, subsp, div  
+  Permut_Dommale[j,1] <- as.numeric(sd(Rand_Dmale_means) )#p
+  Permut_Dommale[j,2] <-  abs(mean(Rand_Dmale_means) - mean(Rand_Mmale_means))
+  Permut_Dommale[j,3] <-  "male" #why is this kept? it shouldn't matter for randomized data
+  Permut_Dommale[j,4] <- "Dom"
+  Permut_Dommale[j,5] <- "permuted"
+#by having     
+  Permut_DomFemale[j,1] <- as.numeric(sd(Rand_Dfemale_means))
+  Permut_DomFemale[j,2] <-  abs(mean(Rand_Dfemale_means) - mean(Rand_Mfemale_means) )
+  Permut_DomFemale[j,3] <-  "female"   
+  Permut_DomFemale[j,4] <- "Dom"
+  Permut_DomFemale[j,5] <- "permuted"
+    
+  Permut_Mscmale[j,1] <- as.numeric(sd(Rand_Mmale_means))
+  Permut_Mscmale[j,2] <-   abs(mean(Rand_Dmale_means)- mean(Rand_Mmale_means))
+  Permut_Mscmale[j,3] <-  "male"   
+  Permut_Mscmale[j,4] <- "Musc"
+  Permut_Mscmale[j,5] <- "permuted"
+
+  Permut_MscFemale[j,1] <- as.numeric( sd(Rand_Mfemale_means) )
+  Permut_MscFemale[j,2]<-   abs(mean(Rand_Dfemale_means)- mean(Rand_Mfemale_means) )
+  Permut_MscFemale[j,3] <-  "female"
+  Permut_MscFemale[j,4] <- "Musc"  
+  Permut_MscFemale[j,5] <- "permuted"
 }
 
+colnames(Permut_Dommale) <- c("Poly", "Div", "sex", "subsp", "data")
+colnames(Permut_DomFemale) <- c("Poly", "Div", "sex", "subsp", "data")
+colnames(Permut_Mscmale) <- c("Poly", "Div", "sex", "subsp", "data")
+colnames(Permut_MscFemale) <- c("Poly", "Div", "sex", "subsp", "data")
 
-#dom subsp str
-# mean(   mean(mouse_means[1:6]), mean(mouse_means[7:14]), mean(mouse_means[15:16]) )
-Rand_Dom = data.frame(smp_mean=as.numeric(c(1)), Poly=as.numeric(c(1)), Div.Dom_Musc=as.numeric(c(1)), Subsp = c(1))
-for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
-  Dommouse_means <- sample(dom_mouse_table$mean_co, 15) #sample mouse
-  Muscmouse_means <- sample(musc_mouse_table$mean_co, 15) #create random Musc data
-  Rand_Dom[i,1] <- mean(as.numeric(Dommouse_means))
-  Rand_Dom[i,2] <- sd(  as.numeric(Dommouse_means))
-#Div  
-  Rand_Dom[i,3] = sd( Muscmouse_means, Dommouse_means)#don't think this calculation is right
-  Rand_Dom[i,4] <- "Rand-Dom"
-}
-
-
-#Musc_
-#musc data str
-rm(Muscmouse_means,Dommouse_means)
-
-Rand_Musc = data.frame(smp_mean=as.numeric(c(1)),Poly=as.numeric(c(1)), Div.Dom_Musc=as.numeric(c(1)), Subsp = c(1))
-for(i in 1:Nrep ){ #replicate -- choose sample, then put in df
-  Muscmouse_means <- sample(Musc_Mouse_table$mean_co, 15)
-  Dommouse_means <- sample(Dom_Mouse_table$mean_co, 15)
-  
-  Rand_Musc[i,1] <- mean(as.numeric(Muscmouse_means))
-  Rand_Musc[i,2] <- sd(as.numeric(Muscmouse_means))
-  
-  Rand_Musc[i,3] <- sd( Dommouse_means, Muscmouse_means) #switching the order, helped
-  Rand_Musc[i,4] <- "Rand-Musc"
-}
-# divergence has to be changed... right now it's just looking at sd of random Dom to 
-# Musc_F. I need to make a random alternate
-# I think I need to draw both
-
-
-#simulations for Male .. when sampling size is the same, the subspecies samples, still diverge.. but less so
-#they seem like mirror images
-
-
-#Make plot
-png('PnD_poold_sim_sex_rand.png')
-
+Perm_data <- rbind(Permut_Dommale,Permut_DomFemale,Permut_Mscmale,Permut_MscFemale)
+Perm_data <- as.data.frame(Perm_data)
 #
-Full_sim <- rbind(Rand_Dom, Rand_Musc)#rbind females
-#Dom.F
-obs_M <-  data.frame(smp_mean=c("NA","NA", "NA", "NA"),
-  Poly = c(Polymorphism_DF$SD.means[2],Polymorphism_DF$SD.means[4], #Dom   #musc
-           Polymorphism_DF$SD.means[4],Polymorphism_DF$SD.means[2]), #musc #dom
-   
-   Div.Dom_Musc = c(Divergence_DF$SD[2],Divergence_DF$SD[2],  #dom-musc
-                     Divergence_DF$SD[4], #musc- cast
-                     Divergence_DF$SD[6] #dom-cast - remove musc point
-                     ),
-    Subsp = c("obsDomM", "obsMuscM", "obsMuscM", "obsDomM")) #Poly, Div.Dom_Musc, Subsp
+obsDom_m_P <- sd( subset(AP_mouse_table, sex=="male" & subsp == "Dom")$mean_co )
 
-obs_F <-  data.frame(smp_mean = c("NA", "NA"), Poly = c(Polymorphism_DF$SD.means[1],Polymorphism_DF$SD.means[3] ),
-                     Div.Dom_Musc = c(Divergence_DF$SD[1],Divergence_DF$SD[1]),
-                     Subsp = c("obsDomF", "obsMuscF")) #Poly, Div.Dom_Musc, Subsp
+obsDom_f_P <- sd(subset(AP_mouse_table, sex=="female" & subsp == "Dom")$mean_co)
 
-Full_sim <- rbind(Full_sim, obs_M, obs_F)
+obsMusc_m_P <- sd(subset(AP_mouse_table, sex=="male" & subsp == "Musc")$mean_co)
+obsMusc_f_P <- sd(subset(AP_mouse_table, sex=="female" & subsp == "Musc")$mean_co)
 
-#make axis titles bigger
-mumu <- ggplot(data = Full_sim, aes(x=Div.Dom_Musc, y=Poly, fill=Subsp, color=Subsp))+
-  labs(x="Divergence", y= "Polymorphism") +
-  theme(
-    axis.title.y = element_text(size=15, face="bold")) +  #not working
-  ylim(0,5)+xlim(0,8)+geom_point(aes(shape=Subsp, size=Subsp) )+theme_bw()  + 
-  scale_colour_manual(values = c("#56B4E9", "#56B4E9", "#E69F00", "#E69F00",
-                   "lightblue", "red"))  +
-  scale_size_manual(values=c(4,4,4,4,2,2))+
-  scale_shape_manual(values=c(16,17,16,17,1,1))
-  
-mumu
+#Div is calq as the difference between means
+obs_m_D <- abs( mean(subset(AP_mouse_table, sex=="male" & subsp == "Musc")$mean_co) -
+                  mean(subset(AP_mouse_table, sex=="male" & subsp == "Dom")$mean_co) )
+
+obs_f_D <- abs( mean(subset(AP_mouse_table, sex=="female" & subsp == "Musc")$mean_co) -
+                  mean(subset(AP_mouse_table, sex=="female" & subsp == "Dom")$mean_co) )
+
+obsDom_m <- c(obsDom_m_P, obs_m_D, "male", "Dom", "obs")
+obsDom_f <- c(obsDom_f_P, obs_f_D, "female", "Dom", "obs")
+obsMusc_m <- c(obsMusc_m_P, obs_m_D, "male", "Musc", "obs")
+obsMusc_f <- c(obsMusc_f_P, obs_f_D, "female", "Musc", "obs")
+
+obsData <- as.data.frame( rbind(obsDom_m,obsDom_f,obsMusc_m,obsMusc_f) )
+colnames(obsData) <- c("Poly", "Div", "sex", "subsp", "data")
+
+Perm_data <- rbind(Perm_data, obsData)
+
+Perm_data$Poly <- as.character(Perm_data$Poly)
+Perm_data$Div <- as.character(Perm_data$Div)
+
+Perm_data$Poly <- as.numeric(Perm_data$Poly)
+Perm_data$Div <- as.numeric(Perm_data$Div)
+
+#save this ggplot
+
+#perm table should re-worked .... so that P and D values are in one column
+perm_plot <- ggplot(data = Perm_data, aes( y=as.numeric(Poly), x=as.numeric(Div), color=subsp) )+
+  labs(x="Divergence\n abs difference between subsp means", y="Polymorphism\n sd(mouse averages)") +
+  theme(  axis.title.y = element_text(size=15, face="bold")) +  #not working
+  scale_x_continuous(limits=c(0,6) ) +
+  scale_y_continuous(limits=c(.5,3.5) ) +
+  geom_point( aes(shape=sex, fill=subsp, size=data), alpha = c(0.3) )+ theme_bw() +
+  stat_ellipse(linetype = 1, level=0.95) + #default is 95%
+  stat_ellipse(type="t", linetype = 1, level=0.9999) +
+  scale_size_manual(values=c(1,3)) +
+  scale_color_manual(values=c("#56B4E9", "#E69F00"))
+
+perm_plot
 
 dev.off()
-
-
 #######################
 # Save this framework #
 #######################
-setwd("C:/Users/alpeterson7/Documents/MLH1repo")
-save.image("PnD_environment.RData")
+#setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+#save.image("PnD_environment.RData")
 
