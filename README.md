@@ -1,11 +1,10 @@
-TODO:
+### TODO:
+- clean up extra files
+- add the passing report
+- make sure the full makefile works
+- learn to make a pdf version of these reports
+- make a table of contents
 
-- start R script for processing / formating raw MLH1 count data into cleaned data files.
-- find place to explain batches of data.
-- place with Rmd more? ... try to get the stats tables working.
 
-This is the README for current MLH1 results.
-
- * Writing .md compatible tables in R is harder than it seems.
- * library(knitr)'s kable() converts R dataframes into different markdown formats.
- * .Rmd files can be displayed as github pages.
+### Image Preprocessing notes
+Run join.py script with Python 3.3.5. Skimage, numpy, and tiffle should be installed. There is some imcompatibility with other versions of Python and tiffle (or skimage). 
