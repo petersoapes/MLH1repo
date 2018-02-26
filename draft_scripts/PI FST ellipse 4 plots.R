@@ -1,0 +1,281 @@
+setwd("/Users/Doug/Desktop")
+bp=read.table("jerez.txt")
+
+bp$Pi=bp$pi
+
+setwd("/Users/Doug/Desktop/Filtered_Tcas_Files")
+bpPi=read.table("Bhopal2_filtered.genes.pi")
+
+bpFST=read.table("BJPL2_filt_genewise.fst")
+
+bp=merge(bpPi,bpFST,by="V1")
+library(plyr)
+bp=rename(bp, c("V1"="gene_name","V4.x"="Pi", "V7"="FST","V9"="FST.3","V11"="FST.4"))
+
+
+#Sperm
+
+bpIns <- subset(bp, 
+					gene_name=="TCOGS2:TC013049-RA" | 
+					gene_name=="TCOGS2:TC012560-RA" |
+					gene_name=="TCOGS2:TC011481-RA" | 
+					gene_name=="TCOGS2:TC010065-RA" | 
+					gene_name=="TCOGS2:TC010064-RA" |
+					gene_name=="TCOGS2:TC009459-RA" | 
+					gene_name=="TCOGS2:TC005744-RA" |
+					gene_name=="TCOGS2:TC003552-RA"	|
+					gene_name=="TCOGS2:TC015849-RA" | 
+					gene_name=="TCOGS2:TC015056-RA" | 
+					gene_name=="TCOGS2:TC010066-RA" |
+					gene_name=="TCOGS2:TC008976-RA" | 
+					gene_name=="TCOGS2:TC006088-RA" 
+					, select = c(gene_name,Pi,FST,FST.3,FST.4))       #CHAGE FST
+					
+										
+
+bpInsFST=((bpIns$FST+bpIns$FST.3+bpIns$FST.4)/3)				      #CHAGE FST
+
+bpFST=((bp$FST+bp$FST.3+bp$FST.4)/3)                                  #CHAGE FST
+
+
+bpmean=mean(bp$Pi,na.rm = TRUE)
+bpmeanFST=mean(bpFST)
+
+
+nreps <- 10000
+PI <- numeric(nreps) 
+FST <- numeric(nreps)  
+
+PI[1] <- bpmean
+FST[1] <- bpmeanFST
+
+
+for (i in 2:nreps) {
+  bpR=bp[sample(nrow(bp), length(bpIns[,1])), ]										
+  bpRmean=mean(bpR$Pi, na.rm = TRUE)
+  bpRmeanFST=mean(((bpR$FST+bpR$FST.3+bpR$FST.4)/3))      			 #CHAGE FST              
+  PI[i] <- bpRmean
+  FST[i] <- bpRmeanFST
+  }
+
+
+library(car)
+
+par(mfrow=c(2,2))
+
+dataEllipse(FST,PI,ylim=c(0,0.02),xlim=c(0,0.4),levels = c(0.95))
+title("BHO")
+points(mean(bpInsFST),mean(bpIns$Pi),col="Orange",pch=8,cex=2,lwd=2)
+
+
+
+##############
+
+
+
+bpPi=read.table("Jerez2_filtered.genes.pi")
+
+bpFST=read.table("BJPL2_filt_genewise.fst")
+
+bp=merge(bpPi,bpFST,by="V1")
+library(plyr)
+bp=rename(bp, c("V1"="gene_name","V4.x"="Pi", "V7"="FST","V13"="FST.3","V15"="FST.4"))
+
+
+#Sperm
+
+bpIns <- subset(bp, 
+					gene_name=="TCOGS2:TC013049-RA" | 
+					gene_name=="TCOGS2:TC012560-RA" |
+					gene_name=="TCOGS2:TC011481-RA" | 
+					gene_name=="TCOGS2:TC010065-RA" | 
+					gene_name=="TCOGS2:TC010064-RA" |
+					gene_name=="TCOGS2:TC009459-RA" | 
+					gene_name=="TCOGS2:TC005744-RA" |
+					gene_name=="TCOGS2:TC003552-RA"	|
+					gene_name=="TCOGS2:TC015849-RA" | 
+					gene_name=="TCOGS2:TC015056-RA" | 
+					gene_name=="TCOGS2:TC010066-RA" |
+					gene_name=="TCOGS2:TC008976-RA" | 
+					gene_name=="TCOGS2:TC006088-RA" 
+					, select = c(gene_name,Pi,FST,FST.3,FST.4))       #CHAGE FST
+					
+										
+
+bpInsFST=((bpIns$FST+bpIns$FST.3+bpIns$FST.4)/3)				      #CHAGE FST
+
+bpFST=((bp$FST+bp$FST.3+bp$FST.4)/3)                                  #CHAGE FST
+
+
+bpmean=mean(bp$Pi,na.rm = TRUE)
+bpmeanFST=mean(bpFST)
+
+
+nreps <- 10000
+PI <- numeric(nreps) 
+FST <- numeric(nreps)  
+
+PI[1] <- bpmean
+FST[1] <- bpmeanFST
+
+
+for (i in 2:nreps) {
+  bpR=bp[sample(nrow(bp), length(bpIns[,1])), ]										
+  bpRmean=mean(bpR$Pi, na.rm = TRUE)
+  bpRmeanFST=mean(((bpR$FST+bpR$FST.3+bpR$FST.4)/3))      			 #CHAGE FST              
+  PI[i] <- bpRmean
+  FST[i] <- bpRmeanFST
+  }
+
+
+library(car)
+
+
+dataEllipse(FST,PI,ylim=c(0,0.02),xlim=c(0,0.4),levels = c(0.95))
+title("JER")
+points(mean(bpInsFST),mean(bpIns$Pi),col="Orange",pch=8,cex=2,lwd=2)
+
+
+
+##############
+
+
+
+bpPi=read.table("Lima2_filtered.genes.pi")
+
+bpFST=read.table("BJPL2_filt_genewise.fst")
+
+bp=merge(bpPi,bpFST,by="V1")
+library(plyr)
+bp=rename(bp, c("V1"="gene_name","V4.x"="Pi", "V11"="FST","V17"="FST.3","V15"="FST.4"))
+
+
+#Sperm
+
+bpIns <- subset(bp, 
+					gene_name=="TCOGS2:TC013049-RA" | 
+					gene_name=="TCOGS2:TC012560-RA" |
+					gene_name=="TCOGS2:TC011481-RA" | 
+					gene_name=="TCOGS2:TC010065-RA" | 
+					gene_name=="TCOGS2:TC010064-RA" |
+					gene_name=="TCOGS2:TC009459-RA" | 
+					gene_name=="TCOGS2:TC005744-RA" |
+					gene_name=="TCOGS2:TC003552-RA"	|
+					gene_name=="TCOGS2:TC015849-RA" | 
+					gene_name=="TCOGS2:TC015056-RA" | 
+					gene_name=="TCOGS2:TC010066-RA" |
+					gene_name=="TCOGS2:TC008976-RA" | 
+					gene_name=="TCOGS2:TC006088-RA" 
+					, select = c(gene_name,Pi,FST,FST.3,FST.4))       #CHAGE FST
+					
+										
+
+bpInsFST=((bpIns$FST+bpIns$FST.3+bpIns$FST.4)/3)				      #CHAGE FST
+
+bpFST=((bp$FST+bp$FST.3+bp$FST.4)/3)                                  #CHAGE FST
+
+
+bpmean=mean(bp$Pi,na.rm = TRUE)
+bpmeanFST=mean(bpFST)
+
+
+nreps <- 10000
+PI <- numeric(nreps) 
+FST <- numeric(nreps)  
+
+PI[1] <- bpmean
+FST[1] <- bpmeanFST
+
+
+for (i in 2:nreps) {
+  bpR=bp[sample(nrow(bp), length(bpIns[,1])), ]										
+  bpRmean=mean(bpR$Pi, na.rm = TRUE)
+  bpRmeanFST=mean(((bpR$FST+bpR$FST.3+bpR$FST.4)/3))      			 #CHAGE FST              
+  PI[i] <- bpRmean
+  FST[i] <- bpRmeanFST
+  }
+
+
+library(car)
+
+
+dataEllipse(FST,PI,ylim=c(0,0.02),xlim=c(0,0.4),levels = c(0.95))
+title("LIM")
+points(mean(bpInsFST),mean(bpIns$Pi),col="Orange",pch=8,cex=2,lwd=2)
+
+
+
+
+##############
+
+
+
+bpPi=read.table("Purdue2_filtered.genes.pi")
+
+bpFST=read.table("BJPL2_filt_genewise.fst")
+
+bp=merge(bpPi,bpFST,by="V1")
+library(plyr)
+bp=rename(bp, c("V1"="gene_name","V4.x"="Pi", "V9"="FST","V13"="FST.3","V17"="FST.4"))
+
+
+#Sperm
+
+bpIns <- subset(bp, 
+					gene_name=="TCOGS2:TC013049-RA" | 
+					gene_name=="TCOGS2:TC012560-RA" |
+					gene_name=="TCOGS2:TC011481-RA" | 
+					gene_name=="TCOGS2:TC010065-RA" | 
+					gene_name=="TCOGS2:TC010064-RA" |
+					gene_name=="TCOGS2:TC009459-RA" | 
+					gene_name=="TCOGS2:TC005744-RA" |
+					gene_name=="TCOGS2:TC003552-RA"	|
+					gene_name=="TCOGS2:TC015849-RA" | 
+					gene_name=="TCOGS2:TC015056-RA" | 
+					gene_name=="TCOGS2:TC010066-RA" |
+					gene_name=="TCOGS2:TC008976-RA" | 
+					gene_name=="TCOGS2:TC006088-RA" 
+					, select = c(gene_name,Pi,FST,FST.3,FST.4))       #CHAGE FST
+					
+										
+
+bpInsFST=((bpIns$FST+bpIns$FST.3+bpIns$FST.4)/3)				      #CHAGE FST
+
+bpFST=((bp$FST+bp$FST.3+bp$FST.4)/3)                                  #CHAGE FST
+
+
+bpmean=mean(bp$Pi,na.rm = TRUE)
+bpmeanFST=mean(bpFST)
+
+
+nreps <- 10000
+PI <- numeric(nreps) 
+FST <- numeric(nreps)  
+
+PI[1] <- bpmean
+FST[1] <- bpmeanFST
+
+
+for (i in 2:nreps) {
+  bpR=bp[sample(nrow(bp), length(bpIns[,1])), ]										
+  bpRmean=mean(bpR$Pi, na.rm = TRUE)
+  bpRmeanFST=mean(((bpR$FST+bpR$FST.3+bpR$FST.4)/3))      			 #CHAGE FST              
+  PI[i] <- bpRmean
+  FST[i] <- bpRmeanFST
+  }
+
+
+library(car)
+
+
+dataEllipse(FST,PI,ylim=c(0,0.02),xlim=c(0,0.4),levels = c(0.95))
+title("PUR")
+points(mean(bpInsFST),mean(bpIns$Pi),col="Orange",pch=8,cex=2,lwd=2)
+
+
+
+
+
+
+
+

@@ -1,7 +1,7 @@
 #Make File for MLH1 repo file
 #run report file
-#rmd_report.md : depen rmd_report.rmd
-#	Rscript rmd_report.rmd
+rmd_report.md : MLH1_data_setup.RData rmd_report.rmd
+	Rscript rmd_report.rmd
 
 #all
 all : adj_HetC.png maleMLH1_plot.png femaleMLH1_plot.png PnD_poold_sim.png

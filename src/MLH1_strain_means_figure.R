@@ -11,7 +11,6 @@ library(grid)
 library(gridBase)
 library(asbio)
 library(plyr)
-library(lessR)
 
 setwd("C:/Users/alpeterson7/Documents/MLH1repo")
 load(file="MLH1_data_setup.RData")
@@ -69,3 +68,4 @@ PWDm.MLH1.se = sd(MLH1_data[MLH1_data$category == 'PWD male', ]$adj_nMLH1.foci) 
 PWDf.MLH1.mean = mean(MLH1_data[MLH1_data$category == 'PWD female', ]$adj_nMLH1.foci)
 PWDf.MLH1.se = sd(MLH1_data[MLH1_data$category == 'PWD female', ]$adj_nMLH1.foci) / (sqrt(length(MLH1_data[MLH1_data$category == 'PWD female', ])))
 
+dev.off()

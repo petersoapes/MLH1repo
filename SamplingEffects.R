@@ -72,6 +72,12 @@ Twenty_pvals_20_1k <- sample_cells_pvals(twenty, twenty_data, 20, 1000)#this ret
 
 #make all these outlist of pvalues...
 
+#
+# figure out how to calq different of mean pvalue between sample sizes!!!
+#
+
+
+
 #think of saving these DF, as they take time 
 save.image("SampleSizePvalues.RData")
 
@@ -117,6 +123,9 @@ for (i in 1:length(twenty$mouse)){
   plot_list20[[i]] <- p20
 }
 
+#after that code, there are 3 lists of ggplots histograms (by sample size)
+
+
 
 #make list of scatter plots
 sctr_plot = list()
@@ -141,6 +150,8 @@ for (i in 1:length(twenty$mouse)){
     geom_jitter(aes(x=DFsets, y=pvals) )
   sctr_plot[[i]] <- scplot
 }
+
+
 
 #use Function Multiplot to display multiple ggplot objects
 source("src/MultiPlot.R")

@@ -1,0 +1,193 @@
+---
+title: "passing mice script"
+author: "April Peterson"
+date: `r format(Sys.time(), ''%d %B, %Y'')`
+output: rmarkdown::github_document
+---
+
+
+Guide / report document for showing which mice have passed - sufficient cells samples for showing good estimate of MLH1 count.
+
+Outline
+-dicription of graphs / data
+-discription of simulations (sampling comparison)
+(example images)
+
+
+<code for making the graphs
+-add mouse name, total number of cells, 
+
+- develope thresholds for grouping mice into passed and more images
+- consider doing this by batch
+
+
+- based on current plot outputs, 
+
+- think of ways to combine this sampling size data with quality distributions
+```{r setup, include=FALSE}
+
+setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+#setwd("Documents/MLH1repo")
+#setwd("C:/Users/April/Desktop/MLH1repo")
+load(file="MLH1_data_setup.RData")
+library(ggplot2)
+library(plyr)
+library(dplyr)
+library(raster)
+library(reshape2)
+```
+
+
+```{r group_mice}
+#seperate large dataframe by how many cells are in the samples
+twenty <- AP_mouse_table[AP_mouse_table$Ncells > 20,] #53
+#are these assumed to have passed?
+
+lessTwenty <- AP_mouse_table[AP_mouse_table$Ncells < 20,] #28
+#these will give the list of mice
+
+#subset MLH1_data by these lists. (fixed line below, )
+twenty_data <- MLH1_data[MLH1_data$mouse %in% twenty$mouse, ]
+lessTwenty_data <- MLH1_data[MLH1_data$mouse %in% lessTwenty$mouse,]
+
+```
+
+
+### Power and sampling size effects
+Create dataframes that iterate through different sample sizes of MLH1 counts 
+ Outlists are dataframes, filled with pvalues from t-tests of different sample sizes.
+ Q: How do the 20cells or greater mice observations compare with the less than 20 cell mouse observations.
+
+Passing cells have a small effect from different sampling sizes.
+
+```{r pvalue_permutations, echo=FALSE}
+sim_iterations <- 10000
+
+#list, DF, ncells, sim_num
+
+source("src/Func_sampleCells.R")
+lessTwenty_pvals_5_10 <- sample_cells_pvals(lessTwenty, lessTwenty_data, 5, 10)#this returns a list (of vectors?) list of pvalues for each mouse in a list
+
+#nn[[4]] is the syntax to get just the pvalues
+#names(nn[4]) is now you get the name of the vector / list
+
+
+#sample >twenty mice
+
+#REDO these, I think the function was wrong
+Twenty_pvals_10_1k <- sample_cells_pvals(twenty, twenty_data, 10, 1000)#this returns a list (of vectors?) pvalues  for each mouse in a list
+Twenty_pvals_15_1k <- sample_cells_pvals(twenty, twenty_data, 15, 1000)#this returns a list (of vectors?) pvalues  for each mouse in a list
+Twenty_pvals_20_1k <- sample_cells_pvals(twenty, twenty_data, 20, 1000)#this returns a list (of vectors?) pvalues  for each mouse in a list
+
+
+#decide on threshold for difference in pvalues
+
+#below doesn't work
+#guess <- Twenty_pvals_15_1k - Twenty_pvals_10_1k
+
+guess <- mean(Twenty_pvals_15_1k[[1]]) - mean(Twenty_pvals_10_1k[[1]])
+
+#make blank df
+mean1<- vector()
+mean2<- vector()
+mean3<- vector()
+
+onelist <- vector()
+twolist <- vector()
+threelist <- vector()
+for(l in 1:length(Twenty_pvals_10_1k)){
+  #var doesn't seem to be good
+  mean1 <- mean(Twenty_pvals_10_1k[[l]])
+  mean2 <- mean(Twenty_pvals_15_1k[[l]])
+  mean3 <- mean(Twenty_pvals_20_1k[[l]])
+  first <- ( mean(Twenty_pvals_10_1k[[l]]) - mean(Twenty_pvals_15_1k[[l]]) )
+  sec <- mean(Twenty_pvals_15_1k[[l]]) - mean(Twenty_pvals_20_1k[[l]])
+  thrid <- mean(Twenty_pvals_10_1k[[l]]) - mean(Twenty_pvals_20_1k[[l]])
+ 
+  mean1.list[l] <- mean1
+  mean2.list[l] <- mean2
+  mean3.list[l] <- mean3
+  
+   onelist[l] <- first
+  twolist[l] <- sec
+  threelist[l] <- thrid
+}
+
+comp.pvals <- data.frame(mean1=mean1.list, mean2=mean2.list, mean3=mean3.list, dif1 = onelist, dif2 = twolist, dif3=threelist)
+row.names(comp.pvals) <- names(Twenty_pvals_10_1k)
+
+#comp.pvals now is a df that 
+#rowSums(comp.pvals) 
+ll <- rowSums(comp.pvals)
+
+#this excludes ... mice/rows in data frame which have greater differences 
+#between 15 and 20 samples
+mm <- subset(comp.pvals, comp.pvals$dif2 >= -.05)
+
+#some bad looking mice still get through (is this due to sample size)
+
+# it seems like mice with between 20-25 cells, there is a large difference
+# between the p values of 15 and 20
+
+```
+
+
+
+what does it mean that I excldude these mice?
+I will infer differen mean MLH1 values due to sample size with mice with 
+
+10,15,20, might not be the best for mice with around 20 cells
+
+less than 20
+```{r}
+
+lessTwenty <- subset(AP_mouse_table, Ncells >15 & Ncells <20)
+lessTwenty_data <- MLH1_data[MLH1_data$mouse %in% lessTwenty$mouse,]
+
+
+source("src/Func_sampleCells.R")
+lessTwenty_pvals_8_1k <- sample_cells_pvals(lessTwenty, lessTwenty_data, 8, 1000)#this returns a list (of vectors?) pvalues  for each mouse in a list
+lessTwenty_pvals_11_1k <- sample_cells_pvals(lessTwenty, lessTwenty_data, 11, 1000)#this returns a list (of vectors?) pvalues  for each mouse in a list
+lessTwenty_pvals_15_1k <- sample_cells_pvals(lessTwenty, lessTwenty_data, 15, 1000)#this returns a list (of vectors?) pvalues  for each mouse in a list
+
+
+#make blank df
+mean1.list<- vector()
+mean2.list<- vector()
+mean3.list<- vector()
+
+onelist <- vector()
+twolist <- vector()
+threelist <- vector()
+for(l in 1:length(lessTwenty_pvals_8_1k)){
+  #var doesn't seem to be good
+  mean1 <- mean(lessTwenty_pvals_8_1k[[l]])
+  mean2 <- mean(lessTwenty_pvals_11_1k[[l]])
+  mean3 <- mean(lessTwenty_pvals_15_1k[[l]])
+  
+  first <- ( mean(lessTwenty_pvals_8_1k[[l]]) - mean(lessTwenty_pvals_11_1k[[l]]) )
+  sec <- mean(lessTwenty_pvals_11_1k[[l]]) - mean(lessTwenty_pvals_15_1k[[l]])
+  thrid <- mean(lessTwenty_pvals_8_1k[[l]]) - mean(lessTwenty_pvals_15_1k[[l]])
+ 
+  mean1.list[l] <- mean1
+  mean2.list[l] <- mean2
+  mean3.list[l] <- mean3
+  
+   onelist[l] <- first
+  twolist[l] <- sec
+  threelist[l] <- thrid
+}
+
+LTcomp.pvals <- data.frame(mean1=mean1.list, mean2=mean2.list, mean3=mean3.list, dif1 = onelist, dif2 = twolist, dif3=threelist)
+row.names(LTcomp.pvals) <- names(lessTwenty_pvals_8_1k)
+
+#dif2 cut off -0.10, greater than -.1 mice should pass even though they have less than 20
+
+pass_LessTwenty <- row.names(LTcomp.pvals[(LTcomp.pvals$dif2 > -.1),])
+
+```
+
+
+
+## what about the effects of quality on sample size effects
+
