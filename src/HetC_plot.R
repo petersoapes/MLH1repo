@@ -30,6 +30,9 @@ AP_strain_table <- ddply(MLH1_data, c("strain", "sex"), summarise,
                          cV = round( (as.numeric(sd) / as.numeric(mean_co) ),3)
 )
 
+#remove single cast female
+AP_strain_table <- AP_strain_table[-c(12),]
+
 #add Lynn Cast female data
 Lynn_CASTf_foci = c(20,21, 23, 25, 26, 26,26,27.5, 28, 28,28,33)
 cast_f_row = c("CAST", "female", 1, length(Lynn_CASTf_foci), round(mean(Lynn_CASTf_foci),3), 
@@ -39,7 +42,16 @@ cast_f_row = c("CAST", "female", 1, length(Lynn_CASTf_foci), round(mean(Lynn_CAS
 
 AP_strain_table <- rbind(AP_strain_table, cast_f_row)
 
-#make casted rows
+AP_strain_table$Nmice <- as.numeric(AP_strain_table$Nmice)
+AP_strain_table$Nells <- as.numeric(AP_strain_table$Ncells)
+AP_strain_table$mean_co <-  as.numeric(AP_strain_table$mean_co)
+AP_strain_table$var <- as.numeric( AP_strain_table$var)
+AP_strain_table$sd <- as.numeric( AP_strain_table$sd)
+AP_strain_table$se <- as.numeric(  AP_strain_table$se)
+AP_strain_table$cV <- as.numeric(   AP_strain_table$cV)
+
+
+#make casted rows  --- why am I making cast rows?
 casted_co <- dcast(data = AP_strain_table, formula= strain~sex, value.var="mean_co")
 casted_var <- dcast(data = AP_strain_table, formula= strain~sex, value.var="var")
 casted_sd <- dcast(data = AP_strain_table, formula= strain~sex, value.var="sd")
@@ -83,8 +95,8 @@ plotCI(x = as.numeric(HetC_table[,3]),   #male mean_co
        uiw = as.numeric(HetC_table[,8])*2, #female se
        
 #change the colors       
-       col = c("#56B4E9","cadetblue4", "cadetblue", #blues, W, Lew, G,
-               "coral1", "#E69F00", "yellowgreen"),        #reds   "indianred",
+       col = c("#56B4E9","lightblue4", "cadetblue", #blues, W, Lew, G,
+               "coral1", "#E69F00", "yellowgreen", "black", "purple"),        #reds   "indianred",
        #   "seagreen3"           #green
        pch = 16, lwd = 3.5, gap = 0, sfrac = 0.01, add = TRUE, cex=1.4)
 
@@ -115,6 +127,15 @@ segments(  (as.numeric(HetC_table[5,3]) - as.numeric(HetC_table[5,9])*2 ), as.nu
 segments(  (as.numeric(HetC_table[6,3]) - as.numeric(HetC_table[6,9])*2 ), as.numeric(HetC_table[6,2]), 
            ( as.numeric(HetC_table[6,3]) + as.numeric(HetC_table[6,9])*2 ), as.numeric(HetC_table[6,2]),
            lwd=3.5, col="yellowgreen")
+#Spret
+segments(  (as.numeric(HetC_table[7,3]) - as.numeric(HetC_table[7,9])*2 ), as.numeric(HetC_table[7,2]), 
+           ( as.numeric(HetC_table[7,3]) + as.numeric(HetC_table[7,9])*2 ), as.numeric(HetC_table[7,2]),
+           lwd=3.5, col="black")
+
+#spic
+segments(  (as.numeric(HetC_table[8,3]) - as.numeric(HetC_table[8,9])*2 ), as.numeric(HetC_table[8,2]), 
+           ( as.numeric(HetC_table[8,3]) + as.numeric(HetC_table[8,9])*2 ), as.numeric(HetC_table[8,2]),
+           lwd=3.5, col="purple")
 
 dev.off()
 
