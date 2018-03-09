@@ -1,0 +1,144 @@
+---
+title: "MeioticErrorReport"
+author: "April Peterson"
+date: "March 1, 2018"
+output: rmarkdown::github_document
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+#setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+#setwd("Documents/MLH1repo")
+#setwd("C:/Users/April/Desktop/MLH1repo")
+load(file="MLH1_data_setup.RData")
+library(ggplot2)
+library(plyr)
+library(dplyr)
+library(raster)
+library(png)
+library(reshape2)
+```
+
+
+
+## Meiotic Errors Report
+
+
+### background on 'defects'
+Example images, what do I mean by asynapsis and achiasmate?
+
+tried adding example images, but rmd not coorporating.
+
+
+
+![Cell with asynasped chrms.](asyn_example.png)
+asynapsis, SC comes apart, SC not fully synapsed. (prevents MLH1 foci)
+
+![0CO chrm example.](achi_example.png)
+
+0CO class (not technically achiasmate, but that's what we've been calling it)
+more prevelant in oocytes because checkpoints are weaker... (source)
+
+##### Biological relevance
+
+Different asynaspsis levels could indicate that there are differences in the speed and timing of the meiotic cycle. Synapsis marks the pachtyenma stage, there is asynapsis before and affer.
+I believe that The asynapsis I note ... is affects a subset of the chromosomes in a cell. (chrms are out of sync with each other), sometimes I observed all chrms are fully synasped and a single homolog pair is unsynapsed. (BD mentioned she observed a high number of X homolog asynapsis I'm not sure how she knew they were Xs)
+
+0CO chrms are not nesscearilly achiasmate tetrads, a better measure would be taken from when chiasmata appear across the spindel.  I think the biological relevance to these measures are either the CO maturation effect or balance/bias of MLH1 CO pathway compared to MLH1-independant pathways. 
+
+
+##### Predictions:
+
+  - Females will have more 0COs and asynasped chrms per cell
+  - Within females, higher CO strains, (G), will have fewer 'defects'
+
+
+#### Data
+
+I will calculate the average number of 0CO and asynasped chrm per cell (since the number of cells in the MLH1 data set is variable.) I'll do this at the strain and mouse level.
+
+```{r tables, echo=FALSE, include=FALSE}
+MLH1_data$achiasmate <- as.numeric(MLH1_data$achiasmate)
+MLH1_data$asynased <- as.numeric(MLH1_data$asynased)
+#remove NA sex  or strain = other
+
+cell_defect_table <- ddply(MLH1_data, c("sex", "strain", "category"), summarise,
+                          Ncells = length(unique(Original.Name)),
+                          nrows = length(Original.Name),
+                          
+                          nNA_asyn = sum(is.na(asynased)),
+                          nNA_0CO = sum(is.na(achiasmate)),
+                          
+                          total_0CO =  sum(asynased),
+                          total_asyn = sum(achiasmate, na.rm = TRUE),
+                          prop.0CO = total_0CO/Ncells, #these will differ for males and females
+                          prop.asyn = total_asyn/Ncells
+                                  )
+
+cell_defect_table_mouse <- ddply(MLH1_data, c("sex", "strain", "mouse"), summarise,
+                          Ncells = length(unique(Original.Name)),
+                          nrows = length(Original.Name),
+                          
+                          nNA_asyn = sum(is.na(asynased)),
+                          nNA_0CO = sum(is.na(achiasmate)),
+                          
+                          total_0CO =  sum(asynased),
+                          total_asyn = sum(achiasmate, na.rm = TRUE),
+                          prop.0CO = total_0CO/Ncells, #these will differ for males and females
+                          prop.asyn = total_asyn/Ncells
+                                  )
+
+```
+
+
+```{r plots make, echo=FALSE, include=FALSE, warning=FALSE}
+##ggplots for strain measures, general values.
+
+av_asyn_plot.s <- ggplot(cell_defect_table, aes(y=prop.asyn,x=category, color=strain)) +   geom_point(aes(shape = factor(sex)))  + ggtitle("Average asynasped per cell") + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+av_0CO_plot.s <- ggplot(cell_defect_table, aes(y=prop.0CO,x=category, color=strain)) +   geom_point(aes(shape = factor(sex)))  + ggtitle("Average achiasmate per cell") + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+#mouse averages caluclated
+#don't put mouse in x value,  I could make the jitter points, differen sizes for number of cells..?
+
+av_0CO_plot.m <- ggplot(cell_defect_table_mouse, aes(y=prop.0CO,x=strain, size = Ncells))   +  geom_jitter(aes(fill=strain), shape=21 )  +
+ ggtitle("Mouse level average 0CO chrms per cell") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ylim(c(1.5,5)) + facet_grid(~ sex)
+
+av_asyn_plot.m <- ggplot(cell_defect_table_mouse, aes(y=prop.asyn,x=strain, size = Ncells)) +  geom_jitter(aes(fill=strain), shape=21)  + ggtitle("Mouse level average asyn per cell") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ylim(c(0,2.2)) + facet_wrap(~ sex, scales="free")
+```
+
+
+From going back and looking at the files and counting in the table, it seems that the number of cells for which 0CO and asynasped wasn't counted is minimal. 
+These missing values will be easy to go back a fix, but in the meantime, I these will do for assessing general patterns.
+
+(make sure to check where the datasetup, removes any of these rows)
+
+
+ or other ways to visualize these
+boxplots not good since they need distributions. the average mesure per cell is a single measure- point, (with CI). If I calculate the mouse average proportions, those can then form distributions.
+
+```{r plots1 show, echo=FALSE}
+av_asyn_plot.s
+av_0CO_plot.s
+```
+
+In all strains, females have more 'defects' than males. (expect for the CAST female data, which is probaby fake). Spicilegus females have the highest 0COs and asynapsed chrms. Males seem to have a similar low level of average 0COs (PWD and SPRET have slightly more)
+
+Females have more 0CO and asynasped chrms than males. The number of asynased varies by strain, while the proportion of 0CO is pretty consistant across strains.
+
+
+The mouse average distributions of defect proportions --- females have higher values and are more variable across mice.
+
+
+
+```{r plots2 show, echo=FALSE}
+av_asyn_plot.m
+av_0CO_plot.m
+```
+
+
+
+### Further Questions
+
+-  do defects affect MLH1 measures (compare mouse averages for defective and all normal cells)?
+
+- what is the relationship between cell quality scores and defects?
