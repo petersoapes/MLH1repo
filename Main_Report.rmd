@@ -1,5 +1,5 @@
 ---
-title: 'MLH1 data report'
+title: 'MLH1 Data Report'
 author: "April Peterson"
 date: "some date"
 output: rmarkdown::github_document
@@ -19,10 +19,10 @@ setwd("C:/Users/alpeterson7/Documents/MLH1repo")
 load(file="MLH1_data_setup.RData")
 ```
 
-#### Research Discription
-Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse strains of house mice (rodents). Comparisons the differences in recombination rates across sexes and genetic background to inform models of how meiotic recombination rates evolve. (insert small picture of meixyte)
+#### Research Description
+Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse strains of house mice abd related rodents. Comparison the differences in recombination rates across sexes and genetic background to inform models of how meiotic recombination rates evolve. 
 
-#### Discription of Report
+#### Description of Report
 
 - Display plots and figures of distributions of MLH1 counts to assess intial overall patterns.
 
@@ -30,7 +30,7 @@ Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse s
 
 #### Discription of quantification process
 
-Aquired microscope cell images are quantified in batches after being anonimzed. The number of MLH1 foci, number of "achiasmate" and asynasped bivalents are quantified. A quality score is given; 1 to 5 (best to worst).
+Cell images are quantified in batches after file names are anonymized. The number of MLH1 foci, number of "achiasmate" and asynasped bivalents are quantified. A quality score is given; 1 to 5 (best to worst).
 
 ```{r,echo=FALSE}
 #set the order of another column, based on another variable (so that when)
@@ -52,24 +52,15 @@ MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 
 #MLH1_by_F_strain <- MLH1_data[MLH1_data$sex == "female", ]
 #MLH1_by_M_strain <- MLH1_data[MLH1_data$sex == "male", ]
+
+#MLH1_data <- MLH1_data %>%
+#  arrange(category) %>%
+#  mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
+
+#MLH1_data <- with(MLH1_data, MLH1_data[order(category),])
+
 ```
 
-#### Mice table
-
-Table of the number of mice used and MLH1 stats. (made with kable).
-
-```{r, fig.height=2, fig.width=4, echo=FALSE}
-#this table is saved in the .RData file
-#use kable to make tables. warning this might not work for github Rmd.
-n <- kable(AP_mouse_table)
-n
-```
-
-MLH1_data <- MLH1_data %>%
-  arrange(category) %>%
-  mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
-
-MLH1_data <- with(MLH1_data, MLH1_data[order(category),])
 
 #### Initial Patterns from MLH1 distributions
 
@@ -248,6 +239,20 @@ Making all of these scatter plots, allows us to look at the whole distributions 
 PWD females and a very large range. This is driven by data from 17apr15_PWD_f4. These data should be looked at more closely.
 
 In some mice there seems to be bimodel cell populations, those of clearly high quality and those of lower quality. This may be due to the screening of images before quantification, and allowing more bad cells data remain in the data set, instead of deleting them.
+
+
+#### Mice table
+
+Table of the mice used and MLH1 stats.
+
+```{r, fig.height=2, fig.width=4, echo=FALSE}
+#this table is saved in the .RData file
+#use kable to make tables. warning this might not work for github Rmd.
+n <- kable(AP_mouse_table)
+n
+```
+
+
 
 #### Power Calculations
 

@@ -1,13 +1,13 @@
-MLH1 data report
+MLH1 Data Report
 ================
 April Peterson
 some date
 
-#### Research Discription
+#### Research Description
 
-Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse strains of house mice (rodents). Comparisons the differences in recombination rates across sexes and genetic background to inform models of how meiotic recombination rates evolve. (insert small picture of meixyte)
+Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse strains of house mice abd related rodents. Comparison the differences in recombination rates across sexes and genetic background to inform models of how meiotic recombination rates evolve.
 
-#### Discription of Report
+#### Description of Report
 
 -   Display plots and figures of distributions of MLH1 counts to assess intial overall patterns.
 
@@ -15,11 +15,55 @@ Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse s
 
 #### Discription of quantification process
 
-Aquired microscope cell images are quantified in batches after being anonimzed. The number of MLH1 foci, number of "achiasmate" and asynasped bivalents are quantified. A quality score is given; 1 to 5 (best to worst).
+Cell images are quantified in batches after file names are anonymized. The number of MLH1 foci, number of "achiasmate" and asynasped bivalents are quantified. A quality score is given; 1 to 5 (best to worst).
+
+#### Initial Patterns from MLH1 distributions
+
+<img src="Main_Report_files/figure-markdown_github-ascii_identifiers/first boxplots-1.png" style="display: block; margin: auto;" /><img src="Main_Report_files/figure-markdown_github-ascii_identifiers/first boxplots-2.png" style="display: block; margin: auto;" />
+
+After taking the data from 2 highest cell quality, some but not all mouse means converge.
+
+<img src="Main_Report_files/figure-markdown_github-ascii_identifiers/histogram-1.png" style="display: block; margin: auto;" />
+
+#### Comparison of MLH1 distributions
+
+![](Main_Report_files/figure-markdown_github-ascii_identifiers/show%20boxplots-1.png)
+
+After taking the data from 2 highest cell quality, some but not all mouse means converge. For some mice (mostly female) the majority of cells are excluded. This is especially true for PWD and WSB females.
+
+#### Tests for quality and nMLH1 foci number
+
+> *How do the distributions change across different quality scores?*
+
+> *How do the distributions change across mice with a good number of cells?*
+
+##### Effects of quality
+
+Human quantification seems to be biased towards rating cells with more MLH1 foci as higher quality. Unbiased cell quality assignment, would not show a positive correlation with quality and nMLH1. (CAST female data is fake)
+
+    ## Warning: Removed 7 rows containing missing values (geom_point).
+
+    ## Warning: Removed 5 rows containing missing values (geom_point).
+
+![caption](Main_Report_files/figure-markdown_github-ascii_identifiers/scatter%20plots%20of%20nMLH1%20by%20score-1.png)
+
+I ploted the mean of each quality bin with a red dot. From the pattern of the red dots, there is definately a negative relationship with quality and nMLH1 foci across the data. This is most pronounced in MSM males and least pronounced in G males. The CAST female data is dummy data.
+
+#### Assessing the Distributions by mouse
+
+latice plot of scatter plots for jitter plots of cell oberservations by quality. The category mean is in black and the mouse specific mean is in red.
+
+![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-1.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-2.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-3.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-4.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-5.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-6.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-7.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-8.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-9.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-10.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-11.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-12.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-13.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-14.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-15.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-16.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-17.png)
+
+Making all of these scatter plots, allows us to look at the whole distributions of the data for each mouse. The distance of the red line from the black could be a indicator of slides or mice with slide specific technical noise.
+
+PWD females and a very large range. This is driven by data from 17apr15\_PWD\_f4. These data should be looked at more closely.
+
+In some mice there seems to be bimodel cell populations, those of clearly high quality and those of lower quality. This may be due to the screening of images before quantification, and allowing more bad cells data remain in the data set, instead of deleting them.
 
 #### Mice table
 
-Table of the number of mice used and MLH1 stats. (made with kable).
+Table of the mice used and MLH1 stats.
 
 | mouse              |  Nmice|  Ncells|  mean\_co|         cV| var    |     sd|     se| subsp    | strain | sex    |
 |:-------------------|------:|-------:|---------:|----------:|:-------|------:|------:|:---------|:-------|:-------|
@@ -116,54 +160,6 @@ Table of the number of mice used and MLH1 stats. (made with kable).
 | 8may17\_SPRET\_m1  |      1|      31|    25.774|   9.220104| 5.647  |  2.376|  0.427| outgroup | SPRET  | male   |
 | 8oct14\_PWD\_f4    |      1|      19|    25.368|  11.986005| 9.246  |  3.041|  0.698| Musc     | PWD    | female |
 | 8oct14\_PWD\_f8    |      1|      25|    24.520|  13.010150| 10.177 |  3.190|  0.638| Musc     | PWD    | female |
-
-MLH1\_data &lt;- MLH1\_data %&gt;% arrange(category) %&gt;% mutate(Original.Name = factor(Original.Name)) \#another category that you want the order to match
-
-MLH1\_data &lt;- with(MLH1\_data, MLH1\_data\[order(category),\])
-
-#### Initial Patterns from MLH1 distributions
-
-<img src="Main_Report_files/figure-markdown_github-ascii_identifiers/first boxplots-1.png" style="display: block; margin: auto;" /><img src="Main_Report_files/figure-markdown_github-ascii_identifiers/first boxplots-2.png" style="display: block; margin: auto;" />
-
-After taking the data from 2 highest cell quality, some but not all mouse means converge.
-
-<img src="Main_Report_files/figure-markdown_github-ascii_identifiers/histogram-1.png" style="display: block; margin: auto;" />
-
-#### Comparison of MLH1 distributions
-
-![](Main_Report_files/figure-markdown_github-ascii_identifiers/show%20boxplots-1.png)
-
-After taking the data from 2 highest cell quality, some but not all mouse means converge. For some mice (mostly female) the majority of cells are excluded. This is especially true for PWD and WSB females.
-
-#### Tests for quality and nMLH1 foci number
-
-> *How do the distributions change across different quality scores?*
-
-> *How do the distributions change across mice with a good number of cells?*
-
-##### Effects of quality
-
-Human quantification seems to be biased towards rating cells with more MLH1 foci as higher quality. Unbiased cell quality assignment, would not show a positive correlation with quality and nMLH1. (CAST female data is fake)
-
-    ## Warning: Removed 7 rows containing missing values (geom_point).
-
-    ## Warning: Removed 5 rows containing missing values (geom_point).
-
-![caption](Main_Report_files/figure-markdown_github-ascii_identifiers/scatter%20plots%20of%20nMLH1%20by%20score-1.png)
-
-I ploted the mean of each quality bin with a red dot. From the pattern of the red dots, there is definately a negative relationship with quality and nMLH1 foci across the data. This is most pronounced in MSM males and least pronounced in G males. The CAST female data is dummy data.
-
-#### Assessing the Distributions by mouse
-
-latice plot of scatter plots for jitter plots of cell oberservations by quality. The category mean is in black and the mouse specific mean is in red.
-
-![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-1.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-2.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-3.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-4.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-5.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-6.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-7.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-8.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-9.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-10.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-11.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-12.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-13.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-14.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-15.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-16.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-17.png)
-
-Making all of these scatter plots, allows us to look at the whole distributions of the data for each mouse. The distance of the red line from the black could be a indicator of slides or mice with slide specific technical noise.
-
-PWD females and a very large range. This is driven by data from 17apr15\_PWD\_f4. These data should be looked at more closely.
-
-In some mice there seems to be bimodel cell populations, those of clearly high quality and those of lower quality. This may be due to the screening of images before quantification, and allowing more bad cells data remain in the data set, instead of deleting them.
 
 #### Power Calculations
 
