@@ -15,7 +15,8 @@ library(ggplot2)
 # LOAD DATA #
 #############
 #read in working environment that was already set
-setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+#setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+setwd("C:/Users/April/Desktop/MLH1repo")
 load(file="MLH1_data_setup.RData")
 
 ###################
@@ -45,19 +46,21 @@ AP_strain_table$subsp  <- ifelse(grepl("WSB", AP_strain_table$strain), "M.m. dom
                       ifelse(grepl("G", AP_strain_table$strain), "M.m. domesticus",
               ifelse(grepl("PWD", AP_strain_table$strain), "M.m. musculus",
              ifelse(grepl("MSM", AP_strain_table$strain), "M.m. musculus", 
+            ifelse(grepl("KAZ", AP_strain_table$strain), "M.m. musculus", 
         
                     ifelse(grepl("CAST", AP_strain_table$strain), "M.m. castaneus", 
-                   ifelse(grepl("HMI", AP_strain_table$strain), "M.m. castaneus", 
-            ifelse(grepl("SPRET", AP_strain_table$strain), "Mus spretus", ""))))))))
+                   ifelse(grepl("HMI", AP_strain_table$strain), "M.m. castaneus",
+              ifelse(grepl("SPIC", AP_strain_table$strain), "Mus spicilegus",
+            ifelse(grepl("SPRET", AP_strain_table$strain), "Mus spretus", ""))))))))))
 
 #("black", "#56B4E9","cadetblue4","cadetblue","coral1","#E69F00", "yellowgreen") )
 
 #set the order for a factor
 AP_strain_table$subsp<- factor(AP_strain_table$subsp,levels =c("M.m. domesticus", "M.m. musculus",
-                 "M.m. castaneus","Mus spretus"), order=T )
+                 "M.m. castaneus","Mus spretus", "Mus spicilegus"), order=T )
 
 AP_strain_table$strain<- factor(AP_strain_table$strain,levels =c("G", "LEWES",
-                        "WSB", "PWD","MSM",  "CAST", "HMI", "SPRET"), order=T )
+                        "WSB", "PWD","MSM","KAZ","CAST", "HMI","SPIC","SPRET"), order=T )
 
 #puts table in the right order
 AP_strain_table <- AP_strain_table %>%
@@ -71,7 +74,11 @@ MLH1_by_M_strain <- AP_strain_table[AP_strain_table$sex == "male", ]
 ####################
 # Female strain plot #
 ####################
-png('femaleMLH1_plot.png')
+MLH1_by_F_strain <- MLH1_by_F_strain[-c(7,8),]
+
+MLH1_by_F_strain <- MLH1_by_F_strain[MLH1_by_F_strain$strain != "KAZ", ]
+
+png('femaleMLH1_plot2se.png')
 
 #man_x_mspace <- c(.25, .5, .75, 
 #1.65,1.85,
@@ -85,7 +92,8 @@ ff_plot <- ggplot(MLH1_by_F_strain, aes(y = as.numeric(mean_co), x=man_x_fspace,
   scale_y_continuous(breaks = seq(20,32, by=2)) +
   coord_cartesian(ylim = c(20,32))+
   xlim(0,5)+
-  geom_errorbar(aes(ymin = as.numeric(mean_co) - as.numeric(se), ymax = as.numeric(mean_co)+ as.numeric(se)),
+  geom_errorbar(aes(ymin = as.numeric(mean_co)-(as.numeric(se)*2), 
+                    ymax = as.numeric(mean_co)+ (as.numeric(se)*2)),
   size=1.2, width=0.1)+
   scale_color_manual(values=c("#56B4E9","cadetblue4","cadetblue","coral1","#E69F00", "yellowgreen") )+
    labs(x="", y= "Female MLH1 Foci") +
@@ -122,20 +130,27 @@ dev.off()
 #nov 17, remove HMI mouse, 8 cells total
 MLH1_by_M_strain <- MLH1_by_M_strain[MLH1_by_M_strain$strain != "HMI",]
 MLH1_by_M_strain <- MLH1_by_M_strain[MLH1_by_M_strain$strain != "SPRET",]
+MLH1_by_M_strain <- MLH1_by_M_strain[MLH1_by_M_strain$strain != "KAZ",]
+MLH1_by_M_strain <- MLH1_by_M_strain[MLH1_by_M_strain$strain != "SPIC",]
 
-png('maleMLH1_plot.png')
+png('maleMLH1_plot2se.png')
 man_x_mspace <- c(.35, .5, .75, 
             2,2.2,
             3.6)
 mm_plot <- ggplot(MLH1_by_M_strain, aes(y = as.numeric(mean_co), x=man_x_mspace, color=strain))+ 
-  geom_point(size = 5)+ 
+  geom_point(size = 4)+ 
 #  ylim(18,32) +  
 #  scale_y_continuous(breaks = seq(18, 34, by = 2)) +
-  scale_y_continuous(breaks = seq(20,32, by=2)) +
+  scale_y_continuous(breaks = seq(20,35, by=2)) +
   coord_cartesian(ylim = c(20,32))+
   xlim(0,5)+
-  geom_errorbar(aes(ymin = as.numeric(mean_co) - as.numeric(se), ymax = as.numeric(mean_co)+ as.numeric(se)),
-      size=1.2, width=0.1)+
+  geom_errorbar(aes(ymin = as.numeric(mean_co)-(as.numeric(se)*2), 
+                    ymax = as.numeric(mean_co)+ (as.numeric(se)*2)),
+                size=1.2, width=0.1)+
+  
+   #geom_errorbar(aes(ymin = as.numeric(mean_co) - as.numeric(se), 
+  #                  ymax = as.numeric(mean_co)+ as.numeric(se),
+   #   size=.5, width=.1))+
   scale_color_manual(values=c("#56B4E9","cadetblue4","cadetblue",
                 "coral1","#E69F00", "yellowgreen") )+ #"olivedrab2", (HMI) ,"orchid" (SPRET)
   
