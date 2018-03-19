@@ -67,16 +67,13 @@ AP_strain_table <- AP_strain_table %>%
   arrange(strain, sex, subsp) %>%               # sort your dataframe, by the focal categories
   mutate(image.title = factor(strain)) #another category that you want the order to match
 
-#MLH1_data
 MLH1_by_F_strain <- AP_strain_table[AP_strain_table$sex == "female", ]
 MLH1_by_M_strain <- AP_strain_table[AP_strain_table$sex == "male", ]
 
 ####################
 # Female strain plot #
 ####################
-MLH1_by_F_strain <- MLH1_by_F_strain[-c(7,8),]
-
-MLH1_by_F_strain <- MLH1_by_F_strain[MLH1_by_F_strain$strain != "KAZ", ]
+MLH1_by_F_strain <- MLH1_by_F_strain[-c(7,8),]#remove female cast
 
 png('femaleMLH1_plot2se.png')
 
@@ -84,8 +81,8 @@ png('femaleMLH1_plot2se.png')
 #1.65,1.85,
 #2.8)
 man_x_fspace <- c(.35, .5, .75,  #.25, .65, 1.1
-         2,2.2,
-          3.6)
+         2.2,2.5,2.8,
+          3.6, 4)
 
 ff_plot <- ggplot(MLH1_by_F_strain, aes(y = as.numeric(mean_co), x=man_x_fspace, color=strain))+ 
   geom_point(size = 4) +
@@ -95,7 +92,8 @@ ff_plot <- ggplot(MLH1_by_F_strain, aes(y = as.numeric(mean_co), x=man_x_fspace,
   geom_errorbar(aes(ymin = as.numeric(mean_co)-(as.numeric(se)*2), 
                     ymax = as.numeric(mean_co)+ (as.numeric(se)*2)),
   size=1.2, width=0.1)+
-  scale_color_manual(values=c("#56B4E9","cadetblue4","cadetblue","coral1","#E69F00", "yellowgreen") )+
+  scale_color_manual(values=c("#56B4E9","cadetblue4","cadetblue","coral1","#E69F00", 
+                              "red", "purple", "black"))+
    labs(x="", y= "Female MLH1 Foci") +
    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), 
@@ -107,20 +105,18 @@ ff_plot <- ggplot(MLH1_by_F_strain, aes(y = as.numeric(mean_co), x=man_x_fspace,
       axis.title.x=element_blank(), axis.line.x = element_blank(), axis.text.x=element_blank(), axis.ticks.x = element_blank() ) +
 
     annotate("text", x = c(mean(man_x_fspace[1:3]), mean(man_x_fspace[1:3]), 
-    mean(man_x_fspace[4:5]), mean(man_x_fspace[4:5]), 
-    man_x_fspace[6], man_x_fspace[6]),
-           y = c(21,20.5, 21,20.5,21,20.5),
-
-        label = c("M.m.","domesticus","M.m.","musculus","M.m.","castaneus"),fontface = 'bold.italic',hjust = 0.5, size=7) +
-
+    mean(man_x_fspace[4:6]), mean(man_x_fspace[4:6]), 
+    mean(man_x_fspace[7:8]), mean(man_x_fspace[7:8])),
+           y = c(21,20.5, 21,20.5, 21,20.5),
+        
+    label = c("M.m.","domesticus","M.m.","musculus","out","groups"),fontface = 'bold.italic',hjust = 0.5, size=7) +
+  
   annotate("segment", x= mean(man_x_fspace[1:3])-.3, xend=mean(man_x_fspace[1:3])+.3, y=21.5, yend=21.5, colour="black",
          size=1.5) +
-
-    annotate("segment", x=mean(man_x_fspace[4:5])-.3,xend=mean(man_x_fspace[4:5])+.3, y=21.5, yend=21.5, colour="black",
+    annotate("segment", x=mean(man_x_fspace[4:6])-.3,xend=mean(man_x_fspace[4:6])+.3, y=21.5, yend=21.5, colour="black",
            size=1.5) +
-  annotate("segment", x=man_x_fspace[6]-.3, xend=man_x_fspace[6]+.3, y=21.5, yend=21.5, colour="black",
+  annotate("segment", x=mean(man_x_fspace[7:8])-.3, xend=mean(man_x_fspace[7:8])+.3, y=21.5, yend=21.5, colour="black",
            size=1.5)
-
 ff_plot
 
 dev.off()
@@ -128,15 +124,16 @@ dev.off()
 # Male strain plot #
 ####################
 #nov 17, remove HMI mouse, 8 cells total
-MLH1_by_M_strain <- MLH1_by_M_strain[MLH1_by_M_strain$strain != "HMI",]
-MLH1_by_M_strain <- MLH1_by_M_strain[MLH1_by_M_strain$strain != "SPRET",]
-MLH1_by_M_strain <- MLH1_by_M_strain[MLH1_by_M_strain$strain != "KAZ",]
-MLH1_by_M_strain <- MLH1_by_M_strain[MLH1_by_M_strain$strain != "SPIC",]
+#MLH1_by_M_strain <- MLH1_by_M_strain[MLH1_by_M_strain$strain != "HMI",]
+#MLH1_by_M_strain <- MLH1_by_M_strain[MLH1_by_M_strain$strain != "SPRET",]
+#MLH1_by_M_strain <- MLH1_by_M_strain[MLH1_by_M_strain$strain != "KAZ",]
+#MLH1_by_M_strain <- MLH1_by_M_strain[MLH1_by_M_strain$strain != "SPIC",]
 
 png('maleMLH1_plot2se.png')
 man_x_mspace <- c(.35, .5, .75, 
-            2,2.2,
-            3.6)
+            1.5,2,2.3,
+            3.1,3.4,
+            4.5,4.8 )
 mm_plot <- ggplot(MLH1_by_M_strain, aes(y = as.numeric(mean_co), x=man_x_mspace, color=strain))+ 
   geom_point(size = 4)+ 
 #  ylim(18,32) +  
@@ -152,8 +149,7 @@ mm_plot <- ggplot(MLH1_by_M_strain, aes(y = as.numeric(mean_co), x=man_x_mspace,
   #                  ymax = as.numeric(mean_co)+ as.numeric(se),
    #   size=.5, width=.1))+
   scale_color_manual(values=c("#56B4E9","cadetblue4","cadetblue",
-                "coral1","#E69F00", "yellowgreen") )+ #"olivedrab2", (HMI) ,"orchid" (SPRET)
-  
+                "coral1","#E69F00","red", "yellowgreen","green", "purple", "black") )+ #"olivedrab2", (HMI) ,"orchid" (SPRET)
   labs(x="", y= "Male MLH1 Foci") +
   
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -163,19 +159,22 @@ mm_plot <- ggplot(MLH1_by_M_strain, aes(y = as.numeric(mean_co), x=man_x_mspace,
         axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0), size=20),
         axis.text.y = element_text(size=15, face="bold"),
   axis.title.x=element_blank(), axis.line.x = element_blank(), axis.text.x=element_blank(), axis.ticks.x = element_blank()) +
-   annotate("text", x = c(mean(man_x_mspace[1:3]), mean(man_x_mspace[1:3]), 
-                         mean(man_x_mspace[4:5]), mean(man_x_mspace[4:5]),
-                         mean(man_x_mspace[6]), mean(man_x_mspace[6])),
-           y = c(21,20.5, 21,20.5,21,20.5),
-      size=7,
-      label = c("M.m.","domesticus","M.m.","musculus","M.m.","castaneus"),hjust = 0.5, fontface='bold.italic') +
-# .75, 1.15, 1.45 
-  annotate("segment", x= mean(man_x_mspace[1:3])-.3, xend=mean(man_x_mspace[1:3])+.3, y=21.5, yend=21.5, colour="black",
+   
+  annotate("text", x = c(mean(man_x_mspace[1:3]), mean(man_x_mspace[1:3]), 
+                         mean(man_x_mspace[4:6]), mean(man_x_mspace[4:6]),
+                         mean(man_x_mspace[7:8]), mean(man_x_mspace[7:8]),
+                          mean(man_x_mspace[9:10]), mean(man_x_mspace[9:10])),
+           y = c(21,20.5, 21,20.5,21,20.5,21,20.5 ),  size=7,
+    label = c("M.m.","domesticus","M.m.","musculus","M.m.","castaneus", "out", "groups"),hjust = 0.5, fontface='bold.italic') +
+ 
+   annotate("segment", x= mean(man_x_mspace[1:3])-.3, xend=mean(man_x_mspace[1:3])+.3, y=21.5, yend=21.5, colour="black",
            size=1.5) +
-  annotate("segment", x=mean(man_x_mspace[4:5])-.3,xend=mean(man_x_mspace[4:5])+.3, y=21.5, yend=21.5, colour="black",
+  annotate("segment", x=mean(man_x_mspace[4:6])-.3,xend=mean(man_x_mspace[4:6])+.3, y=21.5, yend=21.5, colour="black",
            size=1.5) +
-  annotate("segment", x=man_x_mspace[6]-.3, xend=man_x_mspace[6]+.3, y=21.5, yend=21.5, colour="black",
-           size=1.5)
+  annotate("segment", x=mean(man_x_mspace[7:8])-.3, xend=mean(man_x_mspace[7:8])+.3, y=21.5, yend=21.5, colour="black",
+           size=1.5)+
+  annotate("segment", x=mean(man_x_mspace[9:10])-.3, xend=mean(man_x_mspace[9:10])+.3, y=21.5, yend=21.5, colour="black",
+         size=1.5)
 mm_plot
 
 
