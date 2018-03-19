@@ -53,7 +53,7 @@ I ploted the mean of each quality bin with a red dot. From the pattern of the re
 
 latice plot of scatter plots for jitter plots of cell oberservations by quality. The category mean is in black and the mouse specific mean is in red.
 
-![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-1.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-2.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-3.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-4.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-5.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-6.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-7.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-8.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-9.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-10.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-11.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-12.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-13.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-14.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-15.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-16.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-17.png)
+![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-1.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-2.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-3.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-4.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-5.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-6.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-7.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-8.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-9.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-10.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-11.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-12.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-13.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-14.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-15.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-16.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-17.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-18.png)
 
 Making all of these scatter plots, allows us to look at the whole distributions of the data for each mouse. The distance of the red line from the black could be a indicator of slides or mice with slide specific technical noise.
 
@@ -74,6 +74,8 @@ Table of the mice used and MLH1 stats.
 | 12jun15\_WSB\_m1   |      1|      13|    22.077|  13.646799| 9.077  |  3.013|  0.836| Dom      | WSB    | male   |
 | 12jun15\_WSB\_m2   |      1|      27|    23.185|  11.538403| 7.157  |  2.675|  0.515| Dom      | WSB    | male   |
 | 12oct15\_G\_m1     |      1|      24|    23.833|   8.452198| 4.058  |  2.014|  0.411| Dom      | G      | male   |
+| 13jan17\_LEW\_f2   |      1|      16|    28.250|  19.018658| 28.867 |  5.373|  1.343| Dom      | LEW    | female |
+| 13jan17\_LEW\_f3   |      1|      22|    26.636|  13.784099| 13.481 |  3.672|  0.783| Dom      | LEW    | female |
 | 13nov16\_LEWES\_m1 |      1|      25|    25.160|  13.216044| 11.057 |  3.325|  0.665| Dom      | LEW    | male   |
 | 13nov16\_MSM\_f1   |      1|      31|    28.484|  13.713576| 15.258 |  3.906|  0.702| Musc     | MSM    | female |
 | 13nov16\_MSM\_f2   |      1|      18|    27.667|  14.616423| 16.353 |  4.044|  0.953| Musc     | MSM    | female |
@@ -106,6 +108,9 @@ Table of the mice used and MLH1 stats.
 | 18nov17\_WSB\_f4   |      1|      22|    25.591|  18.707716| 22.920 |  4.787|  1.021| Dom      | WSB    | female |
 | 1apr15\_PWD\_f1    |      1|      26|    24.577|  13.625417| 11.214 |  3.349|  0.657| Musc     | PWD    | female |
 | 1apr16\_G\_m4      |      1|      11|    26.636|  10.111840| 7.255  |  2.693|  0.812| Dom      | G      | male   |
+| 1feb18\_KAZ\_f1    |      1|      20|    26.300|  15.511307| 16.642 |  4.079|  0.912| Musc     | KAZ    | female |
+| 1feb18\_KAZ\_f2    |      1|      26|    25.885|  15.035209| 15.146 |  3.892|  0.763| Musc     | KAZ    | female |
+| 1feb18\_KAZ\_f4    |      1|      22|    27.273|  13.959124| 14.494 |  3.807|  0.812| Musc     | KAZ    | female |
 | 1mar15\_PWD\_m1    |      1|      15|    30.800|  12.586591| 15.029 |  3.877|  1.001| Musc     | PWD    | male   |
 | 1mar17\_CAST\_f1   |      1|       1|    26.000|         NA| NA     |    NaN|    NaN| Cast     | CAST   | female |
 | 20dec16\_LEW\_m1   |      1|      27|    26.222|  14.553665| 14.564 |  3.816|  0.734| Dom      | LEW    | male   |
@@ -132,6 +137,12 @@ Table of the mice used and MLH1 stats.
 | 30sep16\_MSM\_f2   |      1|      25|    27.200|  14.782277| 16.167 |  4.021|  0.804| Musc     | MSM    | female |
 | 30sep16\_MSM\_m1   |      1|      18|    28.333|  14.974026| 18.000 |  4.243|  1.000| Musc     | MSM    | male   |
 | 31aug16\_MSM\_m1   |      1|      27|    30.704|  10.010665| 9.447  |  3.074|  0.592| Musc     | MSM    | male   |
+| 31dec17\_MSM\_f1   |      1|      15|    25.667|  16.573441| 18.095 |  4.254|  1.098| Musc     | MSM    | female |
+| 31dec17\_MSM\_f2   |      1|      20|    24.900|  13.217415| 10.832 |  3.291|  0.736| Musc     | MSM    | female |
+| 31dec17\_MSM\_f3   |      1|      18|    25.111|  15.745953| 15.634 |  3.954|  0.932| Musc     | MSM    | female |
+| 31dec17\_MSM\_f4   |      1|      26|    28.154|  15.159380| 18.215 |  4.268|  0.837| Musc     | MSM    | female |
+| 31dec17\_MSM\_f5   |      1|      33|    28.909|  14.454082| 17.460 |  4.179|  0.727| Musc     | MSM    | female |
+| 31dec17\_SPIC\_f1  |      1|      16|    26.188|  18.873841| 24.429 |  4.943|  1.236| outgroup | SPIC   | female |
 | 31jul17\_HMI\_m1   |      1|       8|    26.125|  20.299716| 28.125 |  5.303|  1.875| Cast     | HMI    | male   |
 | 31mar15\_WSB\_m1   |      1|      19|    24.579|  14.937370| 13.480 |  3.671|  0.842| Dom      | WSB    | male   |
 | 31mar15\_WSB\_m2   |      1|      21|    24.333|   9.925600| 5.833  |  2.415|  0.527| Dom      | WSB    | male   |
@@ -145,7 +156,8 @@ Table of the mice used and MLH1 stats.
 | 4dec17\_SPIC\_f1   |      1|      18|    24.778|  16.872236| 17.477 |  4.181|  0.985| outgroup | SPIC   | female |
 | 4dec17\_SPIC\_f2   |      1|      32|    29.812|  16.331553| 23.706 |  4.869|  0.861| outgroup | SPIC   | female |
 | 4dec17\_SPIC\_m1   |      1|      45|    26.333|   9.849489| 6.727  |  2.594|  0.387| outgroup | SPIC   | male   |
-| 4jan17\_LEW\_f1    |      1|      29|    29.310|  22.924989| 45.150 |  6.719|  1.248| Dom      | LEW    | female |
+| 4jan17\_LEW\_f1    |      1|      60|    28.783|  22.407139| 41.596 |  6.450|  0.833| Dom      | LEW    | female |
+| 4jan17\_LEW\_f2    |      1|       6|    23.333|  10.380515| 5.867  |  2.422|  0.989| Dom      | LEW    | female |
 | 4jan17\_LEW\_f3    |      1|      23|    24.913|  17.906582| 19.901 |  4.461|  0.930| Dom      | LEW    | female |
 | 4jan17\_LEW\_f6    |      1|      24|    24.375|  19.798025| 23.288 |  4.826|  0.985| Dom      | LEW    | female |
 | 4jan17\_LEW\_f7    |      1|      20|    26.050|  15.277864| 15.839 |  3.980|  0.890| Dom      | LEW    | female |
