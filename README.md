@@ -1,6 +1,5 @@
 ### TODO:
-- clean up extra files
-- add the passing report
+- add the passing report / make passing function
 - make sure the full makefile works
 - learn to make a pdf version of these reports
 - make a table of contents
