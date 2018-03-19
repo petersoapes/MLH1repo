@@ -11,7 +11,7 @@ PnD_poold_sim.png : fresh_PnD.R
 	Rscript fresh_PnD.R
 
 #MLH1 strain plots
-maleMLH1_plot.png femaleMLH1_plot.png : src/MLH1_strain_means.R data/AnonData.csv
+maleMLH1_plot2se.png femaleMLH12se_plot.png : src/MLH1_strain_means.R data/AnonData.csv
 	Rscript src/MLH1_strain_means.R src/HetC_plot.R
 
 #HetC Figure

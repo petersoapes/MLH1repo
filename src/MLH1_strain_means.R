@@ -16,7 +16,7 @@ library(ggplot2)
 #############
 #read in working environment that was already set
 #setwd("C:/Users/alpeterson7/Documents/MLH1repo")
-setwd("C:/Users/April/Desktop/MLH1repo")
+#setwd("C:/Users/April/Desktop/MLH1repo")
 load(file="MLH1_data_setup.RData")
 
 ###################
