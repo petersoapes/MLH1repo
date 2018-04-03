@@ -1,0 +1,96 @@
+---
+title: "MetaEffectReport"
+author: "April Peterson"
+date: "March 9, 2018"
+output: rmarkdown::github_document
+---
+
+```{r load data, include=FALSE}
+#setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+#setwd("Documents/MLH1repo")
+#setwd("C:/Users/April/Desktop/MLH1repo")
+load(file="MLH1_data_setup.RData")
+
+#load()metadata
+meta_data = read.csv("C:/Users/alpeterson7/Documents/MLH1data/data/mouseDOBs.csv")
+
+library(ggplot2)
+library(plyr)
+library(dplyr)
+library(raster)
+library(png)
+library(reshape2)
+```
+
+
+### Report for Examining Meta Effects
+
+- age
+- mat age
+- G line
+- female age
+- litter
+
+### files
+
+- MLH1 data
+- MetaData file
+
+
+ToDo
+- make sure metadata file is as complete as possible
+- load and combine data
+
+
+```{r dates, echo=FALSE}
+
+#extract dates from file names
+
+for( t in 1:length(meta_data$mouse)){
+  euth_date = strsplit(meta_data$mouse[t], split="_")[[1]][1]
+  meta_data$raw_euth_date[t] <- strsplit(meta_data$mouse[t], split="_")[[1]][1]
+  fomt_euth <- as.Date(strsplit(meta_data$mouse[t], split="_")[[1]][1], format= '%d%b%y')
+  fomt_euth_nrm <- as.Date(fomt_euth, "%Y-%m-%d")
+  vv <- as.numeric(difftime(fomt_euth, as.Date(meta_data$DOB[t], '%m/%d/%Y')), units="weeks" )#whoo, this works
+  hh <- as.numeric(difftime(fomt_euth, as.Date(meta_data$DOB[t], '%m/%d/%Y')), units="hours" )
+  meta_data$age_weeks[t] <- vv
+  meta_data$age_hours[t] <- hh
+
+  #mat age, DOB -Mat_dob
+  mat_dob <- as.Date(meta_data$maternal.age..DOB.[t], format= '%m/%d/%Y')
+#  hh <- as.numeric(difftime(fomt_euth, as.Date(meta_data$DOB[t], '%m/%d/%Y')), units="hours" )
+  gg <- as.numeric(difftime(as.Date(meta_data$DOB[t], '%m/%d/%Y'),mat_dob), units="weeks" )
+  meta_data$mat_age_wk[t] <- gg
+}
+
+as.Date(first part of mouse,format='%d%b%y' )
+euth_date <- as.Date(p[[1]][1],format='%d%b%y' )
+as.Date('22JUN01',format='%d%b%y') ##this will read the mouse date format correctly.
+#calculate age from dates
+difftime()
+
+```
+
+
+```{r}
+#merge data (MLH1 counts and ages)
+
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+load("MLH1_data_setup.RData")
+#add euth date and calc age
+mergedDF = merge(MLH1_data, meta_data, by = "mouse") #4000 cells by table of 1178 mice
+
+dissected_mice <- unique(meta_data$mouse)#180
+imaged_mice <- unique(MLH1_data$mouse)#62
+n.overlapping_mice <- length(imaged_mice)/length(dissected_mice)
+
+
+dfn <- mergedDF[(mergedDF$DOB == '' ),]
+dfm <- mergedDF[(is.na(mergedDF$DOB) ), ]
+
+unique(dfn$mouse)
+
+unique((dfm$mouse))
+
+```
+

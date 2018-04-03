@@ -82,9 +82,12 @@ AP_mouse_table <- ddply(MLH1_data, c("mouse"), summarise,
                          Ncells  = length(adj_nMLH1.foci),
                          mean_co = as.numeric(format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3) ),
                          cV = cv(adj_nMLH1.foci),
-                          var = format(round(   var(adj_nMLH1.foci),3), nsmall=3),
+                        var = format(round(   var(adj_nMLH1.foci),3), nsmall=3),
                          sd   = round(sd(adj_nMLH1.foci), 3),
                          se   = round(sd / sqrt(Ncells), 3)
+                      #quality?
+                        
+                        
 )
 
 #add strain, sex ect #function won't work

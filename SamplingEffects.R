@@ -52,9 +52,9 @@ sim_iterations <- 10000
 
 #list, DF, ncells, sim_num
 
+#discription of function...
 source("src/Func_sampleCells.R")
 lessTwenty_pvals_5_10 <- sample_cells_pvals(lessTwenty, lessTwenty_data, 5, 10)#this returns a list (of vectors?) pvalues  for each mouse in a list
-
 #nn[[4]] is the syntax to get just the pvalues
 #names(nn[4]) is now you get the name of the vector / list
 
@@ -64,22 +64,32 @@ lessTwenty_pvals_10_1k <- sample_cells_pvals(lessTwenty, lessTwenty_data, 10, 10
 
 
 Twenty_pvals_10_1k <- sample_cells_pvals(twenty, twenty_data, 10, 1000)#this returns a list (of vectors?) pvalues  for each mouse in a list
-
 Twenty_pvals_15_1k <- sample_cells_pvals(twenty, twenty_data, 15, 1000)#this returns a list (of vectors?) pvalues  for each mouse in a list
-
 Twenty_pvals_20_1k <- sample_cells_pvals(twenty, twenty_data, 20, 1000)#this returns a list (of vectors?) pvalues  for each mouse in a list
-
-
 #make all these outlist of pvalues...
-
 #
 # figure out how to calq different of mean pvalue between sample sizes!!!
 #
 
+test_pass = MLH1_data[MLH1_data$mouse == "30may17_MSM_m1",]
 
+recent.mice = list(mouse = c("30may17_MSM_m1", "5jul17_MSM_m1", "20dec16_LEW_m1",
+                   "20dec16_LEW_m2","4jan17_LEW_f6","8may17_LEW_m2","4jan17_LEW_f7",
+                   "4jan17_LEW_f3","4jan17_LEW_m1"  ))
+
+recent.mice.DF <- MLH1_data[MLH1_data$mouse %in% recent.mice$mouse,]
+
+r.m.table <- AP_mouse_table[AP_mouse_table$mouse %in% recent.mice[[1]],]
+#lowest cell number is 20
+source("src/Func_sampleCells.R")
+
+
+testing.these.pvals.10 <- sample_cells_pvals(recent.mice,recent.mice.DF,10,10000 )
+testing.these.pvals.15 <- sample_cells_pvals(recent.mice,recent.mice.DF,15,10000 )
+testing.these.pvals.18 <- sample_cells_pvals(recent.mice,recent.mice.DF,18,10000 )
 
 #think of saving these DF, as they take time 
-save.image("SampleSizePvalues.RData")
+#save.image("SampleSizePvalues.RData")
 
 #make plots to display Pvalues
 #1. histograms
@@ -87,10 +97,10 @@ save.image("SampleSizePvalues.RData")
 
 #plot lists of gg histograms
 plot_list10 = list()
-for (i in 1:length(twenty$mouse)){
+for (i in 1:length(testing.these.pvals.10) ){
   print(i)  
-  try_df <- as.data.frame(outlist10[[i]]) #turning a list into df
-  Title_mus_name <- paste("10000 iterations\n Test of 2 Samples of 10, \n", twenty$mouse[i] )
+  try_df <- as.data.frame(testing.these.pvals.10[[i]]) #turning a list into df
+  Title_mus_name <- paste("10000 iterations\n Test of 2 Samples of 10, \n", testing.these.pvals$mouse[i] )
   #add mouse name, total cells 
   
   colnames(try_df) <- "pvals"
@@ -101,10 +111,10 @@ for (i in 1:length(twenty$mouse)){
 }
 
 plot_list15 = list()
-for (i in 1:length(twenty$mouse)){
+for (i in 1:length(testing.these.pvals.15)){
   print(i)  
-  try_df <- as.data.frame(outlist15[[i]])
-  Title_mus_name <- paste("10000 iterations\n Test of 2 Samples of 15, \n", twenty$mouse[i] )
+  try_df <- as.data.frame(testing.these.pvals.15[[i]])
+  Title_mus_name <- paste("10000 iterations\n Test of 2 Samples of 15, \n", testing.these.pvals$mouse[i] )
   colnames(try_df) <- "pvals"
   p15 <- ggplot(try_df) + ggtitle( Title_mus_name ) + xlim(0,1)+
     geom_histogram(aes(x=pvals) )#xlim
@@ -112,38 +122,36 @@ for (i in 1:length(twenty$mouse)){
   plot_list15[[i]] <- p15
 }
 
-plot_list20 = list()
-for (i in 1:length(twenty$mouse)){
+plot_list18 = list()
+for (i in 1:length(testing.these.pvals.18)){
   print(i)  
-  try_df <- as.data.frame(outlist20[[i]])
+  try_df <- as.data.frame(testing.these.pvals.18[[i]])
   colnames(try_df) <- "pvals"
-  Title_mus_name <- paste("10000 iterations\n, Test of 2 Samples of 20, \n", twenty$mouse[i] )
-  p20 <- ggplot(try_df) + ggtitle( Title_mus_name ) + xlim(0,1)+
+  Title_mus_name <- paste("10000 iterations\n, Test of 2 Samples of 18, \n", testing.these.pvals$mouse[i] )
+  p18 <- ggplot(try_df) + ggtitle( Title_mus_name ) + xlim(0,1)+
     geom_histogram(aes(x=pvals) )
-  plot_list20[[i]] <- p20
+  plot_list18[[i]] <- p18
 }
 
 #after that code, there are 3 lists of ggplots histograms (by sample size)
-
-
-
 #make list of scatter plots
+#what are outlists?
 sctr_plot = list()
-for (i in 1:length(twenty$mouse)){
+for (i in 1:length(testing.these.pvals.10)){
   print(i)  
-  df10 <- as.data.frame(outlist10[[i]])
-  df15 <- as.data.frame(outlist15[[i]])
-  df20 <-as.data.frame(outlist20[[i]])
+  df10 <- as.data.frame(testing.these.pvals.10[[i]])
+  df15 <- as.data.frame(testing.these.pvals.15[[i]])
+  df18 <-as.data.frame(testing.these.pvals.18[[i]])
   names(df10) = "pvals"
   names(df15)= "pvals"
-  names(df20)= "pvals"
+  names(df18)= "pvals"
 #merging smaller dfs
-    allDF <- data.frame(pvals = rbind(df10, df15, df20),
+    allDF <- data.frame(pvals = rbind(df10, df15, df18),
                       DFsets = c (rep("samp10",length(df10[,1]) ), 
                                   rep("samp15",length(df10[,1])), 
-                                  rep("samp20", length(df10[,1])) )
+                                  rep("samp18", length(df10[,1])) )
   )
-  Title_mus_name <- paste("10000 iterations\n Pvalues of T-tests \n", twenty$mouse[i] )
+  Title_mus_name <- paste("10000 iterations\n Pvalues of T-tests \n", testing.these.pvals.10[[i]] )
   colnames(try_df) <- "pvals"
   
   scplot <- ggplot(allDF) + ggtitle( Title_mus_name) +
@@ -156,13 +164,13 @@ for (i in 1:length(twenty$mouse)){
 #use Function Multiplot to display multiple ggplot objects
 source("src/MultiPlot.R")
 
-setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/outside_gitrepo/LT_plots/recentMice")
 # Saves multiple plots to a tiff file for each mouse
-for(i in 1:15) {
-  file_name = paste("Sample_sizes_p_", twenty$mouse[i], "_", ".tiff", sep="")#names(outlist15[i]
+for(i in 1:9) {
+  file_name = paste("Sample_sizes_p_", names(testing.these.pvals.10[i]), "_", ".tiff", sep="")#names(outlist15[i]
   tiff(file_name)
   #par( mfrow=c(1,2) )
-  multiplot(sctr_plot[[i]], plot_list10[[i]], plot_list15[[i]], plot_list20[[i]],cols=2)
+  multiplot(sctr_plot[[i]], plot_list10[[i]], plot_list15[[i]], plot_list18[[i]],cols=2)
   dev.off()
 }
 

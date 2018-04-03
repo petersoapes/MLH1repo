@@ -1,0 +1,122 @@
+---
+title: "SimulatedData_MixedModel"
+author: "April Peterson"
+date: "March 30, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(nlme)
+library(plyr)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(raster)#for cV
+
+#load data
+setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+load(file="MLH1_data_setup.RData")
+```
+
+
+
+#### Mixed models
+
+explain mixed model best I can
+
+-- the main point of comparing these mixed models is to --- contrast female and male patterns of variation in MLH1 number-- 
+
+<previous results show that males had more variaiton at the subspecies level 
+< mouse level MLH1
+
+-- redo the previous models -- compare the subsets with high at low quality --
+
+Coding for the mixed model; base Dom male.  (in most of my dataframes female is ordered before males, for visualization purposes)
+
+
+Displaying the comparisons of different models -- create a table with the ww$values -- so they can be compared..
+
+values
+-parameter estimates
+-AICs ect
+
+conditions
+-quality scores
+-batches
+-simulated data? (randize strain)
+
+-by sex
+
+```{r, include=FALSE}
+#make model
+
+# just look at data of Musc and Dom 
+mixmodmouse_data <- AP_mouse_table[(AP_mouse_table$subsp == "Musc" | AP_mouse_table$subsp == "Dom"),  ]
+
+mixmodmouse_data$sex <- factor(mixmodmouse_data$sex, levels = c("male", "female"))
+
+model1 <- lme(mean_co ~ sex * subsp, data=mixmodmouse_data, random=list(strain=pdDiag(~sex)) ) 
+
+summary(model1)
+ranef(model1)
+```
+
+To interpert the summary results, (Fixed effects)
+- the intercept is the mean MLH1 number of the base factors -- which in this model is defined as Dom male (26.40).
+
+- the next variable is sex being female, has an affect of increasing the mean MLH1 count by 1.7. (This is about the amount of sexual dimorphism)
+1.7 (SD)
+
+- the value for Musc is 3.935, meaning being male and Musc adds 3.935 to the mean MLH1 (in the previous model without KAZ, this was 5.5)
+
+- the interaction of sex and subspecies is -3.7 meaning, musc females are 3 MLH1 foci lower than musc males (in previous models this was -5.1)
+
+
+Random effects (strain and strain specific sexual dimorphism)
+- the intercept is the average sd from strains 1.89, 
+- the sex effec is the average sd from strain specific sexual dimorphism 2.07
+- the random effects can be estimated; the intercepts are the average sd for the strain effect, ... from these esitmates is seems that G and Kaz have strain specific sexual dimorphism where females are larger
+... if the strain specific SD effect is larger than the whole sex effect
+
+```{r}
+#make new AP mouse table with cells from 1-3
+quality_data <- MLH1_data[MLH1_data$quality <= 3, ]
+quality_data <- quality_data[(quality_data$subsp == "Musc" | quality_data$subsp == "Dom"),  ]
+
+na.omit(quality_data)
+
+qualAP_mouse_table <- ddply(quality_data, c("subsp", "sex", "strain", "mouse"), summarise,
+                         Nmice = length(unique(mouse)),
+                         Ncells  = length(adj_nMLH1.foci),
+                         mean_co = as.numeric(format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3) ),
+                         cV = cv(adj_nMLH1.foci),
+                        var = format(round(   var(adj_nMLH1.foci),3), nsmall=3),
+                         sd   = round(sd(adj_nMLH1.foci), 3),
+                         se   = round(sd / sqrt(Ncells), 3)
+                        #sex = sex,
+                        #subsp = subsp,
+                        #strain = strain
+                      #quality?
+                        
+                        
+)
+qualAP_mouse_table <- na.omit(qualAP_mouse_table)
+
+qualAP_mouse_table <- qualAP_mouse_table[qualAP_mouse_table$Ncells > 5,]
+
+str(qualAP_mouse_table)
+
+qualAP_mouse_table$sex <- factor(qualAP_mouse_table$sex, levels = c("male", "female"))
+qualAP_mouse_table$strain <- factor(qualAP_mouse_table$strain)
+qualAP_mouse_table$subsp <-  factor(qualAP_mouse_table$subsp, levels=c("Dom", "Musc"))
+
+#model 2 -- asses if there are affects of quality
+model2 <- lme(mean_co ~ sex * subsp, data=qualAP_mouse_table, random=list(strain=pdDiag(~sex)) ) 
+
+summary(model2)
+ranef(model2)
+
+
+```
+
+For this version of cleaned data, the effect of Musc on the mean MLH1 is lower.
