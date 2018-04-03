@@ -67,10 +67,12 @@ MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 ```{r first boxplots, echo=FALSE, fig.align='center'}
 #the below ordering works!! keep it
 MLH1_data$strain<- factor(MLH1_data$strain, levels =c("G", "LEWES",
-                              "WSB", "PWD","MSM","KAZ","CAST","HMI","SPRET","SPIC", "other"), order=T )
+              "WSB", "PWD","MSM","KAZ","CAST","HMI","SPRET","SPIC", "other"), order=T )
 #order the data frame
 MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
 #set the order of another column, based on another variable (so that when)
+
+#try to make sure sacles are the same
 
 #reduncant
 #MLH1_data <- MLH1_data %>%
@@ -81,13 +83,16 @@ MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
 
 ff <- ggplot(MLH1_data, aes(x = as.factor(mouse), y = adj_nMLH1.foci, fill= strain ))+geom_boxplot()+ ggtitle("Boxplots of MLH1 distributions by mouse") + theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00","red", "yellowgreen", "green","purple","grey1", "grey" ))
+        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00","red", "yellowgreen", "green","purple","grey1", "grey" )) +
+ ylim( c((min(MLH1_data$adj_nMLH1.foci)-3) ), (max(MLH1_data$adj_nMLH1.foci)+5))
 ff <- ff   + facet_wrap(~ sex, scales="free")
 
 #boxplots by strain
 ss <- ggplot(MLH1_data, aes(x = as.factor(strain), y = adj_nMLH1.foci, fill= strain )) + geom_boxplot()  + ggtitle("Boxplots of MLH1 distributions by mouse") + theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00","red", "yellowgreen", "green", "purple","grey1","grey" ))
+        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00","red", "yellowgreen", "green", "purple","grey1","grey" )) +
+  ylim( c( (min(MLH1_data$adj_nMLH1.foci)-3), (max(MLH1_data$adj_nMLH1.foci)+5)) )
+
 ss <- ss   + facet_wrap(~ sex, scales="free")
 
 ff
