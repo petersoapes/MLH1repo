@@ -1,14 +1,18 @@
 #Make File for MLH1 repo file
+#add lines for all reports (meiotic errors, PnD, mainReport)
+
 #run report file
-Main_Report.md : MLH1_data_setup.RData rmd_report.rmd
-	Rscript Main_Report.rmd
+Main_Report.md : MLH1_data_setup.RData Main_Report.rmd
+	R -e "rmarkdown::render('Main_Report.rmd')"#this makes a html	
+#Rscript Main_Report.rmd#this requires knitr?
 
 #all
-all : adj_HetC.png maleMLH1_plot.png femaleMLH1_plot.png PnD_poold_sim.png
+#all : adj_HetC.png maleMLH1_plot.png femaleMLH1_plot.png 
+#PnD_poold_sim.png
 
 #PnD figs
-PnD_poold_sim.png : fresh_PnD.R
-	Rscript fresh_PnD.R
+#PnD_poold_sim.png : fresh_PnD.R
+#	Rscript fresh_PnD.R
 
 #MLH1 strain plots
 maleMLH1_plot2se.png femaleMLH12se_plot.png : src/MLH1_strain_means.R data/AnonData.csv

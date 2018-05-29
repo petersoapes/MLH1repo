@@ -1,13 +1,11 @@
 ---
 title: 'MLH1 Data Report'
 author: "April Peterson"
-date: "some date"
+date: "29 may 2018"
 output: rmarkdown::github_document
 ---
 
-
 ```{r setup, echo=FALSE, include = FALSE}
-#
 library(knitr)
 library(ggplot2)
 #library(pwr)
@@ -191,11 +189,16 @@ I ploted the mean of each quality bin with a red dot. From the pattern of the re
 
 latice plot of scatter plots for jitter plots of cell oberservations by quality. The category mean is in black and the mouse specific mean is in red.
 ```{r, echo=FALSE, message=FALSE,results='hide', warning=FALSE}
+### to integrate 'pass'/fail
+### this should be in setup data
+
+
 #what is the purpose of this block
 df_list <- split(MLH1_data, (MLH1_data$category))
 #remove sections which are in category but have no data
 df_list <- df_list[ -c(7,14,16,22) ]
 #7: PERC male, 12: KAZ female! (14:CAST female, fake data) 16:HMI female
+
 
 #df list, is a list of df's which were split() from BIG df by category
 df_list 
@@ -209,7 +212,7 @@ for(i in 1:(length(df_list))){
   sub_mouse_means <- ddply(df_list[[i]], .(mouse), summarise,
                        mouse_nMLH1 = mean(adj_nMLH1.foci)
   )
-# this loop is going though each row of dataframes within the df.list and assining the mouse mean
+# this loop is going though each row of dataframes within the df.list and assigning the mouse mean
   for(o in 1:length(df_list[[i]]$Original.Name)){
     df_list[[i]]$mouse_mean_MLH1[o] <- sub_mouse_means$mouse_nMLH1[ (df_list[[i]]$mouse[o] == sub_mouse_means$mouse) ]
         }
@@ -220,7 +223,9 @@ for (h in 1:length(df_list)) {
   pf <- ggplot(df_list[[h]],(aes(y= adj_nMLH1.foci, x= quality)))
   pf <- pf + geom_jitter(width = 0.25, aes(colour = factor(Batch)) )
   pf <- pf + geom_hline(yintercept = c( mean(df_list[[h]]$adj_nMLH1.foci) ), color="black" )
-  pf <- pf + facet_wrap(~ mouse) + geom_hline(aes(yintercept = mouse_mean_MLH1), color="red")
+  pf <- pf + facet_wrap(~ mouse) + geom_hline(aes(yintercept = mouse_mean_MLH1), color="red") 
+  #theme for indiviual mice, 
+  #+ theme(plot.background = element_rect(fill = "green"))
   plot_list[[h]] =   pf
 }
 
@@ -251,6 +256,7 @@ In some mice there seems to be bimodel cell populations, those of clearly high q
 Table of the mice used and MLH1 stats.
 
 ```{r, fig.height=2, fig.width=4, echo=FALSE}
+#this table is 
 #this table is saved in the .RData file
 #use kable to make tables. warning this might not work for github Rmd.
 n <- kable(AP_mouse_table)

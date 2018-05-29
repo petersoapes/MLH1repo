@@ -44,6 +44,11 @@ MLH1_data <- MLH1_data[!(is.na(MLH1_data$nMLH1.foci) | MLH1_data$nMLH1.foci=="")
 MLH1_data <- MLH1_data[MLH1_data$nMLH1.foci != "X",]
 MLH1_data <- MLH1_data[MLH1_data$nMLH1.foci != "x",]
 
+# add pass or fail column.. this will be a large list..maybe write a function..
+# highlight real passes? highlight non passes?
+# calculate automatically, list manually?
+
+
 source("src/Func_addCategory.R")
 MLH1_data <- add_category(MLH1_data)
 #set the order of categories (female, male) (cast, dom, musc)
@@ -124,6 +129,7 @@ AP_mouse_table$sex <-  ifelse(grepl("_f", AP_mouse_table$mouse), "female",
                        ifelse(grepl("_m", AP_mouse_table$mouse), "male",
                                                 "other"))
 
+AP_mouse_table$mouse <- as.factor(AP_mouse_table$mouse)
 AP_mouse_table$sex <- as.factor(AP_mouse_table$sex)
 AP_mouse_table$strain <- as.factor(AP_mouse_table$strain)
   AP_mouse_table$subsp <-  as.factor(AP_mouse_table$subsp)
@@ -142,6 +148,10 @@ BDMLH1_data <- subset(fullBD_MLH1_data, (Cross %in%  c("PANCEVO","RAT","CIM", "P
 
 #now that I have the mice of Beth's I want, remove the big BD df with F2s to save space.
 rm(fullBD_MLH1_data)
+
+
+
+
 
 
 ############
