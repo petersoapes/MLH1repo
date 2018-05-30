@@ -192,6 +192,11 @@ latice plot of scatter plots for jitter plots of cell oberservations by quality.
 ### to integrate 'pass'/fail
 ### this should be in setup data
 
+#quant_status (this isn't saving)
+#for(i in 1:length(MLH1_data$mouse)){
+#  MLH1_data$quant_status[i] <- ifelse( is.element(MLH1_data$mouse[i], pass_mice), "pass", NA)
+#}
+
 
 #what is the purpose of this block
 df_list <- split(MLH1_data, (MLH1_data$category))
@@ -204,6 +209,8 @@ df_list <- df_list[ -c(7,14,16,22) ]
 df_list 
 o=0
 i=0
+
+MLH1_data$quant_status <- as.factor(MLH1_data$quant_status)
 
 #make a new empty df. create a ddply thing with mean calculations (this is like a list for matching up later)
 for(i in 1:(length(df_list))){
@@ -218,16 +225,44 @@ for(i in 1:(length(df_list))){
         }
 }
 
+
+
+plot_list = list()
+for (h in 1:length(df_list)) {
+  pf <- ggplot(data = df_list[[h]], y= adj_nMLH1.foci, x= quality, aes(colour = factor(Batch)), width = 0.25)
+  # +   geom_rect(data = df_list[[h]], aes(fill=as.factor(quant_status)), alpha=0.5)
+  
+  + geom_jitter()
+  + facet_wrap(~ mouse) + geom_hline(aes(yintercept = mouse_mean_MLH1), color="red") + scale_fill_manual(values=c(NA, "red"), breaks=NULL)
+  
+# +    geom_hline(yintercept = c( mean(df_list[[h]]$adj_nMLH1.foci) ), color="black" )
+  #theme for indiviual mice, 
+  #+ theme(plot.background = element_rect(fill = "green"))
+  
+  plot_list[[h]] =   pf
+}
+
+
+
+#orig
 plot_list = list()
 for (h in 1:length(df_list)) {
   pf <- ggplot(df_list[[h]],(aes(y= adj_nMLH1.foci, x= quality)))
-  pf <- pf + geom_jitter(width = 0.25, aes(colour = factor(Batch)) )
+  pf <- pf +geom_rect(data = df_list[[h]], aes(fill=quant_status), xmin=-100, xmax=100, ymin=-100, ymax=100, alpha=0.005)
+
+    pf <- pf + geom_jitter(width = 0.25, aes(colour = factor(Batch)) )
   pf <- pf + geom_hline(yintercept = c( mean(df_list[[h]]$adj_nMLH1.foci) ), color="black" )
-  pf <- pf + facet_wrap(~ mouse) + geom_hline(aes(yintercept = mouse_mean_MLH1), color="red") 
-  #theme for indiviual mice, 
+  pf <- pf + facet_wrap(~ mouse) + geom_hline(aes(yintercept = mouse_mean_MLH1), color="red") + 
+    
+    scale_fill_manual(values=alpha(c("red"), .005), breaks=NULL) 
+
+    #theme for indiviual mice, 
   #+ theme(plot.background = element_rect(fill = "green"))
   plot_list[[h]] =   pf
 }
+#can't change the alpha/transparency of the red rec
+
+
 
 #aes must be same length ---   #geom_point(stat = "identity") +
 # the last one is correct....?
