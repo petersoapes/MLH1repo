@@ -1,4 +1,12 @@
-### TODO:
+### Relevant Files
+- Main_report.md; Displays basic stats of MLH1 data by mouse. Used to asses distributions of MLH1 count and cell quality score.
+- MeioticErrorReport.md; plots for stats of 'error' meterics from data, (0CO and asynapsed chrms).
+
+- PolymorphismDivergenceSimulations.md* (Coming soon); display results which run simulations to calculate within and between subspecies variation. 
+- SubSample.md* (coming soon); analysis for how mouse and genotype mean changes with subsampling, (test effect of uneven sample sizes).
+- ResultsOutline.md*; outline and draft figures for Result section of manuscript.
+
+#### TODO:
 - add the passing report / make passing function
 - make sure the full makefile works
 - learn to make a pdf version of these reports
