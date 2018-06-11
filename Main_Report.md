@@ -53,7 +53,7 @@ I ploted the mean of each quality bin with a red dot. From the pattern of the re
 
 latice plot of scatter plots for jitter plots of cell oberservations by quality. The category mean is in black and the mouse specific mean is in red.
 
-![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-1.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-2.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-3.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-4.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-5.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-6.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-7.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-8.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-9.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-10.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-11.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-12.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-13.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-14.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-15.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-16.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-17.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-18.png)
+![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-1.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-2.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-3.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-4.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-5.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-6.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-7.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-8.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-9.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-10.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-11.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-12.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-13.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-14.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-15.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-16.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-17.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-18.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-19.png)
 
 Making all of these scatter plots, allows us to look at the whole distributions of the data for each mouse. The distance of the red line from the black could be a indicator of slides or mice with slide specific technical noise.
 
@@ -69,6 +69,8 @@ Table of the mice used and MLH1 stats.
 |:--------------------|------:|-------:|---------:|----------:|:-------|------:|------:|:---------|:-------|:-------|
 | 10mar15\_PWD\_m1    |      1|      21|    29.667|   8.210708| 5.933  |  2.436|  0.532| Musc     | PWD    | male   |
 | 10mar15\_PWD\_m2    |      1|      40|    29.400|  10.667427| 9.836  |  3.136|  0.496| Musc     | PWD    | male   |
+| 11jan18\_KAZ\_f2    |      1|      23|    24.913|  15.494716| 14.901 |  3.860|  0.805| Musc     | KAZ    | female |
+| 11jan18\_KAZ\_f3    |      1|      24|    26.333|  18.423097| 23.536 |  4.851|  0.990| Musc     | KAZ    | female |
 | 11jan18\_KAZ\_m1    |      1|      36|    21.722|   8.981525| 3.806  |  1.951|  0.325| Musc     | KAZ    | male   |
 | 11jan18\_KAZ\_m2    |      1|       7|    21.000|  11.664237| 6.000  |  2.449|  0.926| Musc     | KAZ    | male   |
 | 11jan18\_KAZ\_m3    |      1|      24|    22.417|  12.883299| 8.341  |  2.888|  0.590| Musc     | KAZ    | male   |
@@ -79,6 +81,7 @@ Table of the mice used and MLH1 stats.
 | 12jun15\_WSB\_m1    |      1|      13|    22.077|  13.646799| 9.077  |  3.013|  0.836| Dom      | WSB    | male   |
 | 12jun15\_WSB\_m2    |      1|      27|    23.185|  11.538403| 7.157  |  2.675|  0.515| Dom      | WSB    | male   |
 | 12oct15\_G\_m1      |      1|      24|    23.833|   8.452198| 4.058  |  2.014|  0.411| Dom      | G      | male   |
+| 13jan17\_LEW\_f1    |      1|      13|    25.462|  15.093651| 14.769 |  3.843|  1.066| Dom      | LEW    | female |
 | 13jan17\_LEW\_f2    |      1|      16|    28.250|  19.018658| 28.867 |  5.373|  1.343| Dom      | LEW    | female |
 | 13jan17\_LEW\_f3    |      1|      22|    26.636|  13.784099| 13.481 |  3.672|  0.783| Dom      | LEW    | female |
 | 13nov16\_LEWES\_m1  |      1|      25|    25.160|  13.216044| 11.057 |  3.325|  0.665| Dom      | LEW    | male   |
@@ -88,8 +91,8 @@ Table of the mice used and MLH1 stats.
 | 13nov16\_MSM\_m2    |      1|      21|    32.190|   8.313557| 7.162  |  2.676|  0.584| Musc     | MSM    | male   |
 | 14jul17\_LEW\_f1    |      1|      11|    27.000|  21.596118| 34.000 |  5.831|  1.758| Dom      | LEW    | female |
 | 14jul17\_MSM\_f1    |      1|      35|    26.914|   8.846405| 5.669  |  2.381|  0.402| Musc     | MSM    | female |
-| 14jul17\_SPRET\_f2  |      1|       2|    26.500|  18.678292| 24.500 |  4.950|  3.500| outgroup | SPRET  | female |
-| 14jul17\_SPRET\_f3  |      1|       6|    27.167|  24.128453| 42.967 |  6.555|  2.676| outgroup | SPRET  | female |
+| 14jul17\_SPRET\_f2  |      1|       4|    26.250|  12.586811| 10.917 |  3.304|  1.652| outgroup | SPRET  | female |
+| 14jul17\_SPRET\_f3  |      1|      10|    27.400|  22.379138| 37.600 |  6.132|  1.939| outgroup | SPRET  | female |
 | 16jan16\_G\_f1      |      1|      17|    30.706|  11.785308| 13.096 |  3.619|  0.878| Dom      | G      | female |
 | 16jan16\_G\_f2      |      1|      61|    28.328|  18.065906| 26.191 |  5.118|  0.655| Dom      | G      | female |
 | 16jun15\_WSB\_f4    |      1|      15|    23.467|   8.502411| 3.981  |  1.995|  0.515| Dom      | WSB    | female |
@@ -117,6 +120,7 @@ Table of the mice used and MLH1 stats.
 | 1feb18\_KAZ\_f2     |      1|      26|    25.885|  15.035209| 15.146 |  3.892|  0.763| Musc     | KAZ    | female |
 | 1feb18\_KAZ\_f4     |      1|      22|    27.273|  13.959124| 14.494 |  3.807|  0.812| Musc     | KAZ    | female |
 | 1feb18\_KAZ\_m1     |      1|      31|    22.581|   8.067150| 3.318  |  1.822|  0.327| Musc     | KAZ    | male   |
+| 1feb18\_LEW\_f1     |      1|      16|    23.438|   9.725598| 5.196  |  2.279|  0.570| Dom      | LEW    | female |
 | 1feb18\_LEW\_m1     |      1|      27|    22.963|  10.067808| 5.345  |  2.312|  0.445| Dom      | LEW    | male   |
 | 1feb18\_MSM\_m1     |      1|      30|    32.067|   7.367598| 5.582  |  2.363|  0.431| Musc     | MSM    | male   |
 | 1mar15\_PWD\_m1     |      1|      15|    30.800|  12.586591| 15.029 |  3.877|  1.001| Musc     | PWD    | male   |
@@ -142,6 +146,7 @@ Table of the mice used and MLH1 stats.
 | 30jun16\_CAST\_m1   |      1|      21|    21.857|  14.632351| 10.229 |  3.198|  0.698| Cast     | CAST   | male   |
 | 30jun16\_CAST\_m3   |      1|      28|    23.143|  10.096991| 5.460  |  2.337|  0.442| Cast     | CAST   | male   |
 | 30may17\_MSM\_m1    |      1|      23|    30.435|  14.316136| 18.984 |  4.357|  0.908| Musc     | MSM    | male   |
+| 30may17\_SPRET\_f1  |      1|       2|    27.500|   2.571297| 0.500  |  0.707|  0.500| outgroup | SPRET  | female |
 | 30oct17\_SPIC\_m1   |      1|       1|    18.000|         NA| NA     |    NaN|    NaN| outgroup | SPIC   | male   |
 | 30sep16\_MSM\_f2    |      1|      25|    27.200|  14.782277| 16.167 |  4.021|  0.804| Musc     | MSM    | female |
 | 30sep16\_MSM\_m1    |      1|      18|    28.333|  14.974026| 18.000 |  4.243|  1.000| Musc     | MSM    | male   |
@@ -152,6 +157,7 @@ Table of the mice used and MLH1 stats.
 | 31dec17\_MSM\_f4    |      1|      26|    28.154|  15.159380| 18.215 |  4.268|  0.837| Musc     | MSM    | female |
 | 31dec17\_MSM\_f5    |      1|      33|    28.909|  14.454082| 17.460 |  4.179|  0.727| Musc     | MSM    | female |
 | 31dec17\_SPIC\_f1   |      1|      16|    26.188|  18.873841| 24.429 |  4.943|  1.236| outgroup | SPIC   | female |
+| 31dec17\_SPIC\_f2   |      1|      14|    27.000|  14.527121| 15.385 |  3.922|  1.048| outgroup | SPIC   | female |
 | 31jul17\_HMI\_m1    |      1|       8|    26.125|  20.299716| 28.125 |  5.303|  1.875| Cast     | HMI    | male   |
 | 31mar15\_WSB\_m1    |      1|      19|    24.579|  14.937370| 13.480 |  3.671|  0.842| Dom      | WSB    | male   |
 | 31mar15\_WSB\_m2    |      1|      21|    24.333|   9.925600| 5.833  |  2.415|  0.527| Dom      | WSB    | male   |
@@ -178,6 +184,8 @@ Table of the mice used and MLH1 stats.
 | 6mar16\_PWD\_m1     |      1|       6|    28.833|   5.105064| 2.167  |  1.472|  0.601| Musc     | PWD    | male   |
 | 7nov17\_KAZ\_m1     |      1|      28|    25.000|   8.291004| 4.296  |  2.073|  0.392| Musc     | KAZ    | male   |
 | 7nov17\_SPIC\_m1    |      1|      47|    28.213|   7.784433| 4.823  |  2.196|  0.320| outgroup | SPIC   | male   |
+| 8jun15\_G\_f3       |      1|      22|    24.045|  14.938451| 12.903 |  3.592|  0.766| Dom      | G      | female |
+| 8jun15\_G\_f4       |      1|      20|    22.850|   8.898362| 4.134  |  2.033|  0.455| Dom      | G      | female |
 | 8may17\_LEW\_m1     |      1|      18|    24.333|  10.261878| 6.235  |  2.497|  0.589| Dom      | LEW    | male   |
 | 8may17\_LEW\_m2     |      1|      27|    24.667|  10.119531| 6.231  |  2.496|  0.480| Dom      | LEW    | male   |
 | 8may17\_SPRET\_m1   |      1|      31|    25.774|   9.220104| 5.647  |  2.376|  0.427| outgroup | SPRET  | male   |

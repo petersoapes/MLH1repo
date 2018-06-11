@@ -188,22 +188,23 @@ I ploted the mean of each quality bin with a red dot. From the pattern of the re
 #### Assessing the Distributions by mouse
 
 latice plot of scatter plots for jitter plots of cell oberservations by quality. The category mean is in black and the mouse specific mean is in red.
-```{r, echo=FALSE, message=FALSE,results='hide', warning=FALSE}
+```{r, echo=FALSE, message=FALSE,results='hide', warning=TRUE}
 ### to integrate 'pass'/fail
 ### this should be in setup data
 
 #quant_status (this isn't saving)
-#for(i in 1:length(MLH1_data$mouse)){
-#  MLH1_data$quant_status[i] <- ifelse( is.element(MLH1_data$mouse[i], pass_mice), "pass", NA)
-#}
+for(i in 1:length(MLH1_data$mouse)){
+  MLH1_data$quant_status[i] <- ifelse( is.element(MLH1_data$mouse[i], pass_mice), "pass", NA)
+}
 
 
 #what is the purpose of this block
 df_list <- split(MLH1_data, (MLH1_data$category))
 #remove sections which are in category but have no data
-df_list <- df_list[ -c(7,14,16,22) ]
-#7: PERC male, 12: KAZ female! (14:CAST female, fake data) 16:HMI female
+df_list <- df_list[ -c(7,16,22) ]
 
+#7: PERC male, (14:CAST female, fake data) 16:HMI female, 22 other
+#
 
 #df list, is a list of df's which were split() from BIG df by category
 df_list 
@@ -229,11 +230,9 @@ for(i in 1:(length(df_list))){
 
 plot_list = list()
 for (h in 1:length(df_list)) {
-  pf <- ggplot(data = df_list[[h]], y= adj_nMLH1.foci, x= quality, aes(colour = factor(Batch)), width = 0.25)
+  pf <- ggplot(data = df_list[[h]], aes(colour = factor(Batch)), width = 0.25)+ geom_jitter(aes(y= adj_nMLH1.foci, x= quality))
   # +   geom_rect(data = df_list[[h]], aes(fill=as.factor(quant_status)), alpha=0.5)
-  
-  + geom_jitter()
-  + facet_wrap(~ mouse) + geom_hline(aes(yintercept = mouse_mean_MLH1), color="red") + scale_fill_manual(values=c(NA, "red"), breaks=NULL)
+#  + facet_wrap(~ mouse) + geom_hline(aes(yintercept = mouse_mean_MLH1), color="red") +scale_fill_manual(values=c(NA, "red"), breaks=NULL)
   
 # +    geom_hline(yintercept = c( mean(df_list[[h]]$adj_nMLH1.foci) ), color="black" )
   #theme for indiviual mice, 
@@ -261,8 +260,6 @@ for (h in 1:length(df_list)) {
   plot_list[[h]] =   pf
 }
 #can't change the alpha/transparency of the red rec
-
-
 
 #aes must be same length ---   #geom_point(stat = "identity") +
 # the last one is correct....?

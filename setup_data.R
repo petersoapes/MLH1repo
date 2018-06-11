@@ -47,6 +47,16 @@ MLH1_data <- MLH1_data[MLH1_data$nMLH1.foci != "x",]
 # add pass or fail column.. this will be a large list..maybe write a function..
 # highlight real passes? highlight non passes?
 # calculate automatically, list manually?
+pass_mice = c("10mar15_PWD_m2","13nov16_MSM_f1","13nov16_MSM_m1","16jan16_G_f2","16nov17_MSM_f2",
+"16nov17_MSM_f3","17mar16_G_f1","17mar16_G_f3","17mar16_G_f4","17mar16_G_f5",
+"18may15_PWD_m1", "1feb18_KAZ_m1","1feb18_MSM_m1", "20dec16_LEW_m2","20dec16_LEW_m3", 
+"28feb15_PWD_f2","30jun16_CAST_m3","31aug16_MSM_m1","31dec17_MSM_f5","3jan16_G_m1"   )
+
+#if mouse matches a mouse in the above list, add 'pass'
+
+for(i in 1:length(MLH1_data$mouse)){
+  MLH1_data$quant_status[i] <- ifelse( is.element(MLH1_data$mouse[i], pass_mice), "pass", NA)
+}
 
 
 source("src/Func_addCategory.R")
