@@ -18,6 +18,40 @@ add_mouse <- function(dat){
 }
 
 
+#add mouse column to MLH1 df
+#add mouse column to MLH1 df
+add_euth_date <- function(dat){
+  dframe <- dat
+  count =1
+  for(i in dframe$Original.Name){
+    #isolate the first part of Orignal name
+    #print(i)
+    templist= strsplit(i, split="_")[[1]]
+    euth <- templist[1]
+    #figure out date conversion
+    dframe$euth.date[count] <- euth
+    count= count +1
+  }
+  dframe$euth.date <- as.Date(dframe$euth.date,format='%d%b%y')
+  return(dframe)
+}
+#format the dates into standard format
+#mouse_list$DOB <- as.Date(mouse_list$DOB,format='%m/%d/%Y')
+
+add_age <- function(dat){
+  dframe <- dat
+  count =1
+  for(i in dframe$Original.Name){
+    #after DOB and euth date are standardized
+    #substract
+    dframe$age.days[count] <- dframe$euth.date-dframe$DOB
+    #gives age in days
+    count= count +1
+  }
+  return(dframe)
+}
+
+
 
 #add sex to dataframe
 
@@ -39,7 +73,7 @@ add_strain <- function(dat){
   
   dframe$strain <- ifelse(grepl("_WSB", dframe$Original.Name), "WSB", 
                           ifelse(grepl("_G_",dframe$Original.Name), "G",
-                                 ifelse(grepl("_LEW", dframe$Original.Name), "LEWES",
+        ifelse(grepl("_LEW", dframe$Original.Name), "LEWES",
                                         
                                         
              ifelse(grepl("_MSM_", dframe$Original.Name), "MSM",           
@@ -49,10 +83,10 @@ add_strain <- function(dat){
                    ifelse(grepl("_CAST_", dframe$Original.Name), "CAST",           
                       ifelse(grepl("_HMI_", dframe$Original.Name), "HMI",
                      ifelse(grepl("_SPRET_", dframe$Original.Name), "SPRET",           
-                                                                                  ifelse(grepl("_SPI_", dframe$Original.Name), "SPIC",
-                                                                                         ifelse(grepl("_SPIC_", dframe$Original.Name), "SPIC",
-                                                                                                ifelse(grepl("_CAROLI_", dframe$Original.Name), "CAROLI",
-                                                                                                       "other"))))))))))))
+                             ifelse(grepl("_SPI_", dframe$Original.Name), "SPIC",
+                         ifelse(grepl("_SPIC_", dframe$Original.Name), "SPIC",
+                  ifelse(grepl("_CAROLI_", dframe$Original.Name), "CAROLI",
+                                 "other"))))))))))))
   
   #the ordering factor below deletes all strain entries
   dframe$strain<- factor(dframe$strain,levels =c( "WSB", "G", "LEWES", "PERC",
@@ -125,14 +159,14 @@ add_subsp <- function(oldframe) {
                          ifelse(grepl("G", dframe$strain), "Dom",
                                 ifelse(grepl("LEW", dframe$strain), "Dom", 
                                        ifelse(grepl("LEWES", dframe$strain), "Dom",    
-                                              ifelse(grepl("PERA", dframe$strain), "Dom",
+                       ifelse(grepl("PERA", dframe$strain), "Dom",
                                                      
-                                                     ifelse(grepl("CAST", dframe$strain), "Cast",
-                                                            ifelse(grepl("CIM", dframe$strain), "Cast",
-                                                                   ifelse(grepl("HMI", dframe$strain), "Cast",
+                     ifelse(grepl("CAST", dframe$strain), "Cast",
+                    ifelse(grepl("CIM", dframe$strain), "Cast",
+                     ifelse(grepl("HMI", dframe$strain), "Cast",
                                                                           
-                                                                          ifelse(grepl("MSM", dframe$strain), "Musc",                                       
-                                                                                 ifelse(grepl("PWD", dframe$strain), "Musc", 
+                           ifelse(grepl("MSM", dframe$strain), "Musc",                                       
+                         ifelse(grepl("PWD", dframe$strain), "Musc", 
         ifelse(grepl("CZECHI", dframe$strain), "Musc", 
                 ifelse(grepl("PWDFemale", dframe$strain), "Musc",  
                       ifelse(grepl("KAZ", dframe$strain), "Musc",
@@ -148,3 +182,7 @@ add_subsp <- function(oldframe) {
   return(dframe)
   
 }
+
+#
+#
+
