@@ -32,16 +32,47 @@ add_sex <- function(dat){
 }
 
 
+# add strain
+add_strain <- function(dat){
+  dframe <- dat
+  dframe$strain <- "other"
+  
+  dframe$strain <- ifelse(grepl("_WSB", dframe$Original.Name), "WSB", 
+                          ifelse(grepl("_G_",dframe$Original.Name), "G",
+                                 ifelse(grepl("_LEW", dframe$Original.Name), "LEWES",
+                                        
+                                        
+             ifelse(grepl("_MSM_", dframe$Original.Name), "MSM",           
+             ifelse(grepl("_PWD_", dframe$Original.Name), "PWD",
+                ifelse(grepl("_KAZ_", dframe$Original.Name), "KAZ",
+                                                             
+                   ifelse(grepl("_CAST_", dframe$Original.Name), "CAST",           
+                      ifelse(grepl("_HMI_", dframe$Original.Name), "HMI",
+                     ifelse(grepl("_SPRET_", dframe$Original.Name), "SPRET",           
+                                                                                  ifelse(grepl("_SPI_", dframe$Original.Name), "SPIC",
+                                                                                         ifelse(grepl("_SPIC_", dframe$Original.Name), "SPIC",
+                                                                                                ifelse(grepl("_CAROLI_", dframe$Original.Name), "CAROLI",
+                                                                                                       "other"))))))))))))
+  
+  #the ordering factor below deletes all strain entries
+  dframe$strain<- factor(dframe$strain,levels =c( "WSB", "G", "LEWES", "PERC",
+                                                  "PWD", "MSM","KAZ",
+                                                  "CAST", "HMI",
+                                                  "SPRET", "SPIC", "CAROLI", "other"), order=T )
+  return(dframe)
+}
+
+
 
 add_category <- function(oldframe){
   dframe <- oldframe
   dframe$category <- "other"
   
   dframe$category <- ifelse(grepl("_WSB_f", dframe$Original.Name), "WSB female",
-                            ifelse(grepl("_WSB_m",dframe$Original.Name), "WSB male",
+                    ifelse(grepl("_WSB_m",dframe$Original.Name), "WSB male",
                                    
-                                   ifelse(grepl("_G_f", dframe$Original.Name), "G female",
-                                      ifelse(grepl("_G_m",dframe$Original.Name), "G male",
+                    ifelse(grepl("_G_f", dframe$Original.Name), "G female",
+                    ifelse(grepl("_G_m",dframe$Original.Name), "G male",
                          ifelse(grepl("_LEWES_m", dframe$Original.Name), "LEW male",
                         ifelse(grepl("_LEW_f", dframe$Original.Name), "LEW female",
                            ifelse(grepl("_LEW_m",dframe$Original.Name), "LEW male",        
@@ -70,14 +101,15 @@ add_category <- function(oldframe){
                                                                                                                                                 ifelse(grepl("_SPIC_f", dframe$Original.Name), "SPIC female",        
                                                                                                                                                                                                   
                       ifelse(grepl("_CAROLI_m", dframe$Original.Name), "CAROLI male",
-                             ifelse(grepl("_CAROLI_f", dframe$Original.Name), "CAROLI female",
+                     ifelse(grepl("_CAROLI_f", dframe$Original.Name), "CAROLI female",
                                                       "other")))))))))))))))))))))))))))
   
   dframe$category<- factor(dframe$category,levels =c( "WSB female", "WSB male","G female", "G male", 
                                                       "LEW female", 'LEW male', "PERC male",
                                                       "PWD female", "PWD male", "MSM female", "MSM male", "KAZ female","KAZ male",
                                                       "CAST female", "CAST male", "HMI female", "HMI male",
-                                                      "SPRET female", "SPRET male", "SPIC female", "SPIC male", "other"), order=T )
+                                                      "SPRET female", "SPRET male", "SPIC female", "SPIC male","CAROLI female","CAROLI male",
+                                                      "other"), order=T )
   return(dframe)
 }
 #tried writing this with mutate, couldn't get it to work
