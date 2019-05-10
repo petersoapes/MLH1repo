@@ -14,6 +14,7 @@ q_cutoff_table <- ddply(MLH1_data, .(mouse), summarise,
                         total =  length(adj_nMLH1.foci),
                         q5 = sum(as.numeric(quality) >= 4, na.rm = TRUE ), 
                         above5 = sum(as.numeric(quality) <= 4, na.rm = TRUE )
+                        #add percentages
                         # q_l3 = sum(as.numeric(as.numeric(quality)) <= 4, na.rm = TRUE )
 )
 #q_cutoff_table

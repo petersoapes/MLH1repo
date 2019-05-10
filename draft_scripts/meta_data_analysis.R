@@ -10,39 +10,71 @@ library(plyr)
 library(lattice)
 library(dplyr)
 
-#age, mat and pat age, Gough Line, (staining batch for cells)
+#orig cols
+#mouse, DOB, mat DOB, pat DOB, stain, 
+
+#calq cols
+#sex, age, dissection date, mat age, pat age, time to stain (cell measure dependant)
+
+# final cols
+#Gough Line, (staining batch for cells)
+#
 
 #load meta data csv file 
 #finalize the coding (NAs, ect)
-meta_data = read.csv("C:/Users/alpeterson7/Documents/MLH1data/data/mouseDOBs.csv")
+#meta_data = read.csv("C:/Users/alpeterson7/Documents/MLH1data/data/mouseDOBs.csv")
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+full_meta_data = read.csv("C:/Users/alpeterson7/Documents/MLH1repo/ALP_MouseMetadata.csv")
 
-save.image("play_data_for_meta.RData")
-#data needs to be cleaned up (all NA's removed before calculating )
+#save.image("play_data_for_meta.RData")
 
-#mouse column already included,
-#change category, sex -- there is no file name...
-#using the functions will be a little tricky
-
-meta_data$mouse <- as.character(meta_data$mouse)
-#format euth date (from mouse)
-#all NA's need to be removed
-
-for( t in 1:length(meta_data$mouse)){
-  euth_date = strsplit(meta_data$mouse[t], split="_")[[1]][1]
-  meta_data$raw_euth_date[t] <- strsplit(meta_data$mouse[t], split="_")[[1]][1]
-  fomt_euth <- as.Date(strsplit(meta_data$mouse[t], split="_")[[1]][1], format= '%d%b%y')
+### mat age pat age ###
+full_meta_data$mouse <- as.character(full_meta_data$mouse)
+#loop for calculating ages
+for( t in 1:length(full_meta_data$mouse)){
+  euth_date = strsplit(full_meta_data$mouse[t], split="_")[[1]][1]
+  #full_meta_data$raw_euth_date[t] <- strsplit(full_meta_data$mouse[t], split="_")[[1]][1]
+  
+  fomt_euth <- as.Date(strsplit(full_meta_data$mouse[t], split="_")[[1]][1], format= '%d%b%y')
   fomt_euth_nrm <- as.Date(fomt_euth, "%Y-%m-%d")
-  vv <- as.numeric(difftime(fomt_euth, as.Date(meta_data$DOB[t], '%m/%d/%Y')), units="weeks" )#whoo, this works
-  hh <- as.numeric(difftime(fomt_euth, as.Date(meta_data$DOB[t], '%m/%d/%Y')), units="hours" )
-  meta_data$age_weeks[t] <- vv
-  meta_data$age_hours[t] <- hh
-
+  vv <- as.numeric(difftime(fomt_euth, as.Date(full_meta_data$DOB[t], '%m/%d/%Y')), units="weeks" )#whoo, this works
+  hh <- as.numeric(difftime(fomt_euth, as.Date(full_meta_data$DOB[t], '%m/%d/%Y')), units="hours" )
+  
+ # full_meta_data$age_weeks[t] <- vv
+  
   #mat age, DOB -Mat_dob
-  mat_dob <- as.Date(meta_data$maternal.age..DOB.[t], format= '%m/%d/%Y')
-#  hh <- as.numeric(difftime(fomt_euth, as.Date(meta_data$DOB[t], '%m/%d/%Y')), units="hours" )
-  gg <- as.numeric(difftime(as.Date(meta_data$DOB[t], '%m/%d/%Y'),mat_dob), units="weeks" )
-  meta_data$mat_age_wk[t] <- gg
+  mat_dob <- as.Date(full_meta_data$mat.DOB[t], format= '%m/%d/%Y')
+  pat_dob <- as.Date(full_meta_data$pat.DOB[t], format= '%m/%d/%Y')
+  
+  mm.dob <- as.numeric(difftime(as.Date(full_meta_data$DOB[t], '%m/%d/%Y'),mat_dob), units="weeks" )
+  pp.dob <- as.numeric(difftime(as.Date(full_meta_data$DOB[t], '%m/%d/%Y'),pat_dob), units="weeks" )
+  
+  full_meta_data$mat_age_wk[t] <- mm.dob
+  full_meta_data$pat_age_wk[t] <- pp.dob
 }
+
+###SEX###
+source("src/Func_addSex.R")
+full_meta_data <- add_sex(full_meta_data)
+#make two seperate DF's?
+
+female_meta_data <- 
+male_meta_data <- 
+
+### female age ###
+
+#if sex = female, euth date = DOB, age = neonate
+# female age -- neonate v embryo? 
+# what about embryo
+
+
+###AGE, mat.age, pat.age### (weeks)
+
+
+
+
+
+### EUTH Date ###
 
 
 as.Date(first part of mouse,format='%d%b%y' )
@@ -52,17 +84,14 @@ as.Date('22JUN01',format='%d%b%y') ##this will read the mouse date format correc
 difftime()
 
 
-for(i in MLH1_data$file.name){
-  #print(i)
-  templist= strsplit(i, split="_")[[1]]
-  c = paste(templist[2], templist[3],templist[4], sep = "_")
-  MLH1_data$mouse[count] <- c
-  count= count +1
-}
+
 
 # load previously made MLH1 data
 setwd("C:/Users/alpeterson7/Documents/MLH1repo")
 load(file="MLH1_data_setup.RData")
+
+### write metadata-file ###
+
 
 ##############
 # MERGE DATA #

@@ -19,15 +19,15 @@ Cell images are quantified in batches after file names are anonymized. The numbe
 
 #### Initial Patterns from MLH1 distributions
 
-<img src="Main_Report_files/figure-markdown_github-ascii_identifiers/first boxplots-1.png" style="display: block; margin: auto;" /><img src="Main_Report_files/figure-markdown_github-ascii_identifiers/first boxplots-2.png" style="display: block; margin: auto;" />
+<img src="Main_Report_files/figure-markdown_github/first boxplots-1.png" style="display: block; margin: auto;" /><img src="Main_Report_files/figure-markdown_github/first boxplots-2.png" style="display: block; margin: auto;" />
 
 After taking the data from 2 highest cell quality, some but not all mouse means converge.
 
-<img src="Main_Report_files/figure-markdown_github-ascii_identifiers/histogram-1.png" style="display: block; margin: auto;" />
+<img src="Main_Report_files/figure-markdown_github/histogram-1.png" style="display: block; margin: auto;" />
 
 #### Comparison of MLH1 distributions
 
-![](Main_Report_files/figure-markdown_github-ascii_identifiers/show%20boxplots-1.png)
+![](Main_Report_files/figure-markdown_github/show%20boxplots-1.png)
 
 After taking the data from 2 highest cell quality, some but not all mouse means converge. For some mice (mostly female) the majority of cells are excluded. This is especially true for PWD and WSB females.
 
@@ -45,7 +45,7 @@ Human quantification seems to be biased towards rating cells with more MLH1 foci
 
     ## Warning: Removed 5 rows containing missing values (geom_point).
 
-![caption](Main_Report_files/figure-markdown_github-ascii_identifiers/scatter%20plots%20of%20nMLH1%20by%20score-1.png)
+![caption](Main_Report_files/figure-markdown_github/scatter%20plots%20of%20nMLH1%20by%20score-1.png)
 
 I ploted the mean of each quality bin with a red dot. From the pattern of the red dots, there is definately a negative relationship with quality and nMLH1 foci across the data. This is most pronounced in MSM males and least pronounced in G males. The CAST female data is dummy data.
 
@@ -53,7 +53,7 @@ I ploted the mean of each quality bin with a red dot. From the pattern of the re
 
 latice plot of scatter plots for jitter plots of cell oberservations by quality. The category mean is in black and the mouse specific mean is in red.
 
-![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-1.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-2.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-3.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-4.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-5.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-6.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-7.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-8.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-9.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-10.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-11.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-12.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-13.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-14.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-15.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-16.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-17.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-18.png)![](Main_Report_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-19.png)
+![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-1.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-2.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-3.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-4.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-5.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-6.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-7.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-8.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-9.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-10.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-11.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-12.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-13.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-14.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-15.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-16.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-17.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-18.png)![](Main_Report_files/figure-markdown_github/unnamed-chunk-3-19.png)
 
 Making all of these scatter plots, allows us to look at the whole distributions of the data for each mouse. The distance of the red line from the black could be a indicator of slides or mice with slide specific technical noise.
 

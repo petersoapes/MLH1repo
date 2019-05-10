@@ -1,0 +1,122 @@
+---
+title: "TOM_Report"
+author: "April Peterson"
+date: "January 4, 2019"
+output: pdf_document
+---
+
+
+```{r setup, include=FALSE}
+library(plyr)
+library(dplyr)
+
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+#MLH1_data = read.csv("data/AnonData.csv", header=TRUE )
+load(file="~./MLH1repo/MLH1_data_setup.RData")
+
+knitr::opts_chunk$set(echo = TRUE)
+
+mouse_list = read.csv("~./MLH1repo/data/MLH1q_KAZ.csv", header=TRUE )
+# this is the list of total mice
+#load big MLH1 Rdata file
+#format the dates into standard format
+mouse_list$DOB <- as.Date(mouse_list$DOB,format='%m/%d/%Y')
+#check that the header is the same
+
+source("~./MLH1repo/src/CommonFunc.R")
+#source("src/Func_addCategory.R")
+
+mouse_list <- add_mouse1(mouse_list)
+mouse_list <- add_strain(mouse_list)
+#source("src/Func_addSex.R")
+mouse_list <- add_sex(mouse_list)
+mouse_list <- add_category(mouse_list)
+#set the order of categories (female, male) (cast, dom, musc)
+#source("src/Func_addStrain.R")
+mouse_list <- add_euth_date(mouse_list)
+mouse_list <- add_age(mouse_list)
+
+```
+
+
+
+
+```{r}
+#make a tables, sex, and ages
+#count mice by categories of sex and ages
+
+#merge 
+#mouse_list
+
+smllmergedDF = merge(MLH1_data, mouse_list, by = "mouse")
+#these are all cell level obsers
+
+
+#compare the number of images across reports .... total.image ... good.images
+mouse.comparison <- ddply(mouse_list, c("mouse"), summarise,
+                         
+                          Nmice = length(unique(mouse)),
+                         #give the value from the AP_mouse table
+                         nQunt.images = AP_mouse_table$Ncells[which(AP_mouse_table$mouse == mouse)]
+                         
+            )
+
+
+#don't go row by row, for each mouse, 
+#summarize the whole dataset...
+#make new dataframe
+mouse.report <- data.frame("total.Nmice" = length(unique(mouse_list$mouse)), 
+      "Nmales"= length(mouse_list$mouse[mouse_list$sex == "male"]),
+      
+      "passed.mice.m" = sum( mouse_list$mouse[mouse_list$sex == "male"]  %in%  MLH1_data$mouse),
+      
+      "Nfemales"= length(mouse_list$mouse[mouse_list$sex == "female"]),
+      
+      "passed.mice.f" = sum( mouse_list$mouse[mouse_list$sex == "female"]  %in%  MLH1_data$mouse)
+
+     )
+#imaged mice...
+#fill in number of images from MLH1,
+#unquant
+#unstained
+#non-imaged
+
+
+#sum( mouse_list$mouse  %in%  MLH1_data$mouse)
+#ifelse(mouse_list$mouse %in% MLH1_data$mouse, "1", "")
+
+
+```
+
+
+
+```{r BasicStats, echo=FALSE}
+#how many euthed?
+#how many mice MLH1 stained and imaged?
+#what is relevant meta data?
+
+
+#how many cells?
+
+#draw info from anonMLH1 data -- MLH1 rate, quality,
+
+```
+
+
+
+```{r}
+#MAKE HISTOGRAM OF THE AGES 
+Ages_hist <- ggplot(data= mouse_list, aes(age.weeks))+geom_histogram()+facet_wrap(~sex)
+#not sure if histograms are the best
+
+```
+
+
+
+
+```{r}
+#print out plots
+
+
+```
+

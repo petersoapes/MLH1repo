@@ -1,0 +1,97 @@
+---
+title: "AST_Report"
+author: "April Peterson"
+date: "January 4, 2019"
+output: html_document
+---
+
+
+
+```{r setup, include=FALSE}
+library(plyr)
+library(dplyr)
+
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+#MLH1_data = read.csv("data/AnonData.csv", header=TRUE )
+load(file="~./MLH1repo/MLH1_data_setup.RData")
+
+#input
+#output: Rmd file that can be read on github
+
+knitr::opts_chunk$set(echo = TRUE)
+
+mouse_list = read.csv("~./MLH1repo/data/MLH1q_AST.csv", header=TRUE )
+# this is the list of total mice
+#load big MLH1 Rdata file
+
+#format the dates into standard format
+mouse_list$DOB <- as.Date(mouse_list$DOB,format='%m/%d/%Y')
+
+
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+source("~./MLH1repo/src/CommonFunc.R")#this works
+#source("src/Func_addCategory.R")
+
+mouse_list <- add_mouse1(mouse_list)
+mouse_list <- add_strain(mouse_list)
+#source("src/Func_addSex.R")
+mouse_list <- add_sex(mouse_list)
+mouse_list <- add_category(mouse_list)
+#set the order of categories (female, male) (cast, dom, musc)
+#source("src/Func_addStrain.R")
+mouse_list <- add_euth_date(mouse_list)
+mouse_list <- add_age(mouse_list)
+
+```
+
+
+
+```{r}
+#make a tables, sex, and ages
+#count mice by categories of sex and ages
+
+#ages in days -- 
+#5 to 15 weeks
+#35 days,  105days
+
+
+#don't go row by row, for each mouse, 
+#summarize the whole dataset...
+#make new dataframe
+mouse.report <- data.frame("total.Nmice" = length(unique(mouse_list$mouse)), 
+      "Nmales"= length(mouse_list$mouse[mouse_list$sex == "male"]),
+      "Nfemales"= length(mouse_list$mouse[mouse_list$sex == "female"]),
+      "passed.mice" = sum( mouse_list$mouse  %in%  MLH1_data$mouse)
+
+     )
+#imaged mice...
+
+
+#sum( mouse_list$mouse  %in%  MLH1_data$mouse)
+#ifelse(mouse_list$mouse %in% MLH1_data$mouse, "1", "")
+
+
+```
+
+
+
+```{r BasicStats, echo=FALSE}
+#how many euthed?
+#how many mice MLH1 stained and imaged?
+#what is relevant meta data?
+
+
+#how many cells?
+
+#draw info from anonMLH1 data -- MLH1 rate, quality,
+
+```
+
+
+
+```{r}
+#print out plots
+
+
+```
+

@@ -3,12 +3,26 @@
 #
 
 
-#add mouse column to MLH1 df
-add_mouse <- function(dat){
+#add mouse for short mouse name
+add_mouse1 <- function(dat){
   dframe <- dat
   count =1
   for(i in dframe$Original.Name){
-    #print(i)
+    print(i)
+    templist= strsplit(i, split="_")[[1]]
+    c = paste(templist[1], templist[2],templist[3], sep = "_")
+    dframe$mouse[count] <- c
+    count= count +1
+  }
+  return(dframe)
+}
+
+#this add mouse, is based on file names
+add_mouse2 <- function(dat){
+  dframe <- dat
+  count =1
+  for(i in dframe$Original.Name){
+    print(i)
     templist= strsplit(i, split="_")[[1]]
     c = paste(templist[2], templist[3],templist[4], sep = "_")
     dframe$mouse[count] <- c
@@ -35,22 +49,21 @@ add_euth_date <- function(dat){
   dframe$euth.date <- as.Date(dframe$euth.date,format='%d%b%y')
   return(dframe)
 }
+
 #format the dates into standard format
 #mouse_list$DOB <- as.Date(mouse_list$DOB,format='%m/%d/%Y')
-
 add_age <- function(dat){
   dframe <- dat
   count =1
   for(i in dframe$Original.Name){
-    #after DOB and euth date are standardized
-    #substract
-    dframe$age.days[count] <- dframe$euth.date-dframe$DOB
+    #after DOB and euth date are standardized #substract
+    dframe$age.days <- dframe$euth.date-dframe$DOB
+    dframe$age.weeks <- difftime(dframe$euth.date,dframe$DOB,units='weeks')
     #gives age in days
     count= count +1
   }
   return(dframe)
 }
-
 
 
 #add sex to dataframe
@@ -79,6 +92,8 @@ add_strain <- function(dat){
              ifelse(grepl("_MSM_", dframe$Original.Name), "MSM",           
              ifelse(grepl("_PWD_", dframe$Original.Name), "PWD",
                 ifelse(grepl("_KAZ_", dframe$Original.Name), "KAZ",
+               ifelse(grepl("CZECH", dframe$Original.Name), "CZECH",         
+                       
                                                              
                    ifelse(grepl("_CAST_", dframe$Original.Name), "CAST",           
                       ifelse(grepl("_HMI_", dframe$Original.Name), "HMI",
@@ -86,11 +101,11 @@ add_strain <- function(dat){
                              ifelse(grepl("_SPI_", dframe$Original.Name), "SPIC",
                          ifelse(grepl("_SPIC_", dframe$Original.Name), "SPIC",
                   ifelse(grepl("_CAROLI_", dframe$Original.Name), "CAROLI",
-                                 "other"))))))))))))
+                                 "other")))))))))))))
   
   #the ordering factor below deletes all strain entries
   dframe$strain<- factor(dframe$strain,levels =c( "WSB", "G", "LEWES", "PERC",
-                                                  "PWD", "MSM","KAZ",
+                                                  "PWD", "MSM","KAZ","CZECH",
                                                   "CAST", "HMI",
                                                   "SPRET", "SPIC", "CAROLI", "other"), order=T )
   return(dframe)
@@ -124,9 +139,11 @@ add_category <- function(oldframe){
                     ifelse(grepl("_PWD_m", dframe$Original.Name), "PWD male",     
                        ifelse(grepl("_PWD_f", dframe$Original.Name), "PWD female",
                         ifelse(grepl("_KAZ_m", dframe$Original.Name), "KAZ male",     
-                       ifelse(grepl("_KAZ_f", dframe$Original.Name), "KAZ female",           
-                                                                                                                                          
-                                                                                                                                                    
+                       ifelse(grepl("_KAZ_f", dframe$Original.Name), "KAZ female",  
+                  ifelse(grepl("_CZECH_m", dframe$Original.Name), "CZECH male",     
+                  ifelse(grepl("_CZECH_f", dframe$Original.Name), "CZECH female",           
+                              
+      
                        ifelse(grepl("_SPRET_f", dframe$Original.Name), "SPRET female",
                        ifelse(grepl("_SPRET_m", dframe$Original.Name), "SPRET male",
                             ifelse(grepl("_SPI_m", dframe$Original.Name), "SPIC male",
@@ -136,11 +153,11 @@ add_category <- function(oldframe){
                                                                                                                                                                                                   
                       ifelse(grepl("_CAROLI_m", dframe$Original.Name), "CAROLI male",
                      ifelse(grepl("_CAROLI_f", dframe$Original.Name), "CAROLI female",
-                                                      "other")))))))))))))))))))))))))))
+                                                      "other")))))))))))))))))))))))))))))
   
   dframe$category<- factor(dframe$category,levels =c( "WSB female", "WSB male","G female", "G male", 
                                                       "LEW female", 'LEW male', "PERC male",
-                                                      "PWD female", "PWD male", "MSM female", "MSM male", "KAZ female","KAZ male",
+                                  "PWD female", "PWD male", "MSM female", "MSM male", "KAZ female","KAZ male","CZECH female","CZECH male",
                                                       "CAST female", "CAST male", "HMI female", "HMI male",
                                                       "SPRET female", "SPRET male", "SPIC female", "SPIC male","CAROLI female","CAROLI male",
                                                       "other"), order=T )

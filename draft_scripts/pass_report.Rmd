@@ -1,0 +1,314 @@
+---
+title: "Sub-Sampling Effect"
+author: "April Peterson"
+date: "June 4, 2018"
+output: rmarkdown::github_document
+---
+
+
+#### Past certeria for mouse level
+
+BD: Approximately 20 cells were scored per animal. We were unable to obtain a sufficient number of high quality images for 39 of the 315 F2 animals.
+
+RW: The average individual was represented by counts from >20 spermatocytes; we omitted individuals with counts from <5 spermatocytes.
+
+AP: >20 cells with 3 highest quality (1,2,3).
+
+Guide / report document for showing which mice have passed - sufficient cells samples for showing good estimate of MLH1 count.
+Compare re-sampling simulations for 'Hard Pass / Strict Threshold' data to on the edge data, so assess if there is a large effect on mouse-MLH1 mean for cell sample size. 
+
+Maybe female and males will have different effects.
+
+```{r "setup", include=FALSE}
+require("knitr")
+#opts_knit$set(root.dir = "~/gits/project/")
+
+opts_knit$set(root.dir = "C:/Users/alpeterson7/Documents/MLH1repo")
+setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+#setwd("Documents/MLH1repo")
+#setwd("C:/Users/April/Desktop/MLH1repo")
+load(file="MLH1_data_setup.RData")
+library(ggplot2)
+library(plyr)
+library(dplyr)
+library(raster)
+library(reshape2)
+
+```
+
+
+
+### Passing Mouse list
+
+```{r mouse_lists, include=FALSE}
+q_cutoff_table <- ddply(MLH1_data, .(mouse), summarise,
+                        total =  length(adj_nMLH1.foci),
+                        q5 = sum(as.numeric(quality) >= 4, na.rm = TRUE ), 
+                        above4 = sum(as.numeric(quality) <= 3, na.rm = TRUE ),
+                        #add percentages
+                        prop.lt5 = above4/total
+)
+length(q_cutoff_table$mouse)#116
+
+pass_mus_table <- q_cutoff_table[q_cutoff_table$above4 >= 25,] #30
+# boarder line
+boarder_mice_list <- q_cutoff_table[ ( q_cutoff_table$prop.lt5 >= .6) & (q_cutoff_table$above4 < 20), ] #39
+
+```
+
+
+Mice with slides with over 25 cells of good quality: `r length(pass_mus_table$mouse)`
+Mice with fewer than 20 cells, but have high proportion of good quality cells (>60%): `r length(boarder_mice_list$mouse)`.
+
+What is the distribution of total cell counts for these? For the boarderline mice, total is around ~20 cells, ~15 cells above 4 quality.
+
+Run sub-sampling simulations for data of all these mice ... This requires adjusting the sample sizes, over half the mice have 15 or more.
+
+The chunks with the code for the sub-sampling simulations are skipped.
+
+
+```{r pvalue_permutations HQ, echo=FALSE,include=FALSE, eval = FALSE}
+HQ <- pass_mus_table
+sim_iterations <- 1000
+
+outlist15 = list()
+for(fif in 1:length(unique(HQ$mouse))){
+  #print(HQ$mouse[fif])
+  mus_data <- MLH1_data[MLH1_data$mouse == HQ$mouse[fif],] #... make sure this is right
+  
+  outlist15[fif] <- list(replicate(sim_iterations, t.test(sample(mus_data$adj_nMLH1.foci, 15, replace = FALSE),
+                        sample(mus_data$adj_nMLH1.foci, 15, replace = FALSE) )$p.value ) )
+  }
+names(outlist15) <- HQ$mouse
+#outlist is not a list of p-value list. ()
+
+outlist10 = list()
+for(ten in 1:length(unique(HQ$mouse))){
+ # print(HQ$mouse[ten])
+  mus_data <- MLH1_data[MLH1_data$mouse == HQ$mouse[ten],]
+  outlist10[ten] <- list(replicate(sim_iterations, t.test(sample(mus_data$adj_nMLH1.foci, 10, replace = FALSE),
+                        sample(mus_data$adj_nMLH1.foci, 10, replace = FALSE) )$p.value ) )
+  }
+names(outlist10) <- HQ$mouse
+
+
+outlist20 = list()
+for(tw in 1:length(unique(HQ$mouse))){
+ # print(HQ$mouse[tw])
+  mus_data <- MLH1_data[MLH1_data$mouse == HQ$mouse[tw],]
+  outlist20[tw] <- list(replicate(sim_iterations, t.test(sample(mus_data$adj_nMLH1.foci, 20, replace = FALSE),
+                sample(mus_data$adj_nMLH1.foci, 20, replace = FALSE) )$p.value ) )
+  }
+names(outlist20) <- HQ$mouse
+#outlist is not a list of p-value list. ()
+
+#list for n=20 sample simulations
+plot_list20 = list()
+for (i in 1:length(HQ$mouse)){
+#  print(i)  
+  try_df <- as.data.frame(outlist20[[i]])
+  colnames(try_df) <- "pvals"
+  Title_mus_name <- paste("1000 iterations\n, Test of 2 Samples of 20, \n", names(outlist20[i]) )
+  p20 <- ggplot(try_df) + ggtitle( Title_mus_name ) + xlim(0,1)+
+        geom_histogram(aes(x=pvals) )#xlim
+    plot_list20[[i]] <- p20
+}
+#list for n=10 sample simulations
+plot_list10 = list()
+for (i in 1:length(HQ$mouse)){
+  print(i)  
+  try_df <- as.data.frame(outlist10[[i]])
+  Title_mus_name <- paste("1000 iterations\n Test of 2 Samples of 10, \n", names(outlist10[i]) )
+  colnames(try_df) <- "pvals"
+  p10 <- ggplot(try_df) + ggtitle( Title_mus_name ) +xlim(0,1)+
+        geom_histogram(aes(x=pvals) )#xlim
+  #tryfiting 3 plots
+  plot_list10[[i]] <- p10
+}
+
+#list for n=15 sample simulations
+plot_list15 = list()
+for (i in 1:length(HQ$mouse)){
+  print(i)  
+  try_df <- as.data.frame(outlist15[[i]])
+  Title_mus_name <- paste("1000 iterations\n Test of 2 Samples of 15, \n", names(outlist15[i]) )
+  colnames(try_df) <- "pvals"
+  p15 <- ggplot(try_df) + ggtitle( Title_mus_name ) + xlim(0,1)+
+        geom_histogram(aes(x=pvals) )#xlim
+  #tryfiting 3 plots
+    plot_list15[[i]] <- p15
+}
+
+#make list of scatter plots
+sctr_plot = list()
+for (i in 1:length(HQ$mouse)){
+  print(i)  
+  df10 <- as.data.frame(outlist10[[i]])
+  df15 <- as.data.frame(outlist15[[i]])
+  df20 <-as.data.frame(outlist20[[i]])
+  names(df10) = "pvals"
+  names(df15)= "pvals"
+  names(df20)= "pvals"
+  allDF <- data.frame(pvals = rbind(df10, df15, df20),
+    DFsets = c (rep("samp10",length(df10[,1]) ), 
+              rep("samp15",length(df10[,1])), 
+              rep("samp20", length(df10[,1])) )
+                      )
+    Title_mus_name <- paste("1000 iterations\n Pvalues of T-tests \n", names(outlist15[i]) )
+  colnames(try_df) <- "pvals"
+  
+  scplot <- ggplot(allDF) + ggtitle( Title_mus_name) +
+        geom_jitter(aes(x=DFsets, y=pvals) )
+    sctr_plot[[i]] <- scplot
+}
+
+
+source("src/MultiPlot.R")
+#multiplot(plot_list10[[8]],plot_list20[[8]], cols=1)
+
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/outside_gitrepo/sampling_effect")
+
+# Saves multiple plots to a tiff file for each mouse
+for(i in 1:length(HQ$mouse)) {  #replace counter with mouse name
+    file_name = paste("HQ_Sample_sizes_p_", HQ$mouse[i], ".png", sep="")
+    #tiff(file_name)
+    png(filename = file_name)
+    #par( mfrow=c(1,2) )
+    multiplot(sctr_plot[[i]], plot_list10[[i]], plot_list15[[i]], plot_list20[[i]],cols=2)
+    dev.off()
+}
+```
+
+
+eval = FALSE
+-- errors at this section likely due to changes in working directories
+```{r pvalue_permutations Boarderline, echo=FALSE, include=FALSE}
+#HQ <- pass_mus_table
+BL <- boarder_mice_list[boarder_mice_list$total >= 15,]
+sim_iterations <- 1000
+
+### adjust sampling sizes (limit this list to mice with )
+# max 15,   subampling 12,10,8
+
+outlist12 = list()
+for(fif in 1:length(unique(BL$mouse))){
+ # print(BL$mouse[fif])
+  mus_data <- MLH1_data[MLH1_data$mouse == BL$mouse[fif],] #... make sure this is right
+  
+  outlist12[fif] <- list(replicate(sim_iterations, t.test(sample(mus_data$adj_nMLH1.foci, 12, replace = FALSE),
+                        sample(mus_data$adj_nMLH1.foci, 12, replace = FALSE) )$p.value ) )
+  }
+names(outlist12) <- BL$mouse
+#outlist is not a list of p-value list. ()
+
+outlist10 = list()
+for(ten in 1:length(unique(BL$mouse))){
+  #print(BL$mouse[ten])
+  mus_data <- MLH1_data[MLH1_data$mouse == BL$mouse[ten],]
+  outlist10[ten] <- list(replicate(sim_iterations, t.test(sample(mus_data$adj_nMLH1.foci, 10, replace = FALSE),
+                        sample(mus_data$adj_nMLH1.foci, 10, replace = FALSE) )$p.value ) )
+  }
+names(outlist10) <- BL$mouse
+
+outlist8 = list()
+for(tw in 1:length(unique(BL$mouse))){
+  #print(BL$mouse[tw])
+  mus_data <- MLH1_data[MLH1_data$mouse == BL$mouse[tw],]
+  outlist8[tw] <- list(replicate(sim_iterations, t.test(sample(mus_data$adj_nMLH1.foci, 8, replace = FALSE),
+                sample(mus_data$adj_nMLH1.foci, 8, replace = FALSE) )$p.value ) )
+  }
+names(outlist8) <- BL$mouse
+#outlist is not a list of p-value list. ()
+
+#list for n=8 sample simulations
+plot_list8 = list()
+for (i in 1:length(BL$mouse)){
+ # print(i)  
+  try_df <- as.data.frame(outlist8[[i]])
+  colnames(try_df) <- "pvals"
+  Title_mus_name <- paste("1000 iterations\n, Test of 2 Samples of 8, \n", names(outlist8[i]) )
+  p8 <- ggplot(try_df) + ggtitle( Title_mus_name ) + xlim(0,1)+
+        geom_histogram(aes(x=pvals) )#xlim
+    plot_list8[[i]] <- p8
+}
+#list for n=10 sample simulations
+plot_list10 = list()
+for (i in 1:length(BL$mouse)){
+ # print(i)  
+  try_df <- as.data.frame(outlist10[[i]])
+  Title_mus_name <- paste("1000 iterations\n Test of 2 Samples of 10, \n", names(outlist10[i]) )
+  colnames(try_df) <- "pvals"
+  p10 <- ggplot(try_df) + ggtitle( Title_mus_name ) +xlim(0,1)+
+        geom_histogram(aes(x=pvals) )#xlim
+  #tryfiting 3 plots
+  plot_list10[[i]] <- p10
+}
+
+#list for n=12 sample simulations
+plot_list12 = list()
+for (i in 1:length(BL$mouse)){
+ # print(i)  
+  try_df <- as.data.frame(outlist12[[i]])
+  Title_mus_name <- paste("1000 iterations\n Test of 2 Samples of 12, \n", names(outlist12[i]) )
+  colnames(try_df) <- "pvals"
+  p12 <- ggplot(try_df) + ggtitle( Title_mus_name ) + xlim(0,1)+
+        geom_histogram(aes(x=pvals) )#xlim
+  #tryfiting 3 plots
+    plot_list12[[i]] <- p12
+}
+
+#make list of scatter plots
+sctr_plot = list()
+for (i in 1:length(BL$mouse)){
+ # print(i)  
+  df12 <- as.data.frame(outlist12[[i]])
+  df10 <- as.data.frame(outlist10[[i]])
+  df8 <-as.data.frame(outlist8[[i]])
+  names(df12) = "pvals"
+  names(df10)= "pvals"
+  names(df8)= "pvals"
+  allDF <- data.frame(pvals = rbind(df8,df10, df12),
+             DFsets = c( rep("samp8",length(df8[,1]) ),
+                         rep("samp10",length(df10[,1]) ),
+                         rep("samp12", length(df12[,1]) )
+                      )
+    Title_mus_name <- paste("1000 iterations\n Pvalues of T-tests \n", names(outlist12[i]) )
+  colnames(try_df) <- "pvals"
+  
+  scplot <- ggplot(allDF) + ggtitle( Title_mus_name) +
+        geom_jitter(aes(x=DFsets, y=pvals) )
+    sctr_plot[[i]] <- scplot
+}
+
+#source("src/MultiPlot.R")
+#multiplot(plot_list10[[8]],plot_list12[[8]], cols=1)  #forget what this is for
+
+setwd("./outside_gitrepo/sampling_effect") #the loop is not printing in the folders I want
+
+# Saves multiple plots to a tiff file for each mouse
+for(i in 1:length(BL$mouse)) {  #replace counter with mouse name
+  file_name = paste("BL_Sample_sizes_p_", BL$mouse[i], ".png", sep="")
+  #tiff(file_name)
+  png(filename = file_name)
+  #par( mfrow=c(1,2) )
+  multiplot(sctr_plot[[i]], plot_list8[[i]], plot_list10[[i]], plot_list12[[i]],cols=2)
+  dev.off()
+}
+```
+
+
+
+```{r}
+#![text](./outside_gitrepo/sampling_effect/BL_Sample_sizes_p_4dec17_HMI_m1.png)
+
+#setwd("./outside_gitrepo/sampling_effect")
+```
+
+![text](C:/Users/alpeterson7/Documents/MLH1repo/outside_gitrepo/sampling_effect/BL_Sample_sizes_p_4dec17_HMI_m1.png)
+
+![text](C:/Users/alpeterson7/Documents/MLH1repo/outside_gitrepo/sampling_effect/BL_Sample_sizes_p_4dec17_HMI_m1.png)
+
+
+From comparing the sub-sampling plots from High quality (HQ) and Boarder line (BL), 
+
+7 mice out of 29 boardline mice, looked like there was a sampling effect. I will prioritie re-imaging those, and start re-imaging the rest with fewer than 20 cells.

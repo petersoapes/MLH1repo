@@ -58,14 +58,13 @@ for(i in 1:length(MLH1_data$mouse)){
   MLH1_data$quant_status[i] <- ifelse( is.element(MLH1_data$mouse[i], pass_mice), "pass", NA)
 }
 
-
-source("src/Func_addCategory.R")
+source("src/CommonFunc.R")
+#source("src/Func_addCategory.R")
 MLH1_data <- add_category(MLH1_data)
 #set the order of categories (female, male) (cast, dom, musc)
-
-source("src/Func_addStrain.R")
+#source("src/Func_addStrain.R")
 MLH1_data <- add_strain(MLH1_data)
-source("src/Func_addSex.R")
+#source("src/Func_addSex.R")
 MLH1_data <- add_sex(MLH1_data)
 
 #add a column with male adjusted MLH1 values (+1 to all males)
@@ -158,8 +157,6 @@ BDMLH1_data <- subset(fullBD_MLH1_data, (Cross %in%  c("PANCEVO","RAT","CIM", "P
 
 #now that I have the mice of Beth's I want, remove the big BD df with F2s to save space.
 rm(fullBD_MLH1_data)
-
-
 
 
 
