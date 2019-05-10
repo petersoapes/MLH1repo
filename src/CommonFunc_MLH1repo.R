@@ -4,32 +4,19 @@
 
 
 #add mouse for short mouse name
-add_mouse1 <- function(dat){
+add_mouse <- function(dat){
   dframe <- dat
   count =1
-  for(i in dframe$Original.Name){
-    print(i)
+  for(i in dframe$fileName){
+    #print(i)
     templist= strsplit(i, split="_")[[1]]
-    c = paste(templist[1], templist[2],templist[3], sep = "_")
+    c = paste(templist[2],templist[3], templist[4], sep = "_")
     dframe$mouse[count] <- c
     count= count +1
   }
   return(dframe)
 }
 
-#this add mouse, is based on file names
-add_mouse2 <- function(dat){
-  dframe <- dat
-  count =1
-  for(i in dframe$Original.Name){
-    print(i)
-    templist= strsplit(i, split="_")[[1]]
-    c = paste(templist[2], templist[3],templist[4], sep = "_")
-    dframe$mouse[count] <- c
-    count= count +1
-  }
-  return(dframe)
-}
 
 
 #add mouse column to MLH1 df
@@ -66,17 +53,17 @@ add_age <- function(dat){
 }
 
 
-#add sex to dataframe
 
+#add sex to dataframe
 add_sex <- function(dat){
   dframe <- dat
   dframe$sex <- "other"
-  dframe$sex <- ifelse(grepl("_f", dframe$Original.Name), "female", 
-                       ifelse(grepl("_m",dframe$Original.Name), "male", "other"))
-  
+  dframe$sex <- ifelse(grepl("_f", dframe$mouse), "female", 
+                       ifelse(grepl("_m",dframe$mouse), "male", "other"))
   dframe$sex<- factor(dframe$sex,levels =c( "female", "male"), order=T )
   return(dframe)
 }
+
 
 
 # add strain
@@ -84,24 +71,23 @@ add_strain <- function(dat){
   dframe <- dat
   dframe$strain <- "other"
   
-  dframe$strain <- ifelse(grepl("_WSB", dframe$Original.Name), "WSB", 
-                          ifelse(grepl("_G_",dframe$Original.Name), "G",
-        ifelse(grepl("_LEW", dframe$Original.Name), "LEWES",
+  dframe$strain <- ifelse(grepl("_WSB_", dframe$mouse), "WSB",
+                          ifelse(grepl("_G_",dframe$mouse), "G",
+              ifelse(grepl("_LEW_", dframe$mouse), "LEWES",
+               ifelse(grepl("PERC", dframe$mouse), "PERC",
                                         
-                                        
-             ifelse(grepl("_MSM_", dframe$Original.Name), "MSM",           
-             ifelse(grepl("_PWD_", dframe$Original.Name), "PWD",
-                ifelse(grepl("_KAZ_", dframe$Original.Name), "KAZ",
-               ifelse(grepl("CZECH", dframe$Original.Name), "CZECH",         
-                       
+             ifelse(grepl("_MSM_", dframe$mouse), "MSM",    
+             ifelse(grepl("_PWD_", dframe$mouse), "PWD",
+                ifelse(grepl("_KAZ_", dframe$mouse), "KAZ",
+               ifelse(grepl("_CZECH_", dframe$mouse), "CZECH",
                                                              
-                   ifelse(grepl("_CAST_", dframe$Original.Name), "CAST",           
-                      ifelse(grepl("_HMI_", dframe$Original.Name), "HMI",
-                     ifelse(grepl("_SPRET_", dframe$Original.Name), "SPRET",           
-                             ifelse(grepl("_SPI_", dframe$Original.Name), "SPIC",
-                         ifelse(grepl("_SPIC_", dframe$Original.Name), "SPIC",
-                  ifelse(grepl("_CAROLI_", dframe$Original.Name), "CAROLI",
-                                 "other")))))))))))))
+                   ifelse(grepl("_CAST_", dframe$mouse), "CAST",
+                      ifelse(grepl("_HMI_", dframe$mouse), "HMI",
+                     ifelse(grepl("_SPRET_", dframe$mouse), "SPRET",
+                             ifelse(grepl("_SPI_", dframe$mouse), "SPIC",
+                         ifelse(grepl("_SPIC_", dframe$mouse), "SPIC",
+                  ifelse(grepl("_CAROLI_", dframe$mouse), "CAROLI",
+                                 "other"))))))))))))))
   
   #the ordering factor below deletes all strain entries
   dframe$strain<- factor(dframe$strain,levels =c( "WSB", "G", "LEWES", "PERC",
@@ -117,43 +103,40 @@ add_category <- function(oldframe){
   dframe <- oldframe
   dframe$category <- "other"
   
-  dframe$category <- ifelse(grepl("_WSB_f", dframe$Original.Name), "WSB female",
-                    ifelse(grepl("_WSB_m",dframe$Original.Name), "WSB male",
+  dframe$category <- ifelse(grepl("_WSB_f", dframe$mouse), "WSB female",
+                    ifelse(grepl("_WSB_m",dframe$mouse), "WSB male",
                                    
-                    ifelse(grepl("_G_f", dframe$Original.Name), "G female",
-                    ifelse(grepl("_G_m",dframe$Original.Name), "G male",
-                         ifelse(grepl("_LEWES_m", dframe$Original.Name), "LEW male",
-                        ifelse(grepl("_LEW_f", dframe$Original.Name), "LEW female",
-                           ifelse(grepl("_LEW_m",dframe$Original.Name), "LEW male",        
+                    ifelse(grepl("_G_f", dframe$mouse), "G female",
+                    ifelse(grepl("_G_m",dframe$mouse), "G male",
+                         ifelse(grepl("_LEWES_m", dframe$mouse), "LEW male",
+                        ifelse(grepl("_LEW_f", dframe$mouse), "LEW female",
+                           ifelse(grepl("_LEW_m",dframe$mouse), "LEW male",        
                                                                       
-                    ifelse(grepl("_PERC_f", dframe$Original.Name), "PERC female",
-                     ifelse(grepl("_PERC_m",dframe$Original.Name), "PERC male",
+                    ifelse(grepl("_PERC_f", dframe$mouse), "PERC female",
+                     ifelse(grepl("_PERC_m",dframe$mouse), "PERC male",
                                                                           
-                        ifelse(grepl("_CAST_m", dframe$Original.Name), "CAST male",
-                     ifelse(grepl("_CAST_f", dframe$Original.Name), "CAST female",
-                        ifelse(grepl("_HMI_m", dframe$Original.Name), "HMI male",
-                     ifelse(grepl("_HMI_f", dframe$Original.Name), "HMI female",
+                        ifelse(grepl("_CAST_m", dframe$mouse), "CAST male",
+                     ifelse(grepl("_CAST_f", dframe$mouse), "CAST female",
+                        ifelse(grepl("_HMI_m", dframe$mouse), "HMI male",
+                     ifelse(grepl("_HMI_f", dframe$mouse), "HMI female",
                                                                                                                 
-                    ifelse(grepl("_MSM_f", dframe$Original.Name), "MSM female",       
-                   ifelse(grepl("_MSM_m", dframe$Original.Name), "MSM male",
-                    ifelse(grepl("_PWD_m", dframe$Original.Name), "PWD male",     
-                       ifelse(grepl("_PWD_f", dframe$Original.Name), "PWD female",
-                        ifelse(grepl("_KAZ_m", dframe$Original.Name), "KAZ male",     
-                       ifelse(grepl("_KAZ_f", dframe$Original.Name), "KAZ female",  
-                  ifelse(grepl("_CZECH_m", dframe$Original.Name), "CZECH male",     
-                  ifelse(grepl("_CZECH_f", dframe$Original.Name), "CZECH female",           
-                              
+                    ifelse(grepl("_MSM_f", dframe$mouse), "MSM female",       
+                   ifelse(grepl("_MSM_m", dframe$mouse), "MSM male",
+                    ifelse(grepl("_PWD_m", dframe$mouse), "PWD male",     
+                       ifelse(grepl("_PWD_f", dframe$mouse), "PWD female",
+                        ifelse(grepl("_KAZ_m", dframe$mouse), "KAZ male",     
+                       ifelse(grepl("_KAZ_f", dframe$mouse), "KAZ female",  
+                  ifelse(grepl("_CZECH_m", dframe$mouse), "CZECH male",     
+                  ifelse(grepl("_CZECH_f", dframe$mouse), "CZECH female",           
       
-                       ifelse(grepl("_SPRET_f", dframe$Original.Name), "SPRET female",
-                       ifelse(grepl("_SPRET_m", dframe$Original.Name), "SPRET male",
-                            ifelse(grepl("_SPI_m", dframe$Original.Name), "SPIC male",
-                      ifelse(grepl("_SPI_f", dframe$Original.Name), "SPIC female",
-                                                                                                                                            ifelse(grepl("_SPIC_m", dframe$Original.Name), "SPIC male",
-                                                                                                                                                ifelse(grepl("_SPIC_f", dframe$Original.Name), "SPIC female",        
-                                                                                                                                                                                                  
-                      ifelse(grepl("_CAROLI_m", dframe$Original.Name), "CAROLI male",
-                     ifelse(grepl("_CAROLI_f", dframe$Original.Name), "CAROLI female",
-                                                      "other")))))))))))))))))))))))))))))
+                       ifelse(grepl("_SPRET_f", dframe$mouse), "SPRET female",
+                       ifelse(grepl("_SPRET_m", dframe$mouse), "SPRET male",
+                            ifelse(grepl("_SPI_m", dframe$mouse), "SPIC male",
+                      ifelse(grepl("_SPI_f", dframe$mouse), "SPIC female",
+                       ifelse(grepl("_SPIC_m", dframe$mouse), "SPIC male",
+                      ifelse(grepl("_CAROLI_m", dframe$mouse), "CAROLI male",
+                     ifelse(grepl("_CAROLI_f", dframe$mouse), "CAROLI female",
+                                                      "other"))))))))))))))))))))))))))))))
   
   dframe$category<- factor(dframe$category,levels =c( "WSB female", "WSB male","G female", "G male", 
                                                       "LEW female", 'LEW male', "PERC male",
@@ -202,4 +185,18 @@ add_subsp <- function(oldframe) {
 
 #
 #
+
+#this add mouse, is based on file names
+add_mouse2 <- function(dat){
+  dframe <- dat
+  count =1
+  for(i in dframe$Original.Name){
+    #print(i)
+    templist= strsplit(i, split="_")[[1]]
+    c = paste(templist[2], templist[3],templist[4], sep = "_")
+    dframe$mouse[count] <- c
+    count= count +1
+  }
+  return(dframe)
+}
 
