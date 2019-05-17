@@ -60,7 +60,7 @@ add_sex <- function(dat){
   dframe$sex <- "other"
   dframe$sex <- ifelse(grepl("_f", dframe$mouse), "female", 
                        ifelse(grepl("_m",dframe$mouse), "male", "other"))
-  dframe$sex<- factor(dframe$sex,levels =c( "female", "male"), order=T )
+  dframe$sex<- factor(dframe$sex, ordered = TRUE, levels =c( "female", "male"))
   return(dframe)
 }
 
@@ -90,10 +90,10 @@ add_strain <- function(dat){
                                  "other"))))))))))))))
   
   #the ordering factor below deletes all strain entries
-  dframe$strain<- factor(dframe$strain,levels =c( "WSB", "G", "LEWES", "PERC",
+  dframe$strain<- factor(dframe$strain, ordered = TRUE, levels =c( "WSB", "G", "LEWES", "PERC",
                                                   "PWD", "MSM","KAZ","CZECH",
                                                   "CAST", "HMI",
-                                                  "SPRET", "SPIC", "CAROLI", "other"), order=T )
+                                                  "SPRET", "SPIC", "CAROLI", "other"))
   return(dframe)
 }
 
@@ -136,7 +136,7 @@ add_category <- function(oldframe){
                        ifelse(grepl("_SPIC_m", dframe$mouse), "SPIC male",
                       ifelse(grepl("_CAROLI_m", dframe$mouse), "CAROLI male",
                      ifelse(grepl("_CAROLI_f", dframe$mouse), "CAROLI female",
-                                                      "other"))))))))))))))))))))))))))))))
+                                                      "other"))))))))))))))))))))))))))))
   
   dframe$category<- factor(dframe$category,levels =c( "WSB female", "WSB male","G female", "G male", 
                                                       "LEW female", 'LEW male', "PERC male",
@@ -179,12 +179,65 @@ add_subsp <- function(oldframe) {
                         ifelse(grepl("RAT", dframe$strain), "Outgroup", 
                     ifelse(grepl("Peromyscus", dframe$strain), "Outgroup", 
                       ifelse(grepl("Microtus", dframe$strain), "Outgroup", "other"))))))))))))))))))))
+  
+  dframe$subsp <- factor(dframe$subsp, ordered = TRUE,levels =c( "Dom",
+                                                      "Cast",
+                                                      "Musc",
+                                                      "Spretus","Spic","Caroli", "Outgroup",
+                                                      "other") )
+  
+  
+  
   return(dframe)
   
 }
 
 #
 #
+add_species <- function(oldframe) {
+  #assign subspecies to tables
+  dframe <- oldframe
+  dframe$species <- "other"
+  
+  dframe$species <- ifelse(grepl("WSB", dframe$strain), "M.musculus", 
+                    ifelse(grepl("G", dframe$strain), "M.musculus",
+                    ifelse(grepl("LEW", dframe$strain), "M.musculus", 
+                    ifelse(grepl("LEWES", dframe$strain), "M.musculus",    
+                                              ifelse(grepl("PERA", dframe$strain), "M.musculus",
+                                                     
+                        ifelse(grepl("CAST", dframe$strain), "M.musculus",
+                       ifelse(grepl("CIM", dframe$strain), "M.musculus",
+                     ifelse(grepl("HMI", dframe$strain), "M.musculus",
+                                                                          
+                     ifelse(grepl("MSM", dframe$strain), "M.musculus",                                       
+                     ifelse(grepl("PWD", dframe$strain), "M.musculus", 
+              ifelse(grepl("CZECHI", dframe$strain), "M.musculus", 
+                           ifelse(grepl("PWDFemale", dframe$strain), "M.musculus",  
+                         ifelse(grepl("KAZ", dframe$strain), "M.musculus",
+                                                                                                             
+                                    ifelse(grepl("SPRET", dframe$strain), "M.spretus",
+                                        ifelse(grepl("SPIC", dframe$strain), "M.spic",      
+                                      ifelse(grepl("PANCEVO", dframe$strain), "M.spic", 
+                                    ifelse(grepl("CAROLI", dframe$strain), "M.caroli", 
+                                                                                                                                         
+                                         ifelse(grepl("RAT", dframe$strain), "R.norv", 
+                                           ifelse(grepl("Peromyscus", dframe$strain), "Peromyscus", 
+                                        ifelse(grepl("Microtus", dframe$strain), "Outgroup", "other"))))))))))))))))))))
+  
+  dframe$species <- factor(dframe$species, ordered = TRUE,levels =c( "M.musculus",
+                                                                 "M.spretus",
+                                                                 "M.spic",
+                                                                 "M.caroli","R.norv","Peromyscus", "Outgroup",
+                                                                 "other") )
+  
+  
+  return(dframe)
+  
+}
+
+
+
+
 
 #this add mouse, is based on file names
 add_mouse2 <- function(dat){
