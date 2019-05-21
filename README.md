@@ -21,11 +21,16 @@ Reports, number of cells and mice for all the categories, (results)
 ### Directory structure
 
 MLH1repo ----|-- src (Datasetp.R, Functions.R, ect)
+
          		 |-- doc (drafts of writing and figure drafts)
+			 
 		         |-- data (data files, raw and re-formated)
-		         |-- results (Rmd report files)
-		         |-- Images (example cell images for making figures)
-		         |-- (old, refs, outside_github)	 
+		         
+			 |-- results (Rmd report files)
+		         
+			 |-- Images (example cell images for making figures)
+		         
+			 |-- (old, refs, outside_github)	 
 
 
 
