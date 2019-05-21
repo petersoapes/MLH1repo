@@ -24,7 +24,10 @@ MixedModelMus <- MixedModel_CO_data[MixedModel_CO_data$species == "M.musculus",]
 
 MixedModelMus$subsp <-  factor(MixedModelMus$subsp, ordered=TRUE, levels =c( "Dom","Cast", "Musc"))
 
-MixedModelMus$strain <-  factor(MixedModelMus$strain, ordered = TRUE, levels =c( "WSB", "G", "LEWES", "PERC",
+MixedModelMus$sex <-  factor(MixedModelMus$sex, ordered=TRUE, levels =c( "female", "male"))
+
+MixedModelMus <- add_strain(MixedModelMus)
+MixedModelMus$strain <-  factor(MixedModelMus$strain, ordered = TRUE, levels =c( "WSB", "G", "LEW", "PERC",
                                                  "PWD", "MSM","KAZ","CZECH",
                                                  "CAST", "HMI",
                                                  "SPRET", "SPIC", "CAROLI", "other"))
@@ -38,13 +41,18 @@ library(nlme)
 
 #build model
 MM <- lme(mean_co ~ subsp * sex, data= MixedModelMus, random=list(strain=pdDiag(~sex) ) )
+#there are factors L and Q, what do they stand for? 
+
 
 #report coefficicents
 summary(MM)
 
+#run anova, for fixed effects
+anova(MM, verbose = TRUE)
+anova(MM, verbose = TRUE, test = TRUE, type = "marginal")
 
 #estimate random effects
-#ranef(MM)
+ranef(MM)
 
 
 
