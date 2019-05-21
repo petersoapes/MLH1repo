@@ -2,6 +2,8 @@
 
 ToDo
 
+- make Figure Rmd file in doc, start drafting Figures 
+- start writing materials and methods
 - review the current main results
 - plan out / write the scripts for making main results
 - make sure repo is set up well
@@ -9,8 +11,21 @@ ToDo
 
 ### Results
 
-Sex specific MLH1 figure
+Sex specific MLH1 figure 1 (each mouse as point with error bars, 
 
-ANOVA for comparing with and between levels of variation
+MM (or collection of many models)
 
-Reports, number of cells and mice for all the categories
+Reports, number of cells and mice for all the categories, (results)
+
+
+### Directory structure
+
+MLH1repo ----|-- src (Datasetp.R, Functions.R, ect)
+         		 |-- doc (drafts of writing and figure drafts)
+		         |-- data (data files, raw and re-formated)
+		         |-- results (Rmd report files)
+		         |-- Images (example cell images for making figures)
+		         |-- (old, refs, outside_github)	 
+
+
+
