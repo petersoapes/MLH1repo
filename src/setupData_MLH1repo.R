@@ -19,7 +19,7 @@ library(raster)#for cV
 
 #Write a make file that will merge all of the batch files and record the batch
 setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
-MLH1_data = read.csv("data/AnonData.csv", header=TRUE )
+MLH1_data = read.csv("data/MLH1/AnonData.csv", header=TRUE )
 
 original_DF = MLH1_data
 #original_length <- length(MLH1_data$Original.Name)
@@ -43,7 +43,6 @@ MLH1_data <- MLH1_data[!(is.na(MLH1_data$nMLH1.foci) | MLH1_data$nMLH1.foci=="")
 MLH1_data <- MLH1_data[MLH1_data$nMLH1.foci != "X",]
 MLH1_data <- MLH1_data[MLH1_data$nMLH1.foci != "x",]
 
-
 source("src/CommonFunc_MLH1repo.R")
 MLH1_data <- add_mouse(MLH1_data)
 MLH1_data <- add_category(MLH1_data)
@@ -51,11 +50,9 @@ MLH1_data <- add_strain(MLH1_data)
 MLH1_data <- add_sex(MLH1_data)
 MLH1_data <- add_subsp(MLH1_data)
 
-
 #add a column with male adjusted MLH1 values (+1 to all males)
 MLH1_data$adj_nMLH1.foci <- ifelse(MLH1_data$sex=="male", MLH1_data$nMLH1.foci+1, MLH1_data$nMLH1.foci)
 MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
-
 
 #reorder dataframe
 MLH1_data <- MLH1_data %>%
@@ -67,7 +64,6 @@ MLH1_data <- MLH1_data %>%
 #12sep16_MSM_f3(centromere signal bled into MLH1 signal), bad stain
 MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f3", MLH1_data$mouse) , ]
 MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f1", MLH1_data$mouse) , ]
-
 
 
 #Make a mouse level table
@@ -82,28 +78,11 @@ AP_mouse_table <- ddply(MLH1_data, c("mouse"), summarise,
                       #quality?
 )
 
-
-source("src/CommonFunc_MLH1repo.R")
+#source("src/CommonFunc_MLH1repo.R")
 AP_mouse_table <- add_strain(AP_mouse_table)
 AP_mouse_table <- add_subsp(AP_mouse_table)
 AP_mouse_table <- add_sex(AP_mouse_table)
 AP_mouse_table <- add_category(AP_mouse_table)
-
-
-#these lines of code work
-AP_mouse_table$strain <-  ifelse(grepl("_WSB_", AP_mouse_table$mouse), "WSB", 
-                           ifelse(grepl("_G_", AP_mouse_table$mouse), "G",
-                          ifelse(grepl("_LEW", AP_mouse_table$mouse), "LEW",
-                          ifelse(grepl("PWD", AP_mouse_table$mouse), "PWD",
-                          ifelse(grepl("MSM", AP_mouse_table$mouse), "MSM", 
-                          ifelse(grepl("KAZ", AP_mouse_table$mouse), "KAZ",          
-                          ifelse(grepl("CAST", AP_mouse_table$mouse), "CAST",         
-                          ifelse(grepl("HMI", AP_mouse_table$mouse), "HMI",    
-                         ifelse(grepl("SPI", AP_mouse_table$mouse), "SPIC",         
-                          ifelse(grepl("CAROLI", AP_mouse_table$mouse), "CAROLI",   
-                        ifelse(grepl("SPRET", AP_mouse_table$mouse), "SPRET",       
-                                                "other")))))))))))
-
 
 #make sure they are all factors
 AP_mouse_table$mouse <- as.factor(AP_mouse_table$mouse)
@@ -112,47 +91,31 @@ AP_mouse_table$strain <- as.factor(AP_mouse_table$strain)
 AP_mouse_table$subsp <-  as.factor(AP_mouse_table$subsp)
 
 
+#find a way to compare the list of AP_mice with Metadata, or list folders in Images
+mice_image_folders <- list.files(path = "C:/Users/alpeterson7/Documents/Images")
+
+#compare the 
+list <- AP_mouse_table$mouse[(AP_mouse_table$mouse %in% mice_image_folders)]
+
+list2 <- mice_image_folders[(mice_image_folders %in% AP_mouse_table$mouse)]
+#length(list2) #124, 
+
+
+not_quant_mice = subset(mice_image_folders, !(mice_image_folders %in% AP_mouse_table$mouse ) )
+length(hh)
+#136 mice not in the mouse data!
 
 ############
 # SAVE DFs #
 ############
-print(c("initial data set of ", original_length, " cells, was slimed down to ", 
-        length(MLH1_data$Original.Name)) )
 
-
+#I;m trying to think of a better way to deal with printing out the status
 print(c("The mean MLH1 foci number is  ", mean(MLH1_data$nMLH1.foci, na.rm =TRUE), 
 "the distribution of quality scores is ", table(MLH1_data$quality)  ) )
 
 
-save.image("MLH1_data_setup.RData")
+save.image("data/MLH1/MLH1_data_setup.RData")
 #  OutPut: big large MLH1_data (AP's) df, big DF of BD with just the mice I want.
 #  MLH1_data_table, means and variance of AP and BD MLH1 values. made from seperate tables from AP and BD data.
 #  make sure decimal places are consistant
 
-
-
-### random stuff
-# add pass or fail column.. this will be a large list..maybe write a function..
-# highlight real passes? highlight non passes?
-# calculate automatically, list manually?
-pass_mice = c("10mar15_PWD_m2","13nov16_MSM_f1","13nov16_MSM_m1","16jan16_G_f2","16nov17_MSM_f2",
-              "16nov17_MSM_f3","17mar16_G_f1","17mar16_G_f3","17mar16_G_f4","17mar16_G_f5",
-              "18may15_PWD_m1", "1feb18_KAZ_m1","1feb18_MSM_m1", "20dec16_LEW_m2","20dec16_LEW_m3", 
-              "28feb15_PWD_f2","30jun16_CAST_m3","31aug16_MSM_m1","31dec17_MSM_f5","3jan16_G_m1"   )
-
-#if mouse matches a mouse in the above list, add 'pass'
-for(i in 1:length(MLH1_data$mouse)){
-  MLH1_data$quant_status[i] <- ifelse( is.element(MLH1_data$mouse[i], pass_mice), "pass", NA)
-}
-
-
-
-#load BD's data. Only PWD female and F1 females missing
-fullBD_MLH1_data = read.csv("C:/Users/alpeterson7/Documents/MLH1data/data/BD_MLH1data/BD_RecombinationPhenotypes_input.csv")
-#unique(fullBD_MLH1_data$Cross)
-#subset P0s
-BDMLH1_data <- subset(fullBD_MLH1_data, (Cross %in%  c("PANCEVO","RAT","CIM", "PWDFemale", "PWD","Peromyscus",
-                                                       "CZECHI","PERA", "CAROLI", "CAST", "Microtus", "WSB") ))
-
-#now that I have the mice of Beth's I want, remove the big BD df with F2s to save space.
-rm(fullBD_MLH1_data)
