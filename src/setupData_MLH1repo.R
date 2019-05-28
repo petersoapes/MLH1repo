@@ -66,6 +66,62 @@ MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f3", MLH1_data$mouse) , ]
 MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f1", MLH1_data$mouse) , ]
 
 
+
+#find a way to compare the list of AP_mice with Metadata, or list folders in Images
+MouseMetaData = read.csv("data/ALP_MouseMetadata.csv", header=TRUE )
+
+#full mouse list
+Image_mice_dirs <- list.files(path = "C:/Users/alpeterson7/Documents/Images")
+
+
+#matching list
+list <- unique(MLH1_data$mouse[(MLH1_data$mouse %in% Image_mice_dirs)])
+list2 <- mice_image_folders[(mice_image_folders %in% AP_mouse_table$mouse)]
+#length(list2) #124, 
+
+#mice that are missing
+missing_mice = subset(Image_mice_dirs, !(Image_mice_dirs %in% MLH1_data$mouse ) )
+length(missing_mice)#136
+
+missing_mice2 = subset(Image_mice_dirs, !(Image_mice_dirs %in% original_DF$mouse ) )
+length(missing_mice2)#260
+
+missing_mice.DF  <- as.data.frame(missing_mice)
+colnames(missing_mice.DF) <- "mouse"
+
+missing_mice.DF <- missing_mice.DF[missing_mice.DF$mouse != "__pycache__", ] #some reason this result is converted to chr
+missing_mice.DF <- missing_mice.DF[missing_mice.DF$mouse != "misc", ]
+missing_mice.DF <- missing_mice.DF[missing_mice.DF$mouse != "old", ]
+missing_mice.DF <- missing_mice.DF[missing_mice.DF$mouse != "README.txt", ]
+
+missing_mice.DF  <- as.data.frame(missing_mice.DF)
+colnames(missing_mice.DF) <- "mouse"
+
+missing_mice.DF$mouse  <- as.character(missing_mice.DF$mouse)
+
+#str_split requires CHARAECTER!!
+
+for( t in 1:length(missing_mice.DF$mouse)){
+  euth.date <- as.Date(strsplit(missing_mice.DF$mouse[t], split="_")[[1]][1], format= '%d%b%y')
+  missing_mice.DF$date[t] <- euth.date
+}
+
+#sort dataframe by date
+
+#find the old mice, and investigate why, make a list of mice which weren't included due to bad staining, (but there are still folders)
+# (check withoriginal datafram)
+#having information for number of images might be helpful
+
+#add strain and category to the file to make sorting easier.
+
+
+
+#print out the list of mice, from 2016, and look at all image folders
+#make notes of why the images haven't been quant'd
+write.csv(missing_mice.DF, file = "checking_mice.csv")
+
+
+
 #Make a mouse level table
 AP_mouse_table <- ddply(MLH1_data, c("mouse"), summarise,
                          Nmice = length(unique(mouse)),
@@ -91,19 +147,6 @@ AP_mouse_table$strain <- as.factor(AP_mouse_table$strain)
 AP_mouse_table$subsp <-  as.factor(AP_mouse_table$subsp)
 
 
-#find a way to compare the list of AP_mice with Metadata, or list folders in Images
-mice_image_folders <- list.files(path = "C:/Users/alpeterson7/Documents/Images")
-
-#compare the 
-list <- AP_mouse_table$mouse[(AP_mouse_table$mouse %in% mice_image_folders)]
-
-list2 <- mice_image_folders[(mice_image_folders %in% AP_mouse_table$mouse)]
-#length(list2) #124, 
-
-
-not_quant_mice = subset(mice_image_folders, !(mice_image_folders %in% AP_mouse_table$mouse ) )
-length(hh)
-#136 mice not in the mouse data!
 
 ############
 # SAVE DFs #
