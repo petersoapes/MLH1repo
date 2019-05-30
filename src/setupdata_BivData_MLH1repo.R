@@ -1,58 +1,50 @@
 # set up data file for ML data output
-# input: BIG.csv
+# input: BivData 5-29-19
 # output: RData file, Table of counts
 
 library(plyr)
 library(lattice)
 library(dplyr)
+library(ggplot2)
 
 #ToDo
 #add IFD
 #add the melted foci here
 
-#read in csv (merged with a make file)
-#setwd("C:/Users/alpeterson7/Desktop/resultsNM/batch99")
-setwd("C:/Users/alpeterson7/Documents/MatLabChrmMeasures/")
-#setwd("H:/NM_Matlab_return3/return3")#make this the current folder
-#BivData = read.csv("data/BBIIGG.csv")#
-#BivData = read.csv("data/returnPaper_OLD_BBIIGG.csv")#
-BivData = read.csv("data/returnPaper_NEW_BBIIGG.csv")
-#think this is the most recent BBIIGG file
+setwd("~./MLH1repo/")
+fullBivData = read.csv("data/BivData/CLEAN_MUS_FULL_BIVDATA_5.28.19.csv")
+#5402
 
-BivData$Obj.ID <- paste(BivData$fileName, BivData$boxNumber, sep = "_")
+#add obj.ID
+fullBivData$Obj.ID <- paste(fullBivData$fileName, fullBivData$boxNumber, sep = "_")
 
-source("src/Func_addMouse.R")
-BivData <- add_mouse(BivData)
-source("src/Func_addCategory.R")
-BivData <- add_category(BivData)
 
-#strain file not being found
-source("src/Func_addStrain.R")
-BivData <- add_strain(BivData)
-#sex function file not being found
-source("src/Func_addSex.R")
-BivData <- add_sex(BivData)
-
-source("src/Func_addSubsp.R")
-BivData <- add_subsp(BivData)
+source("src/CommonFunc_MLH1repo.R")
+fullBivData <- add_mouse(fullBivData)
+fullBivData <- add_category(fullBivData)
+fullBivData <- add_strain(fullBivData)
+fullBivData <- add_sex(fullBivData)
+fullBivData <- add_subsp(fullBivData)
 
 #####################
 # REMOVE EXTRA DATA #
 #####################
 #remove data which has paint marks
-P_fileNames <- BivData$fileName[(grep('p_rev', BivData$fileName))]
+P_fileNames <- fullBivData$fileName[(grep('p_rev', fullBivData$fileName))]
+length(P_fileNames)#187
+
 prev_num = length(P_fileNames)
-BivData <- BivData[!(BivData$fileName %in% P_fileNames), ]
+fullBivData <- fullBivData[!(fullBivData$fileName %in% P_fileNames), ]
 
 #remove anything with 'DUPLICATE'
-DUP_list <- BivData$fileName[(grep('DUP', BivData$fileName))] 
-DUP_num = length(DUP_list)
-BivData <- BivData[!(BivData$fileName %in% DUP_list), ]
+DUP_list <- fullBivData$fileName[(grep('DUP', fullBivData$fileName))] 
+DUP_num = length(DUP_list)#0
+fullBivData <- fullBivData[!(fullBivData$fileName %in% DUP_list), ]
 
 #remove images that would be doubles ... 12, 12.1, 12.2
 #this isn't completely effective
 dup_list= c()
-for(i in BivData$fileName){  #change the file name header,  
+for(i in fullBivData$fileName){  #change the file name header,  
   # print(i)
   ifelse(grepl("\\.[0-9]_rev", i),
          (dup_list = c(dup_list, i)), NA)
@@ -65,7 +57,8 @@ for(j in dup_list){
 }
 MultiCells = unique(MultiCells)
 multi_cell_num = length(MultiCells)
-BivData <- BivData[!(BivData$fileName %in% MultiCells), ]
+#test this part of the function
+fullBivData <- fullBivData[!(fullBivData$fileName %in% MultiCells), ]
 #save these number measures to report
 
 
@@ -81,61 +74,24 @@ bad_stain_mice = c("13jan17_LEW_f3","12jun15_WSB_m1","12sep16_MSM_f3","14jul17_S
         "30dec16_MSM_m1","14jul17_LEW_f1","1mar17_CAST_f1")
 
 
-#DMC1 list
-#24mar15_PWD_m2_sp3_   30dec14_WSB_m2_sp2
-#remove these
-
-#too many boxes
-#11mar15_28feb15_PWD_f3_sp1_1_rev
-
 bad_stain_mice_len <- length(BivData[BivData$mouse %in% bad_stain_mice, ])
 #remove bad mice
 #BivData <- BivData[BivData$mouse %in% good_stain_mice, ]
 #remove data without mouse
-BivData <- BivData[!(is.na(BivData$mouse) ), ]
+fullBivData <- fullBivData[!(is.na(fullBivData$mouse) ), ]
 
 #remove chrms from images with too many boxes ID'd(>40)
+#ID images with >50 boxNumbers 
+
 rawBivData = BivData
 rawBivData$fileName[max(rawBivData$boxNumber)]
 
-#ID images with >50 boxNumbers 
-
-#NEW_Mus max; 25
-
-#correct foci order bug
-source("src/Func_CheckFociOrder.R")
-#save the number of backwards chrms for raw and cleaned
-
-#removing the backwards -- since it was making bugs... I think NM fixed this issue anyways
-
-#BackwardsChrms_rawBivData <- Check.Foci.Order(rawBivData)
-#BackwardsChrms_rawBivData_list <- Check.Foci.Order(BivData)
-#ZeroIntensityFoci.raw <- BivData[ (rowSums(BivData[,FociIntensity.cols.raw], na.rm = TRUE) != 0 ), ]
-#nonBackwardsImages <- ZeroIntensityFoci.raw[!(ZeroIntensityFoci.raw$fileName %in% 
-#                              BackwardsChrms_rawBivData_list$wrong.order.image), ]
-#FociIntensity.cols.raw <- seq(10,60,3)
-#FociIntensity.cols <- seq(10,25,3)
-#nBackwardsChrms_rawBivData <- length(BackwardsChrms_rawBivData$wrong.order.image)
-#FixedFoci_obj <- FixFociOrder(rawBivData)
-#rawBivData <- FixedFoci_obj$DF
-
-setwd("C:/Users/alpeterson7/Documents/MatLabChrmMeasures/")
-#make this table before cleaning up
 RawDataTable <- as.data.frame(colSums(!is.na(BivData)) )
 #print .txt file
-write.table(RawDataTable, "results/RawDataTable.txt", sep="\t")
+#write.table(RawDataTable, "results/RawDataTable.txt", sep="\t")
 
 
-#figures of RawData (adjust the measures)
-png(filename="results/rawData_plots.png", width =1200, height =500)#good dem for 1,3
-par(mfrow=c(1,3))
-cent_ABS_plot <- plot(rawBivData$centromere_ABS_Position, rawBivData$chromosomeLength, 
-          main ="ABS cent position", xlab = "ABS cent pos", ylab = "SC Length" )
-cent_PER_plot <- plot(rawBivData$centromere_PER_Position, rawBivData$chromosomeLength, 
-          main ="PER cent position", xlab = "PER cent pos", ylab = "SC Length" )
-rawFociCount_hist <-hist(rawBivData$numberCrossOvers, main= "Foci Count Hist")
-dev.off()
-#save these plots
+
 
 ##############
 # CLEAN DATA #
@@ -175,7 +131,7 @@ checkFO <- length(Check.Foci.Order(BivData)$wrong.order.image)
 #make image/cell level table from cleaned DF
 
 #add total COs
-BivData_cells <- ddply(BivData, c("fileName"), summarise,
+BivData_cells <- ddply(fullBivData, c("fileName"), summarise,
                             
                     boxs.IDd = max(boxNumber),
                     nboxes_passed = length(boxNumber),
@@ -202,18 +158,25 @@ BivData_cells <- ddply(BivData, c("fileName"), summarise,
                                         na.rm = TRUE) 
 )
 
-#source("src/Func_addMouse.R")
 BivData_cells <- add_mouse(BivData_cells)
-
-#source("src/Func_addCategory.R")
 BivData_cells <- add_category(BivData_cells)
-
-#strain file not being found
-#source("src/Func_addStrain.R")
 BivData_cells <- add_strain(BivData_cells)
-#sex function file not being found
-#source("src/Func_addSex.R")
 BivData_cells <- add_sex(BivData_cells)
+
+
+#Histograms
+numb.box <- ggplot(data =BivData_cells, aes(x=boxs.IDd) )+ geom_histogram()+ggtitle("Box Number Histogram")
+
+pass.num <- ggplot(data =BivData_cells, aes(x=nboxes_passed) )+ geom_histogram()+
+  ggtitle("Pass Number Histogram")
+
+pass.rate <- ggplot(data =BivData_cells, aes(x=pass_rate) )+ geom_histogram()+
+  ggtitle("Pass Rate Histogram")
+
+
+
+#push the count numbers into a df?
+save.image("data/MLH1_BivData.RData")
 
 
 
@@ -221,27 +184,21 @@ BivData_cells <- add_sex(BivData_cells)
 tooBigImage_list <- BivData_cells$fileName[(BivData_cells$boxs.IDd >= 30)]
 betterData <- BivData[ ! BivData$fileName %in% tooBigImage_list, ]
 
-#remove bad mice
-#BivData <- BivData[BivData$mouse %in% good_stain_mice, ]
-#remove data without mouse
-
 
 #list of images with av-chrm.nCOs >5 (these are likely false chrms )
-
-
-
-
 #chrm level doesn't need to be run on full dataset
 #play_BivData_Chrms <- ddply(play_BivData, c("fileName", "boxNumber"), summarise,
 
-png(filename="results/cleanData_plots.png", width =1200, height =500)#good dem for 1,3
-par(mfrow=c(1,3))
+#png(filename="results/cleanData_plots.png", width =1200, height =500)#good dem for 1,3
+#par(mfrow=c(1,3))
 
-cent_ABS_cplot <- plot(BivData$centromere_ABS_Position, BivData$chromosomeLength, 
+cent_ABS_cplot <- plot(fullBivData$centromere_ABS_Position, fullBivData$chromosomeLength, 
                   main ="ABS cent position", xlab = "ABS cent pos", ylab = "SC Length" )
-cent_PER_cplot <- plot(BivData$centromere_PER_Position, BivData$chromosomeLength, 
+
+cent_PER_cplot <- plot(fullBivData$centromere_PER_Position, fullBivData$chromosomeLength, 
                       main ="PER cent position", xlab = "PER cent pos", ylab = "SC Length" )
-FociCount_chist <-hist(BivData$numberCrossOvers, main= "Foci Count Hist",breaks = 5)
+
+FociCount_chist <-hist(fullBivData$numberCrossOvers, main= "Foci Count Hist",breaks = 5)
 dev.off()
 
 
