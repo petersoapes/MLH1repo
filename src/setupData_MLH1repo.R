@@ -9,6 +9,7 @@
 library(plyr)
 library(dplyr)
 library(raster)#for cV
+library(ggplot2)
 
 ########################
 # Setup main dataframe #
@@ -74,7 +75,38 @@ MouseMetaData = read.csv("data/ALP_MouseMetadata.csv", header=TRUE )
 Image_mice_dirs <- list.files(path = "C:/Users/alpeterson7/Documents/Images")
 
 
-#matching list
+###########################
+# Construct Lists of Mice #
+###########################
+
+
+#Dissected, but not imaged
+
+#read in the dissection file
+Dissection.File = read.csv("data/Disections_53019.csv", header=TRUE )
+
+#cleaning up of Disection file
+#standarize column names
+#remove lines without mouse
+Dissection.File <- Dissection.File[!(is.na(Dissection.File$mouse)|Dissection.File$mouse==""),]
+
+#print the name with the date of the file somewhere
+
+Dissection.list <- Dissection.File$mouse
+#figure out a way to deal with the question marks, at least remove them temporarily
+
+#remove the pero mice?
+
+missing.mice <- unique(Dissection.File$mouse[(MLH1_data$mouse %in% Image_mice_dirs)])
+#compare to the original list and also mark the number/enrichment of X's
+#original_DF
+
+list2 <- mice_image_folders[(mice_image_folders %in% AP_mouse_table$mouse)]
+
+
+
+#Imaged, but not quantified
+
 list <- unique(MLH1_data$mouse[(MLH1_data$mouse %in% Image_mice_dirs)])
 list2 <- mice_image_folders[(mice_image_folders %in% AP_mouse_table$mouse)]
 #length(list2) #124, 
