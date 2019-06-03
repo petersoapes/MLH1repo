@@ -22,7 +22,7 @@ library(ggplot2)
 #setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 setwd("~./MLH1repo/")
 
-MLH1_data = read.csv("data/MLH1/AnonData.csv", header=TRUE )
+MLH1_data2 = read.csv("data/MLH1/AnonData.csv", header=TRUE ) #~400 more than the Rdata
 
 original_DF = MLH1_data
 #original_length <- length(MLH1_data$Original.Name)

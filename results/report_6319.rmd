@@ -1,31 +1,33 @@
-#R script for making plots of the distributions of MLH1 foci numbers
-#input: MLH1 data/ environment, mouse specific table
-#plots: mouse specific, strain averages
+---
+title: "MLH1 Current Data Report"
+author: "April Peterson"
+date: "June 3, 2019"
+output:
+  pdf_document: default
+---
 
-#output: 2 sex-specific figures, 1 merged figure
-#<don't adjust male data, think about including BD's data>
+```{r setup, echo=FALSE, include=FALSE}
+#require("knitr")
+#knitr::opts_chunk$set(echo = TRUE)
 
-#..maybe there should be a R code for saving processing the data
-#but for now, just construct the make file when dataframe is pasted into the dir
-#library(plyr)
-library(dplyr)
+library(plyr)
+library(dplyr) #this is a newer version of plyr
 library(ggplot2)
-
-#############
-# LOAD DATA #
-#############
-#read in working environment that was already set
-#setwd("C:/Users/alpeterson7/Documents/MLH1repo")
-#setwd("C:/Users/April/Desktop/MLH1repo")
-
+#set dir
 setwd("~./MLH1repo/")
-load(file="data/MLH1/MLH1_data_setup.RData")#this file updates in may2019
+#load data
+load(file = "data/MLH1/MLH1_data_setup.RData")
+source("src/CommonFunc_MLH1repo.R")
+```
 
 
-###################
-# DATA TREATMENTS #
-###################
-#make sure the levels are in the correct order for the graph plotting
+
+
+## Strain Level Plots
+
+
+```{r strain.table, echo=FALSE}
+
 AP_strain_table <- ddply(MLH1_data, c("strain", "sex"), summarise,
                          Nmice = length(unique(mouse)),
                          Ncells  = length(adj_nMLH1.foci),
@@ -36,15 +38,8 @@ AP_strain_table <- ddply(MLH1_data, c("strain", "sex"), summarise,
                          cV = round( (as.numeric(sd) / as.numeric(mean_co) ),3)
 )
 
-Lynn_CASTf_foci = c(20,21, 23, 25, 26, 26,26,27.5, 28, 28,28,33)
-cast_f_row = c("CAST", "female", 1, length(Lynn_CASTf_foci), round(mean(Lynn_CASTf_foci),3), 
-               round(var(Lynn_CASTf_foci),3), round(sd(Lynn_CASTf_foci),3), 
-               round(sd(Lynn_CASTf_foci)/sqrt(length(Lynn_CASTf_foci)),3 ), 
-               round(sd(Lynn_CASTf_foci) / (mean(Lynn_CASTf_foci) ), 3)  )
 
-AP_strain_table <- rbind(AP_strain_table, cast_f_row)
 
-source("src/CommonFunc_MLH1repo.R")
 AP_strain_table <- add_subsp(AP_strain_table)
 #("black", "#56B4E9","cadetblue4","cadetblue","coral1","#E69F00", "yellowgreen") )
 
@@ -63,41 +58,46 @@ AP_strain_table <- AP_strain_table %>%
 colnames(AP_strain_table) <- c("strain","sex","Nmice","Ncells","mean_co","var","sd","se",
                           "cV","subsp","extra")
 
+AP_strain_table$mean_co <- as.numeric(AP_strain_table$mean_co)
+
 MLH1_by_F_strain <- AP_strain_table[AP_strain_table$sex == "female", ]
 MLH1_by_M_strain <- AP_strain_table[AP_strain_table$sex == "male", ]
 
+
+#MLH1_by_F_strain <- MLH1_by_F_strain[-c(7),]
 
 #re-adjust the mouse table
 AP_mouse_table$subsp<- factor(AP_mouse_table$subsp,levels =c("Dom", "Musc",
                                                                "Cast","Spretus", "Spic", "Caroli", "other"), order=T )
 
-AP_mouse_table$strain<- factor(AP_mouse_table$strain,levels =c("G", "LEW",
-                                                                 "WSB", "PWD","MSM","KAZ","CAST","HMI","SPIC","SPRET"), order=T )
+AP_mouse_table$strain<- factor(AP_mouse_table$strain,levels =c("G", "LEW","WSB",
+                                                               "PWD","MSM","KAZ","CAST","HMI","SPIC","SPRET"), order=T )
 
 
-####################
-# Female strain plot #
-####################
-MLH1_by_F_strain <- MLH1_by_F_strain[-c(7),]#remove female cast
+AP_mouse_table <- AP_mouse_table[AP_mouse_table$mouse != "11jan18_WxL.F1_m1",]
 
-png('femaleMLH1_plot2se_6319.png')
-man_x_fspace <- c(.35, .5, .75,  #.25, .65, 1.1
-         2.2,2.5,2.8,
-          3.6, 4)
 
-#strains colors
-ff_plot <- ggplot(MLH1_by_F_strain, aes(y = as.numeric(mean_co), x=man_x_fspace, color=strain))+ 
+```
+
+
+```{r strain.level.female, echo=FALSE}
+
+man_x_fspace <- c(.35, .5, .75,
+         2.2, 2.5, 2.8,
+          3.6, 4, 4.5)
+
+ff_plot <- ggplot(MLH1_by_F_strain, aes(y = as.numeric(mean_co), x=man_x_fspace, color=strain))+
   geom_point(size = 4) +
   scale_y_continuous(breaks = seq(20,32, by=2)) +
   coord_cartesian(ylim = c(20,32))+
   xlim(0,5)+
   geom_errorbar(aes(ymin = as.numeric(mean_co)-(as.numeric(se)*2), 
-                    ymax = as.numeric(mean_co)+ (as.numeric(se)*2)),
-  size=1.2, width=0.1)+
+                   ymax = as.numeric(mean_co)+ (as.numeric(se)*2)),size=1.2, width=0.1) +
+  
   scale_color_manual(values=c("#56B4E9","cadetblue4","cadetblue","coral1","#E69F00", 
-                              "red", "purple", "black"))+
+                              "red", "green","black", "grey"))+
+  
    labs(x="", y= "Female MLH1 Foci") +
-   
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), 
         axis.line.y = element_line(colour = "black", size = 1.5), #legend.position="none",
@@ -106,60 +106,29 @@ ff_plot <- ggplot(MLH1_by_F_strain, aes(y = as.numeric(mean_co), x=man_x_fspace,
         
         axis.text.y = element_text(size=15, face="bold"),
       axis.title.x=element_blank(), axis.line.x = element_blank(), axis.text.x=element_blank(), axis.ticks.x = element_blank() ) +
-
-    annotate("text", x = c(mean(man_x_fspace[1:3]), mean(man_x_fspace[1:3]), 
+   
+   annotate("text", x = c(mean(man_x_fspace[1:3]), mean(man_x_fspace[1:3]), 
     mean(man_x_fspace[4:6]), mean(man_x_fspace[4:6]), 
-    mean(man_x_fspace[7:8]), mean(man_x_fspace[7:8])),
-           y = c(21,20.5, 21,20.5, 21,20.5),
-        
-    label = c("M.m.","domesticus","M.m.","musculus","out","groups"),fontface = 'bold.italic',hjust = 0.5, size=7) +
+    mean(man_x_fspace[7:9]), mean(man_x_fspace[7:9])),
+          y = c(21, 20.5, 21, 20.5, 21, 20.5) ,
+    label = c("M.m.","domesticus","M.m.","musculus","out","groups"),fontface = 'bold.italic', hjust = 0.5, size=5) +
+  ggtitle("Female MLH1 Counts \n -/+ 2 SE")
   
-  annotate("segment", x= mean(man_x_fspace[1:3])-.3, xend=mean(man_x_fspace[1:3])+.3, y=21.5, yend=21.5, colour="black",
-         size=1.5) +
-    annotate("segment", x=mean(man_x_fspace[4:6])-.3,xend=mean(man_x_fspace[4:6])+.3, y=21.5, yend=21.5, colour="black",
-           size=1.5) +
-  annotate("segment", x=mean(man_x_fspace[7:8])-.3, xend=mean(man_x_fspace[7:8])+.3, y=21.5, yend=21.5, colour="black",
-           size=1.5)
-ff_plot
-
-dev.off()
+  #annotate("segment", x= mean(man_x_fspace[1:3])-.3, xend=mean(man_x_fspace[1:3])+.3, y=21.5, yend=21.5, colour="black",size=1.5) +
+   # annotate("segment", x=mean(man_x_fspace[4:6])-.3,xend=mean(man_x_fspace[4:6])+.3, y=21.5, yend=21.5, colour="black", size=1.5) +
+ # annotate("segment", x=mean(man_x_fspace[7:9])-.3, xend=mean(man_x_fspace[7:9])+.3, y=21.5, yend=21.5, colour="black", size=1.5)
 
 
-female.mice <- AP_mouse_table[AP_mouse_table$sex == "female",]
-
-female.mice <- female.mice %>%
-  arrange(strain,subsp) %>%         # sort your dataframe, by the focal categories
-  mutate(image.title = factor(strain)) #another category that you want the order to match
-
-# sort your dataframe, by the focal categories
-female.mice$mouse <- factor(female.mice$mouse, levels=unique(female.mice$mouse))
+```
 
 
-female_mouse_plot <- ggplot(female.mice, aes(y =mean_co, x=mouse, color=strain))+geom_point()+
-  scale_color_manual(values=c("#56B4E9","cadetblue4","cadetblue","coral1","#E69F00", 
-                                                  "red", "green", "black", "grey"))+
-  labs(x="", y= "Female MLH1 Foci")+ ggtitle("female mouse MLH1 counts")+
+```{r strain.level.male, echo=FALSE, include=FALSE}
 
-  geom_errorbar(aes(ymin = as.numeric(mean_co)-(as.numeric(se)*2), 
-                    ymax = as.numeric(mean_co)+ (as.numeric(se)*2)),
-                size=1, width=0.05)+
-  theme(axis.title.x=element_blank(), axis.line.x = element_blank(), axis.text.x=element_blank(), axis.ticks.x = element_blank())
-
-
-####################
-# Male strain plot #
-####################
-#nov 17, remove HMI mouse, 8 cells total
-#MLH1_by_M_strain <- MLH1_by_M_strain[MLH1_by_M_strain$strain != "HMI",]
-#MLH1_by_M_strain <- MLH1_by_M_strain[MLH1_by_M_strain$strain != "SPRET",]
-#MLH1_by_M_strain <- MLH1_by_M_strain[MLH1_by_M_strain$strain != "KAZ",]
-#MLH1_by_M_strain <- MLH1_by_M_strain[MLH1_by_M_strain$strain != "SPIC",]
-
-png('maleMLH1_plot2se_6319.png')
 man_x_mspace <- c(.35, .5, .75, 
             1.5,2,2.3,
             3.1,3.4,
-            4.5,4.8, 5 )
+            4.5,4.8, 5)
+
 mm_plot <- ggplot(MLH1_by_M_strain, aes(y = as.numeric(mean_co), x=man_x_mspace, color=strain))+ 
   geom_point(size = 4)+ 
 #  ylim(18,32) +  
@@ -190,24 +159,61 @@ mm_plot <- ggplot(MLH1_by_M_strain, aes(y = as.numeric(mean_co), x=man_x_mspace,
                          mean(man_x_mspace[4:6]), mean(man_x_mspace[4:6]),
                          mean(man_x_mspace[7:8]), mean(man_x_mspace[7:8]),
                           mean(man_x_mspace[9:10]), mean(man_x_mspace[9:10])),
-           y = c(21,20.5, 21,20.5,21,20.5,21,20.5 ),  size=7,
+           y = c(21,20.5, 21,20.5,21,20.5,21,20.5 ),  size=5,
     label = c("M.m.","domesticus","M.m.","musculus","M.m.","castaneus", "out", "groups"),hjust = 0.5, fontface='bold.italic') +
  
    annotate("segment", x= mean(man_x_mspace[1:3])-.3, xend=mean(man_x_mspace[1:3])+.3, y=21.5, yend=21.5, colour="black",
-           size=1.5) +
+           size=1) +
   annotate("segment", x=mean(man_x_mspace[4:6])-.3,xend=mean(man_x_mspace[4:6])+.3, y=21.5, yend=21.5, colour="black",
-           size=1.5) +
+           size=1) +
   annotate("segment", x=mean(man_x_mspace[7:8])-.3, xend=mean(man_x_mspace[7:8])+.3, y=21.5, yend=21.5, colour="black",
-           size=1.5)+
+           size=1)+
   annotate("segment", x=mean(man_x_mspace[9:10])-.3, xend=mean(man_x_mspace[9:10])+.3, y=21.5, yend=21.5, colour="black",
-         size=1.5)
+         size=1)
+
+```
+
+
+```{r call.plots}
+
+ff_plot
+
 mm_plot
-
-dev.off()
-#make comparisons of these traits 
+```
 
 
-#mouse level plots
+
+## Mouse Level Plots
+
+plots by categories. (which have longer SCs?)
+
+```{r mouse.level.female, echo=FALSE}
+
+female.mice <- AP_mouse_table[AP_mouse_table$sex == "female",]
+
+female.mice <- female.mice %>%
+  arrange(strain,subsp) %>%         # sort your dataframe, by the focal categories
+  mutate(image.title = factor(strain)) #another category that you want the order to match
+
+# sort your dataframe, by the focal categories
+female.mice$mouse <- factor(female.mice$mouse, levels=unique(female.mice$mouse))
+
+
+female_mouse_plot <- ggplot(female.mice, aes(y =mean_co, x=mouse, color=strain))+geom_point()+
+  scale_color_manual(values=c("#56B4E9","cadetblue4","cadetblue","coral1","#E69F00", 
+                                                  "red", "green", "black", "grey"))+
+  labs(x="", y= "Female MLH1 Foci")+ ggtitle("Female mouse MLH1 counts")+
+
+  geom_errorbar(aes(ymin = as.numeric(mean_co)-(as.numeric(se)*2), 
+                    ymax = as.numeric(mean_co)+ (as.numeric(se)*2)),
+                size=1, width=0.05)+
+  theme(axis.title.x=element_blank(), axis.line.x = element_blank(), axis.text.x=element_blank(), axis.ticks.x = element_blank())
+
+```
+
+
+
+```{r mouse.level.male, echo=FALSE}
 
 male.mice <- AP_mouse_table[AP_mouse_table$sex == "male",]
 
@@ -220,11 +226,22 @@ male.mice$mouse <- factor(male.mice$mouse, levels=unique(male.mice$mouse))
 
 male_mouse_plot <- ggplot(male.mice, aes(y =mean_co, x=mouse, color=strain))+geom_point()+
   scale_color_manual(values=c("#56B4E9","cadetblue4","cadetblue","coral1","#E69F00", 
-                              "red", "purple", "black", "grey", "grey3"))+
-  labs(x="", y= "Male MLH1 Foci")+ ggtitle("mouse MLH1 counts")+
+                              "red", "green", "black", "grey", "grey3"))+
+  labs(x="", y= "Male MLH1 Foci")+ ggtitle("Male mouse MLH1 counts")+
     geom_errorbar(aes(ymin = as.numeric(mean_co)-(as.numeric(se)*2), 
                   ymax = as.numeric(mean_co)+ (as.numeric(se)*2)),
               size=1, width=0.05)+
   theme(axis.title.x=element_blank(), axis.line.x = element_blank(), axis.text.x=element_blank(), axis.ticks.x = element_blank())
 
+```
+
+
+
+```{r, echo=FALSE}
+
+female_mouse_plot
+
+male_mouse_plot
+
+```
 
