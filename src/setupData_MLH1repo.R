@@ -19,7 +19,9 @@ library(ggplot2)
 #12jan17_4jan17_LEW_f1_sp1_34_rev, 8feb17_4jan17_LEW_f1_sp1_3_rev, potential outliers
 
 #Write a make file that will merge all of the batch files and record the batch
-setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+#setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+setwd("~./MLH1repo/")
+
 MLH1_data = read.csv("data/MLH1/AnonData.csv", header=TRUE )
 
 original_DF = MLH1_data
@@ -67,7 +69,6 @@ MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f3", MLH1_data$mouse) , ]
 MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f1", MLH1_data$mouse) , ]
 
 
-
 #find a way to compare the list of AP_mice with Metadata, or list folders in Images
 MouseMetaData = read.csv("data/ALP_MouseMetadata.csv", header=TRUE )
 
@@ -93,17 +94,30 @@ Dissection.File <- Dissection.File[!(is.na(Dissection.File$mouse)|Dissection.Fil
 #print the name with the date of the file somewhere
 
 Dissection.list <- Dissection.File$mouse
+
+Dissection.list <- as.character(Dissection.list)
+  
+str(Dissection.list)
 #figure out a way to deal with the question marks, at least remove them temporarily
 
 #remove the pero mice?
 
 missing.mice <- unique(Dissection.File$mouse[(MLH1_data$mouse %in% Image_mice_dirs)])
+
+missing.mice2 <- unique(Dissection.File$mouse[(MLH1_data$mouse %in% Dissection.list)])
+
+ 
+missing_mice99 = subset(Dissection.list, !(Dissection.list %in% MLH1_data$mouse ) )
+length(missing_mice99)#306   #
+
+# mice in MLH1, 126
+# mice in dissection list, 431
+# mice from dissection list not in MLH1, 306
+
 #compare to the original list and also mark the number/enrichment of X's
 #original_DF
 
 list2 <- mice_image_folders[(mice_image_folders %in% AP_mouse_table$mouse)]
-
-
 
 #Imaged, but not quantified
 
@@ -139,14 +153,10 @@ for( t in 1:length(missing_mice.DF$mouse)){
 }
 
 #sort dataframe by date
-
 #find the old mice, and investigate why, make a list of mice which weren't included due to bad staining, (but there are still folders)
 # (check withoriginal datafram)
 #having information for number of images might be helpful
-
 #add strain and category to the file to make sorting easier.
-
-
 
 #print out the list of mice, from 2016, and look at all image folders
 #make notes of why the images haven't been quant'd

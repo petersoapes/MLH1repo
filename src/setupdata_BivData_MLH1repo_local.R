@@ -16,7 +16,8 @@ fullBivData = read.csv("data/BivData/CLEAN_MUS_FULL_BIVDATA_5.28.19.csv")
 #5402
 
 #check dissection list
-Dissection_list = read.csv("data/mouseDissections.csv")
+Dissection_list = read.csv("data/mouseDissections.csv", sep = ",", header = TRUE)
+
 
 #add obj.ID
 fullBivData$Obj.ID <- paste(fullBivData$fileName, fullBivData$boxNumber, sep = "_")
