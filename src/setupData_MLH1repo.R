@@ -6,7 +6,7 @@
 #import MLH1 measures across data sets; AP, BD's and Cast female Koehler
 # 1. MLH1_data, tables: AP strains
 
-library(plyr)
+#library(plyr)
 library(dplyr)
 library(raster)#for cV
 library(ggplot2)
@@ -22,7 +22,7 @@ library(ggplot2)
 #setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 setwd("~./MLH1repo/")
 
-MLH1_data2 = read.csv("data/MLH1/AnonData.csv", header=TRUE ) #~400 more than the Rdata
+MLH1_data = read.csv("data/MLH1/AnonData.csv", header=TRUE ) #~400 more than the Rdata
 
 original_DF = MLH1_data
 #original_length <- length(MLH1_data$Original.Name)
@@ -80,11 +80,12 @@ Image_mice_dirs <- list.files(path = "C:/Users/alpeterson7/Documents/Images")
 # Construct Lists of Mice #
 ###########################
 
-
 #Dissected, but not imaged
 
 #read in the dissection file
 Dissection.File = read.csv("data/Disections_53019.csv", header=TRUE )
+#try to incorporate information from sp1 (the first stain)
+
 
 #cleaning up of Disection file
 #standarize column names
@@ -92,13 +93,11 @@ Dissection.File = read.csv("data/Disections_53019.csv", header=TRUE )
 Dissection.File <- Dissection.File[!(is.na(Dissection.File$mouse)|Dissection.File$mouse==""),]
 
 #print the name with the date of the file somewhere
-
 Dissection.list <- Dissection.File$mouse
-
 Dissection.list <- as.character(Dissection.list)
   
-str(Dissection.list)
-#figure out a way to deal with the question marks, at least remove them temporarily
+#figure out a way to incorporate the staining... to get a better idea of which slides 
+#to do next
 
 #remove the pero mice?
 
@@ -107,7 +106,7 @@ missing.mice <- unique(Dissection.File$mouse[(MLH1_data$mouse %in% Image_mice_di
 missing.mice2 <- unique(Dissection.File$mouse[(MLH1_data$mouse %in% Dissection.list)])
 
  
-missing_mice99 = subset(Dissection.list, !(Dissection.list %in% MLH1_data$mouse ) )
+missing_mice99 = subset(Dissection.File, !(Dissection.File$mouse %in% MLH1_data$mouse ) )
 length(missing_mice99)#306   #
 
 # mice in MLH1, 126
