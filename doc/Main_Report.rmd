@@ -1,8 +1,10 @@
 ---
-title: 'MLH1 Data Report'
+title: "MLH1 Data Report"
 author: "April Peterson"
-date: "29 may 2018"
-output: rmarkdown::github_document
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, echo=FALSE, include = FALSE}
@@ -12,9 +14,9 @@ library(ggplot2)
 library(plyr)
 library(lattice)
 library(dplyr)
-setwd("C:/Users/alpeterson7/Documents/MLH1repo")
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 #setwd("C:/Users/April/Desktop/MLH1repo")
-load(file="MLH1_data_setup.RData")
+load(file="data/MLH1/MLH1_data_setup.RData")
 ```
 
 #### Research Description
@@ -31,7 +33,7 @@ Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse s
 
 Cell images are quantified in batches after file names are anonymized. The number of MLH1 foci, number of "achiasmate" and asynasped bivalents are quantified. A quality score is given; 1 to 5 (best to worst).
 
-```{r,echo=FALSE}
+```{r organizing.data, echo=FALSE}
 #set the order of another column, based on another variable (so that when)
 
 MLH1_data <- MLH1_data %>%
@@ -61,9 +63,96 @@ MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 ```
 
 
+
+```{r missing.mice, echo=FALSE}
+
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+setwd("~./MLH1repo/")
+#other lists
+
+Image_dirs <- list.files(path = "C:/Users/alpeterson7/Documents/Images")
+#write this out so that I can access it
+
+#remove the non-mouse folders
+Dissection.File = read.csv("~./MLH1repo/data/Disections_53019.csv", header = TRUE)
+Dissection.File <- Dissection.File[!(is.na(Dissection.File$mouse)|Dissection.File$mouse==""),]
+
+#print the name with the date of the file somewhere
+Dissection.list <- Dissection.File$mouse
+Dissection.list <- as.character(Dissection.list)
+
+#load metadata .. start decerning which mice are missing information... and which should be used
+Meta.Data.File = read.csv("~./MLH1repo/data/ALP_MouseMetadata.csv", header = TRUE)
+
+#remove file name, and original name .. this is just a mouse level DF
+Meta.Data.File <- Meta.Data.File[!(is.na(Meta.Data.File$mouse)|Meta.Data.File$mouse==""),]
+#make sure that the DOB is a date
+
+
+meta.data.file2 = read.csv("~./MLH1repo/data/MouseMetaData61019.csv", header = TRUE)
+meta.data.file2$DOB <- as.Date(meta.data.file2$DOB, format= "%m/%d/%y")
+
+
+jl <- unique(Meta.Data.File$mouse[(Meta.Data.File$mouse %in% Dissection.File$mouse)])
+BD.w.meta <- Meta.Data.File[(Meta.Data.File$mouse %in% Dissection.File$mouse), ]
+
+
+#figure out a way to incorporate the staining... to get a better idea of which slides 
+#to do next, #remove the pero mice?
+
+#length(unique(MLH1_data$mouse) )
+
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+original_DF$fileName <- (original_DF$Original.Name)
+original_DF <- add_mouse(original_DF)
+#length(unique(original_DF$mouse) )
+#131 mice have been quant total, 124 mice have passed into the final version
+
+# make a list for the failed slides
+
+#Dissection.list - Image/dirs
+NonImaged.mice <- unique(Dissection.File$mouse[(Dissection.File$mouse %in% Image_dirs)])
+#231 mice dissected which need images
+
+#ImageFolder - MLH1.Quant
+NonQuant.mice <- unique(Image_dirs[(Image_dirs %in% MLH1_data$mouse )])
+#length(NonQuant.mice)
+#123 mice that need to get into anon-batch
+
+
+#make Dataframe to put into a table
+mouse.number.DF <- data.frame( category = 
+              c("Passed Quantified", "Total Quantified", "Non-Quantified", "Non-Imaged"),
+              number.of.mice = c(length(unique(MLH1_data$mouse)),
+                length(unique(original_DF$mouse) ),
+                        length(NonQuant.mice),
+                         length(NonImaged.mice)  )  )
+
+kable(mouse.number.DF)
+```
+
+
+This is the number of mice that are through different parts of the pathway or quantification process.
+
+
+
+```{r basic.numbers, echo=FALSE}
+
+kable(table(AP_mouse_table$category), col.names = c("Category", "mice"), label = "Number of mice by category" )
+
+
+kable(table(MLH1_data$category), col.names = c("Category","Cells"), label = "Number of Cells by category" )
+
+```
+
+
+These are the tables for the number of mice and cells which have been quantified. (what is in the 'other' category?)
+
+
+
 #### Initial Patterns from MLH1 distributions
 
-```{r first boxplots, echo=FALSE, fig.align='center'}
+```{r first.boxplots, echo=FALSE, fig.align='center'}
 #the below ordering works!! keep it
 MLH1_data$strain<- factor(MLH1_data$strain, levels =c("G", "LEWES",
               "WSB", "PWD","MSM","KAZ","CAST","HMI","SPRET","SPIC", "other"), order=T )
@@ -189,77 +278,75 @@ I ploted the mean of each quality bin with a red dot. From the pattern of the re
 #### Assessing the Distributions by mouse
 
 latice plot of scatter plots for jitter plots of cell oberservations by quality. The category mean is in black and the mouse specific mean is in red.
-```{r, echo=FALSE, message=FALSE,results='hide', warning=TRUE}
+
+```{r, echo=FALSE, message=FALSE, results='hide', warning=TRUE}
 ### to integrate 'pass'/fail
 ### this should be in setup data
 
 #quant_status (this isn't saving)
-for(i in 1:length(MLH1_data$mouse)){
-  MLH1_data$quant_status[i] <- ifelse( is.element(MLH1_data$mouse[i], pass_mice), "pass", NA)
-}
+#for(i in 1:length(MLH1_data$mouse)){
+#  MLH1_data$quant_status[i] <- ifelse( is.element(MLH1_data$mouse[i], pass_mice), "pass", NA)
+#}
 
 
 #what is the purpose of this block
-df_list <- split(MLH1_data, (MLH1_data$category))
+#df_list <- split(MLH1_data, (MLH1_data$category))
 #remove sections which are in category but have no data
-df_list <- df_list[ -c(7,16,22) ]
+#df_list <- df_list[ -c(7,16,22) ]
 
 #7: PERC male, (14:CAST female, fake data) 16:HMI female, 22 other
 #
 
 #df list, is a list of df's which were split() from BIG df by category
-df_list 
-o=0
-i=0
+#df_list 
+#o=0
+#i=0
 
-MLH1_data$quant_status <- as.factor(MLH1_data$quant_status)
+#MLH1_data$quant_status <- as.factor(MLH1_data$quant_status)
 
 #make a new empty df. create a ddply thing with mean calculations (this is like a list for matching up later)
-for(i in 1:(length(df_list))){
+#for(i in 1:(length(df_list))){
  # only include data with quality values, then create a ddply for specific sub-df that calqs mean by each mouse
-  df_list[[i]] <- df_list[[i]][!(is.na(df_list[[i]]$quality) | df_list[[i]]$quality==""), ]
-  sub_mouse_means <- ddply(df_list[[i]], .(mouse), summarise,
-                       mouse_nMLH1 = mean(adj_nMLH1.foci)
-  )
+#  df_list[[i]] <- df_list[[i]][!(is.na(df_list[[i]]$quality) | df_list[[i]]$quality==""), ]
+#  sub_mouse_means <- ddply(df_list[[i]], .(mouse), summarise,
+ #                      mouse_nMLH1 = mean(adj_nMLH1.foci)
+#  )
 # this loop is going though each row of dataframes within the df.list and assigning the mouse mean
-  for(o in 1:length(df_list[[i]]$Original.Name)){
-    df_list[[i]]$mouse_mean_MLH1[o] <- sub_mouse_means$mouse_nMLH1[ (df_list[[i]]$mouse[o] == sub_mouse_means$mouse) ]
-        }
-}
+#  for(o in 1:length(df_list[[i]]$Original.Name)){
+#    df_list[[i]]$mouse_mean_MLH1[o] <- sub_mouse_means$mouse_nMLH1[ (df_list[[i]]$mouse[o] == #sub_mouse_means$mouse) ]
+#        }
+#}
 
 
-
-plot_list = list()
-for (h in 1:length(df_list)) {
-  pf <- ggplot(data = df_list[[h]], aes(colour = factor(Batch)), width = 0.25)+ geom_jitter(aes(y= adj_nMLH1.foci, x= quality))
+#plot_list = list()
+#for (h in 1:length(df_list)) {
+#  pf <- ggplot(data = df_list[[h]], aes(colour = factor(Batch)), width = 0.25)+ #geom_jitter(aes(y= adj_nMLH1.foci, x= quality))
   # +   geom_rect(data = df_list[[h]], aes(fill=as.factor(quant_status)), alpha=0.5)
 #  + facet_wrap(~ mouse) + geom_hline(aes(yintercept = mouse_mean_MLH1), color="red") +scale_fill_manual(values=c(NA, "red"), breaks=NULL)
   
 # +    geom_hline(yintercept = c( mean(df_list[[h]]$adj_nMLH1.foci) ), color="black" )
   #theme for indiviual mice, 
   #+ theme(plot.background = element_rect(fill = "green"))
-  
-  plot_list[[h]] =   pf
-}
-
-
+#  
+#  plot_list[[h]] =   pf
+#}
 
 #orig
-plot_list = list()
-for (h in 1:length(df_list)) {
-  pf <- ggplot(df_list[[h]],(aes(y= adj_nMLH1.foci, x= quality)))
-  pf <- pf +geom_rect(data = df_list[[h]], aes(fill=quant_status), xmin=-100, xmax=100, ymin=-100, ymax=100, alpha=0.005)
+#plot_list = list()
+#for (h in 1:length(df_list)) {
+#  pf <- ggplot(df_list[[h]],(aes(y= adj_nMLH1.foci, x= quality)))
+#  pf <- pf +geom_rect(data = df_list[[h]], aes(fill=quant_status), xmin=-100, xmax=100, #ymin=-100, ymax=100, alpha=0.005)
 
-    pf <- pf + geom_jitter(width = 0.25, aes(colour = factor(Batch)) )
-  pf <- pf + geom_hline(yintercept = c( mean(df_list[[h]]$adj_nMLH1.foci) ), color="black" )
-  pf <- pf + facet_wrap(~ mouse) + geom_hline(aes(yintercept = mouse_mean_MLH1), color="red") + 
+#    pf <- pf + geom_jitter(width = 0.25, aes(colour = factor(Batch)) )
+#  pf <- pf + geom_hline(yintercept = c( mean(df_list[[h]]$adj_nMLH1.foci) ), color="black" )
+#  pf <- pf + facet_wrap(~ mouse) + geom_hline(aes(yintercept = mouse_mean_MLH1), color="red") #+ 
     
-    scale_fill_manual(values=alpha(c("red"), .005), breaks=NULL) 
+#    scale_fill_manual(values=alpha(c("red"), .005), breaks=NULL) 
 
     #theme for indiviual mice, 
   #+ theme(plot.background = element_rect(fill = "green"))
-  plot_list[[h]] =   pf
-}
+#  plot_list[[h]] =   pf
+#}
 #can't change the alpha/transparency of the red rec
 
 #aes must be same length ---   #geom_point(stat = "identity") +
@@ -269,12 +356,12 @@ for (h in 1:length(df_list)) {
 ```
 
 ```{r, echo=FALSE, message=FALSE,results='hide', warning=FALSE }
-geom_hline(aes(yintercept = med, group = gr), colour = 'red')
-
-for (gg in 1:length(plot_list) ){
-  show(plot_list[gg])
+#geom_hline(aes(yintercept = med, group = gr), colour = 'red')
+#
+#for (gg in 1:length(plot_list) ){
+#  show(plot_list[gg])
   #invisible(lapply(obj, function(x) plot(x,main="some plot")))
-}
+#}
 ```
 
 Making all of these scatter plots, allows us to look at the whole distributions of the data for each mouse. The distance of the red line from the black could be a indicator of slides or mice with slide specific technical noise.
@@ -315,15 +402,15 @@ Currently this section is under construction.
 
 
 ```{r, include=FALSE}
-passed_mice_data <- MLH1_data[MLH1_data$mouse %in% passed_mice, ]
-non_passed_mice_data <- MLH1_data[MLH1_data$mouse %in% not_passed, ]
+#passed_mice_data <- MLH1_data[MLH1_data$mouse %in% passed_mice, ]
+#non_passed_mice_data <- MLH1_data[MLH1_data$mouse %in% not_passed, ]
 
 #make a column to mark if observation comes from passed or not passed mouse
 #turn this into boxplot and sort the category order, otherwise it's hard to any patterns
-sc <- qplot(mouse, nMLH1.foci,  colour = category, data = non_passed_mice_data, main="s", xlab="s", ylab="es")
+#sc <- qplot(mouse, nMLH1.foci,  colour = category, data = non_passed_mice_data, main="s", xlab="s", ylab="es")
 #sc + theme(legend.position="none")
 
-sc <- qplot(mouse, nMLH1.foci,  colour = category, data = passed_mice_data, main="s", xlab="s", ylab="es")
+#sc <- qplot(mouse, nMLH1.foci,  colour = category, data = passed_mice_data, main="s", xlab="s", ylab="es")
 #sc + theme(legend.position="none")
 
 # not working not sure of the purpose
