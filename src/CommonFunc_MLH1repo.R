@@ -3,6 +3,40 @@
 #
 
 
+#format the dates into standard format
+#mouse_list$DOB <- as.Date(mouse_list$DOB,format='%m/%d/%Y')
+add_age <- function(dat){
+  dframe <- dat
+  count =1
+  for(i in dframe$mouse){
+    #after DOB and euth date are standardized #substract
+    dframe$age.days <- dframe$euth.date-dframe$DOB
+    dframe$age.weeks <- difftime(dframe$euth.date,dframe$DOB,units='weeks')
+    #gives age in days
+    count= count +1
+  }
+  return(dframe)
+}
+
+#add mouse column to MLH1 df
+#add mouse column to MLH1 df
+add_euth_date <- function(dat){
+  dframe <- dat
+  count =1
+  for(i in dframe$mouse){
+    #isolate the first part of Orignal name
+    #print(i)
+    templist= strsplit(i, split="_")[[1]]
+    euth <- templist[1]
+    #figure out date conversion
+    dframe$euth.date[count] <- euth
+    count= count +1
+  }
+  dframe$euth.date <- as.Date(dframe$euth.date, format='%d%b%y')
+  return(dframe)
+}
+
+
 #add mouse for short mouse name
 add_mouse <- function(dat){
   dframe <- dat
@@ -12,41 +46,6 @@ add_mouse <- function(dat){
     templist= strsplit(i, split="_")[[1]]
     c = paste(templist[2],templist[3], templist[4], sep = "_")
     dframe$mouse[count] <- c
-    count= count +1
-  }
-  return(dframe)
-}
-
-
-
-#add mouse column to MLH1 df
-#add mouse column to MLH1 df
-add_euth_date <- function(dat){
-  dframe <- dat
-  count =1
-  for(i in dframe$Original.Name){
-    #isolate the first part of Orignal name
-    #print(i)
-    templist= strsplit(i, split="_")[[1]]
-    euth <- templist[1]
-    #figure out date conversion
-    dframe$euth.date[count] <- euth
-    count= count +1
-  }
-  dframe$euth.date <- as.Date(dframe$euth.date,format='%d%b%y')
-  return(dframe)
-}
-
-#format the dates into standard format
-#mouse_list$DOB <- as.Date(mouse_list$DOB,format='%m/%d/%Y')
-add_age <- function(dat){
-  dframe <- dat
-  count =1
-  for(i in dframe$Original.Name){
-    #after DOB and euth date are standardized #substract
-    dframe$age.days <- dframe$euth.date-dframe$DOB
-    dframe$age.weeks <- difftime(dframe$euth.date,dframe$DOB,units='weeks')
-    #gives age in days
     count= count +1
   }
   return(dframe)
