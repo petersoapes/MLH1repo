@@ -8,10 +8,13 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
+setwd("~./MLH1repo/")
 #load BivData
+load(file="~./MLH1repo/data/MLH1_BivData.RData")
 
 #load MLH1 data
-
+#setwd("C:/Users/April/Desktop/MLH1repo")
+load(file="~./MLH1repo/data/MLH1/MLH1_data_setup.RData")
 
 ```
 
@@ -26,10 +29,21 @@ CZECHII blah
 
 KAZ blah
 
-```{r pressure, echo=FALSE}
+```{r set.up.data, echo=FALSE}
 
-#MLH1 difference
+#extract just the relavant PWD and KAZ
+PWD.MLH1 <- MLH1_data[MLH1_data$category == "PWD male",]
+KAZ.MLH1 <- MLH1_data[MLH1_data$category == "KAZ male",]
 
+PWD.BivData.cells <- BivData_cells[BivData_cells$category == "PWD male",]
+PWD.BivData <- fullBivData[fullBivData$category == "PWD male",]
+
+KAZ.BivData.cells <- BivData_cells[BivData_cells$category == "KAZ male",]
+KAZ.BivData <- fullBivData[fullBivData$category == "KAZ male",]
+
+
+PWD.KAZ_MLH1<- rbind(PWD.MLH1, KAZ.MLH1)
+PWD.KAZ_BivData<- rbind(PWD.BivData, KAZ.BivData)
 
 ```
 
@@ -38,11 +52,74 @@ These are the MLH1 counts
 ### BivData dataset
 
 Goal:  Count the Bivdata for pwd and KAZ males
-
 start determining the subset of data
 
 
-```{r}
+```{r mergeing.meta.data, echo=FALSE}
+meta.data.file2 = read.csv("~./MLH1repo/data/MouseMetaData61119.csv", header = TRUE)
+meta.data.file2 <- meta.data.file2[!(is.na(meta.data.file2$mouse)|meta.data.file2$mouse==""),] #375
+
+#find a way to remove the rows without the right format before setting as as.Date
+#trying to remove these the extra rows..uggh
+#yy <- meta.data.file2[subset(meta.data.file2$DOB, !( (meta.data.file2$DOB == "emb") | (meta.data.file2$DOB == "arr") | (meta.data.file2$DOB == "e16.5")|(meta.data.file2$DOB == "march") ) ),]
+
+#yy <- yy[subset(yy$DOB, !(yy$DOB == "arr")),]
+#yy <- yy[subset(yy$DOB, !(yy$DOB == "e1")),]
+#i think subseting is messing up the dataframes
+meta.data.file99 <- meta.data.file2
+meta.data.file2$DOB <- as.Date(meta.data.file2$DOB, format= "%m/%d/%Y")#%Y 2000, %y '18,
+
+#source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+#meta.data.file2 <- add_euth_date(meta.data.file2) #euthdate 1st
+#meta.data.file2 <- add_age(meta.data.file2)  #age second
+##got it to work ... maybe should save adding it to the merged DF
+
+#reduce metadata down to 2 cols (mouse, DOB), merge this with MLH1
+MouseMetaData.wrkin <- meta.data.file2[,c(1,4)]
+colnames(MouseMetaData.wrkin) <- c("mouse", "DOB")
+MouseMetaData.wrkin <- MouseMetaData.wrkin[!(is.na(MouseMetaData.wrkin$mouse)|MouseMetaData.wrkin$mouse==""),]
+
+PWD.KAZ_MLH1.imprv <- merge(PWD.KAZ_MLH1, MouseMetaData.wrkin)#don't apply the all parameters
+#report number with  and without
+
+#add euth date for calculating age
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+PWD.KAZ_MLH1.imprv <- add_euth_date(PWD.KAZ_MLH1.imprv)
+PWD.KAZ_MLH1.imprv <- add_age(PWD.KAZ_MLH1.imprv)
+
+#yesDOB.check <- PWD.KAZ_MLH1.imprv[!(is.na(PWD.KAZ_MLH1.imprv$DOB)),]
+#noDOB.check <- PWD.KAZ_MLH1.imprv[(is.na(PWD.KAZ_MLH1.imprv$DOB)),]#note, date type of data can't do the string matching!
+
+#total, KAZ 144, PWD 139
+#table(noDOB.check$category)#  no DOB, KAZ 67  PWD 133
+#table(yesDOB.check$category) #yes DOB, KAZ 77  PWD 6
+
+# I need to find the ages of more PWD males
 
 ```
+
+
+```{r}
+#BivData
+
+MouseMetaData.wrkin <- MouseMetaData.wrkin[!(is.na(MouseMetaData.wrkin$mouse)|MouseMetaData.wrkin$mouse==""),]
+
+PWD.KAZ_BivData.imprv <- merge(PWD.KAZ_BivData, MouseMetaData.wrkin)
+
+table(fullBivData$category)# PWD 670, 
+#there are no KAZ male data
+
+```
+
+
+
+
+```{r}
+#distribution of ages
+
+histys <- ggplot(PWD.KAZ_MLH1.imprv, aes(age.weeks, fill=strain))+geom_density()
+
+
+```
+
 

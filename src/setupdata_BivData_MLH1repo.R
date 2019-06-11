@@ -12,7 +12,7 @@ library(ggplot2)
 #add the melted foci here
 
 setwd("~./MLH1repo/")
-fullBivData = read.csv("data/BivData/CLEAN_MUS_FULL_BIVDATA_5.28.19.csv")
+fullBivData = read.csv("~./MLH1repo/data/BivData/CLEAN_MUS_FULL_BIVDATA_5.28.19.csv")
 #5402
 
 #check dissection list
@@ -22,12 +22,14 @@ Dissection_list = read.csv("data/mouseDissections.csv")
 fullBivData$Obj.ID <- paste(fullBivData$fileName, fullBivData$boxNumber, sep = "_")
 
 
-source("src/CommonFunc_MLH1repo.R")
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 fullBivData <- add_mouse(fullBivData)
 fullBivData <- add_category(fullBivData)
 fullBivData <- add_strain(fullBivData)
 fullBivData <- add_sex(fullBivData)
 fullBivData <- add_subsp(fullBivData)
+#this 5.28.19 dataset is missing so many categories
+
 
 #####################
 # REMOVE EXTRA DATA #
@@ -92,6 +94,9 @@ rawBivData$fileName[max(rawBivData$boxNumber)]
 RawDataTable <- as.data.frame(colSums(!is.na(BivData)) )
 #print .txt file
 #write.table(RawDataTable, "results/RawDataTable.txt", sep="\t")
+
+
+#print out list of mice that have Image folder, but are missing from the BivData
 
 
 

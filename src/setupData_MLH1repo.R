@@ -57,6 +57,58 @@ MLH1_data <- add_subsp(MLH1_data)
 MLH1_data$adj_nMLH1.foci <- ifelse(MLH1_data$sex=="male", MLH1_data$nMLH1.foci+1, MLH1_data$nMLH1.foci)
 MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
 
+
+#add DOB
+#find a way to compare the list of AP_mice with Metadata, or list folders in Images
+MouseMetaData = read.csv("~./MLH1repo/data/ALP_MouseMetadata.csv", header=TRUE )
+
+meta.data.file2 = read.csv("~./MLH1repo/data/MouseMetaData61119.csv", header = TRUE)
+meta.data.file2$DOB <- as.Date(meta.data.file2$DOB, format= "%m/%d/%y")
+
+#reduce metadata down to 2 cols (mouse, DOB), merge this with MLH1
+MouseMetaData.wrkin <- MouseMetaData[,c(1,3)]
+MouseMetaData.wrkin <- meta.data.file2[,c(1,4)]
+
+colnames(MouseMetaData.wrkin) <- c("mouse", "DOB")
+MouseMetaData.wrkin <- MouseMetaData.wrkin[!(is.na(MouseMetaData.wrkin$mouse)|MouseMetaData.wrkin$mouse==""),]
+
+#check how many times there is a duplicate mouse!
+length(which(duplicated(MouseMetaData.wrkin$mouse)))
+#currently 6 for the downloaded G doc data frame)
+
+#this is how you get the names of the duplicate mice
+MouseMetaData.wrkin$mouse[which(duplicated(MouseMetaData.wrkin$mouse))]
+
+#merge with MLH1 and BivData
+impMLH1_data <- merge(MLH1_data, MouseMetaData.wrkin, by.x = "mouse")#don't apply the all parameters
+
+length(which(duplicated(impMLH1_data$Random.Name)))#29 duplicated
+
+length(which(duplicated(impMLH1_data$fileName)))# 117 fileName
+#some of these are true duplicates, but some are the same image files that were quantified across multiple anon batches
+Quant2batches <- impMLH1_data[which(duplicated(impMLH1_data$fileName)),]#G, LEW, SPI females
+
+true.duplicates <- impMLH1_data[(which(duplicated(impMLH1_data$Random.Name))),]#but now these aren't duplicated...
+
+impMLH1_data$fileName[which(duplicated(impMLH1_data$Random.Name))]#these all seem to be from 20feb16_G_f3 (and 3 other unique mice)
+
+
+ww <- merge(MLH1_data, MouseMetaData.wrkin)
+
+#i think this works...
+
+#MLH1 - 2921,   #ll -- 2227, 
+#when all.x 3418  (using all.x produces duplicate rows (in MLH1 ))
+
+#add the euth date col
+for( t in 1:length(impMLH1_data$mouse)){
+  euth.date <- as.Date(strsplit(impMLH1_data$mouse[t], split="_")[[1]][1], format= '%d%b%y')
+  impMLH1_data$date[t] <- euth.date
+}
+
+#add the age col (this might need to be a function to deal with the female exceptions)
+
+
 #reorder dataframe
 MLH1_data <- MLH1_data %>%
   arrange(strain, sex, mouse) %>%
@@ -69,12 +121,11 @@ MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f3", MLH1_data$mouse) , ]
 MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f1", MLH1_data$mouse) , ]
 
 
-#find a way to compare the list of AP_mice with Metadata, or list folders in Images
-MouseMetaData = read.csv("data/ALP_MouseMetadata.csv", header=TRUE )
+
 
 #full mouse list
 Image_mice_dirs <- list.files(path = "C:/Users/alpeterson7/Documents/Images")
-
+#write this into a file
 
 ###########################
 # Construct Lists of Mice #
@@ -146,10 +197,7 @@ missing_mice.DF$mouse  <- as.character(missing_mice.DF$mouse)
 
 #str_split requires CHARAECTER!!
 
-for( t in 1:length(missing_mice.DF$mouse)){
-  euth.date <- as.Date(strsplit(missing_mice.DF$mouse[t], split="_")[[1]][1], format= '%d%b%y')
-  missing_mice.DF$date[t] <- euth.date
-}
+
 
 #sort dataframe by date
 #find the old mice, and investigate why, make a list of mice which weren't included due to bad staining, (but there are still folders)
