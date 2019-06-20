@@ -2,6 +2,10 @@
 #
 #
 
+#make functions for cleaning up BivData
+#-remove p_rev
+#-check for multi-cell images
+
 
 #format the dates into standard format
 #mouse_list$DOB <- as.Date(mouse_list$DOB,format='%m/%d/%Y')
@@ -19,7 +23,7 @@ add_age <- function(dat){
 }
 
 #add mouse column to MLH1 df
-#add mouse column to MLH1 df
+#this can be mess up when the columns aren't right type (charaecter)
 add_euth_date <- function(dat){
   dframe <- dat
   count =1
@@ -30,9 +34,10 @@ add_euth_date <- function(dat){
     euth <- templist[1]
     #figure out date conversion
     dframe$euth.date[count] <- euth
+    dframe$euth.date <- as.Date(as.character(dframe$euth.date[count]), format='%d%b%y')
     count= count +1
   }
-  dframe$euth.date <- as.Date(dframe$euth.date, format='%d%b%y')
+  dframe$euth.date <- as.Date(as.character(dframe$euth.date), format='%d%b%y')
   return(dframe)
 }
 
