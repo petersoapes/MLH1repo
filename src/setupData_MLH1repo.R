@@ -57,17 +57,30 @@ MLH1_data <- add_subsp(MLH1_data)
 MLH1_data$adj_nMLH1.foci <- ifelse(MLH1_data$sex=="male", MLH1_data$nMLH1.foci+1, MLH1_data$nMLH1.foci)
 MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
 
-
 #add DOB
-#find a way to compare the list of AP_mice with Metadata, or list folders in Images
-MouseMetaData = read.csv("~./MLH1repo/data/ALP_MouseMetadata.csv", header=TRUE )
+#(find a way to compare the list of AP_mice with Metadata, or list folders in Images)
 
-meta.data.file2 = read.csv("~./MLH1repo/data/MouseMetaData61119.csv", header = TRUE)
-meta.data.file2$DOB <- as.Date(meta.data.file2$DOB, format= "%m/%d/%y")
+#MouseMetaData = read.csv("~./MLH1repo/data/ALP_MouseMetadata.csv", header=TRUE )
+#meta.data.file2 = read.csv("~./MLH1repo/data/MouseMetaData61119.csv", header = TRUE)
+meta.data6.12.19 = read.csv("~./MLH1repo/data/Mouse_MetaData_6.12.19.csv", header = TRUE)
+
+meta.data6.12.19$DOB.org <- meta.data6.12.19$DOB #there are still places where 'e16'
+meta.data6.12.19$DOB <- as.Date(meta.data6.12.19$DOB, format= "%m/%d/%y") #the non-format matching DOB are converted to NAs
+meta.data6.12.19 <- meta.data6.12.19[!(is.na(meta.data6.12.19$mouse)|meta.data6.12.19$mouse==""),]
+
+#calq age for metadata
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+meta.data6.12.19 <- add_euth_date(meta.data6.12.19)#this isn't working because there are many mouse values which are not n the right format!
+
+#must convert euth.date to date (remove the non dates)
+#AS long as the first characters are in the right format it seems to work
+meta.data6.12.19$euth.date <- as.Date(as.character(meta.data6.12.19$euth.date), format='%d%b%y')
+
+meta.data6.12.19 <- add_age(meta.data6.12.19)
+
 
 #reduce metadata down to 2 cols (mouse, DOB), merge this with MLH1
-MouseMetaData.wrkin <- MouseMetaData[,c(1,3)]
-MouseMetaData.wrkin <- meta.data.file2[,c(1,4)]
+MouseMetaData.wrkin <- meta.data6.12.19[,c(1,3)]
 
 colnames(MouseMetaData.wrkin) <- c("mouse", "DOB")
 MouseMetaData.wrkin <- MouseMetaData.wrkin[!(is.na(MouseMetaData.wrkin$mouse)|MouseMetaData.wrkin$mouse==""),]
@@ -90,12 +103,17 @@ Quant2batches <- impMLH1_data[which(duplicated(impMLH1_data$fileName)),]#G, LEW,
 
 true.duplicates <- impMLH1_data[(which(duplicated(impMLH1_data$Random.Name))),]#but now these aren't duplicated...
 
-impMLH1_data$fileName[which(duplicated(impMLH1_data$Random.Name))]#these all seem to be from 20feb16_G_f3 (and 3 other unique mice)
 
 
-ww <- merge(MLH1_data, MouseMetaData.wrkin)
+#integrating dates
+MouseMetaData.wrkin <- meta.data.file2[,c(1,4)]
+colnames(MouseMetaData.wrkin) <- c("mouse", "DOB")
+MouseMetaData.wrkin <- MouseMetaData.wrkin[!(is.na(MouseMetaData.wrkin$mouse)|MouseMetaData.wrkin$mouse==""),]
 
-#i think this works...
+MLH1.imprv <- merge(MLH1_data, MouseMetaData.wrkin)#don't apply the all parameters
+
+
+
 
 #MLH1 - 2921,   #ll -- 2227, 
 #when all.x 3418  (using all.x produces duplicate rows (in MLH1 ))

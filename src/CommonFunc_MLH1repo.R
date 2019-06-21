@@ -14,8 +14,8 @@ add_age <- function(dat){
   count =1
   for(i in dframe$mouse){
     #after DOB and euth date are standardized #substract
-    dframe$age.days <- dframe$euth.date-dframe$DOB
-    dframe$age.weeks <- difftime(dframe$euth.date,dframe$DOB,units='weeks')
+    dframe$age.days[count] <- dframe$euth.date[count] - dframe$DOB[count]
+    dframe$age.weeks[count] <- difftime(dframe$euth.date[count], dframe$DOB[count], units='weeks')
     #gives age in days
     count= count +1
   }
@@ -29,15 +29,15 @@ add_euth_date <- function(dat){
   count =1
   for(i in dframe$mouse){
     #isolate the first part of Orignal name
-    #print(i)
-    templist= strsplit(i, split="_")[[1]]
+    print(i)
+    templist= strsplit(as.character(i), split="_")[[1]] #split must act of charaecter
     euth <- templist[1]
     #figure out date conversion
     dframe$euth.date[count] <- euth
-    dframe$euth.date <- as.Date(as.character(dframe$euth.date[count]), format='%d%b%y')
+    dframe$euth.date[count] <- as.character(dframe$euth.date[count])
     count= count +1
   }
-  dframe$euth.date <- as.Date(as.character(dframe$euth.date), format='%d%b%y')
+  #dframe$euth.date <- as.Date(as.character(dframe$euth.date), format='%d%b%y')
   return(dframe)
 }
 
