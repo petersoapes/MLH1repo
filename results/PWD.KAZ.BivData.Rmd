@@ -156,18 +156,45 @@ library(ggplot2)
 SC.PWD <- ggplot(data = PWD_curate_BivData, aes(color=fileName,x=mouse, y= chromosomeLength))+geom_jitter()+theme(legend.position="none")+ylim(c(35,150))+ggtitle("PWD SC lengths")
 #the SC range is 45 - 150 (for PWD)
 
-SC.KAZ <- ggplot(data = KAZ_curate_BivData, aes(color=fileName,x=mouse, y= chromosomeLength))+geom_jitter()+theme(legend.position="none")+ylim(c(35,150))+ggtitle("KAZ SC lengths")
+SC.KAZ <- ggplot(data = KAZ_curate_BivData, aes(color=fileName,x=mouse, y= chromosomeLength))+geom_jitter()+
+  theme(legend.position="none")+ylim(c(35,150))+ggtitle("KAZ SC lengths")
 #can I add the means?
-
 
 SC.PWD
 SC.KAZ
+
+KAZ_mean_SC <- ddply(KAZ_curate_BivData, c("mouse"), summarise,
+                            
+                    boxs.IDd = max(boxNumber),
+                    nboxes_passed = length(boxNumber),
+                    pass_rate = nboxes_passed/boxs.IDd,
+                            
+                    avSC.length = mean(chromosomeLength),
+                    varSC.length = var(chromosomeLength)
+)
+
+
+PWD_mean_SC <- ddply(PWD_curate_BivData, c("mouse"), summarise,
+                            
+                    boxs.IDd = max(boxNumber),
+                    nboxes_passed = length(boxNumber),
+                    pass_rate = nboxes_passed/boxs.IDd,
+                            
+                    avSC.length = mean(chromosomeLength),
+                    varSC.length = var(chromosomeLength)
+)
+
+
+t.test(KAZ_curate_BivData$chromosomeLength,PWD_curate_BivData$chromosomeLength)
+
 ```
 
 
+the PWD has longer means
 
 
-```{r cell.tables}
+
+```{r SClength.cell.tables}
 #add total COs
 KAZ_BivData_cells <- ddply(KAZ_curate_BivData, c("fileName"), summarise,
                             
@@ -310,10 +337,11 @@ qq <- ggplot(data=DF.w.rank2, aes(x=fileName,y=chromosomeLength))+geom_jitter(wi
 #bin.long.PWD <- DF.w.rank[DF.w.rank$rank]
 #can't do long yet, bc the coding for XY is inconsistant!
 
-bin.short.PWD <- DF.w.rank2[DF.w.rank2$rank < 5,]
+bin.short.PWD <- PWD_whole.cell.BivData[PWD_whole.cell.BivData$rank < 5,]
+
 bin.short.PWD <- bin.short.PWD[bin.short.PWD$fileName %in% full.cell.list$fileName,]
 
-kk <- ggplot(data=bin.short.PWD, aes(x=fileName,y=chromosomeLength))+geom_jitter(width = 0.25, aes(color =Foci1, shape=mouse))+ggtitle("short bins")
+kk <- ggplot(data=bin.short.PWD, aes(x=mouse,y=chromosomeLength))+geom_jitter(width = 0.25)+ggtitle("short bins")
 
 #short bin patterns vs long bins / total?
 #eventually I want to compare NORM FOCI POSITIONS patterns of these bins across PWD and KAZ
@@ -331,7 +359,7 @@ Asigned rank to bivalent measures from the whole.cell dataset. I should try to u
 I also noted that the shortest 3 seem to cluster in PWD. Maybe I should try doing cluster analysis on these. 
 I should also add rbar values to these measures. (I might have to reformat the function)
 
-```{r}
+```{r hist.boxes.per.cell, echo=FALSE}
 #histograms to display the average number of Objects per cell
 PWD.curateautoBivData_cells <- ddply(PWD_curate_BivData, c("fileName"), summarise,
                     number = length(Obj.ID)
@@ -433,6 +461,73 @@ SC.test <- t.test()
 
 ```
 
+
+
+
+```{r SC.by.bins}
+
+
+all.whole.cell <- rbind(KAZ_whole.cell.BivData,PWD_whole.cell.BivData)
+
+#compare short and long bins
+bin_short <- all.whole.cell[all.whole.cell$rank < 5,]
+
+bin_short <- all.whole.cell[all.whole.cell$rank < 3,]#comparing the bottom 3 are not sig different
+
+#bin.short.PWD <- bin.short.PWD[bin.short.PWD$fileName %in% full.cell.list$fileName,]
+
+short_SC <- ggplot(data=bin_short, aes(x=mouse,y=chromosomeLength))+geom_jitter(width = 0.25, aes(color=fileName))+ggtitle("short bins")+facet_wrap(~strain)+ theme(legend.position="none")
+
+t.test(bin_short$chromosomeLength[bin_short$strain == "PWD"],
+       bin_short$chromosomeLength[bin_short$strain == "KAZ"])
+
+#p-value = 0.02131
+
+bin_long <- all.whole.cell[all.whole.cell$rank > 15,]#comparing the top 3 is not sig different
+
+
+long_SC <- ggplot(data=bin_long, aes(x=mouse,y=chromosomeLength))+geom_jitter(width = 0.25, aes(color=fileName) )+ggtitle("Long bins")+facet_wrap(~strain)+ theme(legend.position="none")
+
+t.test(bin_long$chromosomeLength[bin_long$strain == "PWD"],
+       bin_long$chromosomeLength[bin_long$strain == "KAZ"])
+
+#p-value = 0.01495
+```
+
+
+
+
+```{r chrm.class, echo=FALSE}
+#proportions of bivalent classes
+
+foci.passed.KAZ <- KAZ_curate_BivData[KAZ_curate_BivData$foci.pass == 1,]
+foci.passed.PWD <- PWD_curate_BivData[PWD_curate_BivData$foci.pass == 1,]
+
+jj <- rbind(foci.passed.KAZ,foci.passed.PWD)
+
+qq <- ggplot(data = jj, aes(color=fileName,x=mouse, y= hand.foci.count))+geom_jitter()+theme(legend.position="none")+facet_wrap(~strain)
+
+qq2 <- ggplot(data = foci.passed.PWD, aes(color=fileName,x=mouse, y= hand.foci.count))+geom_jitter()+theme(legend.position="none")
+
+qq4 <- ggplot(data = foci.passed.PWD, aes(x=hand.foci.count, y= chromosomeLength))+geom_jitter(aes(fill=nrm.F1.pos))+theme(legend.position="none")
+
+#PWD have more 2CO bivalents
+biv_class_table <- ddply(jj, c("hand.foci.count", "strain"), summarise,
+                    number = length(Obj.ID)
+)
+
+
+#### use whole cell data
+
+KAZ_whole.cell.BivData
+all.whole.cell
+#chi-squard test?
+
+whole.cell_biv_class_table <- ddply(all.whole.cell, c("hand.foci.count", "strain"), summarise,
+                    number = length(Obj.ID)
+)
+
+```
 
 
 
@@ -926,23 +1021,6 @@ are the bivalents with faint foci similar in SC length (or rank) across cells
 During the curation process, I could pull the intensities of foci which match the hand reported measure.
 I could also pull 'faint foci' from the auto-measures from the note section, as long as I can standardize my coding for faint foci.
 
-
-```{r}
-#proportions of bivalent classes
-foci.passed.KAZ <- curBivData_KAZ[curBivData_KAZ$foci.pass == 1,]
-
-foci.passed.PWD <- curBivData_PWD[curBivData_PWD$foci.pass == 1,]
-
-
-qq <- ggplot(data = foci.passed.KAZ, aes(color=fileName,x=mouse, y= hand.foci.count))+geom_jitter()+theme(legend.position="none")
-
-qq2 <- ggplot(data = foci.passed.PWD, aes(color=fileName,x=mouse, y= hand.foci.count))+geom_jitter()+theme(legend.position="none")
-
-qq4 <- ggplot(data = foci.passed.PWD, aes(x=hand.foci.count, y= chromosomeLength))+geom_jitter(aes(fill=nrm.F1.pos))+theme(legend.position="none")
-
-#PWD have more 2CO bivalents
-
-```
 
 
 
