@@ -29,7 +29,7 @@ add_euth_date <- function(dat){
   count =1
   for(i in dframe$mouse){
     #isolate the first part of Orignal name
-    print(i)
+    #print(i)
     templist= strsplit(as.character(i), split="_")[[1]] #split must act of charaecter
     euth <- templist[1]
     #figure out date conversion
@@ -37,7 +37,7 @@ add_euth_date <- function(dat){
     dframe$euth.date[count] <- as.character(dframe$euth.date[count])
     count= count +1
   }
-  #dframe$euth.date <- as.Date(as.character(dframe$euth.date), format='%d%b%y')
+  dframe$euth.date <- as.Date(as.character(dframe$euth.date), format='%d%b%y')
   return(dframe)
 }
 
@@ -81,10 +81,15 @@ add_strain <- function(dat){
             ifelse(grepl("_LEWES_", dframe$mouse), "LEW",
                ifelse(grepl("PERC", dframe$mouse), "PERC",
                                         
-             ifelse(grepl("_MSM_", dframe$mouse), "MSM",    
+             ifelse(grepl("_MSM_", dframe$mouse), "MSM",
+            ifelse(grepl("_MOLF_", dframe$mouse), "MOLF",
+                   ifelse(grepl("_SKIVE_", dframe$mouse), "SKIVE",      
              ifelse(grepl("_PWD_", dframe$mouse), "PWD",
                 ifelse(grepl("_KAZ_", dframe$mouse), "KAZ",
+                   ifelse(grepl("_TOM_", dframe$mouse), "TOM",
+                   ifelse(grepl("_AST_", dframe$mouse), "AST",
                ifelse(grepl("_CZECH_", dframe$mouse), "CZECH",
+                      
                                                              
                    ifelse(grepl("_CAST_", dframe$mouse), "CAST",
                       ifelse(grepl("_HMI_", dframe$mouse), "HMI",
@@ -92,13 +97,13 @@ add_strain <- function(dat){
                              ifelse(grepl("_SPI_", dframe$mouse), "SPIC",
                          ifelse(grepl("_SPIC_", dframe$mouse), "SPIC",
                   ifelse(grepl("_CAROLI_", dframe$mouse), "CAROLI",
-                                 "other")))))))))))))))
+                                 "other")))))))))))))))))))
   
   #the ordering factor below deletes all strain entries
   dframe$strain<- factor(dframe$strain, ordered = TRUE, levels =c( "WSB", "G", "LEW", "PERC",
-                                                  "PWD", "MSM","KAZ","CZECH",
+                                                  "PWD", "MSM", "MOLF","SKIVE", "KAZ", "TOM", "AST","CZECH",
                                                   "CAST", "HMI",
-                                                  "SPRET", "SPIC", "CAROLI", "other"))
+                                                  "SPRET", "SPIC", "CAROLI", "other") )
   return(dframe)
 }
 
@@ -115,7 +120,7 @@ add_category <- function(oldframe){
                     ifelse(grepl("_G_m",dframe$mouse), "G male",
                          ifelse(grepl("_LEWES_m", dframe$mouse), "LEW male",
                         ifelse(grepl("_LEW_f", dframe$mouse), "LEW female",
-                           ifelse(grepl("_LEW_m",dframe$mouse), "LEW male",        
+                           ifelse(grepl("_LEW_m",dframe$mouse), "LEW male", 
                                                                       
                     ifelse(grepl("_PERC_f", dframe$mouse), "PERC female",
                      ifelse(grepl("_PERC_m",dframe$mouse), "PERC male",
@@ -127,26 +132,38 @@ add_category <- function(oldframe){
                                                                                                                 
                     ifelse(grepl("_MSM_f", dframe$mouse), "MSM female",       
                    ifelse(grepl("_MSM_m", dframe$mouse), "MSM male",
-                    ifelse(grepl("_PWD_m", dframe$mouse), "PWD male",     
+                 ifelse(grepl("_MOLF_f", dframe$mouse), "MOLF female",       
+                 ifelse(grepl("_MOLF_m", dframe$mouse), "MOLF male",       
+                          
+                    ifelse(grepl("_PWD_m", dframe$mouse), "PWD male",
                        ifelse(grepl("_PWD_f", dframe$mouse), "PWD female",
                         ifelse(grepl("_KAZ_m", dframe$mouse), "KAZ male",     
-                       ifelse(grepl("_KAZ_f", dframe$mouse), "KAZ female",  
+                       ifelse(grepl("_KAZ_f", dframe$mouse), "KAZ female",
+                              
+                      ifelse(grepl("_AST_m", dframe$mouse), "AST male",     
+                     ifelse(grepl("_TOM_m", dframe$mouse), "TOM male",
+                              
                   ifelse(grepl("_CZECH_m", dframe$mouse), "CZECH male",     
-                  ifelse(grepl("_CZECH_f", dframe$mouse), "CZECH female",           
+                  ifelse(grepl("_CZECH_f", dframe$mouse), "CZECH female",  
+          ifelse(grepl("_SKIVE_m", dframe$mouse), "SKIVE male",     
+        ifelse(grepl("_SKIVE_f", dframe$mouse), "SKIVE female",            
+                         
       
                        ifelse(grepl("_SPRET_f", dframe$mouse), "SPRET female",
                        ifelse(grepl("_SPRET_m", dframe$mouse), "SPRET male",
                             ifelse(grepl("_SPI_m", dframe$mouse), "SPIC male",
-                      ifelse(grepl("_SPI_f", dframe$mouse), "SPIC female",
+                     ifelse(grepl("_SPI_f", dframe$mouse), "SPIC female",
+                      ifelse(grepl("_SPIC_f", dframe$mouse), "SPIC female",
                        ifelse(grepl("_SPIC_m", dframe$mouse), "SPIC male",
                       ifelse(grepl("_CAROLI_m", dframe$mouse), "CAROLI male",
                      ifelse(grepl("_CAROLI_f", dframe$mouse), "CAROLI female",
-                                                      "other"))))))))))))))))))))))))))))
+                                                      "other")))))))))))))))))))))))))))))))))))
   
   dframe$category<- factor(dframe$category, ordered=TRUE, levels =c( "WSB female", "WSB male","G female", "G male", 
                                                       "LEW female", 'LEW male', "PERC male",
-                                  "PWD female", "PWD male", "MSM female", "MSM male", "KAZ female","KAZ male","CZECH female","CZECH male",
-                                                      "CAST female", "CAST male", "HMI female", "HMI male",
+                                  "PWD female", "PWD male", "MSM female", "MSM male", "MOLF female", "MOLF male",  "SKIVE female", "SKIVE male", 
+                                  "KAZ female","KAZ male","CZECH female","CZECH male", "AST male", "TOM male",
+                                  "CAST female", "CAST male", "HMI female", "HMI male",
                                                       "SPRET female", "SPRET male", "SPIC female", "SPIC male","CAROLI female","CAROLI male",
                                                       "other"))
   return(dframe)
@@ -241,9 +258,6 @@ add_species <- function(oldframe) {
 }
 
 
-
-
-
 #this add mouse, is based on file names
 add_mouse2 <- function(dat){
   dframe <- dat
@@ -258,3 +272,123 @@ add_mouse2 <- function(dat){
   return(dframe)
 }
 
+
+
+#Calculate InterFocal Distance (IFD) in Chrm1 dataframe
+#requires Percent foci positions
+add_IFD <- function(DF){
+  
+  DF$IFD1_ABS <- ifelse(  (DF$hand.foci.count >= 2),
+                          #manual.verified.f1, 
+                          as.numeric(DF$Foci2) - as.numeric(DF$Foci1),   "" )
+  DF$IFD1_ABS <- as.numeric(DF$IFD1_ABS)
+  
+  
+  DF$IFD1_PER <- ifelse(  (DF$hand.foci.count >= 2), 
+                          as.numeric(DF$Foci2.PER) - as.numeric(DF$Foci1.PER),   "" )
+  
+  DF$IFD1_PER <- as.numeric(DF$IFD1_PER)
+  
+  return(DF)
+}
+
+
+#add second IFD for 3COs or more
+addIFD.2 <- function(DF){
+  
+  DF$IFD1 <- ifelse(  (DF$numberCrossOvers >= 2), 
+                      DF$foci_ABS_Position_2 - DF$foci_ABS_Position_1,   "" )
+  
+  DF$IFD2 <- ifelse(  (DF$numberCrossOvers >= 3), 
+                      DF$foci_ABS_Position_3 - DF$foci_ABS_Position_2,   "" )
+  
+  DF$IFD3 <- ifelse(  (DF$numberCrossOvers >= 4), 
+                      DF$foci_ABS_Position_4 - DF$foci_ABS_Position_3,   "" )
+  
+  DF$IFD4 <- ifelse(  (DF$numberCrossOvers >= 5), 
+                      DF$foci_ABS_Position_5 - DF$foci_ABS_Position_4,   "" )
+  
+  
+  return(DF)
+}
+
+
+
+
+#taken from wild mouse dir, 
+#needs to be updated for the new colnames
+#calculate Interchromsomal rbar
+#tested with values from Veller et al 2018
+calq.intra.rbar <- function(chrm_row){
+  o = 1
+  # rrbar <- c()
+  for(o in 1:length(chrm_row$fileName) ){
+    #print(chrm_row$fileName[o])
+    if(grepl(0, chrm_row$handFoci[o])){
+      #print("fist has 0 CO")
+      #rrbar[o] <- NA
+      rrbar <- 0
+    }
+    if(grepl(1, chrm_row$handFoci[o])){  #do the block here
+      #print("fist has 1 CO")
+      #rrbar[o] <- "1CO"
+      portion1 <- chrm_row$F1[o]
+      portion2  <- chrm_row$chromosomeLength[o] - portion1
+      portion.sum <- portion1+portion2
+      rel.portion1 <- (portion1 / portion.sum)
+      rel.portion2 <- (portion2 / portion.sum)
+      rel.por.sqrd1 <- rel.portion1^2
+      rel.por.sqrd2 <- rel.portion2^2
+      chrm.sq <- sum(rel.por.sqrd1, rel.por.sqrd2)
+      
+      #rbar[o] <- 0.5*(1-chrm.sq)
+      #print(chrm_row$rbar[o])
+      rrbar <- 0.5*(1-chrm.sq)
+      #o = o +1
+    }
+    if(grepl(2, chrm_row$handFoci[o])){  #do the block here
+      #print("this has 2 CO")
+      portion1 <- chrm_row$F1[o]
+      portion2  <- chrm_row$F2[o] - chrm_row$F1[o]
+      portion3 <- chrm_row$chromosomeLength[o] - chrm_row$F2[o]+1
+      portion.sum <- portion1+portion2+portion3 #in 2CO portions 
+      rel.portion1 <- (portion1 / portion.sum)
+      rel.portion2 <- (portion2 / portion.sum)
+      rel.portion3 <- (portion3 / portion.sum)
+      rel.por.sqrd1 <- rel.portion1^2
+      rel.por.sqrd2 <- rel.portion2^2
+      rel.por.sqrd3 <- rel.portion3^2
+      chrm.sq <- sum(rel.por.sqrd1,rel.por.sqrd2,rel.por.sqrd3)
+      
+      chrm_row$rbar[o] <- 0.5*(1-chrm.sq)
+      #  rrbar[o] <- 0.5*(1-chrm.sq)
+      rrbar <- 0.5*(1-chrm.sq)
+      #print(chrm_row$rbar[o])
+      #rbar[o] <- 0.5*(1-chrm.sq)
+      #o = o +1
+    }
+    if(grepl(3, chrm_row$handFoci)){
+      portion1 <- chrm_row$F1
+      portion2  <- chrm_row$F2 - chrm_row$F1
+      portion3 <- chrm_row$F3 - chrm_row$F2
+      portion4 <- chrm_row$chromosomeLength - chrm_row$F3
+      portion.sum <- portion1+portion2+portion3+portion4
+      rel.portion1 <- (portion1 / portion.sum)
+      rel.portion2 <- (portion2 / portion.sum)
+      rel.portion3 <- (portion3 / portion.sum)
+      rel.portion4 <- (portion4 / portion.sum)
+      
+      rel.por.sqrd1 <- rel.portion1^2
+      rel.por.sqrd2 <- rel.portion2^2
+      rel.por.sqrd3 <- rel.portion3^2
+      rel.por.sqrd4 <- rel.portion4^2
+      
+      chrm.sq <- sum(rel.por.sqrd1,rel.por.sqrd2,rel.por.sqrd3,rel.por.sqrd4)
+      rrbar <- 0.5*(1-chrm.sq)
+      #tot.rec <-  0.5*(1-sum(rel.por.sqrd1, rel.por.sqrd2, rel.por.sqrd3,rel.por.sqrd4 )) 
+      #tot.rec =((rel.portion1 + rel.portion2 + rel.portion3 + rel.portion4) )^2
+    }
+    o = o +1
+  }
+  return(rrbar)
+}
