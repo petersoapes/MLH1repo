@@ -229,6 +229,8 @@ PWDcells2curate <- PWD_BivData_cells[PWD_BivData_cells$pass_rate > .65,]
 write.table(PWDcells2curate, "~./MLH1repo/results/PWD.cell.curate.csv", sep=",", row.names = FALSE)
 
 
+
+
 ```
 
 From the cell level tables -- make lists of cells with ~75% of bivalents quantified. These will be manually verified and the missing chrms will be measured and supplemented.
@@ -329,6 +331,28 @@ Asigned rank to bivalent measures from the whole.cell dataset. I should try to u
 I also noted that the shortest 3 seem to cluster in PWD. Maybe I should try doing cluster analysis on these. 
 I should also add rbar values to these measures. (I might have to reformat the function)
 
+```{r}
+#histograms to display the average number of Objects per cell
+PWD.curateautoBivData_cells <- ddply(PWD_curate_BivData, c("fileName"), summarise,
+                    number = length(Obj.ID)
+                    
+)
+
+
+PWD.autoBivData_cells_raw <- ggplot(data=PWD_BivData_cells, aes(x=boxs.IDd))+
+  geom_histogram()+
+  ggtitle("PWD raw bivadata")
+
+PWD.autoBivData_cells <- ggplot(data=PWD.curateautoBivData_cells, aes(x=number))+
+  geom_histogram()+   ggtitle("PWD curated")
+
+PWD.autoBivData_cells_manu <- ggplot(data=PWD.auto.man_BivData_cells, aes(x=number))+
+  geom_histogram()+
+  ggtitle("PWD")
+
+```
+
+
 
 ```{r KAZ.manual.merge}
 #KAZ_hand_measure_BivData
@@ -383,6 +407,15 @@ table(KAZ_whole.cell.BivData$fileName, KAZ_whole.cell.BivData$rank)
 
 
 KAZ.length.by.class <- ggplot(data=KAZ_whole.cell.BivData, aes(x=fileName,y=chromosomeLength))+geom_jitter(width = 0.25, aes(color=as.factor(hand.foci.count), shape=mouse))+ggtitle("PWD full cell SC lengths")
+
+```
+
+
+```{r histograms}
+
+KAZ.autoBivData_cells_raw <- ggplot(data=KAZ_BivData_cells, aes(x=boxs.IDd))+
+  geom_histogram()+
+  ggtitle("KAZ raw bivadata")
 
 ```
 

@@ -69,7 +69,6 @@ meta.data6.12.19$DOB <- as.Date(meta.data6.12.19$DOB, format= "%m/%d/%y") #the n
 meta.data6.12.19 <- meta.data6.12.19[!(is.na(meta.data6.12.19$mouse)|meta.data6.12.19$mouse==""),]
 
 #calq age for metadata
-source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 meta.data6.12.19 <- add_euth_date(meta.data6.12.19)#this isn't working because there are many mouse values which are not n the right format!
 
 #must convert euth.date to date (remove the non dates)
@@ -95,14 +94,13 @@ MouseMetaData.wrkin$mouse[which(duplicated(MouseMetaData.wrkin$mouse))]
 #merge with MLH1 and BivData
 impMLH1_data <- merge(MLH1_data, MouseMetaData.wrkin, by.x = "mouse")#don't apply the all parameters
 
-length(which(duplicated(impMLH1_data$Random.Name)))#29 duplicated
+length(which(duplicated(impMLH1_data$Random.Name)))#29 duplicated, 6 duplicated..
 
-length(which(duplicated(impMLH1_data$fileName)))# 117 fileName
+length(which(duplicated(impMLH1_data$fileName)))# 117 fileName, 107 duplicated
 #some of these are true duplicates, but some are the same image files that were quantified across multiple anon batches
 Quant2batches <- impMLH1_data[which(duplicated(impMLH1_data$fileName)),]#G, LEW, SPI females
 
 true.duplicates <- impMLH1_data[(which(duplicated(impMLH1_data$Random.Name))),]#but now these aren't duplicated...
-
 
 
 #integrating dates
@@ -111,8 +109,6 @@ colnames(MouseMetaData.wrkin) <- c("mouse", "DOB")
 MouseMetaData.wrkin <- MouseMetaData.wrkin[!(is.na(MouseMetaData.wrkin$mouse)|MouseMetaData.wrkin$mouse==""),]
 
 MLH1.imprv <- merge(MLH1_data, MouseMetaData.wrkin)#don't apply the all parameters
-
-
 
 
 #MLH1 - 2921,   #ll -- 2227, 
@@ -139,8 +135,6 @@ MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f3", MLH1_data$mouse) , ]
 MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f1", MLH1_data$mouse) , ]
 
 
-
-
 #full mouse list
 Image_mice_dirs <- list.files(path = "C:/Users/alpeterson7/Documents/Images")
 #write this into a file
@@ -152,14 +146,29 @@ Image_mice_dirs <- list.files(path = "C:/Users/alpeterson7/Documents/Images")
 #Dissected, but not imaged
 
 #read in the dissection file
-Dissection.File = read.csv("data/Disections_53019.csv", header=TRUE )
+#Dissection.File = read.csv("data/Disections_53019.csv", header=TRUE )
 #try to incorporate information from sp1 (the first stain)
-
+Dissection.File = read.csv("~./MLH1repo/data/Mouse_MetaData_6.12.19.csv", header = TRUE)
 
 #cleaning up of Disection file
 #standarize column names
 #remove lines without mouse
 Dissection.File <- Dissection.File[!(is.na(Dissection.File$mouse)|Dissection.File$mouse==""),]
+
+#add age to meta-data file, to save as reference
+meta.data.DF <- Dissection.File
+meta.data.DF <- meta.data.DF[!(is.na(meta.data.DF$mouse)|meta.data.DF$mouse==""),] #375
+meta.data.DF$DOB <- as.Date(meta.data.DF$DOB, format= "%m/%d/%Y")#%Y 2000, %y '18,
+
+meta.data.DF <- add_category(meta.data.DF)
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+meta.data.DF <- add_euth_date(meta.data.DF)
+meta.data.DF <- add_age(meta.data.DF)
+
+#write meta.data.DF to file
+write.table(meta.data.DF, "~./MLH1repo/results/meta.data.DF.txt", 
+            sep="\t", row.names = FALSE)
+
 
 #print the name with the date of the file somewhere
 Dissection.list <- Dissection.File$mouse
@@ -174,12 +183,15 @@ missing.mice <- unique(Dissection.File$mouse[(MLH1_data$mouse %in% Image_mice_di
 
 missing.mice2 <- unique(Dissection.File$mouse[(MLH1_data$mouse %in% Dissection.list)])
 
- 
 missing_mice99 = subset(Dissection.File, !(Dissection.File$mouse %in% MLH1_data$mouse ) )
+missing_mice101 = subset(Dissection.File, !(Dissection.File$mouse %in% original_DF$mouse ) )
+
+missing_mice99$mouse
+
 length(missing_mice99)#306   #
 
-# mice in MLH1, 126
-# mice in dissection list, 431
+# mice in MLH1, 126, 151, 
+# mice in dissection list, 431, 384...
 # mice from dissection list not in MLH1, 306
 
 #compare to the original list and also mark the number/enrichment of X's
@@ -188,17 +200,20 @@ length(missing_mice99)#306   #
 list2 <- mice_image_folders[(mice_image_folders %in% AP_mouse_table$mouse)]
 
 #Imaged, but not quantified
-
+#not sure if this is right?
 list <- unique(MLH1_data$mouse[(MLH1_data$mouse %in% Image_mice_dirs)])
+imaged.not.quant <- unique(MLH1_data[(MLH1_data$mouse %in% Image_mice_dirs),])
+
 list2 <- mice_image_folders[(mice_image_folders %in% AP_mouse_table$mouse)]
 #length(list2) #124, 
 
 #mice that are missing
 missing_mice = subset(Image_mice_dirs, !(Image_mice_dirs %in% MLH1_data$mouse ) )
+
 length(missing_mice)#136
 
-missing_mice2 = subset(Image_mice_dirs, !(Image_mice_dirs %in% original_DF$mouse ) )
-length(missing_mice2)#260
+#missing_mice2 = subset(Image_mice_dirs, !(Image_mice_dirs %in% original_DF$mouse ) )
+#length(missing_mice2)#260
 
 missing_mice.DF  <- as.data.frame(missing_mice)
 colnames(missing_mice.DF) <- "mouse"
@@ -241,7 +256,7 @@ AP_mouse_table <- ddply(MLH1_data, c("mouse"), summarise,
                       #quality?
 )
 
-#source("src/CommonFunc_MLH1repo.R")
+source("src/CommonFunc_MLH1repo.R")
 AP_mouse_table <- add_strain(AP_mouse_table)
 AP_mouse_table <- add_subsp(AP_mouse_table)
 AP_mouse_table <- add_sex(AP_mouse_table)
@@ -264,8 +279,7 @@ print(c("The mean MLH1 foci number is  ", mean(MLH1_data$nMLH1.foci, na.rm =TRUE
 "the distribution of quality scores is ", table(MLH1_data$quality)  ) )
 
 
-save.image("data/MLH1/MLH1_data_setup.RData")
+save.image("data/MLH1/MLH1_data_setup_62419.RData")
 #  OutPut: big large MLH1_data (AP's) df, big DF of BD with just the mice I want.
 #  MLH1_data_table, means and variance of AP and BD MLH1 values. made from seperate tables from AP and BD data.
 #  make sure decimal places are consistant
-
