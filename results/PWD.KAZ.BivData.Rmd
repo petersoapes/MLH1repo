@@ -189,6 +189,15 @@ t.test(KAZ_curate_BivData$chromosomeLength,PWD_curate_BivData$chromosomeLength)
 
 ```
 
+```{r}
+#SC lengths by CO number
+
+foci.pass <- KAZ_curate_BivData
+
+
+
+```
+
 
 the PWD has longer means
 
@@ -221,9 +230,7 @@ KAZ_BivData_cells <- ddply(KAZ_curate_BivData, c("fileName"), summarise,
 )
 
 cells2curate <- KAZ_BivData_cells[KAZ_BivData_cells$pass_rate > .7,]
-
-write.table(cells2curate, "~./MLH1repo/results/KAZ.cell.curate.csv", sep=",", row.names = FALSE)
-
+#write.table(cells2curate, "~./MLH1repo/results/KAZ.cell.curate.csv", sep=",", row.names = FALSE)
 
 #PWD version
 #add total COs
@@ -232,8 +239,7 @@ PWD_BivData_cells <- ddply(PWD_curate_BivData, c("fileName"), summarise,
                     boxs.IDd = max(boxNumber),
                     nboxes_passed = length(boxNumber),
                     pass_rate = nboxes_passed/boxs.IDd,
-                  
-                    
+
                     totalCO = sum(numberCrossOvers),     
                     avCO.per.CHRM = mean(numberCrossOvers),
                     varCO.per.CHRM = var(numberCrossOvers),
@@ -253,11 +259,7 @@ PWD_BivData_cells <- ddply(PWD_curate_BivData, c("fileName"), summarise,
 
 PWDcells2curate <- PWD_BivData_cells[PWD_BivData_cells$pass_rate > .65,]
 
-write.table(PWDcells2curate, "~./MLH1repo/results/PWD.cell.curate.csv", sep=",", row.names = FALSE)
-
-
-
-
+#write.table(PWDcells2curate, "~./MLH1repo/results/PWD.cell.curate.csv", sep=",", row.names = FALSE)
 ```
 
 From the cell level tables -- make lists of cells with ~75% of bivalents quantified. These will be manually verified and the missing chrms will be measured and supplemented.
@@ -314,14 +316,13 @@ PWD.auto.man_BivData <- PWD.auto.man_BivData[ -c(19:25) ]
 #pull all biv data for the full cell data
 PWD_whole.cell.BivData <- PWD.Bivs.w.rank[PWD.Bivs.w.rank$fileName %in% PWDfull.cell.list$fileName,]
 #ok these should be full cells
-hist(hh2$rank, breaks =21)
+
 #there are 2x as many 0's bc 1 and 0 are binned together
 #update all hand.foci.counts
 #y <- droplevels(y)
 
-length.by.class <- ggplot(data=hh2, aes(x=fileName,y=chromosomeLength))+geom_jitter(width = 0.25, aes(color=hand.foci.count, shape=mouse))+ggtitle("PWD full cell SC lengths")
+#length.by.class <- ggplot(data=hh2, aes(x=fileName,y=chromosomeLength))+geom_jitter(width = 0.25, aes(color=hand.foci.count, shape=mouse))+ggtitle("PWD full cell SC lengths")
 #most cells are from 1 mouse
-
 
 DF.w.rank2 <- DF.w.rank[DF.w.rank$fileName %in% full.cell.list$fileName,]
 DF.w.rank2 <- DF.w.rank[DF.w.rank$fileName != "20jul15_18may15_PWD_m1_sp1_17_rev",]
@@ -457,17 +458,48 @@ merged.cur <- rbind(curBivData_PWD_m1, curBivData_KAZ_m2)
 
 SCs <- ggplot(data = , aes(y, x=mice))+geom_point
 
-SC.test <- t.test()
+#SC.test <- t.test()
+
+```
+
+
+
+```{r SC.Chrm, echo=FALSE}
+all.curated.BivData <- rbind(KAZ.auto.man_BivData, PWD.auto.man_BivData)
+all.whole.cell <- rbind(KAZ_whole.cell.BivData,PWD_whole.cell.BivData)
+
+
+BivClass.SC_BivData <- ggplot(data=all.curated.BivData, aes(x=hand.foci.count,  y=chromosomeLength))+geom_jitter(width = 0.25, aes(color=as.factor(hand.foci.count)))+ggtitle("PWD full cell SC lengths")+geom_boxplot(aes(alpha=.3))+facet_wrap(~strain)
+
+
+BivClass.SC_whole.cell <- ggplot(data=all.whole.cell, aes(x=hand.foci.count,  y=chromosomeLength))+geom_jitter(width = 0.25, aes(color=as.factor(hand.foci.count)))+
+  ggtitle("PWD full cell SC lengths")+
+  geom_boxplot(aes(alpha=.3))+
+  facet_wrap(~strain)
+
+
+all.whole.cell.sub <- all.whole.cell[all.whole.cell$mouse != "18may15_PWD_m1",]
+
+all.whole.cell.sub <- all.whole.cell.sub[all.whole.cell.sub$mouse != "6mar16_PWD_m1",]
+
+all.whole.cell.sub <- all.whole.cell.sub[all.whole.cell.sub$hand.foci.count >= 1,]
+
+table(all.whole.cell.sub$mouse)
+
+
+SC.COnum <- ggplot(all.whole.cell.sub, aes(x=mouse, y=chromosomeLength, color=as.factor(hand.foci.count), fill=as.factor(hand.foci.count) ))+
+  geom_jitter(alpha=0.8)+
+  geom_boxplot(alpha=0.6) +theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  ggtitle("SC Length by Chromosome Class")+theme(legend.position="none")
+
 
 ```
 
 
 
 
+
 ```{r SC.by.bins}
-
-
-all.whole.cell <- rbind(KAZ_whole.cell.BivData,PWD_whole.cell.BivData)
 
 #compare short and long bins
 bin_short <- all.whole.cell[all.whole.cell$rank < 5,]
