@@ -19,7 +19,9 @@ setwd("~./MLH1repo/")
 
 #load MLH1 data
 #setwd("C:/Users/April/Desktop/MLH1repo/") #don't have two
-load(file="~./MLH1repo/data/MLH1/MLH1_data_setup_62419.RData")
+
+#DONT LOAD MLH1 yet -- keep these seperate for now
+#load(file="~./MLH1repo/data/MLH1/MLH1_data_setup_62419.RData")
 #MLH1_data_setup_62419.RData
 #KAZ_male_data = read.csv("~./data/KAZ_BivData.csv")
 meta.data.file2 = read.csv("~./MLH1repo/data/Mouse_MetaData_6.12.19.csv", header = TRUE)
@@ -72,10 +74,13 @@ HandMeasures_BivData <- add_sex(HandMeasures_BivData)
 #make indevidal DFs by strain just in case...
 PWD.BivData.Hand_measures <- HandMeasures_BivData[HandMeasures_BivData$strain == "PWD",]
 KAZ.BivData.Hand_measures <- HandMeasures_BivData[HandMeasures_BivData$strain == "KAZ",]
-
-
 ```
 
+
+ToDo:
+  -add in IFD calqs
+  -add rbar calqs
+  -make the basic plots ect
 
 
 ```{r Merge.manual.auto, echo=FALSE}
@@ -118,7 +123,7 @@ Auto.Man_BivData_cells <- ddply(Auto.Man_BivData, c("fileName"), summarise,
 #Isolate cells with all (19) autosomes measured
 whole.cell_table <- Auto.Man_BivData_cells[Auto.Man_BivData_cells$number > 17,]
 whole.cell_table <- whole.cell_table[whole.cell_table$number < 21,]
-whole.cell.list <- unique(whole.cell.DF$fileName)
+whole.cell.list <- unique(whole.cell_table$fileName)
 
 #make the whole.cell BivData DF
 whole.cell.DF <- Auto.Man_BivData[Auto.Man_BivData$fileName %in% whole.cell.list,]
@@ -132,8 +137,6 @@ whole.cell.DF <- ddply(whole.cell.DF, .(fileName), transform, rank = rank(chromo
 #make the bins
 short.bin.Bivs <- whole.cell.DF[whole.cell.DF$rank < 6,]
 long.bin.Bivs <- whole.cell.DF[whole.cell.DF$rank > 14,]
-
-
 ```
 
 
@@ -176,7 +179,6 @@ Auto.Man_BivData.melt <- Auto.Man_BivData.melt[!(is.na(Auto.Man_BivData.melt$nrm
 whole.cell_melt.DF <- Auto.Man_BivData.melt[Auto.Man_BivData.melt$fileName %in% whole.cell.list,]
 #add rank to these measures
 whole.cell_melt.DF <- ddply(whole.cell_melt.DF, .(fileName), transform, rank = rank(chromosomeLength,ties.method ="min")-1)
-
 ```
 
 
@@ -184,13 +186,54 @@ whole.cell_melt.DF <- ddply(whole.cell_melt.DF, .(fileName), transform, rank = r
 # all the main DFs have been made ...
 #save rdata file!
 
-save.image("data/MLH1/MLH1_data_setup_62419.RData")
+save.image("~./MLH1repo/data/BivData/PWD.KAZ_BivData_data.RData")
 ```
 
 
 
 
 
+From the cell level tables -- make lists of cells with ~75% of bivalents quantified. These will be manually verified and the missing chrms will be measured and supplemented.
+
+Data frames and analyses are the main output of this script - for a saved Rdata file.
+
+1. Curated BivData; read files, merge/rbind together
+
+2. Hand Measures; read files, rbind together
+
+3. Auto+manual; combine the curate and hand measures, rbind both strains together.
+    3B. Auto-Manual_whole_cell, make a list of fileNames for extracting these measures later; the biv from cells with all 19 autosome measures. Add bivalent rank to this DF.
+
+    -for all measures with passing foci, add IFD and rbar!
+
+4. melted DF; Melt the Foci-Pass of Auto_Manual_DF
+    
+    4B. whole.cell melted table
+
+
+### Analysis and Such
+
+--- Once the above DF's are made, proceed with following analyses ---
+
+1. SC Length
+    a. raw / loose bivalents
+    b. binned bivalents, short vs long, chrm class
+
+2. Normalized Foci Position
+   a. all/full
+   b. bins
+   
+3. 2-CO
+    a. IFDs, raw norm
+    b. F1 by F2
+
+4. Rbar?
+
+
+
+## Background and Premise
+
+PWD and KAZ differ in gwRR/MLH1 counts, is there a correlation in meiotic features which go with expected differences in gwRR.
 ```{r SClength.cell.tables}
 #this is useful for making the list of cells to curate (comment out after curation step)
 
@@ -251,45 +294,6 @@ PWDcells2curate <- PWD_BivData_cells[PWD_BivData_cells$pass_rate > .65,]
 
 #write.table(PWDcells2curate, "~./MLH1repo/results/PWD.cell.curate.csv", sep=",", row.names = FALSE)
 ```
-
-
-
-
-From the cell level tables -- make lists of cells with ~75% of bivalents quantified. These will be manually verified and the missing chrms will be measured and supplemented.
-
-Data frames and analyses are the main output of this script - for a saved Rdata file.
-
-1. Curated BivData; read files, merge/rbind together
-
-2. Hand Measures; read files, rbind together
-
-3. Auto+manual; combine the curate and hand measures, rbind both strains together.
-    3B. Auto-Manual_whole_cell, make a list of fileNames for extracting these measures later; the biv from cells with all 19 autosome measures. Add bivalent rank to this DF.
-
-4. melted DF; Melt the Foci-Pass of Auto_Manual_DF
-
-
---- Once the above DF's are made, proceed with following analyses ---
-
-1. SC Length
-    a. raw / loose bivalents
-    b. binned bivalents, short vs long, chrm class
-
-2. Normalized Foci Position
-   a. all/full
-   b. bins
-   
-3. 2-CO
-    a. IFDs, raw norm
-    b. F1 by F2
-
-4. Rbar?
-
-
-
-## Background and Premise
-
-PWD and KAZ differ in gwRR/MLH1 counts, is there a correlation in meiotic features which go with expected differences in gwRR.
 
 
 
