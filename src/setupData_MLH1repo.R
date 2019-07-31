@@ -5,6 +5,7 @@
 ## df of MLH1 should go from 12cols to 17cols
 #import MLH1 measures across data sets; AP, BD's and Cast female Koehler
 # 1. MLH1_data, tables: AP strains
+#updated meta.data.file
 
 #library(plyr)
 library(dplyr)
@@ -15,16 +16,21 @@ library(ggplot2)
 # Setup main dataframe #
 ########################
 
-#TODO: remove observations without quality scores.
+#TODO: remove observations without quality scores (why?)
+#TODO integrate newest batch
+
+#images from slides
 #12jan17_4jan17_LEW_f1_sp1_34_rev, 8feb17_4jan17_LEW_f1_sp1_3_rev, potential outliers
 
 #Write a make file that will merge all of the batch files and record the batch
 #setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 setwd("~./MLH1repo/")
 
-MLH1_data = read.csv("data/MLH1/AnonData.csv", header=TRUE ) #~400 more than the Rdata
+MLH1_data = read.csv("data/MLH1/AnonData.csv", header=TRUE ) #7.30.19, 4382
 
 original_DF = MLH1_data
+original_DF$fileName <- (original_DF$Original.Name)
+original_DF <- add_mouse(original_DF)
 #original_length <- length(MLH1_data$Original.Name)
 
 MLH1_data$Original.Name <- as.character(MLH1_data$Original.Name)
@@ -57,70 +63,6 @@ MLH1_data <- add_subsp(MLH1_data)
 MLH1_data$adj_nMLH1.foci <- ifelse(MLH1_data$sex=="male", MLH1_data$nMLH1.foci+1, MLH1_data$nMLH1.foci)
 MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
 
-#add DOB
-#(find a way to compare the list of AP_mice with Metadata, or list folders in Images)
-
-#MouseMetaData = read.csv("~./MLH1repo/data/ALP_MouseMetadata.csv", header=TRUE )
-#meta.data.file2 = read.csv("~./MLH1repo/data/MouseMetaData61119.csv", header = TRUE)
-meta.data6.12.19 = read.csv("~./MLH1repo/data/Mouse_MetaData_6.12.19.csv", header = TRUE)
-
-meta.data6.12.19$DOB.org <- meta.data6.12.19$DOB #there are still places where 'e16'
-meta.data6.12.19$DOB <- as.Date(meta.data6.12.19$DOB, format= "%m/%d/%y") #the non-format matching DOB are converted to NAs
-meta.data6.12.19 <- meta.data6.12.19[!(is.na(meta.data6.12.19$mouse)|meta.data6.12.19$mouse==""),]
-
-#calq age for metadata
-meta.data6.12.19 <- add_euth_date(meta.data6.12.19)#this isn't working because there are many mouse values which are not n the right format!
-
-#must convert euth.date to date (remove the non dates)
-#AS long as the first characters are in the right format it seems to work
-meta.data6.12.19$euth.date <- as.Date(as.character(meta.data6.12.19$euth.date), format='%d%b%y')
-
-meta.data6.12.19 <- add_age(meta.data6.12.19)
-
-
-#reduce metadata down to 2 cols (mouse, DOB), merge this with MLH1
-MouseMetaData.wrkin <- meta.data6.12.19[,c(1,3)]
-
-colnames(MouseMetaData.wrkin) <- c("mouse", "DOB")
-MouseMetaData.wrkin <- MouseMetaData.wrkin[!(is.na(MouseMetaData.wrkin$mouse)|MouseMetaData.wrkin$mouse==""),]
-
-#check how many times there is a duplicate mouse!
-length(which(duplicated(MouseMetaData.wrkin$mouse)))
-#currently 6 for the downloaded G doc data frame)
-
-#this is how you get the names of the duplicate mice
-MouseMetaData.wrkin$mouse[which(duplicated(MouseMetaData.wrkin$mouse))]
-
-#merge with MLH1 and BivData
-impMLH1_data <- merge(MLH1_data, MouseMetaData.wrkin, by.x = "mouse")#don't apply the all parameters
-
-length(which(duplicated(impMLH1_data$Random.Name)))#29 duplicated, 6 duplicated..
-
-length(which(duplicated(impMLH1_data$fileName)))# 117 fileName, 107 duplicated
-#some of these are true duplicates, but some are the same image files that were quantified across multiple anon batches
-Quant2batches <- impMLH1_data[which(duplicated(impMLH1_data$fileName)),]#G, LEW, SPI females
-
-true.duplicates <- impMLH1_data[(which(duplicated(impMLH1_data$Random.Name))),]#but now these aren't duplicated...
-
-
-#integrating dates
-MouseMetaData.wrkin <- meta.data.file2[,c(1,4)]
-colnames(MouseMetaData.wrkin) <- c("mouse", "DOB")
-MouseMetaData.wrkin <- MouseMetaData.wrkin[!(is.na(MouseMetaData.wrkin$mouse)|MouseMetaData.wrkin$mouse==""),]
-
-MLH1.imprv <- merge(MLH1_data, MouseMetaData.wrkin)#don't apply the all parameters
-
-
-#MLH1 - 2921,   #ll -- 2227, 
-#when all.x 3418  (using all.x produces duplicate rows (in MLH1 ))
-
-#add the euth date col
-for( t in 1:length(impMLH1_data$mouse)){
-  euth.date <- as.Date(strsplit(impMLH1_data$mouse[t], split="_")[[1]][1], format= '%d%b%y')
-  impMLH1_data$date[t] <- euth.date
-}
-
-#add the age col (this might need to be a function to deal with the female exceptions)
 
 
 #reorder dataframe
@@ -129,26 +71,178 @@ MLH1_data <- MLH1_data %>%
   mutate(Original.Name = factor(Original.Name) )
 
 
-#remove mice that had bad stains
-#12sep16_MSM_f3(centromere signal bled into MLH1 signal), bad stain
-MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f3", MLH1_data$mouse) , ]
-MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f1", MLH1_data$mouse) , ]
 
+#Make a mouse level table
+AP_mouse_table <- ddply(MLH1_data, c("mouse"), summarise,
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(adj_nMLH1.foci),
+                        mean_co = as.numeric(format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3) ),
+                        cV = cv(adj_nMLH1.foci),
+                        var = format(round(   var(adj_nMLH1.foci),3), nsmall=3),
+                        sd   = round(sd(adj_nMLH1.foci), 3),
+                        se   = round(sd / sqrt(Ncells), 3)
+                        #quality?
+)
+
+source("src/CommonFunc_MLH1repo.R")
+AP_mouse_table <- add_strain(AP_mouse_table)
+AP_mouse_table <- add_subsp(AP_mouse_table)
+AP_mouse_table <- add_sex(AP_mouse_table)
+AP_mouse_table <- add_category(AP_mouse_table)
+
+#make sure they are all factors
+AP_mouse_table$mouse <- as.factor(AP_mouse_table$mouse)
+AP_mouse_table$sex <- as.factor(AP_mouse_table$sex)
+AP_mouse_table$strain <- as.factor(AP_mouse_table$strain)
+AP_mouse_table$subsp <-  as.factor(AP_mouse_table$subsp)
+
+
+
+#### Adding metaData and investigating age ect #######
+
+
+#why is the below named dissection file? to have a difference name?
+#then I make a whole new data frame?
+Dissection.File = read.csv("~./MLH1repo/data/Mouse_MetaData_7.30.19.csv", header = TRUE)
+
+#right now there are 2 sections for metadata and adding DOB?
+#add DOB
+#(find a way to compare the list of AP_mice with Metadata, or list folders in Images)
+
+#MouseMetaData = read.csv("~./MLH1repo/data/ALP_MouseMetadata.csv", header=TRUE )
+#meta.data.file2 = read.csv("~./MLH1repo/data/MouseMetaData61119.csv", header = TRUE)
+meta.data7.30.19 = read.csv("~./MLH1repo/data/Mouse_MetaData_7.30.19.csv", header = TRUE)
+#take note when I switch from 2 digit year (mouse, euth date) and 4-digit year 'DOB'!
+#remember to switch '/%y' to upper case 'Y'!!
+
+#all cols start as factors
+
+meta.data7.30.19$DOB.org <- meta.data7.30.19$DOB
+meta.data7.30.19$DOB <- as.Date(meta.data7.30.19$DOB, format= "%m/%d/%Y") #old had 'y' -- "Y" might be be right for 4 digit
+#change DOB to date
+meta.data7.30.19 <- meta.data7.30.19[!(is.na(meta.data7.30.19$mouse)|meta.data7.30.19$mouse==""),]
+
+#ADDING AGE, DOB - EUTH DATE 
+#must convert euth.date to date (remove the non dates)
+#AS long as the first characters are in the right format it seems to work
+meta.data7.30.19 <- add_euth_date(meta.data7.30.19)
+#DOB, euth-date are dates
+meta.data7.30.19 <- add_age(meta.data7.30.19)
+
+#try to write a throw warning..
+#length(meta.data7.30.19$age.weeks[meta.data7.30.19$age.weeks == 0])#not sure about the difference in < 0 and == 0
+
+
+#this section is merging meta data with MLH1,
+#this adds the DOB, age. to cell count data
+
+#reduce metadata down to 2 cols (mouse, DOB) to merge this with MLH1
+MouseMetaData.2col <- meta.data7.30.19[,c(1,4)]
+
+colnames(MouseMetaData.2col) <- c("mouse", "DOB")
+MouseMetaData.2col <- MouseMetaData.2col[!(is.na(MouseMetaData.2col$mouse)|MouseMetaData.2col$mouse==""),]
+MouseMetaData.2col <- add_euth_date(MouseMetaData.2col)
+MouseMetaData.2col <- add_age(MouseMetaData.2col)
+
+MouseMetaData.2col <- add_strain(MouseMetaData.2col)
+MouseMetaData.2col <- add_subsp(MouseMetaData.2col)
+MouseMetaData.2col <- add_sex(MouseMetaData.2col)
+MouseMetaData.2col <- add_category(MouseMetaData.2col)
+
+
+
+#check how many times there is a duplicate mouse!
+length(which(duplicated(MouseMetaData.2col$mouse)))
+#currently 0
+
+#this is how you get the names of the duplicate mice
+MouseMetaData.2col$mouse[which(duplicated(MouseMetaData.2col$mouse))]
+
+#merge with MLH1 and BivData
+impMLH1_data <- merge(MLH1_data, MouseMetaData.2col, by.x = "mouse")#don't apply the all parameters
+
+length(which(duplicated(impMLH1_data$Random.Name)))#6 duplicated..
+
+length(which(duplicated(impMLH1_data$fileName)))# 117 fileName, 121
+#some of these are true duplicates, but some are the same image files that were quantified across multiple anon batches
+#test for duplicates in Original.Name
+#mice which have been quantified in >1 batch (these might not be duplicated images)
+
+#toDo better test for duplicated cells
+
+Quant2batches <- impMLH1_data[which(duplicated(impMLH1_data$fileName)),]#G, LEW, SPI females
+#what's the difference with below..?
+true.duplicates <- impMLH1_data[(which(duplicated(impMLH1_data$Random.Name))),]#but now these aren't duplicated...
+
+
+#MLH1 - 2921,   #ll -- 2227, 
+#when all.x 3418  (using all.x produces duplicate rows (in MLH1 ))
+impMLH1_data <- add_euth_date(impMLH1_data)
+impMLH1_data <- add_age(impMLH1_data)
 
 #full mouse list
 Image_mice_dirs <- list.files(path = "C:/Users/alpeterson7/Documents/Images")
-#write this into a file
+
 
 ###########################
 # Construct Lists of Mice #
 ###########################
 
-#Dissected, but not imaged
+#lists of the pipeline
 
-#read in the dissection file
-#Dissection.File = read.csv("data/Disections_53019.csv", header=TRUE )
-#try to incorporate information from sp1 (the first stain)
-Dissection.File = read.csv("~./MLH1repo/data/Mouse_MetaData_6.12.19.csv", header = TRUE)
+#not_scoped = Image.dir - MLH1
+#not_image.passed = MLH1.org - MLH1
+#not_stained = dissection.list - Image.dir
+
+not_scoped <- unique(MLH1_data$mouse[!(MLH1_data$mouse %in% Image_mice_dirs)])
+#most of these are incorrect named mice or files that I need to address
+#fixed LEWES - LEW, 24sep14_WSB_m1 not in the dissection file
+#18feb18_LEW_m3, fileName in MLH1, can't find images
+#18sep  and 18feb are mixed up file names
+
+not_image.passed <- unique(MLH1_data$mouse[!(MLH1_data$mouse %in% Dissection.list)])#28 mice 
+X_fail_images <- unique(original_DF$mouse[!(original_DF$mouse %in% MLH1_data$mouse)])
+
+#there are a couple of mice (SPIC, PERC which had images in the original but not MLH1. mostly cells all 'X')
+not_stained <- unique(Dissection.File$mouse[!(Dissection.File$mouse %in% Image_mice_dirs)])
+not_stained2 <- unique(MouseMetaData.2col$mouse[!(MouseMetaData.2col$mouse %in% Image_mice_dirs)])
+not_stained.DF <- unique(MouseMetaData.2col[!(MouseMetaData.2col$mouse %in% Image_mice_dirs),])
+  
+#the above are the same
+
+length(not_stained2)
+
+#add ages and euth dates to dissection.file
+
+#remove mice that had bad stains
+#12sep16_MSM_f3(centromere signal bled into MLH1 signal), bad stain
+#MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f3", MLH1_data$mouse) , ]
+#MLH1_data <- MLH1_data[ !grepl("12sep16_MSM_f1", MLH1_data$mouse) , ]
+
+
+########
+# Ages #
+########
+
+#make facets of male mouse ages (histograms)
+#list of mice of the right age and not stained
+
+age.hist.all <- ggplot(data = MouseMetaData.2col[MouseMetaData.2col$sex=="male",], aes(age.weeks))+geom_histogram()+facet_wrap(~strain)
+
+age.hist.not.stained <- ggplot(data = not_stained.DF[not_stained.DF$sex=="male",], aes(age.weeks))+
+  geom_histogram()+facet_wrap(~strain)+ggtitle("Age Distribution of Mice Dissected")
+#16
+age.hist.not.stained.young <- ggplot(data = not_stained.DF[(not_stained.DF$sex=="male" & not_stained.DF$age.weeks < 13),], aes(age.weeks))+
+  geom_histogram()+facet_wrap(~strain)+ggtitle("Current Male Mice not stained")
+#7.. 
+
+#slides to track down and start staining
+#CZECH, SPIC, LEW, PWD and KAZ have 
+
+
+#why is the below named dissection file? to have a difference name?
+#then I make a whole new data frame?
+Dissection.File = read.csv("~./MLH1repo/data/Mouse_MetaData_7.30.19.csv", header = TRUE)
 
 #cleaning up of Disection file
 #standarize column names
@@ -166,7 +260,7 @@ meta.data.DF <- add_euth_date(meta.data.DF)
 meta.data.DF <- add_age(meta.data.DF)
 
 #write meta.data.DF to file
-write.table(meta.data.DF, "~./MLH1repo/results/meta.data.DF.txt", 
+write.table(meta.data.DF, "~./MLH1repo/results/meta.data.DF.7.31.19.txt", 
             sep="\t", row.names = FALSE)
 
 
@@ -177,18 +271,6 @@ Dissection.list <- as.character(Dissection.list)
 #figure out a way to incorporate the staining... to get a better idea of which slides 
 #to do next
 
-#remove the pero mice?
-
-missing.mice <- unique(Dissection.File$mouse[(MLH1_data$mouse %in% Image_mice_dirs)])
-
-missing.mice2 <- unique(Dissection.File$mouse[(MLH1_data$mouse %in% Dissection.list)])
-
-missing_mice99 = subset(Dissection.File, !(Dissection.File$mouse %in% MLH1_data$mouse ) )
-missing_mice101 = subset(Dissection.File, !(Dissection.File$mouse %in% original_DF$mouse ) )
-
-missing_mice99$mouse
-
-length(missing_mice99)#306   #
 
 # mice in MLH1, 126, 151, 
 # mice in dissection list, 431, 384...
@@ -197,7 +279,8 @@ length(missing_mice99)#306   #
 #compare to the original list and also mark the number/enrichment of X's
 #original_DF
 
-list2 <- mice_image_folders[(mice_image_folders %in% AP_mouse_table$mouse)]
+list2 <- Image_mice_dirs[(Image_mice_dirs %in% MLH1_data$mouse)]#this difference doesn't make much sense
+
 
 #Imaged, but not quantified
 #not sure if this is right?
@@ -244,29 +327,6 @@ write.csv(missing_mice.DF, file = "checking_mice.csv")
 
 
 
-#Make a mouse level table
-AP_mouse_table <- ddply(MLH1_data, c("mouse"), summarise,
-                         Nmice = length(unique(mouse)),
-                         Ncells  = length(adj_nMLH1.foci),
-                         mean_co = as.numeric(format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3) ),
-                         cV = cv(adj_nMLH1.foci),
-                        var = format(round(   var(adj_nMLH1.foci),3), nsmall=3),
-                         sd   = round(sd(adj_nMLH1.foci), 3),
-                         se   = round(sd / sqrt(Ncells), 3)
-                      #quality?
-)
-
-source("src/CommonFunc_MLH1repo.R")
-AP_mouse_table <- add_strain(AP_mouse_table)
-AP_mouse_table <- add_subsp(AP_mouse_table)
-AP_mouse_table <- add_sex(AP_mouse_table)
-AP_mouse_table <- add_category(AP_mouse_table)
-
-#make sure they are all factors
-AP_mouse_table$mouse <- as.factor(AP_mouse_table$mouse)
-AP_mouse_table$sex <- as.factor(AP_mouse_table$sex)
-AP_mouse_table$strain <- as.factor(AP_mouse_table$strain)
-AP_mouse_table$subsp <-  as.factor(AP_mouse_table$subsp)
 
 
 
