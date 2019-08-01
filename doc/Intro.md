@@ -1,4 +1,13 @@
-### Introduction
+### Introduction Heterochiasmy (in rate)
+
+
+
+Meiosis can be reduced to the expression of (2n -> 4n -> 2n -> 1n) which tracks the duplication of a diploid genome into haploid cell products. The meiotic program relies on crossovers and the process of recombination to ensure the correct separation of chromosomes. Under one of the most common forms of sexual reproduction, anisogamy where a species has distinct gametes, there is no first principle which would predict the evolution of sexually dimorphic recombination rates. Yet sexual dimorphism for this trait, called heterochiasmy, is commonly observed in dioecious species, suggesting that other meiotic traits which distinguish the gametes, for example symmetrical vs asymmetrical cell division, may impose selection for sexually dimorphic recombination rates. 
+
+
+
+Themes?
+
 
 outline
 
