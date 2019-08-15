@@ -5,6 +5,7 @@ date: "`r format(Sys.time(), '%d %B %Y')`"
 output:
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
 ```{r setup, echo=FALSE, include = FALSE}
@@ -16,7 +17,9 @@ library(lattice)
 library(dplyr)
 setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 #setwd("C:/Users/April/Desktop/MLH1repo")
-load(file="data/MLH1/MLH1_data_setup.RData")
+#load(file="data/MLH1/MLH1_data_setup.RData")
+load(file="data/MLH1/MLH1_data_setup_8.15.19.RData")
+
 ```
 
 #### Research Description
@@ -27,7 +30,7 @@ Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse s
 
 - Display plots and figures of distributions of MLH1 counts to assess intial overall patterns.
 
--  *Report basic statistics of results and to help keep track of the number of images for each category and mouse*
+-  Report basic statistics of results and to help keep track of the number of images for each category and mouse
 
 #### Discription of quantification process
 
@@ -146,18 +149,30 @@ kable(table(MLH1_data$category), col.names = c("Category","Cells"), label = "Num
 ```
 
 
-These are the tables for the number of mice and cells which have been quantified. (what is in the 'other' category?)
+
+
+These are the tables for the number of cells and mice which have been quantified.
+The 'Other' are F1 crosses.
+
+
 
 
 
 #### Initial Patterns from MLH1 distributions
 
 ```{r first.boxplots, echo=FALSE, fig.align='center'}
+#what?
+#MLH1_data <- MLH1_data[MLH1_data$strain]
+
 #the below ordering works!! keep it
-MLH1_data$strain<- factor(MLH1_data$strain, levels =c("G", "LEWES",
-              "WSB", "PWD","MSM","KAZ","CAST","HMI","SPRET","SPIC", "other"), order=T )
+MLH1_data$strain<- factor(MLH1_data$strain, levels =c("G", "LEW","WSB",
+              "PWD","MSM","MOLF","CZECH","SKIVE",
+              "KAZ","TOM","AST",
+              "CAST","HMI","SPRET","SPIC", "other"), order=T )
 #order the data frame
 MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
+
+#don't know why this won't do the right order...
 #set the order of another column, based on another variable (so that when)
 
 #try to make sure sacles are the same
@@ -169,14 +184,19 @@ MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
 # sort your dataframe, by the focal categories
 #MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 
-ff <- ggplot(MLH1_data, aes(x = as.factor(mouse), y = adj_nMLH1.foci, fill= strain ))+geom_boxplot()+ ggtitle("Boxplots of MLH1 distributions by mouse") + theme(axis.title.x=element_blank(),
+#try this for ordering
+#MLH1_data[order(MLH1_data$strain), ]
+
+#can't re-order the miceagg
+ff <- ggplot(MLH1_data[order(MLH1_data$strain), ], 
+             aes(x = as.factor(mouse), y = adj_nMLH1.foci, fill= strain ))+geom_boxplot()+ ggtitle("Boxplots of MLH1 distributions by mouse") + theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00","red", "yellowgreen", "green","purple","grey1", "grey" )) +
- ylim( c((min(MLH1_data$adj_nMLH1.foci)-3) ), (max(MLH1_data$adj_nMLH1.foci)+5))
-ff <- ff   + facet_wrap(~ sex, scales="free")
+        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue", "coral4","coral1", "#E69F00","red", "yellowgreen", "green","purple","grey1", "grey", 
+        "grey","grey","grey",  "grey","grey","grey" )) +
+ ylim( c((min(MLH1_data$adj_nMLH1.foci)-3) ), (max(MLH1_data$adj_nMLH1.foci)+5)) + facet_wrap(~ sex, scales="free")
 
 #boxplots by strain
-ss <- ggplot(MLH1_data, aes(x = as.factor(strain), y = adj_nMLH1.foci, fill= strain )) + geom_boxplot()  + ggtitle("Boxplots of MLH1 distributions by mouse") + theme(axis.title.x=element_blank(),
+ss <- ggplot(MLH1_data, aes(x = as.factor(strain), y = adj_nMLH1.foci, fill= strain )) + geom_boxplot()  + ggtitle("Boxplots of MLH1 distributions by strain") + theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00","red", "yellowgreen", "green", "purple","grey1","grey" )) +
   ylim( c( (min(MLH1_data$adj_nMLH1.foci)-3), (max(MLH1_data$adj_nMLH1.foci)+5)) )
@@ -187,7 +207,12 @@ ff
 ss
 ```
 
-After taking the data from 2 highest cell quality, some but not all mouse means converge.
+
+
+
+### Distributions of MLH1 counts
+
+
 
 ```{r, histogram, echo=FALSE, fig.caption= "histograms", warning=FALSE, fig.align='center'}
 #consider making distribution with quality considered...
@@ -199,7 +224,61 @@ histM
 ```
 
 
-```{r high qual, fig.caption="boxplots of MLH1 distributions", fig.height=5, fig.width=5, echo=FALSE, warnings=FALSE}
+
+### Histograms of Mouse Ages
+
+
+
+```{r age.hists, echo=FALSE}
+#meta.data.file2 = read.csv("~./MLH1repo/data/MouseMetaData61119.csv", header = TRUE)
+meta.data.file2 = read.csv("~./MLH1repo/data/Mouse_MetaData_6.12.19.csv", header = TRUE)
+meta.data.file2 <- meta.data.file2[!(is.na(meta.data.file2$mouse)|meta.data.file2$mouse==""),] #375
+
+meta.data.file2$DOB <- as.Date(meta.data.file2$DOB, format= "%m/%d/%Y")#%Y 2000, %y '18,
+
+#make Mouse meta data work
+MouseMetaData.wrkin <- meta.data.file2[,c(1,4)]
+colnames(MouseMetaData.wrkin) <- c("mouse", "DOB")
+MouseMetaData.wrkin <- MouseMetaData.wrkin[!(is.na(MouseMetaData.wrkin$mouse)|MouseMetaData.wrkin$mouse==""),]
+
+#do this for the mouse table instead of the MLH1 table
+MLH1.imprv <- merge(MLH1_data, MouseMetaData.wrkin)#don't apply the all parameters
+
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+MLH1.imprv <- add_euth_date(MLH1.imprv)
+#
+MLH1.imprv$euth.date2 <- MLH1.imprv$euth.date
+MLH1.imprv$euth.date <- as.Date(as.character(MLH1.imprv$euth.date2), format='%d%b%y')
+
+MLH1.imprv <- add_age(MLH1.imprv)
+
+#remove mice that are older than 20 weeks
+MLH1.imprv.male <- MLH1.imprv[MLH1.imprv$sex == "male", ]
+MLH1.imprv.male <- MLH1.imprv.male[MLH1.imprv.male$age.weeks < 20, ]
+
+pp <- ggplot(MLH1.imprv.male, aes(age.weeks))+geom_histogram()+facet_wrap(~category)+ggtitle("Age Distributions")
+pp
+
+
+#what is this meta.data.file?
+#meta.data.file2 <- add_strain(meta.data.file2)
+#meta.data.file2 <- add_sex(meta.data.file2)
+#meta.data.file2 <- add_category(meta.data.file2)
+#meta.data.file2 <- add_euth_date(meta.data.file2)
+#meta.data.file2 <- add_age(meta.data.file2)
+
+#qq <- ggplot(meta.data.file2[meta.data.file2$sex == "male",], aes(age.weeks))+geom_histogram()+facet_wrap(~category)+ggtitle("recorded ages of dissected mice")
+#qq
+
+```
+
+
+
+#### Assesment of Quality Scores
+
+
+
+```{r high qual, fig.caption="boxplots of MLH1 distributions", fig.height=5, fig.width=5, echo=FALSE, warnings=FALSE, include=FALSE}
 
 #MLH1_data$quality <- as.numeric(MLH1_data$quality) #this needs to be run for the subsetting to work
 highest_qual_df <-  subset(MLH1_data, as.numeric(MLH1_data$quality) <= 2 )
@@ -231,6 +310,8 @@ not_passed <- as.vector(unique(MLH1_data[!(unique(MLH1_data$mouse) %in% passed_m
 passed_mice_df <- MLH1_data[ (as.numeric(MLH1_data$quality) < 5), ]
 ```
 
+
+
 #### Comparison of MLH1 distributions
 
 
@@ -253,7 +334,7 @@ After taking the data from 2 highest cell quality, some but not all mouse means 
 
 Human quantification seems to be biased towards rating cells with more MLH1 foci as higher quality. Unbiased cell quality assignment, would not show a positive correlation with quality and nMLH1. (CAST female data is fake)
 
-```{r, scatter plots of nMLH1 by score, echo=FALSE, fig.cap="caption"}
+```{r, scatter plots of nMLH1 by score, echo=FALSE, fig.cap="MLH1 means across quality scores"}
 #make lattice / plots seperated by strain and sex
 #facet
 
@@ -376,49 +457,12 @@ In some mice there seems to be bimodel cell populations, those of clearly high q
 Table of the mice used and MLH1 stats.
 
 ```{r, fig.height=2, fig.width=4, echo=FALSE}
-#this table is 
+#this table is TOO big
 #this table is saved in the .RData file
 #use kable to make tables. warning this might not work for github Rmd.
 n <- kable(AP_mouse_table)
-n
+
 ```
 
-#### Power Calculations
-
-Main questions to address:
- 
- > *How many cells per mouse should be sampled?*
- 
- > *How many mice per strain should be sampled?*
-
-Outline discription of the loop for comparing sample size effects
-
-i) take ~100 independant samples of total images across different sample sizes (10%, 25%, 50%, 75%, 90%)
-ii) then run t.tests across those samples, and report the p value 
-iii) make a table of the p values for these sample permutations
-iv) plot the p values or mean p values across sample sizes
-
-Currently this section is under construction.
 
 
-```{r, include=FALSE}
-#passed_mice_data <- MLH1_data[MLH1_data$mouse %in% passed_mice, ]
-#non_passed_mice_data <- MLH1_data[MLH1_data$mouse %in% not_passed, ]
-
-#make a column to mark if observation comes from passed or not passed mouse
-#turn this into boxplot and sort the category order, otherwise it's hard to any patterns
-#sc <- qplot(mouse, nMLH1.foci,  colour = category, data = non_passed_mice_data, main="s", xlab="s", ylab="es")
-#sc + theme(legend.position="none")
-
-#sc <- qplot(mouse, nMLH1.foci,  colour = category, data = passed_mice_data, main="s", xlab="s", ylab="es")
-#sc + theme(legend.position="none")
-
-# not working not sure of the purpose
-#count =1
-#for(i in MLH1_data$file.name){
-#  templist= strsplit(i, split="_")[[1]]
-#  if(MLH1_data$mouse %in% passed_mice) 
-#  MLH1_data$mouse[count] <- c
-#  count= count +1
-#}
-```
