@@ -119,7 +119,7 @@ AP_mouse_table$subsp <-  as.factor(AP_mouse_table$subsp)
 #"the distribution of quality scores is ", table(MLH1_data$quality)  ) )
 
 
-save.image("data/MLH1/MLH1_data_setup_8.9.19.RData")
+save.image("data/MLH1/MLH1_data_setup_8.15.19.RData")
 #  OutPut: big large MLH1_data (AP's) df, big DF of BD with just the mice I want.
 #  MLH1_data_table, means and variance of AP and BD MLH1 values. made from seperate tables from AP and BD data.
 #  make sure decimal places are consistant
