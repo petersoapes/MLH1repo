@@ -13,6 +13,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(plyr)
 library(ggplot2)
 
+#todo -- load in female data
+
 setwd("~./MLH1repo/")
 #load BivData
 #load(file="~./MLH1repo/data/MLH1_BivData.RData")
@@ -21,25 +23,64 @@ setwd("~./MLH1repo/")
 #setwd("C:/Users/April/Desktop/MLH1repo/") #don't have two
 
 #DONT LOAD MLH1 yet -- keep these seperate for now
-#load(file="~./MLH1repo/data/MLH1/MLH1_data_setup_62419.RData")
+load(file="~./MLH1repo/data/MLH1/MLH1_data_setup_62419.RData")
 #MLH1_data_setup_62419.RData
 #KAZ_male_data = read.csv("~./data/KAZ_BivData.csv")
 meta.data.file2 = read.csv("~./MLH1repo/data/Mouse_MetaData_6.12.19.csv", header = TRUE)
 
+
+
 #1. Curated Data
+PWD.KAZ_curate_BivData.full =
+  read.csv("~./MLH1repo/data/BivData/Merged_Curate_PWD.KAZ_BivData.csv", header = TRUE)
+
+PWD.KAZ_curate_BivData.full <- PWD.KAZ_curate_BivData.full[!(is.na(PWD.KAZ_curate_BivData.full$SC.pass) ),] 
+
+PWD.KAZ_curate_BivData <- PWD.KAZ_curate_BivData.full[PWD.KAZ_curate_BivData.full$SC.pass == 1,]
+
+
 #PWD set 4 mice, ~100 objs each)
-PWD_curate_BivData.full =
-  read.csv("~./MLH1repo/data/BivData/Merged_Curate_PWD_BivData.csv", header = TRUE)
+#PWD_curate_BivData.full =
+#  read.csv("~./MLH1repo/data/BivData/Merged_Curate_PWD_BivData.csv", header = TRUE)
 #remove bad segmentation
-PWD_curate_BivData <- PWD_curate_BivData.full[PWD_curate_BivData.full$SC.pass == 1,]
+#PWD_curate_BivData <- PWD_curate_BivData.full[PWD_curate_BivData.full$SC.pass == 1,]
 
 #KAZ 3 mice >200 objs each
-KAZ_curate_BivData.full =
-  read.csv("~./MLH1repo/data/BivData/curate_KAZ_BivData.csv", header = TRUE)
-KAZ_curate_BivData <- KAZ_curate_BivData.full[KAZ_curate_BivData.full$SC.pass == 1,]
+#KAZ_curate_BivData.full =
+#  read.csv("~./MLH1repo/data/BivData/curate_KAZ_BivData.csv", header = TRUE)#not sure where to find this file
+#KAZ_curate_BivData <- KAZ_curate_BivData.full[KAZ_curate_BivData.full$SC.pass == 1,]
 
 #merged KAZ and PWD
-curate_BivData <- rbind(KAZ_curate_BivData, PWD_curate_BivData)
+#curate_BivData <- rbind(KAZ_curate_BivData, PWD_curate_BivData)
+
+
+#incorporate female data
+PWD.KAZ_BivData_8.14.19_curated.full = 
+  read.csv("~./MLH1repo/data/BivData/PWD.KAZfemale_curated_8.15.19.csv", header = TRUE)#740
+#merge and check that they have the same columns
+str(PWD.KAZ_BivData_8.14.19_curated.full)
+
+PWD.KAZ_BivData <- PWD.KAZ_BivData_8.14.19_curated.full[!(is.na(PWD.KAZ_BivData_8.14.19_curated.full$SC.pass) ),] 
+
+PWD.KAZ_BivData <- PWD.KAZ_BivData[PWD.KAZ_BivData$SC.pass == 1,]
+
+str(PWD.KAZ_BivData)
+
+curate_PWD.KAZ_BivData_M.F <- rbind(PWD.KAZ_curate_BivData, PWD.KAZ_BivData)
+str(curate_PWD.KAZ_BivData_M.F)
+
+#forgot why I'm removing these
+#curate_PWD.KAZ_BivData_M.F <- curate_PWD.KAZ_BivData_M.F[curate_PWD.KAZ_BivData_M.F$Obj.ID != "25feb15_8oct14_PWD_f8_sp1_1_rev_19",]
+#curate_PWD.KAZ_BivData_M.F <- curate_PWD.KAZ_BivData_M.F[curate_PWD.KAZ_BivData_M.F$Obj.ID != "9aug15_23apr15_PWD_f2_sp1_9.1_rev_15",]
+#curate_PWD.KAZ_BivData_M.F <- curate_PWD.KAZ_BivData_M.F[curate_PWD.KAZ_BivData_M.F$Obj.ID != "9aug15_23apr15_PWD_f2_sp1_9.1_rev_18",]
+
+
+#male+female KAZ and PWD bivData
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+curate_PWD.KAZ_BivData_M.F <- add_mouse(curate_PWD.KAZ_BivData_M.F)
+curate_PWD.KAZ_BivData_M.F <- add_category(curate_PWD.KAZ_BivData_M.F)
+curate_PWD.KAZ_BivData_M.F <- add_strain(curate_PWD.KAZ_BivData_M.F)
+curate_PWD.KAZ_BivData_M.F <- add_sex(curate_PWD.KAZ_BivData_M.F)
 
 
 #2. Hand measures (merge first, then add extra cols)
@@ -72,8 +113,8 @@ HandMeasures_BivData <- add_strain(HandMeasures_BivData)
 HandMeasures_BivData <- add_sex(HandMeasures_BivData)
 
 #make indevidal DFs by strain just in case...
-PWD.BivData.Hand_measures <- HandMeasures_BivData[HandMeasures_BivData$strain == "PWD",]
-KAZ.BivData.Hand_measures <- HandMeasures_BivData[HandMeasures_BivData$strain == "KAZ",]
+#PWD.BivData.Hand_measures <- HandMeasures_BivData[HandMeasures_BivData$strain == "PWD",]
+#KAZ.BivData.Hand_measures <- HandMeasures_BivData[HandMeasures_BivData$strain == "KAZ",]
 ```
 
 
@@ -81,6 +122,10 @@ ToDo:
   -add in IFD calqs
   -add rbar calqs
   -make the basic plots ect
+  -analyze female patterns
+  
+  -what are the distributions of female IFDs and nrm IFDs
+  -what are the proportions of chrm classes?
 
 
 ```{r Merge.manual.auto, echo=FALSE}
@@ -95,10 +140,11 @@ ToDo:
 
 #merg4.PWD_curate_BivData <-    #remove "avergeRED", numberCrossOvers
 #merg4.PWD_hand_measure_BivData.full <- #manual.blobject.name
+#curate_PWD.KAZ_BivData_M.F
 
 #auto.curate
 auto.c_names <- c("fileName","centromere_ABS_Position","centromere_PER_Position",  "chromosomeLength","boxNumber","Obj.ID","SC.pass","foci.pass","curated.1pass.0fail.","curation.notes","hand.foci.count","Foci1","Foci2","Foci3" ,"mouse", "strain","sex","category")
-new.DF <- curate_BivData[ , auto.c_names, drop = TRUE]
+new.DF <- curate_PWD.KAZ_BivData_M.F[ , auto.c_names, drop = TRUE]
   
 #manual
 manual_names <- c("fileName","chromosomeLength","centromere_ABS_Position","boxNumber","Obj.ID","Foci1","Foci2","Foci3","centromere_PER_Position","SC.pass","foci.pass","curated.1pass.0fail.", "mouse", "category","strain","sex","curation.notes", "hand.foci.count")
@@ -107,9 +153,16 @@ new.DF2 <- HandMeasures_BivData[ , manual_names, drop = TRUE]
 #Merge the 2 DFs
 Auto.Man_BivData <- rbind(new.DF, new.DF2)
 
+table(Auto.Man_BivData$hand.foci.count[Auto.Man_BivData$sex == "female"], Auto.Man_BivData$strain[Auto.Man_BivData$sex == "female"])
+
+
+#remove empty cells
+#remove extra empty rows
+Auto.Man_BivData <- Auto.Man_BivData[!(is.na(Auto.Man_BivData$SC.pass) | Auto.Man_BivData$SC.pass == ""), ]
+Auto.Man_BivData <- Auto.Man_BivData[(Auto.Man_BivData$SC.pass == "1"), ]
+
 
 #make WHOLE CELL DF
-
 #some cleanup may be required for the manual data; remove all XY, mark chrm classes for all 
 #make better variable name
 Auto.Man_BivData_cells <- ddply(Auto.Man_BivData, c("fileName"), summarise,
@@ -138,7 +191,6 @@ whole.cell.DF <- ddply(whole.cell.DF, .(fileName), transform, rank = rank(chromo
 short.bin.Bivs <- whole.cell.DF[whole.cell.DF$rank < 6,]
 long.bin.Bivs <- whole.cell.DF[whole.cell.DF$rank > 14,]
 ```
-
 
 
 ```{r Melt.DF}
@@ -174,7 +226,6 @@ colnames(Auto.Man_BivData.melt) <- c( "fileName", "chromosomeLength", "centromer
 Auto.Man_BivData.melt <- Auto.Man_BivData.melt[!(is.na(Auto.Man_BivData.melt$nrmFoci.Type) | Auto.Man_BivData.melt$nrmFoci.pos==""), ]
 
 #make PWD and KAZ specific melt.DF ... if you want
-
 #make whole cell melt
 whole.cell_melt.DF <- Auto.Man_BivData.melt[Auto.Man_BivData.melt$fileName %in% whole.cell.list,]
 #add rank to these measures
@@ -182,11 +233,84 @@ whole.cell_melt.DF <- ddply(whole.cell_melt.DF, .(fileName), transform, rank = r
 ```
 
 
+```{r Female.Nrm.Pos}
+melt.PWD.female  <- Auto.Man_BivData.melt[(Auto.Man_BivData.melt$sex == "female") & (Auto.Man_BivData.melt$strain == "PWD"),]
+melt.KAZ.female <- Auto.Man_BivData.melt[(Auto.Man_BivData.melt$sex == "female") & (Auto.Man_BivData.melt$strain == "KAZ"),]
+
+nPWD.F.obs <- ddply(.data=melt.PWD.female, 
+                 .(hand.foci.count),
+                 summarize, 
+                 n=paste("n =", length(unique(Obj.ID))))
+
+
+nKAZ.F.obs <- ddply(.data=melt.KAZ.female, 
+                 .(hand.foci.count),
+                 summarize, 
+                 n=paste("n =", length(unique(Obj.ID))))
+
+
+#figures for foci positions
+melt.plot.PWD.female    <- ggplot(melt.PWD.female,
+              aes(x=nrmFoci.pos, fill=nrmFoci.Type) ) + 
+  
+  geom_histogram(alpha= 0.5,stat = "bin", position= "identity")+
+ facet_wrap(~ hand.foci.count, scales="free", ncol=1)+ggtitle("PWD female norm foci positions")+
+ geom_text(data=nPWD.F.obs, aes(x=.25, y=7, label=n), 
+         colour="black", inherit.aes=FALSE, parse=FALSE)+xlim(c(0,1)) + ylim(c(0,13))
+
+
+melt.plot.KAZ.female    <- ggplot(melt.KAZ.female,
+              aes(x=nrmFoci.pos, fill=nrmFoci.Type) ) + 
+  geom_histogram(alpha= 0.5,stat = "bin", position= "identity")+
+ facet_wrap(~ hand.foci.count, scales="free", ncol=1)+ggtitle("KAZ female norm foci positions")+
+ geom_text(data=nKAZ.F.obs, aes(x=.25, y=7, label=n), 
+         colour="black", inherit.aes=FALSE, parse=FALSE)+xlim(c(0,1)) + ylim(c(0,13))
+
+#t.tests for mean F positions
+CO1.F1.t.test <- t.test(melt.KAZ.female$nrmFoci.pos[(melt.KAZ.female$nrmFoci.Type == "nrm.F1.pos") &(melt.KAZ.female$hand.foci.count == 1)],
+                        melt.PWD.female$nrmFoci.pos[(melt.PWD.female$nrmFoci.Type == "nrm.F1.pos") &(melt.PWD.female$hand.foci.count == 1)]  )
+
+
+CO2.F1.t.test <- t.test(melt.KAZ.female$nrmFoci.pos[(melt.KAZ.female$nrmFoci.Type == "nrm.F1.pos") &(melt.KAZ.female$hand.foci.count == 2)],
+                        melt.PWD.female$nrmFoci.pos[(melt.PWD.female$nrmFoci.Type == "nrm.F1.pos") &(melt.PWD.female$hand.foci.count == 2)] )
+
+
+CO2.F2.t.test <- t.test(melt.KAZ.female$nrmFoci.pos[(melt.KAZ.female$nrmFoci.Type == "nrm.F2.pos") &(melt.KAZ.female$hand.foci.count == 2)],
+                        melt.PWD.female$nrmFoci.pos[(melt.PWD.female$nrmFoci.Type == "nrm.F2.pos") &(melt.PWD.female$hand.foci.count == 2)] )
+#none of the positions are significantly different
+
+
+```
+
+
+
+```{r}
+#another set of plots
+
+PWD.female <- Auto.Man_BivData[(Auto.Man_BivData$strain == "PWD") & (Auto.Man_BivData$sex == "female"), ]
+KAZ.female <- Auto.Man_BivData[(Auto.Man_BivData$strain == "KAZ") & (Auto.Man_BivData$sex == "female"), ] 
+
+
+#figures for foci positions
+PWD.female_foci1_foci2_plot    <- ggplot(PWD.female[PWD.female$hand.foci.count == 2,],  aes(x=Foci1, y=Foci2, color = chromosomeLength) ) + geom_point()+
+  geom_abline(intercept = .5, slope = 1, color="red")+xlim(c(0,100)) + ylim(c(0,200))+ggtitle("PWD female")+scale_colour_gradientn(colours=rainbow(5))
+#the 5 in rainbow increases the difference between colors
+
+KAZ.female_foci1_foci2_plot    <- ggplot(KAZ.female[KAZ.female$hand.foci.count == 2,],  aes(x=Foci1, y=Foci2, color = chromosomeLength) ) + geom_point()+geom_abline(intercept = .5, slope = 1, color="red")+xlim(c(0,100)) + ylim(c(0,200))+ggtitle("KAZ female")+scale_colour_gradientn(colours=rainbow(5))
+  
+#make points slightly bigger
+
+```
+
+
+
+
+
 ```{r saveRdata}
 # all the main DFs have been made ...
 #save rdata file!
 
-save.image("~./MLH1repo/data/BivData/PWD.KAZ_BivData_data.RData")
+save.image("~./MLH1repo/data/BivData/PWD.KAZ_BivData_data_8.14.19.RData")
 ```
 
 
@@ -376,30 +500,51 @@ PWD.KAZ_MLH1.imprv <- add_age(PWD.KAZ_MLH1.imprv)
 
 Make plots for SC lengths
 
-kk <- ggplot(data=bin.short.PWD, aes(x=mouse,y=chromosomeLength))+geom_jitter(width = 0.25)+ggtitle("short bins")
 
 
 ```{r SC.lengths}
 library(ggplot2)
 #SC lenghts
 
+##kk <- ggplot(data=bin.short.PWD, aes(x=mouse,y=chromosomeLength))+geom_jitter(width = 0.25)+ggtitle("short bins")
+
+
 #strange number of low chrm lengths
 #hist(SC.passed.PWD$chromosomeLength)
 
-SC.PWD <- ggplot(data = PWD_curate_BivData, aes(color=fileName,x=mouse, y= chromosomeLength))+geom_jitter()+theme(legend.position="none")+ylim(c(35,150))+ggtitle("PWD SC lengths")
+table(Auto.Man_BivData$sex)
+
+PWD.Auto.Man_BivData <- Auto.Man_BivData[Auto.Man_BivData$strain == "PWD",]
+
+SC.PWD <- ggplot(data = PWD.Auto.Man_BivData, aes(color=fileName,x=mouse, y= chromosomeLength))+geom_jitter()+theme(legend.position="none")+ylim(c(35,250))+ggtitle("PWD SC lengths") +facet_wrap(~sex)
 #the SC range is 45 - 150 (for PWD)
 
-SC.KAZ <- ggplot(data = KAZ_curate_BivData, aes(color=fileName,x=mouse, y= chromosomeLength))+geom_jitter()+
-  theme(legend.position="none")+ylim(c(35,150))+ggtitle("KAZ SC lengths")
+KAZ.Auto.Man_BivData <- Auto.Man_BivData[Auto.Man_BivData$strain == "KAZ",]
+
+SC.KAZ <- ggplot(data = KAZ.Auto.Man_BivData, aes(color=fileName,x=mouse, y= chromosomeLength))+geom_jitter()+
+  theme(legend.position="none")+ylim(c(35,250))+ggtitle("KAZ SC lengths")+facet_wrap(~sex)
 #can I add the means?
 
 SC.PWD
 SC.KAZ
 
-KAZ_mean_SC <- ddply(KAZ_curate_BivData, c("mouse"), summarise,
+str(PWD.Auto.Man_BivData)
+
+KAZ_mean_SC <- ddply(KAZ.Auto.Man_BivData, c("mouse","sex"), summarise,
                             
-                    boxs.IDd = max(boxNumber),
-                    nboxes_passed = length(boxNumber),
+                    boxs.IDd = max(as.numeric(boxNumber)),
+                    nboxes_passed = length(as.numeric(boxNumber)),
+                    pass_rate = nboxes_passed/boxs.IDd,#I don't know if pass rate is working
+                            
+                    avSC.length = mean(chromosomeLength),
+                    varSC.length = var(chromosomeLength)
+)
+
+
+PWD_mean_SC <- ddply(PWD.Auto.Man_BivData, c("mouse","sex"), summarise,
+                            
+                    boxs.IDd = max(as.numeric(boxNumber)),
+                    nboxes_passed = length(as.numeric(boxNumber)),
                     pass_rate = nboxes_passed/boxs.IDd,
                             
                     avSC.length = mean(chromosomeLength),
@@ -407,29 +552,17 @@ KAZ_mean_SC <- ddply(KAZ_curate_BivData, c("mouse"), summarise,
 )
 
 
-PWD_mean_SC <- ddply(PWD_curate_BivData, c("mouse"), summarise,
-                            
-                    boxs.IDd = max(boxNumber),
-                    nboxes_passed = length(boxNumber),
-                    pass_rate = nboxes_passed/boxs.IDd,
-                            
-                    avSC.length = mean(chromosomeLength),
-                    varSC.length = var(chromosomeLength)
-)
+t.test(KAZ.Auto.Man_BivData$chromosomeLength[KAZ.Auto.Man_BivData$sex == "male"],PWD.Auto.Man_BivData$chromosomeLength[PWD.Auto.Man_BivData$sex == "male"]   )#p is small
 
-
-t.test(KAZ_curate_BivData$chromosomeLength,PWD_curate_BivData$chromosomeLength)
+t.test(KAZ.Auto.Man_BivData$chromosomeLength[KAZ.Auto.Man_BivData$sex == "female"],PWD.Auto.Man_BivData$chromosomeLength[PWD.Auto.Man_BivData$sex == "female"]   )#p not as small
 
 ```
 
-the PWD has longer means
-
-
+The PWD has longer mean SC. Female KAZ are a bit larger. PWD female aren't as small.
 
 
 
 ```{r}
-
 
 show.plot <- ggplot(data =KAZ_m2_curate_bivData_SC_pass, aes(y=chromosomeLength, x=fileName))+geom_point()
 
@@ -482,14 +615,93 @@ KAZ.autoBivData_cells_raw <- ggplot(data=KAZ_BivData_cells, aes(x=boxs.IDd))+
 
 ```
 
-KAZ.length.by.class <- ggplot(data=KAZ_whole.cell.BivData, aes(x=fileName,y=chromosomeLength))+geom_jitter(width = 0.25, aes(color=as.factor(hand.foci.count), shape=mouse))+ggtitle("PWD full cell SC lengths")
+
+KAZ.length.by.class <- ggplot(data=KAZ_whole.cell.BivData, aes(x=fileName,y=chromosomeLength)) + geom_jitter(width = 0.25, aes(color=as.factor(hand.foci.count), shape=mouse))+ggtitle("PWD full cell SC lengths")
 
 KAz have more 0CO. Most of the NA's for CO count are from auto- where I was whisy-washy during curation.
 
 #10mar15_PWD_m1: 13w
 #10mar15_PWD_m2: 13w
-#18may15_PWD_m1:  7w -- use this one
+
+#18may15_PWD_m1:  7w -- use this one... these are good cells
 #18may15_PWD_m2: 7w  (seems like not all of the images were run through the algorithm)
+
+
+
+```{r}
+
+#test the correlation of F points between cells
+#but make sure 
+
+#all.2CO
+#all.2CO_PWD
+
+Foci_Corr.PWD <- ggplot(data=whole.cell.2CO.PWD, aes(x=Foci1.PER, y=Foci2.PER))+geom_point( aes(color=as.factor(rank) ) )+ggtitle("correletaion of Nrm Foci Posisitons")+facet_wrap(~mouse) +ylim(c(0,1))+xlim(c(0,1))
+
+#theme(legend.position="none")
+
+
+whole.cell.KAZ$Foci1.PER <- whole.cell.KAZ$Foci1 / whole.cell.KAZ$chromosomeLength
+whole.cell.KAZ$Foci2.PER <- whole.cell.KAZ$Foci2 / whole.cell.KAZ$chromosomeLength
+whole.cell.KAZ$Foci3.PER <- whole.cell.KAZ$Foci3 / whole.cell.KAZ$chromosomeLength
+
+whole.cell.KAZ.2CO <- whole.cell.KAZ[whole.cell.KAZ$hand.foci.count == 2,]
+whole.cell.KAZ.2CO <- droplevels(whole.cell.KAZ.2CO)
+
+whole.cell.KAZ.2CO <- whole.cell.KAZ.2CO[!(is.na(whole.cell.KAZ.2CO$Foci1.PER) | whole.cell.KAZ.2CO$Foci1.PER == ""), ]
+
+Foci_Corr.KAZ <- ggplot(data=whole.cell.KAZ.2CO, aes(x=Foci1.PER, y=Foci2.PER))+geom_point(aes(color=interaction(fileName,mouse) ) )+ggtitle("correletaion of Nrm Foci Posisitons")+facet_wrap(~mouse) +ylim(c(0,1))+xlim(c(0,1))
+
+
+whole.cell.2CO.PWD <- whole.cell.2CO.PWD[whole.cell.2CO.PWD$hand.foci.count == 2,]
+whole.cell.2CO.PWD <- droplevels(whole.cell.2CO.PWD)
+
+table(whole.cell.2CO.PWD$hand.foci.count)
+
+
+Foci_Corr.PWD2 <- ggplot(data=whole.cell.2CO.PWD, aes(x=Foci1.PER, y=Foci2.PER))+geom_point(aes(color=interaction(fileName,mouse) ) )+ggtitle("correletaion of Nrm Foci Posisitons")+facet_wrap(~mouse) +ylim(c(0,1))+xlim(c(0,1))
+
+Foci_Corr.PWD2 <- ggplot(data=whole.cell.2CO.PWD, aes(x=Foci1.PER, y=Foci2.PER))+geom_point(aes(color=interaction(fileName,mouse) ) )+ggtitle("correletaion of Nrm Foci Posisitons")+facet_wrap(~mouse) +ylim(c(0,1))+xlim(c(0,1))
+
+
+PWD.1 <- whole.cell.2CO.PWD[whole.cell.2CO.PWD$mouse == "1mar15_PWD_m1",]
+
+PWD.1$Per2_Per1 <- PWD.1$Foci2.PER - PWD.1$Foci1.PER
+
+
+Foci_Corr.PWD99 <- ggplot(data=PWD.1, aes(x=Foci1.PER, y=Foci2.PER))+geom_point(aes(color=interaction(fileName) ) )+ggtitle("correletaion of Nrm Foci Posisitons")+facet_wrap(~fileName) +ylim(c(0,1))+xlim(c(0,1))+
+  geom_abline(intercept = .5, slope = 1, color="red")+
+  geom_abline(intercept = 0, slope = 1)
+
+#making slopes of 1 (then they are horizontal)
+#the slope of blue lines doesn't fit that slope
+
+#1:1 slope should be interperted as consistant process / rule within cell
+
+
+#strong pos correlation of Foci positions
+
+Foci_Corr.PWD88 <- ggplot(data=PWD.1, aes(x=Foci1, y=Foci2))+geom_point(aes(color=interaction(rank) ) )+ggtitle("correletaion of Nrm Foci Posisitons")+facet_wrap(~fileName) 
+#not sure what the raw IFD pattern shows
+#I should learn to add daigonal lines as bench marks
+
++ylim(c(0.6,1))+xlim(c(0,1))
+
+
+#comparing KAZ, it looks like Foci 1 is further from the centromere (towards the middle)
+#
+
+#whole.cell.2CO.PWD -- I can fill color by rank, .. (2COs are biased to longer chrms, but there are some shorter ones
+
+
+blah2 <- ggplot(data=all.2CO, aes(x=Foci1,y=Foci2))+geom_jitter(width = 0.25, aes(color=mouse))+ggtitle("correletaion of Foci Posisitons")+facet_wrap(~strain)+ theme(legend.position="none")+ylim(c(0,150))+xlim(c(0,90))
+
+
+#plot stacked IFD lines -- linking the foci
+
+#Can I calculate esitmated rank?
+
+```
 
 
 
@@ -569,6 +781,8 @@ t.test(bin_long$chromosomeLength[bin_long$strain == "PWD"],
 #p-value = 0.01495
 ```
 
+find a way to analyze the 2CO / IFD for the female data
+
 
 ```{r chrm.class, echo=FALSE}
 #proportions of bivalent classes
@@ -605,15 +819,32 @@ whole.cell_biv_class_table <- ddply(all.whole.cell, c("hand.foci.count", "strain
 
 ```{r IDF, echo=FALSE}
 
+#Auto.Man_BivData
+#PWD.Auto.Man_BivData
+#KAZ.Auto.Man_BivData
+
+ookk <- ggplot(data = Auto.Man_BivData[Auto.Man_BivData$sex == "female",], aes(x=chromosomeLength))+geom_density(aes(fill=hand.foci.count), alpha = .3)+facet_wrap(strain~sex)
+#there are too many bad levels for hand.foci.count
+
+ookk2 <- ggplot(data = Auto.Man_BivData[Auto.Man_BivData$sex == "female",], aes(x=chromosomeLength))+geom_histogram(aes(fill=hand.foci.count), alpha = .3)+facet_wrap(strain~sex)
+
 
 #isolate the 2COs
 #total Bivdata
-KAZ.2COs <- KAZ.auto.man_BivData[KAZ.auto.man_BivData$hand.foci.count == 2,]
-PWD.2COs <- PWD.auto.man_BivData[PWD.auto.man_BivData$hand.foci.count == 2,]
+KAZ.2COs <- KAZ.Auto.Man_BivData[KAZ.Auto.Man_BivData$hand.foci.count == 2,]
+PWD.2COs <- PWD.Auto.Man_BivData[PWD.Auto.Man_BivData$hand.foci.count == 2,]
+
 
 all.2CO <- rbind(KAZ.2COs,PWD.2COs)
 #all.2CO <- ddply(all.2CO, .(fileName), transform, rank = rank(chromosomeLength,ties.method ="min")-1)
 #all.2CO <- all.2CO[ -c(24) ]
+
+table(Auto.Man_BivData$mouse[Auto.Man_BivData$sex == "female"])
+
+table(all.2CO$mouse[all.2CO$sex=="female"])
+
+#main female mice for comparison
+#23apr15_PWD_f2, 23apr15_PWD_f2
 
 
 all.2CO$Foci1.PER <- all.2CO$Foci1 / all.2CO$chromosomeLength
@@ -628,9 +859,15 @@ all.2CO <- all.2CO[!(is.na(all.2CO$fileName) | all.2CO$fileName == ""), ]
 
 all.2CO$mouse <- droplevels(all.2CO$mouse)
 
-IFDs.ABS <- ggplot(data=all.2CO, aes(x=mouse,y=IFD1_ABS))+geom_jitter(width = 0.25, aes(color=as.factor(fileName) ))+ggtitle("raw IFD Distributions")+geom_boxplot(alpha = 0.6)+facet_wrap(~strain)+  theme(legend.position="none", axis.text.x = element_text(angle = 90, hjust = 1) )
 
-IFDs.PER <- ggplot(data=all.2CO, aes(x=mouse,y=IFD1_PER))+geom_jitter(width = 0.25, aes(color=as.factor(fileName) ))+ggtitle("norm IFD Distributions")+geom_boxplot(alpha = 0.6)+facet_wrap(~strain)+theme(legend.position="none")
+IFDs.ABS <- ggplot(data=all.2CO, aes(x=mouse,y=IFD1_ABS))+geom_jitter(width = 0.25, aes(color=as.factor(fileName) ))+ggtitle("raw IFD Distributions")+geom_boxplot(alpha = 0.6)+facet_wrap(sex~strain)+  theme(legend.position="none", axis.text.x = element_text(angle = 90, hjust = 1) )
+
+IFDs.ABS.22 <- ggplot(data=all.2CO, aes(x=mouse,y=IFD1_ABS, fill=interaction(strain,sex)))+geom_jitter(width = 0.25)+ggtitle("raw IFD Distributions")+geom_boxplot(alpha = 0.6)+  theme(legend.position="none", axis.text.x = element_text(angle = 90, hjust = 1) )
+
+
+IFDs.PER <- ggplot(data=all.2CO, aes(x=mouse,y=IFD1_PER))+geom_jitter(width = 0.25, aes(color=as.factor(fileName) ))+ggtitle("norm IFD Distributions")+geom_boxplot(alpha = 0.3)+facet_wrap(sex~strain)+theme(legend.position="none")+theme(legend.position="none", axis.text.x = element_text(angle = 90, hjust = 1) )
+
+#remove mice with very few observations?
 
 
 #whole cell comparison (use rank)
@@ -918,22 +1155,15 @@ curve(dexp(x, rate = fit.AP1$estimate), from = 0, col = "red", add = TRUE)
 ```{r makeKAZ.curate.list, echo=FALSE}
 #write out list for initial quality control and subsetting
 #remove centromere_PER > .2
-KAZ.Biv.curate.list <- KAZ_bivData[KAZ_bivData$centromere_PER_Position < 0.2,]#3123
-
+#KAZ.Biv.curate.list <- KAZ_bivData[KAZ_bivData$centromere_PER_Position < 0.2,]#3123
 #remove chrmLength > 150? 200
-KAZ.Biv.curate.list <- KAZ.Biv.curate.list[KAZ.Biv.curate.list$chromosomeLength < 300, ]#not completely sure 300 is probably the max length is the best length
+#KAZ.Biv.curate.list <- KAZ.Biv.curate.list[KAZ.Biv.curate.list$chromosomeLength < 300, ]#not completely sure 300 is probably the max length is the best length
 #3117
-
-table(KAZ.Biv.curate.list$mouse)
+#table(KAZ.Biv.curate.list$mouse)
 #7 mice: 11jan18_KAZ_m4(9w), 1feb18_KAZ_m1(11w), 11jan18_KAZ_m3(9w), and 11jan18_KAZ_m1(43w) have good MLH1
-
-
-cur11jan18_KAZ_m4 <- KAZ.Biv.curate.list[KAZ.Biv.curate.list$mouse == "11jan18_KAZ_m4",]
-
-cur11jan18_KAZ_m4$Obj.ID <- paste(cur11jan18_KAZ_m4$fileName, cur11jan18_KAZ_m4$boxNumber, sep = "_")
-
-write.table(cur11jan18_KAZ_m4, "~./MLH1repo/results/curate_cur11jan18_KAZ_m4_BivData.txt", sep="\t", row.names = FALSE)
-
+#cur11jan18_KAZ_m4 <- KAZ.Biv.curate.list[KAZ.Biv.curate.list$mouse == "11jan18_KAZ_m4",]
+#cur11jan18_KAZ_m4$Obj.ID <- paste(cur11jan18_KAZ_m4$fileName, cur11jan18_KAZ_m4$boxNumber, sep = "_")
+#write.table(cur11jan18_KAZ_m4, "~./MLH1repo/results/curate_cur11jan18_KAZ_m4_BivData.txt", sep="\t", row.names = FALSE)
 ```
 
 
