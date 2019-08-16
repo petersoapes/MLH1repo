@@ -3,9 +3,11 @@
 # output: .csv file for reading/loading in other scripts
 
 #load Dissection file
-#meta.data.file = read.csv("~./MLH1repo/data/Mouse_MetaData_6.12.19.csv", header = TRUE)#455
+meta.data.file = read.csv("~./MLH1repo/data/Mouse_MetaData_6.12.19.csv", header = TRUE)#455
 
-meta.data = read.csv("~./MLH1repo/data/Mouse_MetaData_7.30.19.csv", header = TRUE) 
+
+#MLH1.data = read.csv("~/MLH1repo/data/MLH1/MLH1_data_setup_8.15.19.RData", header = TRUE) 
+
 #take note when I switch from 2 digit year (mouse, euth date) and 4-digit year 'DOB'!
 #remember to switch '/%y' to upper case 'Y'!!
 
@@ -78,3 +80,6 @@ write.table(meta.data, "~./MLH1repo/data/clean.Meta.Data.txt",
 
 write.table(oo.merge, "~./MLH1repo/data/Meta.Data.Merge_batch_quant.txt", 
             sep="\t", row.names = FALSE)
+
+#save Rdata file
+save.image("data/MetaData.RData")
