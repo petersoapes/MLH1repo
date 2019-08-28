@@ -182,16 +182,25 @@ add_subsp <- function(oldframe) {
                                 ifelse(grepl("LEW", dframe$strain), "Dom", 
                                        ifelse(grepl("LEWES", dframe$strain), "Dom",    
                        ifelse(grepl("PERA", dframe$strain), "Dom",
-                                                     
+                      ifelse(grepl("PERC", dframe$strain), "Dom",
+                                                            
                      ifelse(grepl("CAST", dframe$strain), "Cast",
                     ifelse(grepl("CIM", dframe$strain), "Cast",
                      ifelse(grepl("HMI", dframe$strain), "Cast",
                                                                           
-                           ifelse(grepl("MSM", dframe$strain), "Musc",                                       
+                           ifelse(grepl("MSM", dframe$strain), "Musc", 
+                        ifelse(grepl("MOLF", dframe$strain), "Musc",     
                          ifelse(grepl("PWD", dframe$strain), "Musc", 
-        ifelse(grepl("CZECHI", dframe$strain), "Musc", 
+        ifelse(grepl("CZECH", dframe$strain), "Musc", 
+               ifelse(grepl("AST", dframe$strain), "Musc",     
+                      ifelse(grepl("TOM", dframe$strain), "Musc",  
+                  ifelse(grepl("SKIVE", dframe$strain), "Musc", 
+                             
                 ifelse(grepl("PWDFemale", dframe$strain), "Musc",  
                       ifelse(grepl("KAZ", dframe$strain), "Musc",
+                             
+                             
+                             
                                                                                                              
                      ifelse(grepl("SPRET", dframe$strain), "Spretus",
                ifelse(grepl("SPIC", dframe$strain), "Spic",      
@@ -200,7 +209,7 @@ add_subsp <- function(oldframe) {
                                                                                                                                          
                         ifelse(grepl("RAT", dframe$strain), "Outgroup", 
                     ifelse(grepl("Peromyscus", dframe$strain), "Outgroup", 
-                      ifelse(grepl("Microtus", dframe$strain), "Outgroup", "other"))))))))))))))))))))
+                      ifelse(grepl("Microtus", dframe$strain), "Outgroup", "other")))))))))))))))))))))))))
   
   dframe$subsp <- factor(dframe$subsp, ordered = TRUE,levels =c( "Dom",
                                                       "Cast",
