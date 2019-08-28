@@ -2,8 +2,20 @@
 # input: newest / most recent Dissection csv file
 # output: .csv file for reading/loading in other scripts
 
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+
 #load Dissection file
 meta.data.file = read.csv("~./MLH1repo/data/Mouse_MetaData_6.12.19.csv", header = TRUE)#455
+
+#loading previously cleaned data 
+clean.meta.data <- read.csv("~./MLH1repo/data/clean.Meta.Data.txt",header = TRUE, sep='\t')
+
+
+#integrate batch information
+
+#read or load MLH1 data
+#load most recent RData file
+load(file="~./MLH1repo/data/MLH1/MLH1_data_setup_8.9.19.RData")#8.9.19 has batch14
 
 
 #MLH1.data = read.csv("~/MLH1repo/data/MLH1/MLH1_data_setup_8.15.19.RData", header = TRUE) 
@@ -26,11 +38,6 @@ meta.data <- add_sex(meta.data)
 meta.data <- add_category(meta.data)
 
 
-#integrate batch information
-
-#read or load MLH1 data
-#load most recent RData file
-load(file="~./MLH1repo/data/MLH1/MLH1_data_setup_8.9.19.RData")#8.9.19 has batch14
 
 
 #subset org_DF for mice in meta_data list 
@@ -65,6 +72,8 @@ table(oo.DF$Var1)# this is how you can fin the double counts
 
 #to match -- I may need to merge
 oo.merge <- merge(oo.DF, meta.data, by.y = "mouse", by.x = "Var1", all.y = TRUE)
+mouse_table_w.Ages <- oo.merge
+
 
 #batch14 is missing .. it hasn't been integrated into the set up data i think
 
@@ -75,10 +84,10 @@ oo.merge <- merge(oo.DF, meta.data, by.y = "mouse", by.x = "Var1", all.y = TRUE)
 
 
 #write csv file (/data)
-write.table(meta.data, "~./MLH1repo/data/clean.Meta.Data.txt", 
+write.table(meta.data, "~./MLH1repo/data/clean.Meta.Data_8.28.19.txt", 
             sep="\t", row.names = FALSE)
 
-write.table(oo.merge, "~./MLH1repo/data/Meta.Data.Merge_batch_quant.txt", 
+write.table(oo.merge, "~./MLH1repo/data/Meta.Data.Merge_batch_quant_8.28.19.txt", 
             sep="\t", row.names = FALSE)
 
 #save Rdata file

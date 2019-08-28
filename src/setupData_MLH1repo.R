@@ -39,7 +39,7 @@ original_DF <- add_mouse(original_DF)
 #original_length <- length(MLH1_data$Original.Name)
 
 #check that all batches are included
-table(original_DF$Batch)
+#table(original_DF$Batch) #if I want this I should make this Rmd
 
 
 MLH1_data$Original.Name <- as.character(MLH1_data$Original.Name)
@@ -93,7 +93,6 @@ AP_mouse_table <- ddply(MLH1_data, c("mouse"), summarise,
                         #quality?
 )
 
-source("src/CommonFunc_MLH1repo.R")
 AP_mouse_table <- add_strain(AP_mouse_table)
 AP_mouse_table <- add_subsp(AP_mouse_table)
 AP_mouse_table <- add_sex(AP_mouse_table)
@@ -106,7 +105,38 @@ AP_mouse_table$strain <- as.factor(AP_mouse_table$strain)
 AP_mouse_table$subsp <-  as.factor(AP_mouse_table$subsp)
 
 
+#metadata contains all mice (different source) with ages
 
+
+#integrate ages ect
+#meta.data -> 
+#AP_mouse_table and MLH1_data
+
+org.DF.mice <- original_DF[(original_DF$mouse %in% meta.data$mouse),]#this subsets mice -- not integrateing age
+#this produces the whole dataset -- might just need unique mouse and batch combos
+
+oo.merge <- merge(oo.DF, meta.data, by.y = "mouse", by.x = "Var1", all.y = TRUE)
+oo.DF <- as.data.frame(oo)#this has a dif str, 3 cols -- like it was melted
+oo.DF <- oo.DF[!(is.na(oo.DF$Freq)|oo.DF$Freq==0),] #remove all 0 counts for batches
+
+#duplicated(oo.DF$Var1)
+mulitple.batch.mice <- oo.DF$Var1[duplicated(oo.DF$Var1)]
+xu2 <- oo.DF[!unique(oo.DF$Var1),]
+#push colname of matching mouse into cell of metadata
+table(oo.DF$Var1)# this is how you can fin the double counts
+
+#maybe change colnames of oo.DF
+
+#can I collapse the mulitple batches mice?
+
+#to match -- I may need to merge
+oo.merge <- merge(oo.DF, meta.data, by.y = "mouse", by.x = "Var1", all.y = TRUE)
+mouse_table_w.Ages <- oo.merge
+
+male_mouse_table_w.Ages <- mouse_table_w.Ages[mouse_table_w.Ages$sex == "male",]
+
+pp <- ggplot(male_mouse_table_w.Ages, aes(age.weeks))+geom_histogram()+facet_wrap(~category)+ggtitle("Male age Distributions")
+pp
 
 
 

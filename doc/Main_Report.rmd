@@ -1,10 +1,12 @@
 ---
 title: "MLH1 Data Report"
-author: "April Peterson"
 date: "`r format(Sys.time(), '%d %B %Y')`"
 output:
   html_document:
     df_print: paged
+    toc: yes
+    toc_depth: '5'
+    toc_float: yes
   pdf_document: default
 ---
 
@@ -18,23 +20,42 @@ library(dplyr)
 setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 #setwd("C:/Users/April/Desktop/MLH1repo")
 #load(file="data/MLH1/MLH1_data_setup.RData")
+
+#load main data file
 load(file="data/MLH1/MLH1_data_setup_8.15.19.RData")
 
+load(file="data/MetaData.RData")
+
+#load functions
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 ```
 
-#### Research Description
+## Research Description
 
 Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse strains of house mice abd related rodents. Comparison the differences in recombination rates across sexes and genetic background to inform models of how meiotic recombination rates evolve. 
 
 #### Description of Report
 
+- Show basics of the current data file
+
 - Display plots and figures of distributions of MLH1 counts to assess intial overall patterns.
 
 -  Report basic statistics of results and to help keep track of the number of images for each category and mouse
 
+*Main questions*
+
+1. Which strains do I have enough mouse specific MLH1 data for?
+2. What data will go into the FINAL dataset 
+
+
+
 #### Discription of quantification process
 
 Cell images are quantified in batches after file names are anonymized. The number of MLH1 foci, number of "achiasmate" and asynasped bivalents are quantified. A quality score is given; 1 to 5 (best to worst).
+
+all cell image file names are anonimized and moved into bathces of a few hundred images.
+
+
 
 ```{r organizing.data, echo=FALSE}
 #set the order of another column, based on another variable (so that when)
@@ -65,6 +86,13 @@ MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 
 ```
 
+
+# Mice
+
+
+## Missing Mice
+
+This section shows / displays / catches mice which haven't been stained or quantified yet.
 
 
 ```{r missing.mice, echo=FALSE}
@@ -139,7 +167,7 @@ This is the number of mice that are through different parts of the pathway or qu
 
 
 
-```{r basic.numbers, echo=FALSE}
+```{r basic.numbers, echo=FALSE, eval=FALSE}
 
 kable(table(AP_mouse_table$category), col.names = c("Category", "mice"), label = "Number of mice by category" )
 
@@ -156,6 +184,96 @@ The 'Other' are F1 crosses.
 
 
 
+### Histograms of Mouse Ages
+
+This section is meant to double check the age distributions of male mice.
+
+
+
+```{r age.hists, echo=FALSE, eval=FALSE}
+
+
+meta.data$DOB <- as.Date(meta.data$DOB, format= "%m/%d/%Y")#%Y 2000, %y '18,
+
+#make Mouse meta data work
+MouseMetaData.wrkin <- meta.data[,c(1,4)]
+colnames(MouseMetaData.wrkin) <- c("mouse", "DOB")
+
+MouseMetaData.wrkin <- MouseMetaData.wrkin[!(is.na(MouseMetaData.wrkin$mouse)|MouseMetaData.wrkin$mouse==""),]
+
+#do this for the mouse table instead of the MLH1 table
+MLH1.imprv <- merge(MLH1_data, MouseMetaData.wrkin)#don't apply the all parameters
+
+#add euth date for calculating age
+
+MLH1.imprv <- add_euth_date(MLH1.imprv)
+#
+MLH1.imprv$euth.date2 <- MLH1.imprv$euth.date
+MLH1.imprv$euth.date <- as.Date(as.character(MLH1.imprv$euth.date2), format='%d%b%y')
+#this is currently broken
+MLH1.imprv <- add_age(MLH1.imprv)
+
+#remove mice that are older than 20 weeks
+MLH1.imprv.male <- MLH1.imprv[MLH1.imprv$sex == "male", ]
+MLH1.imprv.male <- MLH1.imprv.male[MLH1.imprv.male$age.weeks < 20, ]
+
+pp <- ggplot(MLH1.imprv.male, aes(age.weeks))+geom_histogram()+facet_wrap(~category)+ggtitle("Age Distributions")
+pp
+
+
+#what is this meta.data.file?
+#meta.data.file2 <- add_strain(meta.data.file2)
+#meta.data.file2 <- add_sex(meta.data.file2)
+#meta.data.file2 <- add_category(meta.data.file2)
+#meta.data.file2 <- add_euth_date(meta.data.file2)
+#meta.data.file2 <- add_age(meta.data.file2)
+
+#qq <- ggplot(meta.data.file2[meta.data.file2$sex == "male",], aes(age.weeks))+geom_histogram()+facet_wrap(~category)+ggtitle("recorded ages of dissected mice")
+#qq
+
+```
+
+
+
+#### Is there an age effect?
+
+
+make a subetted dataset for ploting mean mouse (quality < 5) MLH1 count and age.  Mice with enough ages:
+WSB, KAZ, LEW, G, Cast, SPIC, MSM, MOLF, CZECH
+
+```{r}
+#run a age effect linear regression!
+
+male.data <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$sex.y == "male",]
+
+lm.me  <- lm(male.data$mean_co ~ male.data$age.weeks+male.data$strain.x)
+
+summary(lm.me)
+
+```
+
+
+
+```{r age.effect.plot}
+
+#make sure the right dataset 
+male.data <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$sex.y == "male") & (AP_mouse_table_w.Ages$category.y != "other"),]
+
+male.data <- male.data[male.data$Ncells > 10,]
+
+male.data <- add_subsp(male.data)
+
+
+
+age.effect.plot <- ggplot(male.data, aes(y=mean_co, x=age.weeks, color=strain.y))+geom_point()+ ylim(c(15,39))+
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Age Effect on CO mean")+facet_wrap(~subsp.y)
+
+#todo add line to strain.y
+
+```
+
+
+Given this plot it seems that there isn't a age effect. I should double check some of these mice
 
 
 #### Initial Patterns from MLH1 distributions
@@ -224,62 +342,7 @@ histM
 ```
 
 
-
-### Histograms of Mouse Ages
-
-
-
-```{r age.hists, echo=FALSE}
-
-
-
-#meta.data.file2 = read.csv("~./MLH1repo/data/MouseMetaData61119.csv", header = TRUE)
-meta.data.file2 = read.csv("~./MLH1repo/data/Mouse_MetaData_6.12.19.csv", header = TRUE)
-meta.data.file2 <- meta.data.file2[!(is.na(meta.data.file2$mouse)|meta.data.file2$mouse==""),] #375
-
-meta.data.file2$DOB <- as.Date(meta.data.file2$DOB, format= "%m/%d/%Y")#%Y 2000, %y '18,
-
-#make Mouse meta data work
-MouseMetaData.wrkin <- meta.data.file2[,c(1,4)]
-colnames(MouseMetaData.wrkin) <- c("mouse", "DOB")
-MouseMetaData.wrkin <- MouseMetaData.wrkin[!(is.na(MouseMetaData.wrkin$mouse)|MouseMetaData.wrkin$mouse==""),]
-
-#do this for the mouse table instead of the MLH1 table
-MLH1.imprv <- merge(MLH1_data, MouseMetaData.wrkin)#don't apply the all parameters
-
-#add euth date for calculating age
-source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
-PWD.KAZ_MLH1.imprv <- add_euth_date(PWD.KAZ_MLH1.imprv)
-PWD.KAZ_MLH1.imprv <- add_age(PWD.KAZ_MLH1.imprv)
-
-source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
-MLH1.imprv <- add_euth_date(MLH1.imprv)
-#
-MLH1.imprv$euth.date2 <- MLH1.imprv$euth.date
-MLH1.imprv$euth.date <- as.Date(as.character(MLH1.imprv$euth.date2), format='%d%b%y')
-
-MLH1.imprv <- add_age(MLH1.imprv)
-
-#remove mice that are older than 20 weeks
-MLH1.imprv.male <- MLH1.imprv[MLH1.imprv$sex == "male", ]
-MLH1.imprv.male <- MLH1.imprv.male[MLH1.imprv.male$age.weeks < 20, ]
-
-pp <- ggplot(MLH1.imprv.male, aes(age.weeks))+geom_histogram()+facet_wrap(~category)+ggtitle("Age Distributions")
-pp
-
-
-#what is this meta.data.file?
-#meta.data.file2 <- add_strain(meta.data.file2)
-#meta.data.file2 <- add_sex(meta.data.file2)
-#meta.data.file2 <- add_category(meta.data.file2)
-#meta.data.file2 <- add_euth_date(meta.data.file2)
-#meta.data.file2 <- add_age(meta.data.file2)
-
-#qq <- ggplot(meta.data.file2[meta.data.file2$sex == "male",], aes(age.weeks))+geom_histogram()+facet_wrap(~category)+ggtitle("recorded ages of dissected mice")
-#qq
-
-```
-
+` r knitr_exit()`
 
 
 #### Assesment of Quality Scores
@@ -460,17 +523,6 @@ PWD females and a very large range. This is driven by data from 17apr15_PWD_f4. 
 In some mice there seems to be bimodel cell populations, those of clearly high quality and those of lower quality. This may be due to the screening of images before quantification, and allowing more bad cells data remain in the data set, instead of deleting them.
 
 
-#### Mice table
-
-Table of the mice used and MLH1 stats.
-
-```{r, fig.height=2, fig.width=4, echo=FALSE}
-#this table is TOO big
-#this table is saved in the .RData file
-#use kable to make tables. warning this might not work for github Rmd.
-n <- kable(AP_mouse_table)
-
-```
 
 
 

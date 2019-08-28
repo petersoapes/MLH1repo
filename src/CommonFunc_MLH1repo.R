@@ -189,17 +189,17 @@ add_subsp <- function(oldframe) {
                      ifelse(grepl("HMI", dframe$strain), "Cast",
                                                                           
                            ifelse(grepl("MSM", dframe$strain), "Musc", 
-                        ifelse(grepl("MOLF", dframe$strain), "Musc",     
-                         ifelse(grepl("PWD", dframe$strain), "Musc", 
-        ifelse(grepl("CZECH", dframe$strain), "Musc", 
+                        ifelse(grepl("MOLF", dframe$strain), "Musc",    
+                
+                  ifelse(grepl("PWD", dframe$strain), "Musc", 
+      
+                  ifelse(grepl("CZECH", dframe$strain), "Musc", 
                ifelse(grepl("AST", dframe$strain), "Musc",     
                       ifelse(grepl("TOM", dframe$strain), "Musc",  
                   ifelse(grepl("SKIVE", dframe$strain), "Musc", 
                              
-                ifelse(grepl("PWDFemale", dframe$strain), "Musc",  
+                ifelse(grepl("PWDFemale", dframe$strain), "Musc",
                       ifelse(grepl("KAZ", dframe$strain), "Musc",
-                             
-                             
                              
                                                                                                              
                      ifelse(grepl("SPRET", dframe$strain), "Spretus",
