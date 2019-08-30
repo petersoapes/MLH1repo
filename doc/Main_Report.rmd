@@ -22,19 +22,19 @@ setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 #load(file="data/MLH1/MLH1_data_setup.RData")
 
 #load main data file
-load(file="data/MLH1/MLH1_data_setup_8.15.19.RData")
+load(file="data/MLH1/MLH1_data_setup_8.29.19.RData")
 
-load(file="data/MetaData.RData")
+#load(file="data/MetaData.RData") #this was replacing most updated data file
 
 #load functions
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 ```
 
-## Research Description
+# Research Description
 
 Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse strains of house mice abd related rodents. Comparison the differences in recombination rates across sexes and genetic background to inform models of how meiotic recombination rates evolve. 
 
-#### Description of Report
+## Description of Report
 
 - Show basics of the current data file
 
@@ -49,12 +49,13 @@ Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse s
 
 
 
-#### Discription of quantification process
+## Discription of quantification process
 
 Cell images are quantified in batches after file names are anonymized. The number of MLH1 foci, number of "achiasmate" and asynasped bivalents are quantified. A quality score is given; 1 to 5 (best to worst).
 
 all cell image file names are anonimized and moved into bathces of a few hundred images.
 
+Definition of passed quantified ect.
 
 
 ```{r organizing.data, echo=FALSE}
@@ -87,10 +88,15 @@ MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 ```
 
 
-# Mice
 
 
-## Missing Mice
+*What were guidlines for quantification of lower quality cells / faint foci?*
+
+-Count foci that look like other foci in the image.
+
+## Missing Mice, finishing dataset
+
+*Which mice are remaining and at what stage?*
 
 This section shows / displays / catches mice which haven't been stained or quantified yet.
 
@@ -163,8 +169,18 @@ kable(mouse.number.DF)
 ```
 
 
+passed quantified - quantified mice (with enough cells)
+total quantified -- all mice which have been (includes fail and passing mice)
+
+non-quantified mice -- dissected mice / slides that haven't been quantified yet (all stained, but without image directory)
+
+non-imaged -- mice without images, (might be stained and unstained)
+
+
 This is the number of mice that are through different parts of the pathway or quantification process.
 
+
+should I break down the categories into sex and strain?
 
 
 ```{r basic.numbers, echo=FALSE, eval=FALSE}
@@ -177,14 +193,49 @@ kable(table(MLH1_data$category), col.names = c("Category","Cells"), label = "Num
 ```
 
 
-
-
 These are the tables for the number of cells and mice which have been quantified.
 The 'Other' are F1 crosses.
 
 
 
-### Histograms of Mouse Ages
+
+# Tests of dataset
+
+Main metric is mean CO count per mouse. Assess the quality of this data with the following tests
+
+*age effects* (male, maternal age)
+
+*litter effect*
+
+*mouse room effect* (Charmony, MSC)
+
+*quantification repeatability*
+
+*spread batch and staining effects*
+
+*power analysis on number of cells*
+
+*time of year effect (on spread)*
+
+These aspects will be analyzed with a linear models on subsets of data (within category)
+
+
+
+## Repeatability of Human quantification
+
+*What is the Error in quantification across humans?*
+
+A general ancedote is that if the quality of the cell staining / image is high, then the repeatability is near 100%. (useing some of Beth's data)
+
+There is a subset of data which has been counted mulitple times -- use that to test the repeatbility.
+
+```{r quant.repeatability, echo=FALSE}
+
+```
+
+
+
+## Age Effect
 
 This section is meant to double check the age distributions of male mice.
 
@@ -235,14 +286,17 @@ pp
 
 
 
-#### Is there an age effect?
+ Is there an age effect?
 
 
 make a subetted dataset for ploting mean mouse (quality < 5) MLH1 count and age.  Mice with enough ages:
 WSB, KAZ, LEW, G, Cast, SPIC, MSM, MOLF, CZECH
 
-```{r}
+```{r age.effect.model}
 #run a age effect linear regression!
+
+
+
 
 male.data <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$sex.y == "male",]
 
@@ -258,16 +312,13 @@ summary(lm.me)
 
 #make sure the right dataset 
 male.data <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$sex.y == "male") & (AP_mouse_table_w.Ages$category.y != "other"),]
+#remove NAs
 
 male.data <- male.data[male.data$Ncells > 10,]
 
-male.data <- add_subsp(male.data)
-
-
-
 age.effect.plot <- ggplot(male.data, aes(y=mean_co, x=age.weeks, color=strain.y))+geom_point()+ ylim(c(15,39))+
   geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Age Effect on CO mean")+facet_wrap(~subsp.y)
-
+age.effect.plot
 #todo add line to strain.y
 
 ```
@@ -276,11 +327,41 @@ age.effect.plot <- ggplot(male.data, aes(y=mean_co, x=age.weeks, color=strain.y)
 Given this plot it seems that there isn't a age effect. I should double check some of these mice
 
 
-#### Initial Patterns from MLH1 distributions
+#### Materinal Age effect
+
+
+
+
+```{r mat.age.effect, echo=FALSE}
+#compile data from female (and male?) mice with maternal ages.
+
+#start making a general linear model...? for mouse averages
+
+
+```
+
+
+### litter effect?
+
+
+## Spread and Stain Effects
+
+*month dissected*
+
+*staining batches*
+
+## Room effect (envioronment)
+
+3 different rooms used to house mice. This will be tested in X manner.
+
+
+## cell number (power analysis results)
+
+
+# Initial Results
 
 ```{r first.boxplots, echo=FALSE, fig.align='center'}
-#what?
-#MLH1_data <- MLH1_data[MLH1_data$strain]
+
 
 #the below ordering works!! keep it
 MLH1_data$strain<- factor(MLH1_data$strain, levels =c("G", "LEW","WSB",
@@ -305,51 +386,107 @@ MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
 #try this for ordering
 #MLH1_data[order(MLH1_data$strain), ]
 
+#never make boxplot with mouse on X. mouse level boxplots should be faceted by subspecies 
 #can't re-order the miceagg
-ff <- ggplot(MLH1_data[order(MLH1_data$strain), ], 
-             aes(x = as.factor(mouse), y = adj_nMLH1.foci, fill= strain ))+geom_boxplot()+ ggtitle("Boxplots of MLH1 distributions by mouse") + theme(axis.title.x=element_blank(),
+#ff <- ggplot(MLH1_data[order(MLH1_data$strain), ], 
+#             aes(x = as.factor(mouse), y = adj_nMLH1.foci, fill= strain ))+geom_boxplot()+ ggtitle("Boxplots of MLH1 distributions by mouse") + theme(axis.title.x=element_blank(),
+#        axis.text.x=element_blank(),
+#        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue", #"coral4","coral1", "#E69F00","red", "red4", "red3","purple","grey1", "grey", 
+#        "grey","grey","grey",  "grey","grey","grey" )) +
+# ylim( c((min(MLH1_data$adj_nMLH1.foci)-3) ), (max(MLH1_data$adj_nMLH1.foci)+5)) + facet_wrap(species~ sex, scales="free")
+#don't show M.musculus by mouse
+
+#order MLH1_data by strain!!
+
+
+ff2 <- ggplot(MLH1_data[MLH1_data$species == "M.musculus", ])+
+  geom_boxplot(aes(x = as.character(mouse), y = adj_nMLH1.foci, fill= strain,alpha=0.5) )+ ggtitle("Boxplots of MLH1 distributions by mouse") + theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue", "coral4","coral1", "#E69F00","red", "yellowgreen", "green","purple","grey1", "grey", 
-        "grey","grey","grey",  "grey","grey","grey" )) +
- ylim( c((min(MLH1_data$adj_nMLH1.foci)-3) ), (max(MLH1_data$adj_nMLH1.foci)+5)) + facet_wrap(~ sex, scales="free")
+        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue", "coral4","coral1", "#E69F00","red", "red3", "red4","orange","yellow", "yellow3", 
+        "green","green4","grey",  "grey","grey","grey" )) +
+ ylim( c((min(MLH1_data$adj_nMLH1.foci)-3) ), (max(MLH1_data$adj_nMLH1.foci)+3)) + 
+  facet_grid(subsp~ sex, scales="free_x")#scales="free_y"
+#this is ok except for the set placement of mice on x axis
+#if the full dataset was ordered correctly, this would kinda fix it
+
 
 #boxplots by strain
-ss <- ggplot(MLH1_data, aes(x = as.factor(strain), y = adj_nMLH1.foci, fill= strain )) + geom_boxplot()  + ggtitle("Boxplots of MLH1 distributions by strain") + theme(axis.title.x=element_blank(),
+ss <- ggplot(MLH1_data, aes(x = as.factor(strain), y = adj_nMLH1.foci, fill= strain )) + geom_boxplot(aes(alpha=0.5))  + ggtitle("Boxplots of MLH1 distributions by strain") + theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00","red", "yellowgreen", "green", "purple","grey1","grey" )) +
+        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00","red", "yellowgreen", "green", "purple","grey1","grey","green", "purple","grey1","grey","white", "blue","orange" )) +
   ylim( c( (min(MLH1_data$adj_nMLH1.foci)-3), (max(MLH1_data$adj_nMLH1.foci)+5)) )
 
 ss <- ss   + facet_wrap(~ sex, scales="free")
 
 #these plot currently look bad
-
+ss
 ```
 
+
+*What is the initial picture of Heterochiasmy across mouse strains?*
+
+For the strain level plots
+  -facet,sex by species
 
 
 
 ### Distributions of MLH1 counts
 
+*Are the MLH1 distributions close to normal?*
 
 
-```{r, histogram, echo=FALSE, fig.caption= "histograms", warning=FALSE, fig.align='center'}
+```{r, MLH1.histogram, echo=FALSE, fig.caption= "histograms", warning=FALSE, fig.align='center'}
 #consider making distribution with quality considered...
 
-histM <- ggplot(MLH1_data,(aes(adj_nMLH1.foci))) + xlim(c(16, 38))
-histM <- histM + geom_histogram(stat = "bin", binwidth = 1)
-histM <- histM + facet_wrap(~ category)
+
+gg <- data.frame(weight=rep(x,nrow(df)),df)
+gg$y <- with(gg,dnorm(x,mean,sd))
+gg$y <- gg$y * aggregate(weight~sex, weight,length)$weight * diff(range(weight$weight))/30
+
+
+mean.MLH1.obs <- ddply(.data=MLH1_data, 
+                 .(category),
+                 summarize, 
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+
+
+
+histM <- ggplot(MLH1_data,(aes(adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ category)+ggtitle("Pooled Cell Histograms")+
+  geom_line(data=mean.MLH1.obs, aes(y=mean.MLH1.obs$mean.MLH1))
+  
+  geom_smooth(method = lm, se = FALSE)
+  
+  
+  geom_smooth(method = lm, formula = mean.MLH1.obs$mean.MLH1 ~ mean.MLH1.obs$category, se = FALSE)
+  
 histM
+
+#if i'm testing normalge
+
+#function = glm(y ~ x, family = poisson)
+#add Poission curve behind
+#geom_smooth(method = lm, formula = y ~ splines::bs(x, 3), se = FALSE)
+
+#not sure how to add Expected poisson curve
+
 ```
 
 
-` r knitr_exit()`
+(most all distributions are close to normal)
+
+How do these compare to Poission? (mean == variance)
+I should make 'expected' distributions behind these.
+
+### Assesment of Quality Scores
+
+> *How do the distributions change across different quality scores?*
+
+> *How do the distributions change across mice with a good number of cells?*
 
 
-#### Assesment of Quality Scores
-
-
-
-```{r high qual, fig.caption="boxplots of MLH1 distributions", fig.height=5, fig.width=5, echo=FALSE, warnings=FALSE, include=FALSE}
+```{r high.qual, fig.caption="boxplots of MLH1 distributions", fig.height=5, fig.width=5, echo=FALSE, warnings=FALSE, include=FALSE}
 
 #MLH1_data$quality <- as.numeric(MLH1_data$quality) #this needs to be run for the subsetting to work
 highest_qual_df <-  subset(MLH1_data, as.numeric(MLH1_data$quality) <= 2 )
@@ -365,7 +502,7 @@ high_qual_boxplot <- qq + facet_wrap(~ sex, scales="free") #this is breaking the
 
 
 
-```{r, passing mice, echo=FALSE}
+```{r, passing.mice, echo=FALSE}
 q_cutoff_table <- ddply(MLH1_data, .(mouse), summarise,
                         total =  length(adj_nMLH1.foci),
                         q5 = sum(as.numeric(quality) >= 4, na.rm = TRUE ), 
@@ -381,31 +518,14 @@ not_passed <- as.vector(unique(MLH1_data[!(unique(MLH1_data$mouse) %in% passed_m
 passed_mice_df <- MLH1_data[ (as.numeric(MLH1_data$quality) < 5), ]
 ```
 
-
-
-#### Comparison of MLH1 distributions
-
-
-```{r,  show boxplots, fig.height=5, fig.width=8, echo=FALSE}
-#high_qual_boxplot
-#not sure why order got messed up again...
-```
-
-After taking the data from 2 highest cell quality, some but not all mouse means converge. For some mice (mostly female) the majority of cells are excluded. This is especially true for PWD and WSB females.
-
-
-#### Tests for quality and nMLH1 foci number
-
-> *How do the distributions change across different quality scores?*
-
-> *How do the distributions change across mice with a good number of cells?*
-
-
-##### Effects of quality
+*Answer to questions*
 
 Human quantification seems to be biased towards rating cells with more MLH1 foci as higher quality. Unbiased cell quality assignment, would not show a positive correlation with quality and nMLH1. (CAST female data is fake)
 
-```{r, scatter plots of nMLH1 by score, echo=FALSE, fig.cap="MLH1 means across quality scores"}
+
+
+
+```{r, scatter.plots.of.nMLH1.by.score, echo=FALSE, fig.cap="MLH1 means across quality scores"}
 #make lattice / plots seperated by strain and sex
 #facet
 
@@ -427,76 +547,99 @@ p
 I ploted the mean of each quality bin with a red dot. From the pattern of the red dots, there is definately a negative relationship with quality and nMLH1 foci across the data. This is most pronounced in MSM males and least pronounced in G males. The CAST female data is dummy data.
 
 
-#### Assessing the Distributions by mouse
+####Distributions by mouse
+
+*Is there mouse level MLH1 quality score bias?*
+
 
 latice plot of scatter plots for jitter plots of cell oberservations by quality. The category mean is in black and the mouse specific mean is in red.
 
-```{r, echo=FALSE, message=FALSE, results='hide', warning=TRUE}
+below are code chuncks that make a big dfs of CO.count by quality score plot. The code has been commented out, and moved to it's own doc.
+
+```{r mouse.specific.Qplot, echo=FALSE, message=FALSE, results='hide', warning=TRUE, include=FALSE, eval=FALSE}
 ### to integrate 'pass'/fail
 ### this should be in setup data
 
-#quant_status (this isn't saving)
-#for(i in 1:length(MLH1_data$mouse)){
-#  MLH1_data$quant_status[i] <- ifelse( is.element(MLH1_data$mouse[i], pass_mice), "pass", NA)
-#}
+#mice that don't have female data will break the chain-loop
+#MOLF female, HMI, CZECH female, CAROLI female, Tom male
+
+#instead of adding fake data, remove the categories from list
+
+#filler_data_MOLF.f = c("BatchX", "1jan19_fake_MOLF_f1_sp1", "99999", "3","20","20","","","","","","1jan19_fake_MOLF_f1_sp1_rev.tif",
+#                       "fake_MOLF_f1", "MOLF female", "MOLF","female","Musc", "20","")
+#filler_data_HMI.f = c("BatchX", "1jan19_fake_HMI_f1_sp1", "99999", "3","20","20","","","","","","1jan19_fake_HMI_f1_sp1_rev.tif",
+#                       "fake_HMI_f1", "HMI female", "HMI","female","Cast", "20","")
+#filler_data_CZECH.f = c("BatchX", "1jan19_fake_CZECH_f1_sp1", "99999", "3","20","20","","","","","","1jan19_fake_CZECH_f1_sp1_rev.tif",
+#                       "fake_CZECH_f1", "CZECH female", "CZECH","female","Musc", "20","")
+#filler_data_CAROLI.f = c("BatchX", "1jan19_fake_CAROLI_f1_sp1", "99999", "3","20","20","","","","","","1jan19_fake_CAROLI_f1_sp1_rev.tif",
+#                       "fake_CAROLI_f1", "CAROLI female", "CAROLI","female","Caroli", "20","")
+#MLH1_data_table <- rbind(MLH1_data, filler_data_MOLF.f,filler_data_HMI.f,filler_data_CZECH.f,filler_data_CAROLI.f)#error from dataset thing
+
+pass_mice <- c("28sep18_CZECH_m3","26oct18_MOLF_m1","22jun15_G_m2")
 
 
-#what is the purpose of this block
-#df_list <- split(MLH1_data, (MLH1_data$category))
+#this loop makes a quant_status col for a list of mice
+for(i in 1:length(MLH1_data$mouse)){
+  MLH1_data$quant_status[i] <- ifelse( is.element(MLH1_data$mouse[i], pass_mice), "pass", NA)
+}
+
+
+df_list <- split(MLH1_data, (MLH1_data$category))
 #remove sections which are in category but have no data
-#df_list <- df_list[ -c(7,16,22) ]
+#this is where you remove the non-data data!
+df_list <- df_list[ -c(7,12,14,18,20,21,22,24,26,28,30) ]
 
-#7: PERC male, (14:CAST female, fake data) 16:HMI female, 22 other
+#7 PERC, 12 MOLF female, 
 #
 
 #df list, is a list of df's which were split() from BIG df by category
-#df_list 
-#o=0
-#i=0
+df_list 
+o=0
+i=0
 
-#MLH1_data$quant_status <- as.factor(MLH1_data$quant_status)
+MLH1_data$quant_status <- as.factor(MLH1_data$quant_status)
 
 #make a new empty df. create a ddply thing with mean calculations (this is like a list for matching up later)
-#for(i in 1:(length(df_list))){
+for(i in 1:(length(df_list))){
  # only include data with quality values, then create a ddply for specific sub-df that calqs mean by each mouse
-#  df_list[[i]] <- df_list[[i]][!(is.na(df_list[[i]]$quality) | df_list[[i]]$quality==""), ]
-#  sub_mouse_means <- ddply(df_list[[i]], .(mouse), summarise,
- #                      mouse_nMLH1 = mean(adj_nMLH1.foci)
-#  )
+  df_list[[i]] <- df_list[[i]][!(is.na(df_list[[i]]$quality) | df_list[[i]]$quality==""), ]
+  sub_mouse_means <- ddply(df_list[[i]], .(mouse), summarise,
+                      mouse_nMLH1 = mean(adj_nMLH1.foci)
+  )
 # this loop is going though each row of dataframes within the df.list and assigning the mouse mean
-#  for(o in 1:length(df_list[[i]]$Original.Name)){
-#    df_list[[i]]$mouse_mean_MLH1[o] <- sub_mouse_means$mouse_nMLH1[ (df_list[[i]]$mouse[o] == #sub_mouse_means$mouse) ]
-#        }
-#}
+  for(o in 1:length(df_list[[i]]$Original.Name)){
+    df_list[[i]]$mouse_mean_MLH1[o] <- sub_mouse_means$mouse_nMLH1[ (df_list[[i]]$mouse[o] == sub_mouse_means$mouse) ]
+        }
+}
 
 
-#plot_list = list()
-#for (h in 1:length(df_list)) {
-#  pf <- ggplot(data = df_list[[h]], aes(colour = factor(Batch)), width = 0.25)+ #geom_jitter(aes(y= adj_nMLH1.foci, x= quality))
-  # +   geom_rect(data = df_list[[h]], aes(fill=as.factor(quant_status)), alpha=0.5)
-#  + facet_wrap(~ mouse) + geom_hline(aes(yintercept = mouse_mean_MLH1), color="red") +scale_fill_manual(values=c(NA, "red"), breaks=NULL)
+plot_list = list()
+for (h in 1:length(df_list)) {
+  pf <- ggplot(data = df_list[[h]], aes(colour = factor(Batch)), width = 0.25)+ 
+    geom_jitter(aes(y= adj_nMLH1.foci, x= quality)) + 
+    geom_rect(data = df_list[[h]], aes(fill=as.factor(quant_status)), alpha=0.5, xmin=-100, xmax=100, ymin=-100, ymax=100)+
+    facet_wrap(~ mouse, drop = TRUE) + 
+    geom_hline(aes(yintercept = mouse_mean_MLH1), color="red") +scale_fill_manual(values=c(NA, "red"), breaks=NULL) +    geom_hline(yintercept = c( mean(df_list[[h]]$adj_nMLH1.foci) ), color="black" )
+  #theme(plot.background = element_rect(fill = "green")) #theme for indiviual mice, 
+  #make an empty ggplot? for missing data
   
-# +    geom_hline(yintercept = c( mean(df_list[[h]]$adj_nMLH1.foci) ), color="black" )
-  #theme for indiviual mice, 
-  #+ theme(plot.background = element_rect(fill = "green"))
-#  
-#  plot_list[[h]] =   pf
-#}
+  plot_list[[h]] =   pf
+}
 
-#orig
+#orig (I think this is the same as above)
 #plot_list = list()
 #for (h in 1:length(df_list)) {
 #  pf <- ggplot(df_list[[h]],(aes(y= adj_nMLH1.foci, x= quality)))
-#  pf <- pf +geom_rect(data = df_list[[h]], aes(fill=quant_status), xmin=-100, xmax=100, #ymin=-100, ymax=100, alpha=0.005)
+#  pf <- pf +geom_rect(data = df_list[[h]], aes(fill=quant_status), xmin=-100, xmax=100, ymin=-100, ymax=100, alpha=0.005)
 
 #    pf <- pf + geom_jitter(width = 0.25, aes(colour = factor(Batch)) )
 #  pf <- pf + geom_hline(yintercept = c( mean(df_list[[h]]$adj_nMLH1.foci) ), color="black" )
-#  pf <- pf + facet_wrap(~ mouse) + geom_hline(aes(yintercept = mouse_mean_MLH1), color="red") #+ 
+#  pf <- pf + facet_wrap(~ mouse) + geom_hline(aes(yintercept = mouse_mean_MLH1), color="red") + 
     
-#    scale_fill_manual(values=alpha(c("red"), .005), breaks=NULL) 
+ #   scale_fill_manual(values=alpha(c("red"), .005), breaks=NULL) +
 
     #theme for indiviual mice, 
-  #+ theme(plot.background = element_rect(fill = "green"))
+#theme(plot.background = element_rect(fill = "green"))
 #  plot_list[[h]] =   pf
 #}
 #can't change the alpha/transparency of the red rec
@@ -507,15 +650,18 @@ latice plot of scatter plots for jitter plots of cell oberservations by quality.
 #so plot list is some wride dataframe, but indeces 1:12 in plot list are ggplots
 ```
 
-```{r, echo=FALSE, message=FALSE,results='hide', warning=FALSE }
-#geom_hline(aes(yintercept = med, group = gr), colour = 'red')
-#
-#for (gg in 1:length(plot_list) ){
-#  show(plot_list[gg])
-  #invisible(lapply(obj, function(x) plot(x,main="some plot")))
-#}
+```{r show.plots, echo=FALSE, message=FALSE,results='hide', warning=FALSE, include=FALSE, eval=FALSE}
+geom_hline(aes(yintercept = med, group = gr), colour = 'red')
+#no plot is made that goes in the list -- so it can't be shown
+for (gg in 1:length(plot_list) ){
+  show(plot_list[gg])
+ # invisible(lapply(obj, function(x) plot(x,main="some plot")))
+}
+
+#this stops at MSM
 ```
 
+The mouse specific scatter plots aren't show because there are too many. (but they should be used for investigating specific mice).
 Making all of these scatter plots, allows us to look at the whole distributions of the data for each mouse. The distance of the red line from the black could be a indicator of slides or mice with slide specific technical noise.
 
 PWD females and a very large range. This is driven by data from 17apr15_PWD_f4. These data should be looked at more closely.
@@ -523,6 +669,93 @@ PWD females and a very large range. This is driven by data from 17apr15_PWD_f4. 
 In some mice there seems to be bimodel cell populations, those of clearly high quality and those of lower quality. This may be due to the screening of images before quantification, and allowing more bad cells data remain in the data set, instead of deleting them.
 
 
+# Research Questions
+
+*-which strain has highest HetC?*
+
+Start thinking of the direction for analysis
+
+
+## within mouse
 
 
 
+### female and male comparison
+
+## within category (strain)
+
+```{r HetC.plot, echo=FALSE,  fig.width=10, fig.height=5}
+no_female <- c("HMI", "SKIVE", "CZECH", "MOLF", "CAROLI", "TOM","AST")
+
+MixedModel_CO_data <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$strain.x != "other",]
+CO_data_HetC_w.old <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$strain.x != "other",]
+CO_data_HetC_w.old <- CO_data_HetC_w.old[ ! CO_data_HetC_w.old$strain.x %in% no_female, ]
+CO_data_HetC_w.old <- CO_data_HetC_w.old[!(is.na(CO_data_HetC_w.old$Nmice) | CO_data_HetC_w.old$Nmice==""), ]
+
+MixedModel_CO_data <- MixedModel_CO_data[MixedModel_CO_data$age.weeks < 15,]
+
+MixedModel_CO_data <- MixedModel_CO_data[!(is.na(MixedModel_CO_data$mouse) | MixedModel_CO_data$mouse==""), ]
+
+
+MixedModel_CO_data <- MixedModel_CO_data[ ! MixedModel_CO_data$strain.x %in% no_female, ]
+
+kuku <- ggplot(MixedModel_CO_data, aes(y=mean_co, x=mouse, color=sex.y))+geom_point()+facet_wrap(~strain.x)
+
+bubu <- ggplot(data=CO_data_HetC_w.old)+geom_point(aes(y=mean_co, x=mouse, color=sex.x))+facet_wrap(~strain.x)
+
+#add titles
+#use multiplot
+#remove X axis
+
+multiplot(kuku,bubu, cols=2)
+```
+
+
+
+
+
+
+
+
+### female and male comparison
+
+
+## Subspecies level comparison
+
+
+Initial results indicate that male MLH1 counts have less variance within subspecies but more between subspecies compared to female data.
+
+*Does this hold up with the full data set?*
+*What's the best visualization for these questions?*
+
+Main focus is contrasting the level of difference within and between subspecies.
+
+I'll do this with a mixed model framework approach (and analyze with ANOVA, a method to partition the variance of subset.)
+
+```{r mixed.model, echo=FALSE}
+
+#build mixed model
+
+#run simulations for accounting for sampling error
+
+```
+
+
+
+### Subspecies examples / Data
+
+list the strains/data used 
+Mouse average MLH1 counts, 
+
+
+### Male Specific results
+
+Not all strains have female data. Here are results from all strains wih male data.
+
+
+### female and male comparison
+
+
+## Meiotic Error
+
+This section reviews all the data from achiasmy and 0CO bivalents.
