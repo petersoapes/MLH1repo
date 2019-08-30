@@ -234,8 +234,10 @@ add_species <- function(oldframe) {
                     ifelse(grepl("G", dframe$strain), "M.musculus",
                     ifelse(grepl("LEW", dframe$strain), "M.musculus", 
                     ifelse(grepl("LEWES", dframe$strain), "M.musculus",    
-                                              ifelse(grepl("PERA", dframe$strain), "M.musculus",
-                                                     
+                    ifelse(grepl("PERA", dframe$strain), "M.musculus",
+                    ifelse(grepl("PERC", dframe$strain), "M.musculus",
+                           
+                                                            
                         ifelse(grepl("CAST", dframe$strain), "M.musculus",
                        ifelse(grepl("CIM", dframe$strain), "M.musculus",
                      ifelse(grepl("HMI", dframe$strain), "M.musculus",
@@ -243,8 +245,15 @@ add_species <- function(oldframe) {
                      ifelse(grepl("MSM", dframe$strain), "M.musculus",                                       
                      ifelse(grepl("PWD", dframe$strain), "M.musculus", 
               ifelse(grepl("CZECHI", dframe$strain), "M.musculus", 
+                     ifelse(grepl("CZECH", dframe$strain), "M.musculus", 
                            ifelse(grepl("PWDFemale", dframe$strain), "M.musculus",  
                          ifelse(grepl("KAZ", dframe$strain), "M.musculus",
+                                
+                      ifelse(grepl("SKIVE", dframe$strain), "M.musculus",            
+                     ifelse(grepl("MOLF", dframe$strain), "M.musculus",  
+                    ifelse(grepl("TOM", dframe$strain), "M.musculus",  
+                   ifelse(grepl("AST", dframe$strain), "M.musculus",
+                                
                                                                                                              
                                     ifelse(grepl("SPRET", dframe$strain), "M.spretus",
                                         ifelse(grepl("SPIC", dframe$strain), "M.spic",      
@@ -253,12 +262,12 @@ add_species <- function(oldframe) {
                                                                                                                                          
                                          ifelse(grepl("RAT", dframe$strain), "R.norv", 
                                            ifelse(grepl("Peromyscus", dframe$strain), "Peromyscus", 
-                                        ifelse(grepl("Microtus", dframe$strain), "Outgroup", "other"))))))))))))))))))))
+                                        ifelse(grepl("Microtus", dframe$strain), "Microtus", "other"))))))))))))))))))))))))))
   
   dframe$species <- factor(dframe$species, ordered = TRUE,levels =c( "M.musculus",
                                                                  "M.spretus",
                                                                  "M.spic",
-                                                                 "M.caroli","R.norv","Peromyscus", "Outgroup",
+                                                                 "M.caroli","R.norv","Peromyscus", "Microtus",
                                                                  "other") )
   
   
