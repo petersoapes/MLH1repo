@@ -1,0 +1,154 @@
+---
+title: "mouse level quality plots"
+author: "April Peterson"
+date: "August 29, 2019"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+library(knitr)
+library(ggplot2)
+#library(pwr)
+library(plyr)
+library(lattice)
+library(dplyr)
+
+setwd("~./MLH1repo/")
+#setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+
+#setwd("C:/Users/April/Desktop/MLH1repo")
+#load(file="data/MLH1/MLH1_data_setup.RData")
+
+#load main data file
+load(file="data/MLH1/MLH1_data_setup_8.29.19.RData")#batch15 isn't showing up
+#load(file="data/MetaData.RData")#this Rdata was replacing the most current batch.. agg!
+
+#load functions
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+This rmd file shows the cell counts for mouse level for MLH1 count and quality. The black lines are the strain means and the red lines are the mouse level means. Points are colored by the quantification batch.
+
+These plots are meant to asses which mice can be removed from the final dataset for too few or low quality count data.
+
+
+### Updating plots
+
+*1. check which category levels do not have data, and enter that index into 'df_list'. Otherwise the loop will be broken.*
+
+*2. Run the code chunks.*
+
+
+These MLH1 data still have quality 5 cells observations. I might want to redo it without those observations.
+
+
+```{r mouse.specific.Qplot, echo=FALSE, message=FALSE, results='hide', warning=TRUE}
+### to integrate 'pass'/fail
+### this should be in setup data
+
+#mice that don't have female data will break the chain-loop
+#MOLF female, HMI, CZECH female, CAROLI female, Tom male
+
+#instead of adding fake data, remove the categories from list
+
+#filler_data_MOLF.f = c("BatchX", "1jan19_fake_MOLF_f1_sp1", "99999", "3","20","20","","","","","","1jan19_fake_MOLF_f1_sp1_rev.tif",
+#                       "fake_MOLF_f1", "MOLF female", "MOLF","female","Musc", "20","")
+#filler_data_HMI.f = c("BatchX", "1jan19_fake_HMI_f1_sp1", "99999", "3","20","20","","","","","","1jan19_fake_HMI_f1_sp1_rev.tif",
+#                       "fake_HMI_f1", "HMI female", "HMI","female","Cast", "20","")
+#filler_data_CZECH.f = c("BatchX", "1jan19_fake_CZECH_f1_sp1", "99999", "3","20","20","","","","","","1jan19_fake_CZECH_f1_sp1_rev.tif",
+#                       "fake_CZECH_f1", "CZECH female", "CZECH","female","Musc", "20","")
+#filler_data_CAROLI.f = c("BatchX", "1jan19_fake_CAROLI_f1_sp1", "99999", "3","20","20","","","","","","1jan19_fake_CAROLI_f1_sp1_rev.tif",
+#                       "fake_CAROLI_f1", "CAROLI female", "CAROLI","female","Caroli", "20","")
+#MLH1_data_table <- rbind(MLH1_data, filler_data_MOLF.f,filler_data_HMI.f,filler_data_CZECH.f,filler_data_CAROLI.f)#error from dataset thing
+
+pass_mice <- c("28sep18_CZECH_m3","26oct18_MOLF_m1","22jun15_G_m2")
+
+
+#this loop makes a quant_status col for a list of mice
+for(i in 1:length(MLH1_data$mouse)){
+  MLH1_data$quant_status[i] <- ifelse( is.element(MLH1_data$mouse[i], pass_mice), "pass", NA)
+}
+
+
+df_list <- split(MLH1_data, (MLH1_data$category))
+#remove sections which are in category but have no data
+#this is where you remove the non-data data!
+df_list <- df_list[ -c(7,12,14,18,20,21,22,24,26,28,30) ]
+
+#7 PERC, 12 MOLF female, 
+#
+
+#df list, is a list of df's which were split() from BIG df by category
+df_list 
+o=0
+i=0
+
+MLH1_data$quant_status <- as.factor(MLH1_data$quant_status)
+
+#make a new empty df. create a ddply thing with mean calculations (this is like a list for matching up later)
+for(i in 1:(length(df_list))){
+ # only include data with quality values, then create a ddply for specific sub-df that calqs mean by each mouse
+  df_list[[i]] <- df_list[[i]][!(is.na(df_list[[i]]$quality) | df_list[[i]]$quality==""), ]
+  sub_mouse_means <- ddply(df_list[[i]], .(mouse), summarise,
+                      mouse_nMLH1 = mean(adj_nMLH1.foci)
+  )
+# this loop is going though each row of dataframes within the df.list and assigning the mouse mean
+  for(o in 1:length(df_list[[i]]$Original.Name)){
+    df_list[[i]]$mouse_mean_MLH1[o] <- sub_mouse_means$mouse_nMLH1[ (df_list[[i]]$mouse[o] == sub_mouse_means$mouse) ]
+        }
+}
+
+
+plot_list = list()
+for (h in 1:length(df_list)) {
+  pf <- ggplot(data = df_list[[h]], aes(colour = factor(Batch)), width = 0.25)+ 
+    geom_jitter(aes(y= adj_nMLH1.foci, x= quality)) + 
+    geom_rect(data = df_list[[h]], aes(fill=as.factor(quant_status)), alpha=0.5, xmin=-100, xmax=100, ymin=-100, ymax=100)+
+    facet_wrap(~ mouse, drop = TRUE) + 
+    geom_hline(aes(yintercept = mouse_mean_MLH1), color="red") +scale_fill_manual(values=c(NA, "red"), breaks=NULL) +    geom_hline(yintercept = c( mean(df_list[[h]]$adj_nMLH1.foci) ), color="black" )
+  #theme(plot.background = element_rect(fill = "green")) #theme for indiviual mice, 
+  #make an empty ggplot? for missing data
+  
+  plot_list[[h]] =   pf
+}
+
+#orig (I think this is the same as above)
+#plot_list = list()
+#for (h in 1:length(df_list)) {
+#  pf <- ggplot(df_list[[h]],(aes(y= adj_nMLH1.foci, x= quality)))
+#  pf <- pf +geom_rect(data = df_list[[h]], aes(fill=quant_status), xmin=-100, xmax=100, ymin=-100, ymax=100, alpha=0.005)
+
+#    pf <- pf + geom_jitter(width = 0.25, aes(colour = factor(Batch)) )
+#  pf <- pf + geom_hline(yintercept = c( mean(df_list[[h]]$adj_nMLH1.foci) ), color="black" )
+#  pf <- pf + facet_wrap(~ mouse) + geom_hline(aes(yintercept = mouse_mean_MLH1), color="red") + 
+    
+ #   scale_fill_manual(values=alpha(c("red"), .005), breaks=NULL) +
+
+    #theme for indiviual mice, 
+#theme(plot.background = element_rect(fill = "green"))
+#  plot_list[[h]] =   pf
+#}
+#can't change the alpha/transparency of the red rec
+
+#aes must be same length ---   #geom_point(stat = "identity") +
+# the last one is correct....?
+
+#so plot list is some wride dataframe, but indeces 1:12 in plot list are ggplots
+```
+
+
+
+```{r, echo=FALSE, message=FALSE,results='hide', warning=FALSE}
+geom_hline(aes(yintercept = med, group = gr), colour = 'red')
+#no plot is made that goes in the list -- so it can't be shown
+for (gg in 1:length(plot_list) ){
+  show(plot_list[gg])
+ # invisible(lapply(obj, function(x) plot(x,main="some plot")))
+}
+```
+
+
