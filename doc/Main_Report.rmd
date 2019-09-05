@@ -32,30 +32,23 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
 # Research Description
 
-Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse strains of house mice abd related rodents. Comparison the differences in recombination rates across sexes and genetic background to inform models of how meiotic recombination rates evolve. 
+Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse strains of house mice and related rodents. Comparison the differences in recombination rates across sexes and genetic background to inform models of how meiotic recombination rates evolve. 
 
 ## Description of Report
 
 - Show basics of the current data file
 
-- Display plots and figures of distributions of MLH1 counts to assess intial overall patterns.
+- Display plots and figures of distributions of MLH1 counts to assess initial overall patterns.
 
--  Report basic statistics of results and to help keep track of the number of images for each category and mouse
-
-*Main questions*
-
-1. Which strains do I have enough mouse specific MLH1 data for?
-2. What data will go into the FINAL dataset 
-
+-  Report basic statistics of results and to help keep track of the number of images for each category and mouse.
 
 
 ## Discription of quantification process
 
 Cell images are quantified in batches after file names are anonymized. The number of MLH1 foci, number of "achiasmate" and asynasped bivalents are quantified. A quality score is given; 1 to 5 (best to worst).
 
-all cell image file names are anonimized and moved into bathces of a few hundred images.
+all cell image file names are anonymized and moved into batches of a few hundred images.
 
-Definition of passed quantified ect.
 
 
 ```{r organizing.data, echo=FALSE}
@@ -90,15 +83,11 @@ MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 
 
 
-*What were guidlines for quantification of lower quality cells / faint foci?*
-
--Count foci that look like other foci in the image.
-
 ## Missing Mice, finishing dataset
 
 *Which mice are remaining and at what stage?*
 
-This section shows / displays / catches mice which haven't been stained or quantified yet.
+This section shows the number of mice which haven't been stained or quantified yet.
 
 
 ```{r missing.mice, echo=FALSE}
@@ -197,11 +186,22 @@ These are the tables for the number of cells and mice which have been quantified
 The 'Other' are F1 crosses.
 
 
+## Repeatability of Human quantification
+
+*What is the Error in quantification across humans?*
+
+A general anecdote is that if the quality of the cell staining / image is high, then the repeatability is near 100%. (using some of Beth's data). There is a subset of data which has been counted multiple times -- use that to test the repeatbility.
+
+```{r quant.repeatability, echo=FALSE}
+
+```
 
 
-# Tests of dataset
 
-Main metric is mean CO count per mouse. Assess the quality of this data with the following tests
+
+## Effects on the dataset
+
+Main metric is mean CO count per mouse. Run tests to check if there are effects for the following effects.
 
 *age effects* (male, maternal age)
 
@@ -217,33 +217,18 @@ Main metric is mean CO count per mouse. Assess the quality of this data with the
 
 *time of year effect (on spread)*
 
-These aspects will be analyzed with a linear models on subsets of data (within category)
+These aspects will be analyzed with a linear models on subsets of data (within category) and visualized with plots.
 
 
 
-## Repeatability of Human quantification
+### Age Effect
 
-*What is the Error in quantification across humans?*
+Some papers have documented age effects for male genome-wide recombination rate (cite).
 
-A general ancedote is that if the quality of the cell staining / image is high, then the repeatability is near 100%. (useing some of Beth's data)
-
-There is a subset of data which has been counted mulitple times -- use that to test the repeatbility.
-
-```{r quant.repeatability, echo=FALSE}
-
-```
+The initial analysis uses plots. This should be double checked with a general linear model as well.
 
 
-
-## Age Effect
-
-This section is meant to double check the age distributions of male mice.
-
-
-
-```{r age.hists, echo=FALSE, eval=FALSE}
-
-
+```{r age.hists, echo=FALSE, eval=FALSE,  warning=FALSE}
 meta.data$DOB <- as.Date(meta.data$DOB, format= "%m/%d/%Y")#%Y 2000, %y '18,
 
 #make Mouse meta data work
@@ -285,30 +270,21 @@ pp
 ```
 
 
+Make a subsetted dataset for plotting mean mouse (quality < 5) MLH1 count and age.
 
- Is there an age effect?
-
-
-make a subetted dataset for ploting mean mouse (quality < 5) MLH1 count and age.  Mice with enough ages:
-WSB, KAZ, LEW, G, Cast, SPIC, MSM, MOLF, CZECH
-
-```{r age.effect.model}
+```{r age.effect.model, include=FALSE}
 #run a age effect linear regression!
-
-
-
 
 male.data <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$sex.y == "male",]
 
 lm.me  <- lm(male.data$mean_co ~ male.data$age.weeks+male.data$strain.x)
 
-summary(lm.me)
-
+#summary(lm.me)
 ```
 
 
 
-```{r age.effect.plot}
+```{r age.effect.plot, warning=FALSE, echo=FALSE}
 
 #make sure the right dataset 
 male.data <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$sex.y == "male") & (AP_mouse_table_w.Ages$category.y != "other"),]
@@ -316,21 +292,20 @@ male.data <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$sex.y == "male") & (AP
 
 male.data <- male.data[male.data$Ncells > 10,]
 
-age.effect.plot <- ggplot(male.data, aes(y=mean_co, x=age.weeks, color=strain.y))+geom_point()+ ylim(c(15,39))+
-  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Age Effect on CO mean")+facet_wrap(~subsp.y)
+age.effect.plot <- ggplot(male.data, aes(y=mean_co, x=age.weeks, color=strain.y))+geom_point()+ ylim(c(19,34))+
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Age and mean CO per mouse")+facet_wrap(~subsp.y)
 age.effect.plot
 #todo add line to strain.y
 
 ```
 
 
-Given this plot it seems that there isn't a age effect. I should double check some of these mice
+While many slopes are different than 0, I am not convinced there is a clear age effect. Most strains don't have more than 2 ages. I will double check some of these mice and check a general linear model.
 
 
-#### Materinal Age effect
+### Maternal Age effect
 
-
-
+Check if there is a maternal age effect for females and males.
 
 ```{r mat.age.effect, echo=FALSE}
 #compile data from female (and male?) mice with maternal ages.
@@ -341,21 +316,33 @@ Given this plot it seems that there isn't a age effect. I should double check so
 ```
 
 
-### litter effect?
+### Litter effect
+
+Compare female spreads made on the same day, but from different mothers/litters.
 
 
-## Spread and Stain Effects
+### Spread and Stain Effects
 
-*month dissected*
 
-*staining batches*
+> *month dissected*
 
-## Room effect (envioronment)
+For mice strains that have a similar MLH1 level (control for strain MLH1 effect), check if a month effect for MLH1 count (as seen in Peromyscus).
+
+> *staining batches*
+
+Compare observations from the same mouse, but different MLH1 stains.
+
+
+### Room effect (envioronment)
+
 
 3 different rooms used to house mice. This will be tested in X manner.
 
 
-## cell number (power analysis results)
+### Cell number (power analysis results)
+
+Insert the code and results for effects of cell number/observations on MLH1 means.
+
 
 
 # Initial Results
@@ -428,21 +415,421 @@ ss
 For the strain level plots
   -facet,sex by species
 
+```{r HetC.rates, echo=FALSE, include=FALSE, warning=FALSE}
+#calculate the initial HetC levels from best quality mice and cells (compare both levels (cell and mouse average levels))
+
+#subset MLH1_DF, remove non passing mice (as diagnoised from plots)
+#remove quality 5 cells
+
+#outgroups
+#SPIC
+HetC.SPIC <- MLH1_data[(MLH1_data$strain == "SPIC")&(MLH1_data$quality < 5),]
+#unique(HetC.SPIC$mouse)
+#non-passing mice
+SPIC.remove.mice <- c("30may18_SPIC_f1", "8jun18_SPIC_m2")
+HetC.SPIC <- HetC.SPIC[ ! HetC.SPIC$mouse %in% SPIC.remove.mice, ]
+#calq sex mean
+SPIC.mean.MLH1.obs <- ddply(.data=HetC.SPIC, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+SPIC.HETC.val <- SPIC.mean.MLH1.obs$mean.MLH1[1] / SPIC.mean.MLH1.obs$mean.MLH1[2]
+
+#SPRET
+HetC.SPRET <- MLH1_data[(MLH1_data$strain == "SPRET")&(MLH1_data$quality < 5),]
+#unique(HetC.SPRET$mouse)
+#non-passing mice
+#SPRET.remove.mice <- c("", "")
+#HetC.SPRET <- HetC.SPRET[ ! HetC.SPRET$mouse %in% SPRET.remove.mice, ]
+#calq sex mean
+SPRET.mean.MLH1.obs <- ddply(.data=HetC.SPRET, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+
+SPRET.HETC.val <- SPRET.mean.MLH1.obs$mean.MLH1[1] / SPRET.mean.MLH1.obs$mean.MLH1[2]
+
+#CAROLI
+HetC.CAROLI <- MLH1_data[(MLH1_data$strain == "CAROLI")&(MLH1_data$quality < 5),]
+#unique(HetC.CAROLI$mouse)
+#non-passing mice
+#SPRET.remove.mice <- c("", "")
+#HetC.SPRET <- HetC.SPRET[ ! HetC.SPRET$mouse %in% SPRET.remove.mice, ]
+#calq sex mean
+CAROLI.mean.MLH1.obs <- ddply(.data=HetC.CAROLI, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+
+#cast
+HetC.CAST <- MLH1_data[(MLH1_data$strain == "CAST")&(MLH1_data$quality < 5),]
+#unique(HetC.CAST$mouse)
+#non-passing mice
+#X.remove.mice <- c("", "")
+#HetC.SPRET <- HetC.SPRET[ ! HetC.SPRET$mouse %in% SPRET.remove.mice, ]
+#calq sex mean
+CAST.mean.MLH1.obs <- ddply(.data=HetC.CAST, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+CAST.HETC.val <- CAST.mean.MLH1.obs$mean.MLH1[1] / CAST.mean.MLH1.obs$mean.MLH1[2]
+
+#HMI
+HetC.HMI <- MLH1_data[(MLH1_data$strain == "HMI")&(MLH1_data$quality < 5),]
+#unique(HetC.HMI$mouse)
+#non-passing mice
+#X.remove.mice <- c("", "")
+#HetC.SPRET <- HetC.SPRET[ ! HetC.SPRET$mouse %in% SPRET.remove.mice, ]
+#calq sex mean
+HMI.mean.MLH1.obs <- ddply(.data=HetC.HMI, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+
+#dom
+
+#WSB
+HetC.WSB <- MLH1_data[(MLH1_data$strain == "WSB")&(MLH1_data$quality < 5),]
+#unique(HetC.WSB$mouse)
+#non-passing mice
+WSB.remove.mice <- c("8oct14_WSB_f1", "18nov17_WSB_f5", "16jun15_WSB_f3","10mar15_WSB_m2")
+HetC.WSB <- HetC.WSB[ ! HetC.WSB$mouse %in% WSB.remove.mice, ]
+#calq sex mean
+WSB.mean.MLH1.obs <- ddply(.data=HetC.WSB, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+
+WSB.HETC.val <- WSB.mean.MLH1.obs$mean.MLH1[1] / WSB.mean.MLH1.obs$mean.MLH1[2]
+
+
+#LEW
+HetC.LEW <- MLH1_data[(MLH1_data$strain == "LEW")&(MLH1_data$quality < 5),]
+unique(HetC.LEW$mouse)
+#non-passing mice
+LEW.remove.mice <- c("4jan17_LEW_f2")
+HetC.LEW <- HetC.WSB[ ! HetC.LEW$mouse %in% LEW.remove.mice, ]
+
+#calq sex mean
+LEW.mean.MLH1.obs <- ddply(.data=HetC.LEW, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+
+LEW.HETC.val <- LEW.mean.MLH1.obs$mean.MLH1[1] / LEW.mean.MLH1.obs$mean.MLH1[2]
+
+
+#G
+HetC.G <- MLH1_data[(MLH1_data$strain == "G")&(MLH1_data$quality < 5),]
+#unique(HetC.G$mouse)
+#non-passing mice
+G.remove.mice <- c("8jun15_G_f3","8jun15_G_f4")
+HetC.G <- HetC.G[ ! HetC.G$mouse %in% G.remove.mice, ]
+
+#calq sex mean
+G.mean.MLH1.obs <- ddply(.data=HetC.G, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+G.HETC.val <- G.mean.MLH1.obs$mean.MLH1[1] / G.mean.MLH1.obs$mean.MLH1[2]
+
+
+#PERC
+HetC.PERC <- MLH1_data[(MLH1_data$strain == "PERC")&(MLH1_data$quality < 5),]
+#unique(HetC.PERC$mouse)
+#non-passing mice
+#G.remove.mice <- c("8jun15_G_f3","8jun15_G_f4")
+#HetC.G <- HetC.PERC[ ! HetC.PERC$mouse %in% PERC.remove.mice, ]
+
+#calq sex mean
+PERC.mean.MLH1.obs <- ddply(.data=HetC.PERC, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+G.HETC.val <- G.mean.MLH1.obs$mean.MLH1[1] / G.mean.MLH1.obs$mean.MLH1[2]
+
+#MUSC
+
+#PWD
+HetC.PWD <- MLH1_data[(MLH1_data$strain == "PWD")&(MLH1_data$quality < 5),]
+#unique(HetC.PWD$mouse)
+#non-passing mice
+PWD.remove.mice <- c("1apr15_PWD_f2","8oct14_PWD_f2","8oct14_PWD_f5")
+HetC.PWD <- HetC.PWD[ ! HetC.PWD$mouse %in% PWD.remove.mice, ]
+
+#calq sex mean
+PWD.mean.MLH1.obs <- ddply(.data=HetC.PWD, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+PWD.HETC.val <- PWD.mean.MLH1.obs$mean.MLH1[1] / PWD.mean.MLH1.obs$mean.MLH1[2]
+
+# CZECH
+HetC.CZECH <- MLH1_data[(MLH1_data$strain == "CZECH")&(MLH1_data$quality < 5),]
+#unique(HetC.CZECH$mouse)
+
+#non-passing mice
+#PWD.remove.mice <- c("1apr15_PWD_f2","8oct14_PWD_f2","8oct14_PWD_f5")
+#HetC.PWD <- HetC.PWD[ ! HetC.PWD$mouse %in% PWD.remove.mice, ]
+
+#calq sex mean
+CZECH.mean.MLH1.obs <- ddply(.data=HetC.CZECH, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+
+CZECH.HETC.val <- CZECH.mean.MLH1.obs$mean.MLH1[1] / CZECH.mean.MLH1.obs$mean.MLH1[2]
+
+
+# SKIVE
+HetC.SKIVE <- MLH1_data[(MLH1_data$strain == "SKIVE")&(MLH1_data$quality < 5),]
+#unique(HetC.SKIVE$mouse)
+
+#non-passing mice
+#PWD.remove.mice <- c("1apr15_PWD_f2","8oct14_PWD_f2","8oct14_PWD_f5")
+#HetC.PWD <- HetC.PWD[ ! HetC.PWD$mouse %in% PWD.remove.mice, ]
+
+#calq sex mean
+SKIVE.mean.MLH1.obs <- ddply(.data=HetC.SKIVE, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+
+SKIVE.HETC.val <- SKIVE.mean.MLH1.obs$mean.MLH1[1] / SKIVE.mean.MLH1.obs$mean.MLH1[2]
+
+
+
+# KAZ
+HetC.KAZ <- MLH1_data[(MLH1_data$strain == "KAZ")&(MLH1_data$quality < 5),]
+#unique(HetC.KAZ$mouse)
+
+#non-passing mice
+#PWD.remove.mice <- c("1apr15_PWD_f2","8oct14_PWD_f2","8oct14_PWD_f5")
+#HetC.PWD <- HetC.PWD[ ! HetC.PWD$mouse %in% PWD.remove.mice, ]
+
+#calq sex mean
+KAZ.mean.MLH1.obs <- ddply(.data=HetC.KAZ, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+KAZ.HETC.val <- KAZ.mean.MLH1.obs$mean.MLH1[1] / KAZ.mean.MLH1.obs$mean.MLH1[2]
+
+
+#TOM
+HetC.TOM <- MLH1_data[(MLH1_data$strain == "TOM")&(MLH1_data$quality < 5),]
+#unique(HetC.TOM$mouse)
+
+#non-passing mice
+#PWD.remove.mice <- c("1apr15_PWD_f2","8oct14_PWD_f2","8oct14_PWD_f5")
+#HetC.PWD <- HetC.PWD[ ! HetC.PWD$mouse %in% PWD.remove.mice, ]
+
+#calq sex mean
+TOM.mean.MLH1.obs <- ddply(.data=HetC.TOM, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+TOM.HETC.val <- TOM.mean.MLH1.obs$mean.MLH1[1] / TOM.mean.MLH1.obs$mean.MLH1[2]
+
+
+
+#AST
+HetC.AST <- MLH1_data[(MLH1_data$strain == "AST")&(MLH1_data$quality < 5),]
+#unique(HetC.AST$mouse)
+
+#non-passing mice
+#PWD.remove.mice <- c("1apr15_PWD_f2","8oct14_PWD_f2","8oct14_PWD_f5")
+#HetC.PWD <- HetC.PWD[ ! HetC.PWD$mouse %in% PWD.remove.mice, ]
+
+#calq sex mean
+AST.mean.MLH1.obs <- ddply(.data=HetC.AST, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+AST.HETC.val <- AST.mean.MLH1.obs$mean.MLH1[1] / AST.mean.MLH1.obs$mean.MLH1[2]
+
+
+#Molosinus
+
+#MSM
+HetC.MSM <- MLH1_data[(MLH1_data$strain == "MSM")&(MLH1_data$quality < 5),]
+unique(HetC.MSM$mouse)
+
+#non-passing mice
+MSM.remove.mice <- c("12sep16_MSM_f3")
+HetC.MSM <- HetC.MSM[ ! HetC.MSM$mouse %in% MSM.remove.mice, ]
+
+#calq sex mean
+MSM.mean.MLH1.obs <- ddply(.data=HetC.MSM, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+
+MSM.HETC.val <- MSM.mean.MLH1.obs$mean.MLH1[1] / MSM.mean.MLH1.obs$mean.MLH1[2]
+
+
+#MOLF
+HetC.MOLF <- MLH1_data[(MLH1_data$strain == "MOLF")&(MLH1_data$quality < 5),]
+unique(HetC.MOLF$mouse)
+
+#non-passing mice
+MOLF.remove.mice <- c("27oct18_MOLF_m3")
+HetC.MOLF <- HetC.MOLF[ ! HetC.MOLF$mouse %in% MOLF.remove.mice, ]
+
+#calq sex mean
+MOLF.mean.MLH1.obs <- ddply(.data=HetC.MOLF, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+
+MOLF.HETC.val <- MOLF.mean.MLH1.obs$mean.MLH1[1] / MOLF.mean.MLH1.obs$mean.MLH1[2]
+
+```
+
+
+> *-Which strain has highest HetC?*
+
+
+
+```{r HetC.plot, echo=FALSE, warning=FALSE}
+#HETC plot
+
+#make scatter plot for HetC
+#color by strain
+
+#set up data
+#make female male plot
+
+HetC_strain_table.M <- ddply(MLH1_data[(MLH1_data$quality < 5)&(MLH1_data$sex == "male"),], c("strain"), summarise,
+                         Nmice = length(unique(mouse)),
+                         Ncells  = length(adj_nMLH1.foci),
+                         mean_co = format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3),
+                         var = format(round(   var(nMLH1.foci),3), nsmall=3),
+                         sd   = round(sd(adj_nMLH1.foci), 3),
+                         se   = round(sd / sqrt(Ncells), 3),
+                         cV = round( (as.numeric(sd) / as.numeric(mean_co) ),3)
+)
+#
+#HetC_strain_table.M <- HetC_strain_table.M[ -c(7, 4, 10,11,12, 14, 17, 18,19), ]
+
+HetC_strain_table.F <- ddply(MLH1_data[(MLH1_data$quality < 5)&(MLH1_data$sex == "female"),], c("strain"), summarise,
+                         Nmice = length(unique(mouse)),
+                         Ncells  = length(adj_nMLH1.foci),
+                         mean_co = format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3),
+                         var = format(round(   var(nMLH1.foci),3), nsmall=3),
+                         sd   = round(sd(adj_nMLH1.foci), 3),
+                         se   = round(sd / sqrt(Ncells), 3),
+                         cV = round( (as.numeric(sd) / as.numeric(mean_co) ),3)
+)
+#HetC_strain_table.F <- HetC_strain_table.F[ -c(11), ]
+
+HetC_strain_table.M$sex <- "male"
+HetC_strain_table.F$sex <- "female"
+
+HetC_strain_table <- merge(HetC_strain_table.M, HetC_strain_table.F, by= "strain")
+
+HetC_strain_table <- add_subsp(HetC_strain_table)
+
+#HetC_strain_table$subsp <- c("Dom", "Dom", "Dom", "Musc", "Musc","Musc","Musc", "Cast", "Outgroup","Outgroup")
+
+HetC_strain_table$mean_co.x <- as.numeric(HetC_strain_table$mean_co.x)
+HetC_strain_table$mean_co.y <- as.numeric(HetC_strain_table$mean_co.y)
+#str(HetC_strain_table)
+
+Het.C.plot <- ggplot(data= HetC_strain_table, aes(x= mean_co.x, y=mean_co.y, color = subsp ))+ geom_point(aes(size=2)) + xlim(c(20,35)) + ylim(c(20, 35)) + geom_abline(slope = 1, intercept = 0)+labs(x="male MLH1 mean",y="female MLH1 mean")+ggtitle("Heterochiasmy Plot")+
+  scale_color_manual(values=c("royalblue", "limegreen",  "tomato", "slategray2", "plum", "grey"))
+
+#musc - coral, Dom - cadetblue (grey blue), 
+
+Het.C.plot
+#this plot is missing several 
+
+```
+
+
+
+3 of my Musc strains have male biased patter; SKIVE, PWD and MSM.
+1 of the musc strains has female biased heterochiasmy, KAZ. 
 
 
 ### Distributions of MLH1 counts
 
-*Are the MLH1 distributions close to normal?*
+> *Are the MLH1 distributions close to normal?*
 
 
-```{r, MLH1.histogram, echo=FALSE, fig.caption= "histograms", warning=FALSE, fig.align='center'}
-#consider making distribution with quality considered...
+```{r MLH1.histogram, echo=FALSE, fig.caption= "histograms", warning=FALSE, fig.align='center', eval=FALSE}
 
 
-gg <- data.frame(weight=rep(x,nrow(df)),df)
-gg$y <- with(gg,dnorm(x,mean,sd))
-gg$y <- gg$y * aggregate(weight~sex, weight,length)$weight * diff(range(weight$weight))/30
-
+#gg <- data.frame(weight=rep(x,nrow(df)),df)
+#gg$y <- with(gg,dnorm(x,mean,sd))
+#gg$y <- gg$y * aggregate(weight~sex, weight,length)$weight * #diff(range(weight$weight))/30
 
 mean.MLH1.obs <- ddply(.data=MLH1_data, 
                  .(category),
@@ -452,23 +839,17 @@ mean.MLH1.obs <- ddply(.data=MLH1_data,
 )
 
 
-
 histM <- ggplot(MLH1_data,(aes(adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ category)+ggtitle("Pooled Cell Histograms")+
   geom_line(data=mean.MLH1.obs, aes(y=mean.MLH1.obs$mean.MLH1))
   
-  geom_smooth(method = lm, se = FALSE)
-  
-  
-  geom_smooth(method = lm, formula = mean.MLH1.obs$mean.MLH1 ~ mean.MLH1.obs$category, se = FALSE)
+#  geom_smooth(method = lm, se = FALSE
+ # geom_smooth(method = lm, formula = mean.MLH1.obs$mean.MLH1 ~ mean.MLH1.obs$category, se = FALSE)
   
 histM
-
-#if i'm testing normalge
 
 #function = glm(y ~ x, family = poisson)
 #add Poission curve behind
 #geom_smooth(method = lm, formula = y ~ splines::bs(x, 3), se = FALSE)
-
 #not sure how to add Expected poisson curve
 
 ```
@@ -476,8 +857,9 @@ histM
 
 (most all distributions are close to normal)
 
-How do these compare to Poission? (mean == variance)
+How do these compare to Poisson? (mean == variance)
 I should make 'expected' distributions behind these.
+
 
 ### Assesment of Quality Scores
 
@@ -502,7 +884,7 @@ high_qual_boxplot <- qq + facet_wrap(~ sex, scales="free") #this is breaking the
 
 
 
-```{r, passing.mice, echo=FALSE}
+```{r passing.mice, echo=FALSE, warning=FALSE}
 q_cutoff_table <- ddply(MLH1_data, .(mouse), summarise,
                         total =  length(adj_nMLH1.foci),
                         q5 = sum(as.numeric(quality) >= 4, na.rm = TRUE ), 
@@ -518,14 +900,14 @@ not_passed <- as.vector(unique(MLH1_data[!(unique(MLH1_data$mouse) %in% passed_m
 passed_mice_df <- MLH1_data[ (as.numeric(MLH1_data$quality) < 5), ]
 ```
 
-*Answer to questions*
 
 Human quantification seems to be biased towards rating cells with more MLH1 foci as higher quality. Unbiased cell quality assignment, would not show a positive correlation with quality and nMLH1. (CAST female data is fake)
 
 
 
 
-```{r, scatter.plots.of.nMLH1.by.score, echo=FALSE, fig.cap="MLH1 means across quality scores"}
+```{r scatter.plots.of.nMLH1.by.score, echo=FALSE, fig.cap="MLH1 means and quality scores", warning=FALSE}
+
 #make lattice / plots seperated by strain and sex
 #facet
 
@@ -544,17 +926,16 @@ p
 
 ```
 
-I ploted the mean of each quality bin with a red dot. From the pattern of the red dots, there is definately a negative relationship with quality and nMLH1 foci across the data. This is most pronounced in MSM males and least pronounced in G males. The CAST female data is dummy data.
+
+I plotted the mean of each quality bin with a red dot. From the pattern of the red dots, there is definitely a negative relationship with quality and nMLH1 foci across the data. This is most pronounced in MSM males and least pronounced in G males. The CAST female data is dummy data.
 
 
 ####Distributions by mouse
 
-*Is there mouse level MLH1 quality score bias?*
+> *Is there mouse level MLH1 quality score bias?*
 
 
-latice plot of scatter plots for jitter plots of cell oberservations by quality. The category mean is in black and the mouse specific mean is in red.
-
-below are code chuncks that make a big dfs of CO.count by quality score plot. The code has been commented out, and moved to it's own doc.
+Below are code chunks that make a big dfs of CO count by quality score plot. The code has been commented out, and moved to it's own doc.
 
 ```{r mouse.specific.Qplot, echo=FALSE, message=FALSE, results='hide', warning=TRUE, include=FALSE, eval=FALSE}
 ### to integrate 'pass'/fail
@@ -661,30 +1042,72 @@ for (gg in 1:length(plot_list) ){
 #this stops at MSM
 ```
 
-The mouse specific scatter plots aren't show because there are too many. (but they should be used for investigating specific mice).
+The mouse specific scatter plots aren't show here because there are too bulky. These plots are in a different document.
+
 Making all of these scatter plots, allows us to look at the whole distributions of the data for each mouse. The distance of the red line from the black could be a indicator of slides or mice with slide specific technical noise.
-
-PWD females and a very large range. This is driven by data from 17apr15_PWD_f4. These data should be looked at more closely.
-
-In some mice there seems to be bimodel cell populations, those of clearly high quality and those of lower quality. This may be due to the screening of images before quantification, and allowing more bad cells data remain in the data set, instead of deleting them.
 
 
 # Research Questions
 
-*-which strain has highest HetC?*
 
-Start thinking of the direction for analysis
+## Models for manuscript
+
+Rough ideas for models of evolution of Heterochiasmy and current idea for how to test them.
+
+- HetC arises due to more precursors (DSBs)
+
+    - Compare DSB counts
+    
+- Larger cell volume drives longer chrms axis (and maybe more DSB)
+
+    - Measure meiocyte diameter in males and females. Compare spermatocyte diameters in male biased and female biased strains. 
+    - Compare DSBs counts and average SC/axis lengths.
 
 
-## within mouse
+- Difference in astral/MT organization
+
+    - ?
+
+
+- Something about interference and sister cohesin area
+
+    - Develope metric for sister cohesin area, and look at initial patterns.
 
 
 
-### female and male comparison
 
-## within category (strain)
+## Mixed Model, compare within and between subspecies patterns
 
-```{r HetC.plot, echo=FALSE,  fig.width=10, fig.height=5}
+
+Initial results indicate that male MLH1 counts have less variance within subspecies but more between subspecies compared to female data.
+
+*Does this hold up with the full data set?*
+*What's the best visualization for these questions?*
+
+Main focus is contrasting the level of difference within and between subspecies.
+
+I'll do this with a mixed model framework approach (and analyze with ANOVA, a method to partition the variance of subset.)
+
+```{r mixed.model, echo=FALSE}
+#build mixed model
+#run simulations for accounting for sampling error
+# old code uses base plot
+
+
+
+```
+
+
+## Meiotic Error
+
+This section reviews all the data from achiasmy and 0CO bivalents.
+
+
+### Another Heterochiasmy Plot
+
+```{r HetC.plot22, echo=FALSE,  fig.width=10, fig.height=5, fig.caption="Sex-Specific MLH1 average"}
+
+
 no_female <- c("HMI", "SKIVE", "CZECH", "MOLF", "CAROLI", "TOM","AST")
 
 MixedModel_CO_data <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$strain.x != "other",]
@@ -710,52 +1133,3 @@ bubu <- ggplot(data=CO_data_HetC_w.old)+geom_point(aes(y=mean_co, x=mouse, color
 multiplot(kuku,bubu, cols=2)
 ```
 
-
-
-
-
-
-
-
-### female and male comparison
-
-
-## Subspecies level comparison
-
-
-Initial results indicate that male MLH1 counts have less variance within subspecies but more between subspecies compared to female data.
-
-*Does this hold up with the full data set?*
-*What's the best visualization for these questions?*
-
-Main focus is contrasting the level of difference within and between subspecies.
-
-I'll do this with a mixed model framework approach (and analyze with ANOVA, a method to partition the variance of subset.)
-
-```{r mixed.model, echo=FALSE}
-
-#build mixed model
-
-#run simulations for accounting for sampling error
-
-```
-
-
-
-### Subspecies examples / Data
-
-list the strains/data used 
-Mouse average MLH1 counts, 
-
-
-### Male Specific results
-
-Not all strains have female data. Here are results from all strains wih male data.
-
-
-### female and male comparison
-
-
-## Meiotic Error
-
-This section reviews all the data from achiasmy and 0CO bivalents.
