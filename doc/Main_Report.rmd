@@ -220,6 +220,10 @@ Main metric is mean CO count per mouse. Run tests to check if there are effects 
 These aspects will be analyzed with a linear models on subsets of data (within category) and visualized with plots.
 
 
+### Quality effect
+
+there is a positive correlation with MLH1 number and quality
+To test this effect, compare all of the counts from quality-1 cells across strains. check that the same patterns of means persist compared to the total-cell data.
 
 ### Age Effect
 
@@ -1050,6 +1054,128 @@ Making all of these scatter plots, allows us to look at the whole distributions 
 # Research Questions
 
 
+## Explaination for the XX and XY differences
+
+
+## Difference in proportion of chrm classes
+
+generate smaller data set of chrm proportions (0CO, 1CO,2CO ect)
+10 cells from each musc category.
+
+
+```{r draw.rand.cells, echo=FALSE}
+ss <- sample(MLH1_data[MLH1_data$category == "PWD male",1:4], 10, replace = FALSE)
+ii <- MLH1_data[ sample( which(MLH1_data$category=='G male'), 10 ), ]
+```
+
+
+```{r chrm_prop_data, echo=FALSE}
+
+chrm.class.DF = read.csv("~./MLH1repo/ChrmClassProportions.csv", header = TRUE)
+chrm.class.DF$fileName <- (chrm.class.DF$Original.Name)
+
+chrm.class.DF <- add_mouse(chrm.class.DF)
+chrm.class.DF <- add_strain(chrm.class.DF)
+chrm.class.DF <- add_sex(chrm.class.DF)
+chrm.class.DF <- add_category(chrm.class.DF)
+#chrm.class.DF <- add_euth_date(meta.data.file2)
+#chrm.class.DF <- add_age(meta.data.file2)
+
+table(chrm.class.DF$category)
+str(chrm.class.DF)
+
+#summarize by category
+this_thing2  <- ddply(.data=chrm.class.DF[chrm.class.DF$sex == "male",], 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                  tot_biv  = sum(biv.sum.check),
+
+                 n0CO = sum(n0CO),
+                  n1CO = sum(n1CO),
+                  n2CO = sum(n2CO),
+                  n3CO = sum(n3CO),
+                  n4CO = sum(n4CO),
+                 
+                 per0CO = sum(n0CO) / tot_biv,                 
+                 per1CO= sum(n1CO)/ tot_biv,
+                 per2CO= sum(n2CO)/ tot_biv,
+                 per3CO= sum(n3CO)/ tot_biv,
+                 per4CO= sum(n4CO)/ tot_biv,
+                 
+                 mean.MLH1.foci = mean(MLH1.sum.check),
+                 mean.MLH1.foci2 = mean(nMLH1.foci),
+                 meanQ = mean(quality)
+
+)
+str(this_thing2)
+
+#this first one is the 'first' MLH1 count
+oopp2 <- lm( mean.MLH1.foci2 ~ per0CO+ per1CO +per2CO +per3CO, data = this_thing2)
+summary(oopp2)
+#none of the classes are significant
+
+
+#mean is the new calculated-- mean 0CO is significant and intercept
+oopp <-  lm( mean.MLH1.foci ~ per0CO+ per1CO +per2CO +per3CO, data = this_thing2)
+summary(oopp)
+#not sure if these are inter-correlated
+#I don't know why 0COs and the intercept are significant..
+#0CO and 1CO are significant when only chrm classes are included (and intercept)
+
+
+#no longer significant when used
+#lm regression indicates that the proportions aren't significant contributers to meanMLH1 -- but this could be due to error
+#after added more MSM data, tot_biv is not significant
+#0CO is now more significant, and 2CO is sightly significant
+
+
+#2CO proportion is the most significant, 1CO is second most significat, 3CO doesn't have enough power - total bivalents is also significant, there might be a bias
+
+#MSM needs more bialent observations
+
+#use melt to put all propotions 
+
+#display / visualize / compare proportions
+
+melt.table = read.csv("~./MLH1repo/ChrmClassProportions_melt.csv", header = TRUE)
+melt.table$fileName <- (melt.table$Original.Name)
+
+#melt.table <- add_mouse(melt.table)
+#melt.table <- add_strain(melt.table)
+#melt.table <- add_sex(melt.table)
+#melt.table <- add_category(melt.table)
+
+melt.table$strain<- factor(melt.table$strain,levels =c("LEW",
+                      "WSB","G", "TOM","AST","KAZ", "SKIVE","PWD","MSM"), order=T )
+
+melt.table <- with(melt.table, melt.table[order(strain),])
+
+other_thing <- ggplot(data = melt.table, aes(y = value, x = strain, fill=as.factor(type)) ) + geom_col(position = "dodge")+facet_grid(sex~subsp)
+
+other_thing
+
+
+
+
+chrm.class.DF$perBiv0 <-chrm.class.DF$n0CO/chrm.class.DF$biv.sum.check
+chrm.class.DF$perBiv1<-chrm.class.DF$n1CO/chrm.class.DF$biv.sum.check
+chrm.class.DF$perBiv2<-chrm.class.DF$n2CO/chrm.class.DF$biv.sum.check
+chrm.class.DF$perBiv3<-chrm.class.DF$n3CO/chrm.class.DF$biv.sum.check
+chrm.class.DF$perBiv4<-chrm.class.DF$n4CO/chrm.class.DF$biv.sum.check
+
+chrm.class.DF$biv.sum.check
+
+```
+
+
+PWD and MSM have a higher proportion of 2CO chrms!
+
+what about the variance across cells?
+
+
+
 ## Models for manuscript
 
 Rough ideas for models of evolution of Heterochiasmy and current idea for how to test them.
@@ -1133,3 +1259,217 @@ bubu <- ggplot(data=CO_data_HetC_w.old)+geom_point(aes(y=mean_co, x=mouse, color
 multiplot(kuku,bubu, cols=2)
 ```
 
+
+## SC.skel measures
+
+run analysis for whole SC skel measures
+
+
+```{r RWscSkel, echo=FALSE}
+#merge the sc.skel outputs with the master MLH1 measures
+#match up random names with original names
+
+#the skel output and scripts are in the SC_skel dir. it was run on all images in the anon_data folder. I haven't manually confirmed that the default parameters are skeletonizing the images correctly.
+
+
+#some of richard's analysis show negative relationship with SC length and MLH1 (his QTL word doc). Could this be sign
+# of pwd like regulation?
+
+setwd("~./")
+SC.skel = read.csv("~./SC_skeletonize/data/SCskel_output_sep19.csv", header = TRUE, strip.white = TRUE)
+
+
+SC.skel$rand_name <- as.character(SC.skel$rand_name)
+original_DF$Random.Name <- as.character(original_DF$Random.Name)
+str(SC.skel)
+str(original_DF)
+
+mlh1.skel.og <- merge(original_DF, SC.skel, by.x = "Random.Name", by.y = "rand_name", all= F)
+#for some reason this only worked after the chr and all = F
+
+mlh1.skel.og <- mlh1.skel.og[ !grepl("X", mlh1.skel.og$Batch) , ]
+mlh1.skel.og <- mlh1.skel.og[ !grepl("x", mlh1.skel.og$Batch) , ]
+mlh1.skel.og <- mlh1.skel.og[!(is.na(mlh1.skel.og$quality) | mlh1.skel.og$quality==""), ]
+
+mlh1.skel.og <- add_mouse(mlh1.skel.og)
+mlh1.skel.og <- add_strain(mlh1.skel.og)
+mlh1.skel.og <- add_sex(mlh1.skel.og)
+
+mlh1.skel.og <- add_category(mlh1.skel.og)
+mlh1.skel.og <- add_subsp(mlh1.skel.og)
+
+#mlh1.skel.og <- add_euth_date(mlh1.skel.og)
+#mlh1.skel.og <- add_age(mlh1.skel.og)
+
+str(mlh1.skel.og)
+mlh1.skel.og$skel_size  <- as.numeric(mlh1.skel.og$skel_size)
+mlh1.skel.og$bin_size <- as.numeric(mlh1.skel.og$bin_size)
+mlh1.skel.og$nMLH1.foci <- as.numeric(mlh1.skel.og$nMLH1.foci)
+
+#remove outliers
+mlh1.skel <- mlh1.skel.og[mlh1.skel.og$skel_size < 25000,]
+#first test file has ~1000 measures
+#when I ran it, no sign of outliers (after removing all the X's cells)
+
+looky <- ggplot(data = mlh1.skel.og[mlh1.skel.og$subsp == "Dom",], aes(y=skel_size, x=quality) ) + geom_jitter() + facet_wrap(sex~strain)
+
+
+looky <- ggplot(data = mlh1.skel.og[mlh1.skel.og$subsp == "Musc",], aes(y=skel_size, x=nMLH1.foci, color=mouse) ) + geom_jitter() + facet_wrap(sex~strain)+theme(legend.position="none")  +ylim(c(0,2000))
+#very possible that the dimesions and pixel density are skrewing with these values
+# I am suspcious that there is such a wide range for the female data
+
+looky.DOM <- ggplot(data = mlh1.skel.og[mlh1.skel.og$subsp == "Dom",], aes(y=skel_size, x=nMLH1.foci, color=mouse) ) + geom_jitter() + facet_wrap(sex~strain)+theme(legend.position="none")  +ylim(c(0,2000))
+
+
+#mouse level
+mouse.level.skel <- ddply(.data=mlh1.skel.og, 
+                 .(mouse),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(nMLH1.foci),
+                 mean.skel = mean(skel_size)
+)
+
+mouse.level.skel <- add_strain(mouse.level.skel)
+mouse.level.skel <- add_sex(mouse.level.skel)
+mouse.level.skel <- add_category(mouse.level.skel)
+mouse.level.skel <- add_subsp(mouse.level.skel)
+
+
+looky.mouse <- ggplot(data = mouse.level.skel[mouse.level.skel$subsp == "Musc",], aes(y=mean.skel, x=mean.MLH1, color=strain) ) + geom_jitter() +ylim(c(150,1200))+facet_wrap(subsp~sex)
+
+looky.mouseDom <- ggplot(data = mouse.level.skel[mouse.level.skel$subsp == "Dom",], aes(y=mean.skel, x=mean.MLH1, color=strain) ) + geom_jitter() +ylim(c(150,1200))+facet_wrap(subsp~sex)
+
+#theme(legend.position="none") 
+
+#double check a way to visually inspect the python skel output
+#
+#repeat random numbers?
+```
+
+
+
+```{r test.BivData, echo=FALSE}
+#bivdata
+setwd("~./")
+MSM_BivData.og = read.csv("~./MLH1repo/data/BivData/Curate_MSMmale_9.9.19.csv", header = TRUE, strip.white = TRUE )
+
+MSM_BivData <- MSM_BivData.og[MSM_BivData.og$SC.pass ==1,]
+MSM_BivData <- MSM_BivData[!(is.na(MSM_BivData$hand.foci.count) | MSM_BivData$hand.foci.count==""), ]
+
+#MSM_BivDatam_CO2 <- MSM_BivData[MSM_BivData$hand.foci.count == 2,]
+#MSM_BivDatam_CO2 <- MSM_BivDatam_CO2[!(is.na(MSM_BivDatam_CO2$fileName) | MSM_BivDatam_CO2$fileName==""), ]
+
+#MSM_BivDatam_CO2$Foci1.PER <- MSM_BivDatam_CO2$Foci1 /MSM_BivDatam_CO2$chromosomeLength
+#MSM_BivDatam_CO2$Foci2.PER <- MSM_BivDatam_CO2$Foci2 /MSM_BivDatam_CO2$chromosomeLength 
+
+MSM_BivData <- add_IFD(MSM_BivData)
+#add IFD2 is f-ing up 
+MSM_BivData <- addIFD.2(MSM_BivData)
+
+#this MSM PER.IFD, is similar to the PWD data
+
+#new function is converting all hand.foci counts to 3
+#it might be the IFD functions
+
+str(new_shiny)
+str(MSM_BivData)
+
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+new_shiny <- add_SisCoTen(MSM_BivData)
+
+new_shiny$rel_Siscoten <- new_shiny$SisCoTen / new_shiny$chromosomeLength
+
+qq <- ggplot(data = new_shiny, aes(y=chromosomeLength, x=rel_Siscoten) ) + geom_jitter()
+
+ww <- ggplot(data = MSM_BivDatam_CO2, aes(y=IFD1_PER, x=mouse, color = fileName) ) + geom_jitter()+
+  geom_boxplot(aes(alpha=.3))
+
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+#KAZ and PWD data set is larger
+PWD_KAZ_BivData.og = read.csv("~./MLH1repo/data/BivData/Merged_Curate_PWD.KAZ_BivData.csv", header = TRUE, strip.white = TRUE )
+
+PWD_KAZ_BivData <- PWD_KAZ_BivData.og[PWD_KAZ_BivData.og$SC.pass == 1,]
+
+PWD_KAZ_BivData <- add_IFD(PWD_KAZ_BivData)
+PWD_KAZ_BivData <- addIFD.2(PWD_KAZ_BivData)
+PWD_KAZ_BivData <- add_SisCoTen(PWD_KAZ_BivData)
+PWD_KAZ_BivData$rel_Siscoten <- PWD_KAZ_BivData$SisCoTen / PWD_KAZ_BivData$chromosomeLength
+PWD_KAZ_BivData <- add_mouse(PWD_KAZ_BivData)
+PWD_KAZ_BivData <- add_strain(PWD_KAZ_BivData)
+
+mouse_boxes <- ggplot(data = PWD_KAZ_BivData, aes(y=rel_Siscoten, x=mouse) ) + geom_jitter(aes( color=fileName))+
+  geom_boxplot(aes(alpha=.3))+theme(legend.position="none")
+
+mouse_boxes2 <- ggplot(data = PWD_KAZ_BivData, aes(y=SisCoTen, x=mouse) ) + geom_jitter(aes( color=fileName))+
+  geom_boxplot(aes(alpha=.3))+theme(legend.position="none")
+
+#mean relative and raw sisco-ten is higher in PWD compared to KAZ
+
+biv_boxes <- ggplot(data = PWD_KAZ_BivData[PWD_KAZ_BivData$strain != "other",], aes(y=SisCoTen, x=hand.foci.count, fill=hand.foci.count) ) + geom_jitter()+geom_boxplot(aes(x= hand.foci.count,alpha=.3))+
+theme(legend.position="none")+facet_wrap(~strain)
+
+biv_boxes22 <- ggplot(data = PWD_KAZ_BivData[PWD_KAZ_BivData$strain != "other",], aes(y=SisCoTen, x=as.factor(hand.foci.count)) )+ geom_jitter()+
+  geom_boxplot(aes(alpha=.3))+theme(legend.position="none")+facet_wrap(~strain)
+
+
+biv_boxes2 <- ggplot(data = PWD_KAZ_BivData[PWD_KAZ_BivData$strain != "other",], aes(y=rel_Siscoten, x=hand.foci.count) ) + geom_jitter(aes( color=fileName))+
+theme(legend.position="none")+facet_wrap(~strain)
+
+regress <- ggplot(data = PWD_KAZ_BivData[PWD_KAZ_BivData$strain != "other",], aes(y=SisCoTen, x=chromosomeLength) ) + geom_jitter(aes( color=as.factor(hand.foci.count) ))+ facet_wrap(~strain)
+
+
+
+
+regress.1 <- ggplot(data = PWD_KAZ_BivData[PWD_KAZ_BivData$strain != "other",], aes(y=SisCoTen, x=hand.foci.count) ) + geom_jitter(aes( color=fileName))+ theme(legend.position="none")+ facet_wrap(~strain)
+#, 1mar15_PWD_m1
+
+regress.2 <- ggplot(data = PWD_KAZ_BivData[PWD_KAZ_BivData$strain != "other",], aes(y=SisCoTen, x=hand.foci.count) ) + geom_jitter(aes( color=fileName))+ theme(legend.position="none")+ facet_wrap(~strain)
+#, 1mar15_PWD_m1
+
+#
+
+regress.1.KAZ <- ggplot(data = PWD_KAZ_BivData[PWD_KAZ_BivData$mouse == "21may18_KAZ_m2",], aes(y=SisCoTen, x=hand.foci.count) ) + geom_jitter(aes( color=fileName))+
+ theme(legend.position="none")+ facet_wrap(~fileName)
+
+
+#doesn't look like the sis-co-ten is conserved across bivs
+
+```
+
+
+```{r within.cell.corr, echo=FALSE}
+
+#test telomere distance
+#centromere distance
+#SC length
+
+#I want to test if SC lengths within cells cluster
+#wouldn't ANOVA get at this..?
+
+#cell level variance is significant predictor for SC length (telomere)
+
+#PWD_KAZ_BivData[PWD_KAZ_BivData$strain != "other",]
+jjgg <- ddply(.data= PWD_KAZ_BivData,
+                 .(fileName),
+                 summarize, 
+                 nbiv = length(unique(Obj.ID) ),
+                  var.sc = var(chromosomeLength)
+)
+
+#reasons why this within cell correlation doesn't work well with bivalent data
+  #different sets of chrms
+#not enough resolution at cytology level
+
+```
+
+
+sis-coten metric:
+I am currently missing a null model / test for this metric
+(sis-co-ten from uniform placement of COs, and (some prob of draw for CO number))
+
+
+there is a positive correlation with siscoten and chrm length 
+
+there could be something about kinetochore sites differing across specific chromosomes that balance the force
