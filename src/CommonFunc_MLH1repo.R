@@ -290,10 +290,40 @@ add_mouse2 <- function(dat){
   return(dframe)
 }
 
+#make sis-co-ten
+#metric for calculating relative / predicted about of sister-cohesion tension at metaphase
+#requires handfocicount, Foci positions, and IFD
+#start with ABS measures
+
+add_SisCoTen <- function(DF){
+  
+  #DF$SisCoTen <- ifelse(  as.numeric(DF$hand.foci.count) == 1 , print(c(DF$chromosomeLength - DF$Foci1) ),
+  #          ifelse( as.numeric(DF$hand.foci.count) == 1, (as.integer(DF$chromosomeLength) - as.integer(DF$Foci1)),"" ))
+
+  #this chain of ifelse works!
+  DF$SisCoTen2 <- ifelse(  as.numeric(DF$hand.foci.count) == 1, "mee",
+                          #print(c(DF$chromosomeLength - DF$Foci1) ),
+                    ifelse(  as.numeric(DF$hand.foci.count) == 2 , "meee2",
+                                   #print(c(DF$chromosomeLength - DF$Foci1) ), "")
+                          ifelse(  as.numeric(DF$hand.foci.count) == 3,  "meee3","")))
+
+  DF$SisCoTen <- ifelse(  as.numeric(DF$hand.foci.count) == 1,DF$chromosomeLength - DF$Foci1,
+                    ifelse(  as.numeric(DF$hand.foci.count) == 2, DF$IFD1,   
+                        ifelse(  as.numeric(DF$hand.foci.count) == 3, DF$IFD1 + DF$chromosomeLength-DF$Foci3, "")))
+
+  #DF$SisCoTen <- as.integer(DF$SisCoTen)
+  
+  return(DF)
+}
+
+
+#make foci_PER
+
 
 
 #Calculate InterFocal Distance (IFD) in Chrm1 dataframe
-#requires Percent foci positions
+#requires Percent foci positions, for the sceiont part
+
 add_IFD <- function(DF){
   
   DF$IFD1_ABS <- ifelse(  (DF$hand.foci.count >= 2),
@@ -311,20 +341,25 @@ add_IFD <- function(DF){
 }
 
 
+
 #add second IFD for 3COs or more
+#this function seems to f-up the hand.foci.count
+#First form used colnames from DNA Crossover. With curation step -- I'm switching to the curation step colnames
+#these have more reliable values
+
 addIFD.2 <- function(DF){
   
-  DF$IFD1 <- ifelse(  (DF$numberCrossOvers >= 2), 
-                      DF$foci_ABS_Position_2 - DF$foci_ABS_Position_1,   "" )
+  DF$IFD1 <- ifelse(  as.numeric(DF$hand.foci.count >= 2), 
+                      DF$Foci2 - DF$Foci1,   "" )
   
-  DF$IFD2 <- ifelse(  (DF$numberCrossOvers >= 3), 
-                      DF$foci_ABS_Position_3 - DF$foci_ABS_Position_2,   "" )
+  DF$IFD2 <- ifelse(  as.numeric(DF$hand.foci.count >= 3), 
+                      DF$Foci3 - DF$Foci2,   "" )
   
-  DF$IFD3 <- ifelse(  (DF$numberCrossOvers >= 4), 
-                      DF$foci_ABS_Position_4 - DF$foci_ABS_Position_3,   "" )
+  DF$IFD3 <- ifelse(  as.numeric(DF$hand.foci.count >= 4), 
+                      DF$Foci4 - DF$Foci3,   "" )
   
-  DF$IFD4 <- ifelse(  (DF$numberCrossOvers >= 5), 
-                      DF$foci_ABS_Position_5 - DF$foci_ABS_Position_4,   "" )
+  DF$IFD4 <- ifelse(  as.numeric(DF$hand.foci.count >= 5), 
+                      DF$Foci5 - DF$Foci4,   "" )
   
   
   return(DF)
