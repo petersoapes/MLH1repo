@@ -301,17 +301,18 @@ add_SisCoTen <- function(DF){
   #          ifelse( as.numeric(DF$hand.foci.count) == 1, (as.integer(DF$chromosomeLength) - as.integer(DF$Foci1)),"" ))
 
   #this chain of ifelse works!
-  DF$SisCoTen2 <- ifelse(  as.numeric(DF$hand.foci.count) == 1, "mee",
-                          #print(c(DF$chromosomeLength - DF$Foci1) ),
-                    ifelse(  as.numeric(DF$hand.foci.count) == 2 , "meee2",
-                                   #print(c(DF$chromosomeLength - DF$Foci1) ), "")
-                          ifelse(  as.numeric(DF$hand.foci.count) == 3,  "meee3","")))
+  #DF$SisCoTen2 <- ifelse(  as.numeric(DF$hand.foci.count) == 1, "mee",
+  #                        #print(c(DF$chromosomeLength - DF$Foci1) ),
+  #                  ifelse(  as.numeric(DF$hand.foci.count) == 2 , "meee2",
+  #                                 #print(c(DF$chromosomeLength - DF$Foci1) ), "")
+   #                       ifelse(  as.numeric(DF$hand.foci.count) == 3,  "meee3","")))
 
   DF$SisCoTen <- ifelse(  as.numeric(DF$hand.foci.count) == 1,DF$chromosomeLength - DF$Foci1,
-                    ifelse(  as.numeric(DF$hand.foci.count) == 2, DF$IFD1,   
-                        ifelse(  as.numeric(DF$hand.foci.count) == 3, DF$IFD1 + DF$chromosomeLength-DF$Foci3, "")))
+                    ifelse(  as.numeric(DF$hand.foci.count) == 2, DF$IFD1,
+      ifelse(  as.numeric(DF$hand.foci.count) == 3, as.numeric(DF$IFD1) + (as.numeric(DF$chromosomeLength)-as.numeric(DF$Foci3) ), "")))
+  #adding the as.numeric around the pieces of expression above fixed the tiny bug
 
-  #DF$SisCoTen <- as.integer(DF$SisCoTen)
+  DF$SisCoTen <- as.numeric(DF$SisCoTen)#not sure if numeric or integer is the best
   
   return(DF)
 }
