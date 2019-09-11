@@ -34,13 +34,7 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
 Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse strains of house mice and related rodents. Comparison the differences in recombination rates across sexes and genetic background to inform models of how meiotic recombination rates evolve. 
 
-## Description of Report
 
-- Show basics of the current data file
-
-- Display plots and figures of distributions of MLH1 counts to assess initial overall patterns.
-
--  Report basic statistics of results and to help keep track of the number of images for each category and mouse.
 
 
 ## Discription of quantification process
@@ -192,7 +186,7 @@ The 'Other' are F1 crosses.
 
 A general anecdote is that if the quality of the cell staining / image is high, then the repeatability is near 100%. (using some of Beth's data). There is a subset of data which has been counted multiple times -- use that to test the repeatbility.
 
-```{r quant.repeatability, echo=FALSE}
+```{r quant.repeatability, echo=FALSE, include=FALSE}
 
 ```
 
@@ -222,12 +216,125 @@ These aspects will be analyzed with a linear models on subsets of data (within c
 
 ### Quality effect
 
-there is a positive correlation with MLH1 number and quality
+There is a positive correlation with MLH1 number and quality
 To test this effect, compare all of the counts from quality-1 cells across strains. check that the same patterns of means persist compared to the total-cell data.
+
+```{r quality.effect, echo=FALSE}
+
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/doc/")
+#compare all quality 1 cells across strains
+#check that the means (or directions of differences is maintained)
+
+Q12_MLH1_DF <- MLH1_data[MLH1_data$quality <= 2,]
+
+#ddply
+Q12_MLH1_means <- ddply(.data=Q12_MLH1_DF, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+
+tot.DF_MLH1_means <- ddply(.data=MLH1_data, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+
+mergy <- merge(Q12_MLH1_means, tot.DF_MLH1_means, by='category', all = F)
+colnames(mergy) <- c("category","Q12ncells","Q12mice","Q12_MLH1_means","Q12MLH1var",
+                     "Totncells","Totnmice","TotMLH1mean","TotMLH1var")
+
+mergy$percent.diff <- (mergy$Q12_MLH1_means / mergy$TotMLH1mean)
+
+Q12toTotal <- ggplot(mergy, aes(y=Q12_MLH1_means, x=TotMLH1mean))+geom_point(aes(size = Q12ncells) )+geom_abline(slope = 1, intercept = 0)+ggtitle("Quality 1 cells MLH1 mean to total MLH1 mean")+ylim(c(21,32))+xlim(c(21,32))
+
+Q12toTotal
+
+#check that the directions are the same
+#make tables for the 
+#is the amount of 'polymorphism' the same
+
+Q12_MLH1_means_males <- ddply(.data=Q12_MLH1_DF[Q12_MLH1_DF$sex == "female",], 
+                 .(category,subsp),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci)
+)
+
+tot.DF_MLH1_means_males <- ddply(.data=MLH1_data[MLH1_data$sex == "female",], 
+                 .(category,subsp),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                 mean.MLH1 = mean(adj_nMLH1.foci)
+)
+
+kable(Q12_MLH1_means_males, caption = "High quality cells")
+
+kable(tot.DF_MLH1_means_males, caption = "Total Cell")
+
+```
+
+All the quality 1 cells produce a higher mean. The biggest difference in means is HMI male, LEW female and SPIC female means have ~10% differences.
+
+When quality 1 to 2 is compared, the strains were closer to the line, but the means are still higher in the higher quality cells.
+with 1-2 most all of the difference are below 10% (except SPRET female).
+
+MOLF males have quite a big difference.
+
+There seem to be the similar amount of polymorphism in the Dom and more conserved in Dom.
+
+Ranges for male means across subspecies. Ranges of means (not ranges of all).
+
+(try turning this into a table...)
+Dom            female Dom
+old,   new      old     new
+22-24  23-25    24-27  25-29 
+
+Musc           female Musc
+23-31   25-31   25-27   26-29
+22-25   22-27    25       25
+(ASTmale has 27 mean, outlier)
+
+Outgroup       female outgroup
+25-26   26-27    27    29-31
+
+I think the ranges across the groups 
+
+
+### Assesment of Quality Scores
+
+> *How do the distributions change across different quality scores?*
+
+> *How do the distributions change across mice with a good number of cells?*
+
+
+```{r high.qual, fig.caption="boxplots of MLH1 distributions", fig.height=5, fig.width=5, echo=FALSE, warnings=FALSE, include=FALSE}
+
+#MLH1_data$quality <- as.numeric(MLH1_data$quality) #this needs to be run for the subsetting to work
+highest_qual_df <-  subset(MLH1_data, as.numeric(MLH1_data$quality) <= 2 )
+
+#are there no KAZ cells of high quality?
+qq <- ggplot(highest_qual_df, aes(x = mouse, y = adj_nMLH1.foci)) + geom_boxplot(data = highest_qual_df, aes(fill = factor(strain) ) ) +  ggtitle("Cells with quality scores of 2 or 1") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00", "red","yellowgreen", "green","purple", "black", "grey" ))
+high_qual_boxplot <- qq + facet_wrap(~ sex, scales="free") #this is breaking the kniting... 
+```
+
+
+
 
 ### Age Effect
 
-Some papers have documented age effects for male genome-wide recombination rate (cite).
+Some papers have documented age effects for male genome-wide recombination rate (cite, one of the Cole papers).
 
 The initial analysis uses plots. This should be double checked with a general linear model as well.
 
@@ -865,26 +972,6 @@ How do these compare to Poisson? (mean == variance)
 I should make 'expected' distributions behind these.
 
 
-### Assesment of Quality Scores
-
-> *How do the distributions change across different quality scores?*
-
-> *How do the distributions change across mice with a good number of cells?*
-
-
-```{r high.qual, fig.caption="boxplots of MLH1 distributions", fig.height=5, fig.width=5, echo=FALSE, warnings=FALSE, include=FALSE}
-
-#MLH1_data$quality <- as.numeric(MLH1_data$quality) #this needs to be run for the subsetting to work
-highest_qual_df <-  subset(MLH1_data, as.numeric(MLH1_data$quality) <= 2 )
-
-#are there no KAZ cells of high quality?
-qq <- ggplot(highest_qual_df, aes(x = mouse, y = adj_nMLH1.foci)) + geom_boxplot(data = highest_qual_df, aes(fill = factor(strain) ) ) +  ggtitle("Cells with quality scores of 2 or 1") +
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) + scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00", "red","yellowgreen", "green","purple", "black", "grey" ))
-high_qual_boxplot <- qq + facet_wrap(~ sex, scales="free") #this is breaking the kniting... 
-```
-
 
 
 
@@ -1064,8 +1151,8 @@ generate smaller data set of chrm proportions (0CO, 1CO,2CO ect)
 
 
 ```{r draw.rand.cells, echo=FALSE}
-ss <- sample(MLH1_data[MLH1_data$category == "PWD male",1:4], 10, replace = FALSE)
-ii <- MLH1_data[ sample( which(MLH1_data$category=='G male'), 10 ), ]
+#ss <- sample(MLH1_data[MLH1_data$category == "PWD male",1:4], 10, replace = FALSE)
+#ii <- MLH1_data[ sample( which(MLH1_data$category=='G male'), 10 ), ]
 ```
 
 
@@ -1081,8 +1168,8 @@ chrm.class.DF <- add_category(chrm.class.DF)
 #chrm.class.DF <- add_euth_date(meta.data.file2)
 #chrm.class.DF <- add_age(meta.data.file2)
 
-table(chrm.class.DF$category)
-str(chrm.class.DF)
+#table(chrm.class.DF$category)
+#str(chrm.class.DF)
 
 #summarize by category
 this_thing2  <- ddply(.data=chrm.class.DF[chrm.class.DF$sex == "male",], 
@@ -1109,17 +1196,17 @@ this_thing2  <- ddply(.data=chrm.class.DF[chrm.class.DF$sex == "male",],
                  meanQ = mean(quality)
 
 )
-str(this_thing2)
+#str(this_thing2)
 
 #this first one is the 'first' MLH1 count
 oopp2 <- lm( mean.MLH1.foci2 ~ per0CO+ per1CO +per2CO +per3CO, data = this_thing2)
-summary(oopp2)
+#summary(oopp2)
 #none of the classes are significant
 
 
 #mean is the new calculated-- mean 0CO is significant and intercept
 oopp <-  lm( mean.MLH1.foci ~ per0CO+ per1CO +per2CO +per3CO, data = this_thing2)
-summary(oopp)
+#summary(oopp)
 #not sure if these are inter-correlated
 #I don't know why 0COs and the intercept are significant..
 #0CO and 1CO are significant when only chrm classes are included (and intercept)
@@ -1157,16 +1244,13 @@ other_thing <- ggplot(data = melt.table, aes(y = value, x = strain, fill=as.fact
 other_thing
 
 
-
-
 chrm.class.DF$perBiv0 <-chrm.class.DF$n0CO/chrm.class.DF$biv.sum.check
 chrm.class.DF$perBiv1<-chrm.class.DF$n1CO/chrm.class.DF$biv.sum.check
 chrm.class.DF$perBiv2<-chrm.class.DF$n2CO/chrm.class.DF$biv.sum.check
 chrm.class.DF$perBiv3<-chrm.class.DF$n3CO/chrm.class.DF$biv.sum.check
 chrm.class.DF$perBiv4<-chrm.class.DF$n4CO/chrm.class.DF$biv.sum.check
 
-chrm.class.DF$biv.sum.check
-
+#chrm.class.DF$biv.sum.check
 ```
 
 
@@ -1281,8 +1365,8 @@ SC.skel = read.csv("~./SC_skeletonize/data/SCskel_output_sep19.csv", header = TR
 
 SC.skel$rand_name <- as.character(SC.skel$rand_name)
 original_DF$Random.Name <- as.character(original_DF$Random.Name)
-str(SC.skel)
-str(original_DF)
+#str(SC.skel)
+#str(original_DF)
 
 mlh1.skel.og <- merge(original_DF, SC.skel, by.x = "Random.Name", by.y = "rand_name", all= F)
 #for some reason this only worked after the chr and all = F
@@ -1301,7 +1385,7 @@ mlh1.skel.og <- add_subsp(mlh1.skel.og)
 #mlh1.skel.og <- add_euth_date(mlh1.skel.og)
 #mlh1.skel.og <- add_age(mlh1.skel.og)
 
-str(mlh1.skel.og)
+#str(mlh1.skel.og)
 mlh1.skel.og$skel_size  <- as.numeric(mlh1.skel.og$skel_size)
 mlh1.skel.og$bin_size <- as.numeric(mlh1.skel.og$bin_size)
 mlh1.skel.og$nMLH1.foci <- as.numeric(mlh1.skel.og$nMLH1.foci)
@@ -1373,8 +1457,6 @@ MSM_BivData <- addIFD.2(MSM_BivData)
 #new function is converting all hand.foci counts to 3
 #it might be the IFD functions
 
-str(new_shiny)
-str(MSM_BivData)
 
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 new_shiny <- add_SisCoTen(MSM_BivData)
@@ -1383,8 +1465,8 @@ new_shiny$rel_Siscoten <- new_shiny$SisCoTen / new_shiny$chromosomeLength
 
 qq <- ggplot(data = new_shiny, aes(y=chromosomeLength, x=rel_Siscoten) ) + geom_jitter()
 
-ww <- ggplot(data = MSM_BivDatam_CO2, aes(y=IFD1_PER, x=mouse, color = fileName) ) + geom_jitter()+
-  geom_boxplot(aes(alpha=.3))
+#ww <- ggplot(data = MSM_BivDatam_CO2, aes(y=IFD1_PER, x=mouse, color = fileName) ) + geom_jitter()+
+#  geom_boxplot(aes(alpha=.3))
 
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 #KAZ and PWD data set is larger
@@ -1414,7 +1496,7 @@ biv_boxes22 <- ggplot(data = PWD_KAZ_BivData[PWD_KAZ_BivData$strain != "other",]
   geom_boxplot(aes(alpha=.3))+theme(legend.position="none")+facet_wrap(~strain)
 
 
-biv_boxes2 <- ggplot(data = PWD_KAZ_BivData[PWD_KAZ_BivData$strain != "other",], aes(y=rel_Siscoten, x=hand.foci.count) ) + geom_jitter(aes( color=fileName))+
+biv_boxes2 <- ggplot(data = PWD_KAZ_BivData[PWD_KAZ_BivData$strain != "other",], aes(y=rel_Siscoten, x=hand.foci.count) ) + geom_jitter(aes( ))+
 theme(legend.position="none")+facet_wrap(~strain)
 
 regress <- ggplot(data = PWD_KAZ_BivData[PWD_KAZ_BivData$strain != "other",], aes(y=SisCoTen, x=chromosomeLength) ) + geom_jitter(aes( color=as.factor(hand.foci.count) ))+ facet_wrap(~strain)
