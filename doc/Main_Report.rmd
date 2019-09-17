@@ -35,14 +35,9 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 Measure nMLH1 foci per meiotic cell to estimate recombination rate for diverse strains of house mice and related rodents. Comparison the differences in recombination rates across sexes and genetic background to inform models of how meiotic recombination rates evolve. 
 
 
-
-
 ## Discription of quantification process
 
-Cell images are quantified in batches after file names are anonymized. The number of MLH1 foci, number of "achiasmate" and asynasped bivalents are quantified. A quality score is given; 1 to 5 (best to worst).
-
-all cell image file names are anonymized and moved into batches of a few hundred images.
-
+Cell images are quantified in batches after file names are anonymized. The number of MLH1 foci, number of "achiasmate" and asynasped bivalents are quantified. A quality score is given; 1 to 5 (best to worst). All cell image file names are anonymized and moved into batches of a few hundred images.
 
 
 ```{r organizing.data, echo=FALSE}
@@ -73,8 +68,6 @@ MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 #MLH1_data <- with(MLH1_data, MLH1_data[order(category),])
 
 ```
-
-
 
 
 ## Missing Mice, finishing dataset
@@ -186,7 +179,10 @@ The 'Other' are F1 crosses.
 
 A general anecdote is that if the quality of the cell staining / image is high, then the repeatability is near 100%. (using some of Beth's data). There is a subset of data which has been counted multiple times -- use that to test the repeatbility.
 
+
 ```{r quant.repeatability, echo=FALSE, include=FALSE}
+
+#in the chrm proportions data is another set for eastimating error
 
 ```
 
@@ -210,6 +206,8 @@ Main metric is mean CO count per mouse. Run tests to check if there are effects 
 *power analysis on number of cells*
 
 *time of year effect (on spread)*
+
+*dominant effect* (F1s)
 
 These aspects will be analyzed with a linear models on subsets of data (within category) and visualized with plots.
 
@@ -260,7 +258,7 @@ Q12toTotal
 #make tables for the 
 #is the amount of 'polymorphism' the same
 
-Q12_MLH1_means_males <- ddply(.data=Q12_MLH1_DF[Q12_MLH1_DF$sex == "female",], 
+Q12_MLH1_means_males <- ddply(.data=Q12_MLH1_DF[Q12_MLH1_DF$sex == "male",], 
                  .(category,subsp),
                  summarize, 
                  ncells = length(unique(Original.Name)),
@@ -268,7 +266,7 @@ Q12_MLH1_means_males <- ddply(.data=Q12_MLH1_DF[Q12_MLH1_DF$sex == "female",],
                  mean.MLH1 = mean(adj_nMLH1.foci)
 )
 
-tot.DF_MLH1_means_males <- ddply(.data=MLH1_data[MLH1_data$sex == "female",], 
+tot.DF_MLH1_means_males <- ddply(.data=MLH1_data[MLH1_data$sex == "male",], 
                  .(category,subsp),
                  summarize, 
                  ncells = length(unique(Original.Name)),
@@ -291,30 +289,16 @@ MOLF males have quite a big difference.
 
 There seem to be the similar amount of polymorphism in the Dom and more conserved in Dom.
 
-Ranges for male means across subspecies. Ranges of means (not ranges of all).
+Ranges of category means across subspecies.
 
-(try turning this into a table...)
-Dom            female Dom
-old,   new      old     new
-22-24  23-25    24-27  25-29 
+| Type | male Dom | female Dom | | male Musc low | male Musc high | Musc female | | male Outgroup | female outgroup |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Total cells | 22-24 |  24-27 |  | 23-31 | 25-31 | 26-29 | | 25-26 |27 |
+| High quality cells | 23-25 | 25-29 | | 22-25 | 22-27 | 25 | | 26-27 | 29-31 |
+(ASTmale in Musc high, has a 27 mean which might be an outlier)
+I think the ranges across the groups is generally consistant.
 
-Musc           female Musc
-23-31   25-31   25-27   26-29
-22-25   22-27    25       25
-(ASTmale has 27 mean, outlier)
-
-Outgroup       female outgroup
-25-26   26-27    27    29-31
-
-I think the ranges across the groups 
-
-
-### Assesment of Quality Scores
-
-> *How do the distributions change across different quality scores?*
-
-> *How do the distributions change across mice with a good number of cells?*
-
+(try looking at <5 quality scores?)
 
 ```{r high.qual, fig.caption="boxplots of MLH1 distributions", fig.height=5, fig.width=5, echo=FALSE, warnings=FALSE, include=FALSE}
 
@@ -325,11 +309,26 @@ highest_qual_df <-  subset(MLH1_data, as.numeric(MLH1_data$quality) <= 2 )
 qq <- ggplot(highest_qual_df, aes(x = mouse, y = adj_nMLH1.foci)) + geom_boxplot(data = highest_qual_df, aes(fill = factor(strain) ) ) +  ggtitle("Cells with quality scores of 2 or 1") +
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) + scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00", "red","yellowgreen", "green","purple", "black", "grey" ))
+        axis.ticks.x=element_blank()) + scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00", "red","yellowgreen", "green","purple", "black", "grey", 
+             "grey2","grey3","grey1","grey","grey","grey"))
 high_qual_boxplot <- qq + facet_wrap(~ sex, scales="free") #this is breaking the kniting... 
+#high_qual_boxplot
+#these boxplots look bad
 ```
 
 
+> *How do the distributions change across different quality scores?*
+
+Higher quality scored cells have more MLH1 foci. (some of the ranges get smaller with higher quality cells)
+
+> *How do the distributions change across mice with a good number of cells?*
+
+(was I referring to normale distributions?)
+means all shift up, what about variance, range, lowest cut off
+
+> *Do the directions of the differences across groups change due to quality scores?*
+
+(polymorphism vs divergence patterns)
 
 
 ### Age Effect
@@ -383,15 +382,60 @@ pp
 
 Make a subsetted dataset for plotting mean mouse (quality < 5) MLH1 count and age.
 
+
 ```{r age.effect.model, include=FALSE}
 #run a age effect linear regression!
 
 male.data <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$sex.y == "male",]
 
-lm.me  <- lm(male.data$mean_co ~ male.data$age.weeks+male.data$strain.x)
+male.data.dom <- male.data[male.data$subsp.y == "Dom",]
 
-#summary(lm.me)
+male.data.musc.low <- male.data[(male.data$strain.x == "KAZ" | male.data$strain.x == "TOM" | male.data$strain.x == "AST"),]
+
+male.data.musc.high <- male.data[(male.data$strain.x == "PWD" | male.data$strain.x == "MSM" | male.data$strain.x == "MOLF" | male.data$strain.x == "SKIVE"),]
+
+male.data.outgroup <- male.data[(male.data$subsp.y == "Spretus" | male.data$subsp.y == "Spic" | male.data$subsp.y == "Caroli"),]
+
+lm.me.dom  <- lm(mean_co ~ age.weeks+strain.x, data = male.data.dom)
+
+lm.me.musc.low  <- lm(mean_co ~ age.weeks+strain.x, data = male.data.musc.low)
+
+lm.me.musc.high  <- lm(mean_co ~ age.weeks+strain.x, data = male.data.musc.high)
+#significant differences across strains in musc high
+
+lm.me.OG  <- lm(mean_co ~ age.weeks+strain.x, data = male.data.outgroup)
+
+summary(lm.me.OG)
+#for all models, mostly it was that the intercept was significant, and mot much else
 ```
+
+
+
+```{r female.age.effect, echo=FALSE}
+#female age effect
+
+#female.meta.data <- meta.data[meta.data$sex == "female",]
+#how much data to I have to work with?
+#there's a fair number of rows without emb or neonate
+#I could probably assume all of these are neonates
+
+#length( !is.na(female.meta.data$female.stage) )
+  
+
+#female.meta.data <- female.meta.data[female.meta.data$female.stage]
+
+#how much formating do I have to do?
+#can't use AP_mouse_table since that is summarized
+#meta.data
+#grepl notes, "neo"
+
+#some have e-number for embryonic
+#I might have to 
+
+```
+
+
+I will try doing a logistic regression for embryonic vs neonate. The embyonic estimates likely aren't very accurate, and there won't be good sampling across time points.
 
 
 
@@ -1143,6 +1187,7 @@ Making all of these scatter plots, allows us to look at the whole distributions 
 
 ## Explaination for the XX and XY differences
 
+(in progress)
 
 ## Difference in proportion of chrm classes
 
@@ -1262,7 +1307,7 @@ what about the variance across cells?
 
 ## Models for manuscript
 
-Rough ideas for models of evolution of Heterochiasmy and current idea for how to test them.
+Ideas for models of evolution of Heterochiasmy and current idea for how to test them.
 
 - HetC arises due to more precursors (DSBs)
 
@@ -1346,7 +1391,8 @@ multiplot(kuku,bubu, cols=2)
 
 ## SC.skel measures
 
-run analysis for whole SC skel measures
+data has been collection for RWang's total SC. These results are consistant with the patterns seen in the bivalent level resutls. (total SC PWD > KAZ )
+
 
 
 ```{r RWscSkel, echo=FALSE}
@@ -1401,9 +1447,10 @@ looky <- ggplot(data = mlh1.skel.og[mlh1.skel.og$subsp == "Dom",], aes(y=skel_si
 looky <- ggplot(data = mlh1.skel.og[mlh1.skel.og$subsp == "Musc",], aes(y=skel_size, x=nMLH1.foci, color=mouse) ) + geom_jitter() + facet_wrap(sex~strain)+theme(legend.position="none")  +ylim(c(0,2000))
 #very possible that the dimesions and pixel density are skrewing with these values
 # I am suspcious that there is such a wide range for the female data
+looky
 
 looky.DOM <- ggplot(data = mlh1.skel.og[mlh1.skel.og$subsp == "Dom",], aes(y=skel_size, x=nMLH1.foci, color=mouse) ) + geom_jitter() + facet_wrap(sex~strain)+theme(legend.position="none")  +ylim(c(0,2000))
-
+looky.DOM
 
 #mouse level
 mouse.level.skel <- ddply(.data=mlh1.skel.og, 
