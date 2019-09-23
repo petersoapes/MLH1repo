@@ -7,6 +7,29 @@
 #-check for multi-cell images
 
 
+#make fileName
+#paste together file name
+add_fullFileName <- function(dat){
+  count =1
+  dat$fileName <- as.character(dat$fileName)
+  dat$stain <- as.character(dat$stain)
+  
+  for(i in dat$fileName){  #i is file name!!!
+    #print(i)
+    templist1= strsplit(i, split="_")[[1]] #put the 
+    
+    j=dat$stain[count]
+    templist2= strsplit(j, split="_")[[1]]
+    c = paste(templist1[2], templist1[3],templist1[4], sep = "_")#mdate, strain, m#
+    #test.old.master$mouse2[count] <- c #don't need to add or change mouse
+    
+    d = paste(templist1[1], templist1[2], templist1[3],templist1[4],templist2[3], dat$cell[count], 'rev.tif', sep = "_") 
+    dat$file.name_full[count] <- d #should match file name
+    count= count + 1
+  }
+  return(dat)
+}
+
 #format the dates into standard format
 #mouse_list$DOB <- as.Date(mouse_list$DOB,format='%m/%d/%Y')
 add_age <- function(dat){

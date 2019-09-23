@@ -175,21 +175,136 @@ The 'Other' are F1 crosses.
 
 ## Repeatability of Human quantification
 
-*What is the Error in quantification across humans?*
 
-A general anecdote is that if the quality of the cell staining / image is high, then the repeatability is near 100%. (using some of Beth's data). There is a subset of data which has been counted multiple times -- use that to test the repeatbility.
+Well, we have to talk about the subjective nature that goes into scoring the MLH1 foci. Sources of error or variance across scoring come from background noise (false positives), faint foci (false negatives) and just human error.
+A general anecdote is that if the quality of the cell staining / image is high, then the repeatability is near 100%. (using some of Beth's data).
+Todo: track down, re-count of Beth's data,  cells that were counted first then in batch 0 (anonimized)
+
+```{r quant.repeatability, echo=FALSE, include=TRUE}
+#load, clean up and mat one of the master.MLH1count sheets
+#master
+old.master.MLH1 = read.csv("~./MLH1repo/data/old_master_MLH1_nov15.csv", header = TRUE)
+#remove all with 'X'
+#create a real fileName col, add rev.tif, 
+
+old.master.MLH1 <- add_mouse(old.master.MLH1)
+old.master.MLH1 <- add_strain(old.master.MLH1)
+old.master.MLH1 <- add_sex(old.master.MLH1)
+old.master.MLH1 <- add_category(old.master.MLH1)
+old.master.MLH1$fileName2 <- old.master.MLH1$fileName
+
+test.old.master <- rbind(head(old.master.MLH1), tail(old.master.MLH1) )
+test.old.master$fileName <- as.character(test.old.master$fileName)
+
+test.old.master$stain <- as.character(test.old.master$stain)
+
+str(test.old.master)
+
+#paste together file name, requires mouse, strain
+#this might also need some character / factor stuff ... filename and stain MUST be charaecter!
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+#wrote add_fullFileName to make the file names for the old excel sheets
+
+uutesting <- add_fullFileName(old.master.MLH1)
+
+#merge and match to MLH1
+
+#match old.full.filname with MLH1$fileName
 
 
-```{r quant.repeatability, echo=FALSE, include=FALSE}
+
+chrm.class.DF = read.csv("~./MLH1repo/data/ChrmClassProportions.csv", header = TRUE)
+
+#what are the target columns for this excel sheet?
+#espically for getting repeat data
+#MLH1.dif  same_count  quality
+
+chrm.class.DF$fileName <- (chrm.class.DF$Original.Name)
+chrm.class.DF <- add_mouse(chrm.class.DF)
+chrm.class.DF <- add_strain(chrm.class.DF)
+chrm.class.DF <- add_sex(chrm.class.DF)
+chrm.class.DF <- add_category(chrm.class.DF)
+
+#assessing error,
+#number for same_count == TRUE
+#length(chrm.class.DF$Original.Name[chrm.class.DF$same_count == "TRUE"])
+#length(chrm.class.DF$Original.Name)
+
+#cor of first count and calq count
+#cor(chrm.class.DF$nMLH1.foci, chrm.class.DF$MLH1.sum.check)
+#.87
+
+
+#the true false might have to be changed first
+
+chrm.class.DF$same_count_num <- as.numeric(chrm.class.DF$same_count)
+
+#regression of quality and MLH1.dif
+lmreg <- lm(abs(MLH1.dif) ~ quality + nMLH1.foci, data= chrm.class.DF)
+#summary(lmreg)
+#according to this linear regression, quality is not a significant 
+
+#make regression for just same counts
+#I tried making a  binomial regression model, 
+#but quality is bad predictor, only 5 levels)
+lmreg2 <- glm(same_count ~ quality, data= chrm.class.DF, family=binomial(link="logit"))
+#summary(lmreg2)
+#to plot the model / bimodal data
+#fit = glm(same_count_num ~ as.numeric(quality), data=chrm.class.DF, family=binomial)
+#newdat <- data.frame(quality=seq(min(chrm.class.DF$quality), max(chrm.class.DF$quality),len=102))
+#newdat$vs = predict(fit, data=newdat, type="response")
+#the prediction is not going 1 or 0 -- so doesn't fit logistic
+#plot(vs ~ quality, data=newdat, col="red4")
+#lines(vs ~ quality, newdat, col="green4", lwd=2)
+
+
+hist_error_plot <- ggplot(data=chrm.class.DF, aes(MLH1.dif))+geom_histogram()+ggtitle("Distribution of foci count differences across 2 count versions")
+
+#
+quality_error_plot <- ggplot(data=chrm.class.DF, aes(x=quality, y=abs(MLH1.dif)  ))+geom_jitter()+ggtitle("Repeatability by quality score")+ylab("difference in quality score")+xlab("quality score")
+
+error_count_plot <- ggplot(data=chrm.class.DF, aes(y=nMLH1.foci, x=abs(MLH1.dif)  ))+geom_jitter()+ggtitle("Error by MLH1 number")+xlab("difference in two counts")+ylab("MLH1 count")
+
 
 #in the chrm proportions data is another set for eastimating error
-
 ```
 
+Data use for this repeatabiity estimate is from smaller dataset where the proportions of chromosome/bivalent classes (0CO bivalents ect.) were quantified. (The focus of one count was cell total, while the other focus was classifying bivalents).
+
+This data has `r length(chrm.class.DF$Original.Name)` cells across these categories
+
+`r kable(table(droplevels(chrm.class.DF$category)))`
+
+More cells are planned to be quantified.
+
+```{r show.hist_error_plot, echo=FALSE,  fig.width=10, fig.height=5, warning=FALSE}
+hist_error_plot
+```
+
+
+From this histogram we see most of the cells in this dataset have a difference of 2 in the MLH1 count scores (`r length(chrm.class.DF$Original.Name[( abs( chrm.class.DF$MLH1.dif) <= 2)]) / length(chrm.class.DF$Original.Name)`).
+
+```{r show.quality_error_plot, echo=FALSE,  fig.width=10, fig.height=5}
+quality_error_plot
+```
+
+
+There is a positive relationship with the absolute difference and quality score (where 1 is best and 5 is worst quality) (i.e. poorer quality cells are more likely to have more error acorss multiple counts). The proportion of the cells which had the same count across the counting instances is `r length(chrm.class.DF$Original.Name[chrm.class.DF$same_count == "TRUE"]) / length(chrm.class.DF$Original.Name)`. The correlation between the two versions of MLH1 counts for the same cell is `r cor(chrm.class.DF$nMLH1.foci, chrm.class.DF$MLH1.sum.check)`.
+
+```{r show.error_count_plot, echo=FALSE,  fig.width=10, fig.height=5}
+error_count_plot
+```
+There doesn't seem to be a bias across cells with more or less foci. 
+
+
+Modeling this relationship; (still in progress)
+I tried doing a logistic regression for same_count = true or false depending on the quality score. I am having trouble making a plot the makes sense to confirm the binomial nature of the model.
 
 
 
 ## Effects on the dataset
+
+error associated with 'quality of cels'
 
 Main metric is mean CO count per mouse. Run tests to check if there are effects for the following effects.
 
@@ -1203,9 +1318,9 @@ generate smaller data set of chrm proportions (0CO, 1CO,2CO ect)
 
 ```{r chrm_prop_data, echo=FALSE}
 
-chrm.class.DF = read.csv("~./MLH1repo/ChrmClassProportions.csv", header = TRUE)
-chrm.class.DF$fileName <- (chrm.class.DF$Original.Name)
+chrm.class.DF = read.csv("~./MLH1repo/data/ChrmClassProportions.csv", header = TRUE)
 
+chrm.class.DF$fileName <- (chrm.class.DF$Original.Name)
 chrm.class.DF <- add_mouse(chrm.class.DF)
 chrm.class.DF <- add_strain(chrm.class.DF)
 chrm.class.DF <- add_sex(chrm.class.DF)
@@ -1217,7 +1332,7 @@ chrm.class.DF <- add_category(chrm.class.DF)
 #str(chrm.class.DF)
 
 #summarize by category
-this_thing2  <- ddply(.data=chrm.class.DF[chrm.class.DF$sex == "male",], 
+proportion_stats_category  <- ddply(.data=chrm.class.DF[chrm.class.DF$sex == "male",], 
                  .(category),
                  summarize, 
                  ncells = length(unique(Original.Name)),
@@ -1244,13 +1359,13 @@ this_thing2  <- ddply(.data=chrm.class.DF[chrm.class.DF$sex == "male",],
 #str(this_thing2)
 
 #this first one is the 'first' MLH1 count
-oopp2 <- lm( mean.MLH1.foci2 ~ per0CO+ per1CO +per2CO +per3CO, data = this_thing2)
+oopp2 <- lm( mean.MLH1.foci2 ~ per0CO+ per1CO +per2CO +per3CO, data = proportion_stats_category)
 #summary(oopp2)
 #none of the classes are significant
 
 
 #mean is the new calculated-- mean 0CO is significant and intercept
-oopp <-  lm( mean.MLH1.foci ~ per0CO+ per1CO +per2CO +per3CO, data = this_thing2)
+oopp <-  lm( mean.MLH1.foci ~ per0CO+ per1CO +per2CO +per3CO, data = proportion_stats_category)
 #summary(oopp)
 #not sure if these are inter-correlated
 #I don't know why 0COs and the intercept are significant..
@@ -1271,7 +1386,7 @@ oopp <-  lm( mean.MLH1.foci ~ per0CO+ per1CO +per2CO +per3CO, data = this_thing2
 
 #display / visualize / compare proportions
 
-melt.table = read.csv("~./MLH1repo/ChrmClassProportions_melt.csv", header = TRUE)
+melt.table = read.csv("~./MLH1repo/data/ChrmClassProportions_melt.csv", header = TRUE)
 melt.table$fileName <- (melt.table$Original.Name)
 
 #melt.table <- add_mouse(melt.table)
