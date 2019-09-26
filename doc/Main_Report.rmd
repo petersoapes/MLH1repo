@@ -22,7 +22,8 @@ setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 #load(file="data/MLH1/MLH1_data_setup.RData")
 
 #load main data file
-load(file="data/MLH1/MLH1_data_setup_8.29.19.RData")
+load(file="data/MLH1/MLH1_data_setup_9.26.19.RData")#added batch16
+#load(file="data/MLH1/MLH1_data_setup_8.29.19.RData") #
 
 #load(file="data/MetaData.RData") #this was replacing most updated data file
 
@@ -180,7 +181,190 @@ Well, we have to talk about the subjective nature that goes into scoring the MLH
 A general anecdote is that if the quality of the cell staining / image is high, then the repeatability is near 100%. (using some of Beth's data).
 Todo: track down, re-count of Beth's data,  cells that were counted first then in batch 0 (anonimized)
 
-```{r quant.repeatability, echo=FALSE, include=TRUE}
+In the original_DF and MLH1 DF's there are ~400 and X respectively of cells (filenames) that are duplicated, or cells that have been counted in more than 1 quant batch
+
+Datasets / sources of repeat measures
+-chrom proportions
+-multiple batch counts (later than batch0) *focus on this dataset for now. since its >100 and fairly easy to compile
+-old and new (batch0)
+
+The main take away is that higher quality scored cells have lower error in MLH1 counts.
+
+> Does the amount of error differ across strains or sexes? (female might have a higher error rate)
+
+> What sort of adjustments or tests should be made to results or analyses given the known error rate?
+
+
+```{r quant.repeatability_rep1, echo=FALSE, include=TRUE}
+#set up data for combining replicate counts
+
+#1. replicates in DF, (17 mice, across 10 batches), focus on those from original for now
+
+#isolate the duplicates (fileName) from main MLH1 DFs
+n_occur <- data.frame(table(original_DF$fileName))
+n_occur[n_occur$Freq > 1,]
+original_DF_duplicates <- original_DF[original_DF$fileName %in% n_occur$Var1[n_occur$Freq > 1],]#2 is the max freq of duplicates, 
+
+#are there any batch, fileName duplicates?
+original_DF_duplicates$unique.key <-  paste(original_DF_duplicates$fileName, original_DF_duplicates$Batch, sep = "_")
+anyDuplicated(original_DF_duplicates$unique.key)#31 duplicated fileName_batch ... really 2?
+
+n_occur <- data.frame(table(original_DF_duplicates$unique.key))
+n_occur[n_occur$Freq > 1,]
+double.trouble <- original_DF_duplicates[original_DF_duplicates$unique.key %in% n_occur$Var1[n_occur$Freq > 1],]
+#2 fileNames from batch 0 appear 2x, remove them from DF
+
+original_DF_duplicates <- original_DF_duplicates[ ! original_DF_duplicates$fileName %in% double.trouble$fileName, ]#removes 4 rows
+
+#seperated duplicates into categories out in Excel (write to /results, moved final file to /data)
+#This data frame was made ... with Jered's sugg
+#write the duplicate file to csv/excel
+#sort by file name
+#need to remove '?' -- deal with the ? and X's
+#write.table(original_DF_duplicates, "~./MLH1repo/results/orginal_DF_duplicates.csv", sep=",", row.names = FALSE)
+
+original_DF_duplicates.notes = read.csv("~./MLH1repo/data/orginal_DF_duplicates.csv", header = TRUE)
+#copies of fileNames can be distinguished with the 'separate.DF' column
+
+#remove '?' that I stupidly left in
+original_DF_duplicates.notes$nMLH1.foci = gsub("\\?", "", original_DF_duplicates.notes$nMLH1.foci)
+original_DF_duplicates.notes$quality = gsub("\\?", "", original_DF_duplicates.notes$quality)
+#these lines change col to chr
+
+original_DF_duplicates.notes <- droplevels(original_DF_duplicates.notes)
+#now there should be no more '?' going forward
+
+#original_DF_duplicates.notes$quality <- as.factor(original_DF_duplicates.notes$quality)
+
+#make lists of rows with "" or X's so I can remove all fileNames for those
+#these lists just have na
+quality.na.list <- original_DF_duplicates.notes$fileName[which(is.na(original_DF_duplicates.notes$quality) | original_DF_duplicates.notes$quality=="")] #16
+
+MLH1.na.list <- original_DF_duplicates.notes$fileName[which(is.na(original_DF_duplicates.notes$nMLH1.foci) | original_DF_duplicates.notes$nMLH1.foci=="") ]#22
+
+X.list <- original_DF_duplicates.notes$fileName[grepl("X", original_DF_duplicates.notes$X)]#40
+
+
+#make DF which only has 
+matches.only <- original_DF_duplicates.notes[ ! original_DF_duplicates.notes$fileName %in% quality.na.list, ]
+matches.only <- matches.only[ ! matches.only$fileName %in% MLH1.na.list, ]
+matches.only <- matches.only[ ! matches.only$fileName %in% X.list, ]
+
+#str(matches.only)
+#clean up match list (chr to num)
+matches.only$nMLH1.foci <- as.numeric(matches.only$nMLH1.foci)
+matches.only$quality <- as.numeric(matches.only$quality)
+
+levels(matches.only$nMLH1.foci) #leves don't appear in num?.. move on, dwabt
+
+#check that the 1, and 2 are equal number
+length(matches.only$Original.Name[matches.only$separate.DF == 1]) #both 178
+
+#i want to measure correleation of MLH1 across bins of quality (1,2,3,4,5)
+#make new df with filename and MLH1.1 and mlh1.2
+
+dups.here <- data.frame(  FN = unique(matches.only$Original.Name), MLH1.1 = matches.only$nMLH1.foci[matches.only$separate.DF == 1], MLH1.2 = matches.only$nMLH1.foci[matches.only$separate.DF == 2],
+                        qual.1 = matches.only$quality[matches.only$separate.DF == 1] , 
+                        qual.2 = matches.only$quality[matches.only$separate.DF == 2]
+                          ) #OMG this worked!!!
+dups.here$diff <- abs(dups.here$MLH1.1 - dups.here$MLH1.2) #the aveage difference is pretty small, but some have very high difference
+#the high differences could potentially be mix ups
+
+
+repeatability.table <- ddply(.data=dups.here, 
+                 .(qual.1, qual.2),
+                 summarize, 
+                 ncells = length(unique(FN)),
+                 plain_cor_MLH1 = cor(MLH1.1,MLH1.2)
+)
+#this table shows how many cells went changed into different qual score bins
+#easiest patter, 1-1, 1-2 (high correlation in MLH1)
+#5-5 lowest, (5-3 also low)
+#4-5 has high corr? (direction shouldn't matter)
+#4-2 has negative corr?
+
+#of the different quality permutation bins, 37% don't change quality bin, 44% of cells change by 1 (either direction)
+
+no.change = c(14,13,17,13,10)#67
+change.1 = c(10,7,8,20,9,14,4,7)#79
+
+repeatability.table.qual1 <- ddply(.data=dups.here, 
+                 .(qual.1),
+                 summarize, 
+                 ncells = length(unique(FN)),
+                 plain_cor_MLH1 = cor(MLH1.1,MLH1.2),
+                 dif = mean(MLH1.1 - MLH1.2)
+)
+
+repeatability.table.qual2 <- ddply(.data=dups.here, 
+                 .(qual.2),
+                 summarize, 
+                 ncells = length(unique(FN)),
+                 plain_cor_MLH1 = cor(MLH1.1,MLH1.2)
+)
+#These tables show that qual1 cells have the highest corrleation of MLH1
+dups.here.plain_cor_qual <- cor(dups.here$qual.1, dups.here$qual.2)
+
+#i don't know how to compare quality in more 
+
+
+
+#nMLHJ1, quality are factors
+original_DF_duplicates.notes$quality2 = gsub("\\?", "", original_DF_duplicates.notes$quality)
+
+original_DF_duplicates.notes <- droplevels(original_DF_duplicates.notes)
+
+#factor > chr > number  (this col is now chr is can go to num)
+#original_DF_duplicates.notes$MLH1.foci2 <- as.numeric(original_DF_duplicates.notes$MLH1.foci2)
+#original_DF_duplicates.notes$quality2 <- as.numeric(original_DF_duplicates.notes$quality2)
+
+
+#one <- original_DF_duplicates.notes[original_DF_duplicates.notes$separate.DF == 1,]
+#two <- original_DF_duplicates.notes[original_DF_duplicates.notes$separate.DF == 2,]
+#rename this
+#plain_cor_MLH1 <- cor(one$MLH1.foci2,two$MLH1.foci2,use = "complete.obs")
+#.857
+#plain_cor_qual <- cor(one$quality2,two$quality2,use = "complete.obs")
+#.63
+
+#What's the relationship of MLH1 cor with quality?
+#what the rpeat of quality score?
+#what are the correlations across quality score bins?
+
+
+#issues that complicate the plain calculation
+#some duplicates were 'x'ed and some weren't -- this causes different numbers
+#connected with above, some duplicates have mlh1 scores, other don't -- this kinda messes up correlation
+
+
+original_DF_duplicates.notes <- original_DF_duplicates.notes[ !grepl("X", original_DF_duplicates.notes$X) , ]
+original_DF_duplicates.notes <- original_DF_duplicates.notes[!(is.na(original_DF_duplicates.notes$nMLH1.foci) | original_DF_duplicates.notes$nMLH1.foci==""), ]
+#this causes unequal lengths
+
+original_DF_duplicates.notes <- droplevels(original_DF_duplicates.notes)
+original_DF_duplicates.notes$nMLH1.foci <- as.character(original_DF_duplicates.notes$nMLH1.foci)
+
+original_DF_duplicates.notes$nMLH1.foci <- as.numeric(original_DF_duplicates.notes$nMLH1.foci)
+
+
+#correlationsnMLH1 
+#one <- original_DF_duplicates.notes[original_DF_duplicates.notes$separate.DF == 1,]
+#two <- original_DF_duplicates.notes[original_DF_duplicates.notes$separate.DF == 2,]
+#plain_cor <- cor(one$nMLH1.foci,two$nMLH1.foci)
+#old.master.MLH1 <- original_DF[ ! original_DF$fileName %in% ll$fileName, ]
+
+
+#check that all batches are distinguishable across duplicate fileNames
+#make unique key fileName_batch -- then check for duplicate of that 
+#original_DF$Batch <- factor(original_DF$Batch, ordered = TRUE, levels = c("Batch0", "Batch1", "Batch2", "Batch3", "Batch4","Batch5","Batch6",  "Batch7", "Batch8","Batch9","Batch10", "Batch11","Batch12", "Batch13", "Batch14","Batch15"))
+#after doing this, original_DF$Batch[2000] > original_DF$Batch[10] will be evaluated!
+
+```
+
+
+
+```{r repeatability_rep2, echo=FALSE, include=FALSE, eval=FALSE}
+#2. old vs new, (remove duplicates and merge batch0 with old_master_mlh1)
 #load, clean up and mat one of the master.MLH1count sheets
 #master
 old.master.MLH1 = read.csv("~./MLH1repo/data/old_master_MLH1_nov15.csv", header = TRUE)
@@ -205,14 +389,38 @@ str(test.old.master)
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 #wrote add_fullFileName to make the file names for the old excel sheets
 
-uutesting <- add_fullFileName(old.master.MLH1)
+old.master.MLH1 <- add_fullFileName(old.master.MLH1)
+old.master.MLH1$fileName <- old.master.MLH1$file.name_full
 
 #merge and match to MLH1
 
+#need to test for duplicates before mergeing?
+n_occur <- data.frame(table(old.master.MLH1$file.name_full))
+n_occur[n_occur$Freq > 1,]
+ll <- old.master.MLH1[old.master.MLH1$file.name_full %in% n_occur$Var1[n_occur$Freq > 1],]
+old.master.MLH1 <- old.master.MLH1[ ! old.master.MLH1$fileName %in% ll$fileName, ]
+
+n_occur <- data.frame(table(original_DF$fileName))
+n_occur[n_occur$Freq > 1,]
+original_DF_duplicates <- original_DF[original_DF$fileName %in% n_occur$Var1[n_occur$Freq > 1],]
+table(original_DF_duplicates$mouse)#17 mice 
+
+old.master.MLH1 <- original_DF[ ! original_DF$fileName %in% ll$fileName, ]
+
+
+#old.master.MLH1 <- original_DF[ ! original_DF$fileName %in% ll$fileName, ]
+
+
+#there are duplicates in original_DF and MLH1
+
+uutesting2 <- merge(old.master.MLH1, original_DF, by.x = fileName, by.y = Original.Name)
 #match old.full.filname with MLH1$fileName
+```
 
 
 
+
+```{r repeatability_rep3, echo=FALSE, include=FALSE}
 chrm.class.DF = read.csv("~./MLH1repo/data/ChrmClassProportions.csv", header = TRUE)
 
 #what are the target columns for this excel sheet?
@@ -236,18 +444,17 @@ chrm.class.DF <- add_category(chrm.class.DF)
 
 
 #the true false might have to be changed first
-
-chrm.class.DF$same_count_num <- as.numeric(chrm.class.DF$same_count)
+#chrm.class.DF$same_count_num <- as.numeric(chrm.class.DF$same_count)
 
 #regression of quality and MLH1.dif
-lmreg <- lm(abs(MLH1.dif) ~ quality + nMLH1.foci, data= chrm.class.DF)
+#lmreg <- lm(abs(MLH1.dif) ~ quality + nMLH1.foci, data= chrm.class.DF)
 #summary(lmreg)
 #according to this linear regression, quality is not a significant 
 
 #make regression for just same counts
 #I tried making a  binomial regression model, 
 #but quality is bad predictor, only 5 levels)
-lmreg2 <- glm(same_count ~ quality, data= chrm.class.DF, family=binomial(link="logit"))
+#lmreg2 <- glm(same_count ~ quality, data= chrm.class.DF, family=binomial(link="logit"))
 #summary(lmreg2)
 #to plot the model / bimodal data
 #fit = glm(same_count_num ~ as.numeric(quality), data=chrm.class.DF, family=binomial)
@@ -264,7 +471,6 @@ hist_error_plot <- ggplot(data=chrm.class.DF, aes(MLH1.dif))+geom_histogram()+gg
 quality_error_plot <- ggplot(data=chrm.class.DF, aes(x=quality, y=abs(MLH1.dif)  ))+geom_jitter()+ggtitle("Repeatability by quality score")+ylab("difference in quality score")+xlab("quality score")
 
 error_count_plot <- ggplot(data=chrm.class.DF, aes(y=nMLH1.foci, x=abs(MLH1.dif)  ))+geom_jitter()+ggtitle("Error by MLH1 number")+xlab("difference in two counts")+ylab("MLH1 count")
-
 
 #in the chrm proportions data is another set for eastimating error
 ```
