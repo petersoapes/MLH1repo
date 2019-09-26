@@ -1,0 +1,237 @@
+---
+title: "Setting up Data"
+author: "April Peterson"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(plyr)
+library(dplyr)
+library(raster)#for cV
+library(ggplot2)
+library(knitr)
+library(kableExtra)
+setwd("~./MLH1repo/")
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+
+#forgot why I'm reading in this metadata file
+meta.data = read.csv("data/clean.Meta.Data.txt",sep = "\t", header=TRUE)
+MLH1_data = read.csv("data/MLH1/AnonData.csv", header=TRUE)
+
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+# First Steps
+
+
+```{r MLH1.DF.setup, warning=FALSE}
+
+#todo :
+#set the order to batches
+#2 fileNames from batch 0 appear 2x, (1 is missing random name, the other has the same random name)
+
+original_DF = MLH1_data
+original_DF$fileName <- (original_DF$Original.Name)
+original_DF <- add_mouse(original_DF)
+
+#check for duplicated data, make duplicated data DF for repeatability
+#anyDuplicated(original_DF$fileName)#219
+#orig_DF <- original_DF[duplicated(original_DF$Original.Name),]
+#these just produce 1 set of the duplicated 
+
+#isolate the duplicates (fileName) from main MLH1 DFs
+n_occur <- data.frame(table(original_DF$fileName))
+#n_occur[n_occur$Freq > 1,] displays the dups
+original_DF_duplicates <- original_DF[original_DF$fileName %in% n_occur$Var1[n_occur$Freq > 1],]#2 is the max freq of duplicates, 
+#use the above DF for quantifying repeatability in the Main_report.Rmd
+#duplicates are cells counted twice
+
+#are there duplicated filenames+batch
+original_DF_duplicates$unique.key <-  paste(original_DF_duplicates$fileName, original_DF_duplicates$Batch, sep = "_")
+#anyDuplicated(original_DF_duplicates$unique.key)#31 duplicated fileName_batch ... really 2?
+
+#remove duplicates from original as well
+original_DF <- original_DF %>% distinct(Original.Name, .keep_all = TRUE)#5216 to 4983
+
+#Clean up main DF, MLH1_data
+#remove duplicated data from MLH1 -- remove 1 or the two rows
+#https://www.datanovia.com/en/lessons/identify-and-remove-duplicate-data-in-r/
+#use distinct() in dlpyr()
+MLH1_data <- MLH1_data %>% distinct(Original.Name, .keep_all = TRUE)#5216 to 4983
+
+MLH1_data$Original.Name <- as.character(MLH1_data$Original.Name)
+MLH1_data$fileName <- (MLH1_data$Original.Name)
+
+#these introduce NAs
+MLH1_data$n <- as.character(MLH1_data$n)
+MLH1_data$nMLH1.foci<- as.character(MLH1_data$nMLH1.foci)
+MLH1_data$quality<- as.character(MLH1_data$quality)
+
+MLH1_data$n <- as.numeric(MLH1_data$n)
+MLH1_data$nMLH1.foci<- as.numeric(MLH1_data$nMLH1.foci)
+MLH1_data$quality<- as.numeric(MLH1_data$quality)
+
+#remove X's and NAs
+MLH1_data <- MLH1_data[ !grepl("X", MLH1_data$X) , ]
+MLH1_data <- MLH1_data[!(is.na(MLH1_data$nMLH1.foci) | MLH1_data$nMLH1.foci==""), ]
+#this should also have the empty column for removing X
+MLH1_data <- MLH1_data[MLH1_data$nMLH1.foci != "X",]
+MLH1_data <- MLH1_data[MLH1_data$nMLH1.foci != "x",]
+
+
+MLH1_data <- add_mouse(MLH1_data)
+MLH1_data <- add_category(MLH1_data)
+MLH1_data <- add_strain(MLH1_data)
+MLH1_data <- add_sex(MLH1_data)
+MLH1_data <- add_subsp(MLH1_data)
+#add species
+MLH1_data <- add_species(MLH1_data)
+
+
+#add a column with male adjusted MLH1 values (+1 to all males)
+MLH1_data$adj_nMLH1.foci <- ifelse(MLH1_data$sex=="male", MLH1_data$nMLH1.foci+1, MLH1_data$nMLH1.foci)
+MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
+
+#reorder dataframe
+MLH1_data <- MLH1_data %>%
+  arrange(strain, sex, mouse) %>%
+  mutate(Original.Name = factor(Original.Name) )
+
+#order the batches in MLH1 and original
+
+```
+
+
+
+ Settting up main data file with explanation and examination of data.  Make the raw original DF and main working DF with bad cells exlcuede.  (inline code add the numbers)
+
+There are `r length(original_DF_duplicates$fileName)` duplicated file names. These data will be used to quantify repeatability, and remove from the final DFs.
+Using the distinct() function for the MLH1_data, the first duplicated filename is kept and the second removed.
+
+
+```{r kable.table}
+#table comparing number of images in quantification batches
+#ToDo:  correct the case of all batches, better names
+#set an order to batches?
+original_batches <- as.data.frame(table(original_DF$Batch) ) #these look bad
+colnames(original_batches) <- c("BatchNum", "orginal")
+
+final_batches <- as.data.frame(table(MLH1_data$Batch) ) #these look bad
+colnames(final_batches) <- c("BatchNum", "main")
+
+batch.stats <- merge(original_batches,final_batches, by="BatchNum")## mm is the table of batch stats
+```
+
+
+The original dataset contains the quantification batches 
+
+`r kable(final_batches, caption = "This is the table caption") ) %>% kable_styling()`
+
+
+# Mouse Data
+
+
+```{r mouse.table, echo=FALSE}
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+
+#Make a mouse level table
+AP_mouse_table <- ddply(MLH1_data, c("mouse"), summarise,
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(adj_nMLH1.foci),
+                        mean_co = as.numeric(format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3) ),
+                        cV = cv(adj_nMLH1.foci),
+                        var = format(round(   var(adj_nMLH1.foci),3), nsmall=3),
+                        sd   = round(sd(adj_nMLH1.foci), 3),
+                        se   = round(sd / sqrt(Ncells), 3)
+                        #quality?
+)
+
+AP_mouse_table <- add_strain(AP_mouse_table)
+AP_mouse_table <- add_subsp(AP_mouse_table)
+AP_mouse_table <- add_sex(AP_mouse_table)
+AP_mouse_table <- add_category(AP_mouse_table)
+
+#make sure they are all factors
+AP_mouse_table$mouse <- as.factor(AP_mouse_table$mouse)
+AP_mouse_table$sex <- as.factor(AP_mouse_table$sex)
+AP_mouse_table$strain <- as.factor(AP_mouse_table$strain)
+AP_mouse_table$subsp <-  as.factor(AP_mouse_table$subsp)
+
+
+#add DOB to this table?
+mice.frm.meta <- AP_mouse_table[(AP_mouse_table$mouse %in% meta.data$mouse),]
+
+#oo isn't including MLH1 means
+
+batch.mouse.count <- table(original_DF$mouse,original_DF$Batch) #mouse count by batch
+batch.mouse.count.DF <- as.data.frame(batch.mouse.count)#this has a dif str, 3 cols -- like it was melted
+batch.mouse.count.DF <- batch.mouse.count.DF[!(is.na(batch.mouse.count.DF$Freq)|batch.mouse.count.DF$Freq==0),]
+
+#merge with DOB
+mouse.table_w.Ages <- merge(batch.mouse.count.DF, meta.data, by.y = "mouse", by.x = "Var1", all = TRUE)
+AP_mouse_table_w.Ages <- merge(AP_mouse_table, meta.data, by.y = "mouse", by.x = "mouse", all = TRUE)
+
+```
+
+
+## Number of mice per category
+
+
+X number of mice are in the main DF (discribe the results for missing mice)
+
+
+## Mouse Ages
+
+Testes were collected from mice at various ages. For some poor breeding mice, I couldn't collect males at younger ages.
+
+Is there a detectable age effect?
+
+```{r Age.Hists, echo=FALSE, warning=FALSE}
+
+male_mouse_table_w.Ages <- mouse.table_w.Ages[(mouse.table_w.Ages$sex == "male") &(mouse.table_w.Ages$category != "other"),]
+
+all.ages_plot <- ggplot(male_mouse_table_w.Ages, aes(age.weeks))+geom_histogram(binwidth = 3)+facet_wrap(~category)+ggtitle("Male Age Distributions")
+all.ages_plot
+
+male_mouse_table_w.good.ages <- male_mouse_table_w.Ages[male_mouse_table_w.Ages$age.weeks < 20,]
+#droplevels on DF above
+
+good.ages_plot <- ggplot(male_mouse_table_w.good.ages, aes(age.weeks))+geom_histogram(binwidth = 1)+facet_wrap(~category)+ggtitle("Good Male Age Distributions")
+
+#male_mouse_table_w.good.ages
+
+
+```
+
+# Saving Data file
+
+
+Now that the dataframes have been process and formated, they will be saved as RData. the main files are:
+  1. MLH1_data and original_DF
+  2. AP_mouse_table and AP_mouse_table_w.Ages
+  3. meta.data
+
+work on cleaning up all other df with bad names
+
+```{r save.RData, echo=FALSE}
+
+save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_9.26.19.RData")
+
+#  OutPut: big large MLH1_data (AP's) df, big DF of BD with just the mice I want.
+#  MLH1_data_table, means and variance of AP and BD MLH1 values. made from seperate tables from AP and BD data.
+#  make sure decimal places are consistant
+
+```
+
+
+
+# Deciding on Mice for Final Dataset
+
+Use the above information to make the final dataset for analysis
+
+-age (for males)
+-enough cells
+-both male and female
+
