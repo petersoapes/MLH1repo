@@ -5,17 +5,23 @@
 setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 
 #load Dissection file
-meta.data.file = read.csv("~./MLH1repo/data/Mouse_MetaData_6.12.19.csv", header = TRUE)#455
+
+#use updated metadata -- 
+#8.30.19
+meta.data.file = read.csv("~./MLH1repo/data/Mouse_MetaData_8.30.19.csv", header = TRUE)
+
+#meta.data.file = read.csv("~./MLH1repo/data/Mouse_MetaData_6.12.19.csv", header = TRUE)#455
 
 #loading previously cleaned data 
-clean.meta.data <- read.csv("~./MLH1repo/data/clean.Meta.Data.txt",header = TRUE, sep='\t')
+#clean.meta.data <- read.csv("~./MLH1repo/data/clean.Meta.Data.txt",header = TRUE, sep='\t')
+#don't load this yet
 
 
 #integrate batch information
 
 #read or load MLH1 data
 #load most recent RData file
-load(file="~./MLH1repo/data/MLH1/MLH1_data_setup_8.9.19.RData")#8.9.19 has batch14
+load(file="~./MLH1repo/data/MLH1/MLH1_data_setup_8.29.19.RData")#8.29.19 has batch15
 
 
 #MLH1.data = read.csv("~/MLH1repo/data/MLH1/MLH1_data_setup_8.15.19.RData", header = TRUE) 
@@ -87,7 +93,7 @@ mouse_table_w.Ages <- oo.merge
 write.table(meta.data, "~./MLH1repo/data/clean.Meta.Data_8.28.19.txt", 
             sep="\t", row.names = FALSE)
 
-write.table(oo.merge, "~./MLH1repo/data/Meta.Data.Merge_batch_quant_8.28.19.txt", 
+write.table(oo.merge, "~./MLH1repo/data/Meta.Data.Merge_batch_quant_8.29.19.txt", 
             sep="\t", row.names = FALSE)
 
 #save Rdata file
