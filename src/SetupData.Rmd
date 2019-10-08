@@ -17,6 +17,9 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
 #forgot why I'm reading in this metadata file
 meta.data = read.csv("data/clean.Meta.Data.txt",sep = "\t", header=TRUE)
+#remove all MAD (peromyscus) from meta.data
+meta.data <- meta.data[ !grepl("MAD", meta.data$mouse) , ]
+
 MLH1_data = read.csv("data/MLH1/AnonData.csv", header=TRUE)
 
 knitr::opts_chunk$set(echo = FALSE)
@@ -31,6 +34,7 @@ knitr::opts_chunk$set(echo = FALSE)
 #todo :
 #set the order to batches
 #2 fileNames from batch 0 appear 2x, (1 is missing random name, the other has the same random name)
+
 
 original_DF = MLH1_data
 original_DF$fileName <- (original_DF$Original.Name)
