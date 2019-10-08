@@ -684,8 +684,8 @@ MLH1.imprv <- add_age(MLH1.imprv)
 MLH1.imprv.male <- MLH1.imprv[MLH1.imprv$sex == "male", ]
 MLH1.imprv.male <- MLH1.imprv.male[MLH1.imprv.male$age.weeks < 20, ]
 
-pp <- ggplot(MLH1.imprv[MLH1.imprv$sex == "male", ], aes(age.weeks))+geom_histogram()+facet_wrap(~category)+ggtitle("Male Age and MLH1 counts by subspecies")
-pp
+age.hist <- ggplot(MLH1.imprv[MLH1.imprv$sex == "male", ], aes(age.weeks))+geom_histogram()+facet_wrap(~category)+ggtitle("Male Age and MLH1 counts by subspecies")
+age.hist
 
 ```
 
@@ -722,6 +722,8 @@ summary(lm.me.OG)
 
 
 ```{r female.age.effect, echo=FALSE}
+#start thinking of the maternal age effect
+
 #female age effect
 
 #female.meta.data <- meta.data[meta.data$sex == "female",]
@@ -784,12 +786,89 @@ While many slopes are different than 0, I am not convinced there is a clear age 
 Check if there is a maternal age effect for females and males.
 
 ```{r mat.age.effect, echo=FALSE}
-#compile data from female (and male?) mice with maternal ages.
+meta.data.file <- meta.data.file[!(is.na(meta.data.file$mouse)|meta.data.file$mouse==""),]
+#445? -- probably extras at bottom not good
 
-#start making a general linear model...? for mouse averages
+#how many mice have maternal DOB
+meta.data.file.w.mat.DOB <- meta.data.file[!(is.na(meta.data.file$maternal_DOB)|meta.data.file$maternal_DOB==""),]
+#151
 
+#format this meta.data.file
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+
+meta.data.file.w.mat.DOB <- add_mouse(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_category(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_strain(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_sex(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_subsp(meta.data.file.w.mat.DOB)
+
+#check if date format's been applied before tryung the age functions
+str(meta.data.file.w.mat.DOB)
+
+#DOB and Mat.DOB need to be date formated, make sure that the dates are consistant in the original file
+#the dates in my file are not all standardized... year is somethimes 2 - sometimes 4
+meta.data.file.w.mat.DOB$DOB <- as.Date(meta.data.file.w.mat.DOB$DOB, format= "%m/%d/%Y")#%Y 2000, %y '18,
+meta.data.file.w.mat.DOB$maternal_DOB <-as.Date(meta.data.file.w.mat.DOB$maternal_DOB, format= "%m/%d/%Y")
+
+str(meta.data.file.w.mat.DOB)
+
+meta.data.file.w.mat.DOB <- add_euth_date(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_age(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_mat_age(meta.data.file.w.mat.DOB)
+
+#merge meta data with MLH1 
+see.whatcha.do <- merge(AP_mouse_table_w.Ages, meta.data.file.w.mat.DOB, by.x = 'mouse', by.y = 'mouse',all = FALSE )
+#remove anything without mean_CO
+see.whatcha.do <- see.whatcha.do[!(is.na(see.whatcha.do$mean_co)|see.whatcha.do$mean_co==""),]
+see.whatcha.do <- see.whatcha.do[!(is.na(see.whatcha.do$mat.age.days)|see.whatcha.do$mat.age.days==""),]
+
+
+#visualize the data
+
+meta.data.file.w.mat.DOB.female <- meta.data.file.w.mat.DOB[meta.data.file.w.mat.DOB$sex == "female",]
+meta.data.file.w.mat.DOB.male <- meta.data.file.w.mat.DOB[meta.data.file.w.mat.DOB$sex == "male",]
+
+
+#hist of data
+mat.age.hist.female <- ggplot(meta.data.file.w.mat.DOB.female, aes(mat.age.days))+geom_histogram()+facet_wrap(~category)+ggtitle("Maternal ages of females")
+mat.age.hist.female
+
+mat.age.hist.male <- ggplot(meta.data.file.w.mat.DOB.male, aes(mat.age.days))+geom_histogram()+facet_wrap(~category)+ggtitle("Maternal ages of males")
+mat.age.hist.male
+
+
+#remove mice that might have low quality
+see.whatcha.do.HQ <- see.whatcha.do[see.whatcha.do$Ncells > 14,]
+
+#age by mean_co
+mat.age.effect.plot.female <- ggplot(see.whatcha.do[see.whatcha.do$sex == "female",], aes(y=mean_co, x=mat.age.days, color=(strain.y) ))+geom_point()+ ylim(c(19,34))+
+  #trying this
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Female Materinal Age and Mean CO (offsping)")+facet_wrap(~subsp.y)
+mat.age.effect.plot.female
+
+mat.age.effect.plot.male <- ggplot(see.whatcha.do.HQ[see.whatcha.do.HQ$sex == "male",], aes(y=mean_co, x=mat.age.days, color=(strain.y) ))+geom_point()+ ylim(c(19,34))+
+  #trying this
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Maternal Age and mean CO, male offspring")+facet_wrap(~subsp.y)
+
+#
+ALLmat.age.effect.plot.male <- ggplot(see.whatcha.do[see.whatcha.do$sex == "male",], aes(y=mean_co, x=mat.age.days, color=(strain.y) ))+geom_point()+ ylim(c(19,34))+
+  #trying this
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Maternal Age and mean CO, male offspring")
+
++facet_wrap(~subsp.y)
+
+#is there a correlation with proband age and maternal age?
+#there is a big lack of maternal age data...
+#some of the values reference the original breeding pair..
+#from notes on original BPs(males), assigning maternal ages
 
 ```
+
+
+There seems to be a negative correlation with 
 
 
 ### Litter effect
@@ -812,7 +891,7 @@ Compare observations from the same mouse, but different MLH1 stains.
 ### Room effect (envioronment)
 
 
-3 different rooms used to house mice. This will be tested in X manner.
+3 different rooms used to house mice. Access softmouse to be fixed. I should have some data on when the switch was. This would be limited to, WSB, LEW and PWD
 
 
 ### Cell number (power analysis results)

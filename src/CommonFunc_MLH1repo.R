@@ -7,6 +7,7 @@
 #-check for multi-cell images
 
 
+
 #make fileName
 #paste together file name
 add_fullFileName <- function(dat){
@@ -44,6 +45,23 @@ add_age <- function(dat){
   }
   return(dframe)
 }
+#running this blanks out all cells in euth.date col
+
+#calq maternal age time of mouse birth
+add_mat_age <- function(dat){
+  dframe <- dat
+  count =1
+  for(i in dframe$mouse){
+    #after DOB and euth date are standardized #substract  difftime(mat.age.dob - DOB)
+    dframe$mat.age.days[count]<-difftime(dframe$DOB[count], dframe$maternal_DOB[count],units='days')
+    
+    #dframe$age.weeks[count] <- difftime(dframe$euth.date[count], dframe$DOB[count], units='weeks')
+    #gives age in days
+    count= count +1
+  }
+  return(dframe)
+}
+
 
 #add mouse column to MLH1 df
 #this can be mess up when the columns aren't right type (charaecter)
@@ -120,13 +138,15 @@ add_strain <- function(dat){
                              ifelse(grepl("_SPI_", dframe$mouse), "SPIC",
                          ifelse(grepl("_SPIC_", dframe$mouse), "SPIC",
                   ifelse(grepl("_CAROLI_", dframe$mouse), "CAROLI",
-                                 "other")))))))))))))))))))
+                         
+                 ifelse(grepl("F1_", dframe$mouse), "F1",         
+                                 "other"))))))))))))))))))))
   
   #the ordering factor below deletes all strain entries
   dframe$strain<- factor(dframe$strain, ordered = TRUE, levels =c( "WSB", "G", "LEW", "PERC",
                                                   "PWD", "MSM", "MOLF","SKIVE", "KAZ", "TOM", "AST","CZECH",
                                                   "CAST", "HMI",
-                                                  "SPRET", "SPIC", "CAROLI", "other") )
+                                                  "SPRET", "SPIC", "CAROLI", "F1", "other") )
   return(dframe)
 }
 
@@ -180,14 +200,17 @@ add_category <- function(oldframe){
                        ifelse(grepl("_SPIC_m", dframe$mouse), "SPIC male",
                       ifelse(grepl("_CAROLI_m", dframe$mouse), "CAROLI male",
                      ifelse(grepl("_CAROLI_f", dframe$mouse), "CAROLI female",
-                                                      "other")))))))))))))))))))))))))))))))))))
+                                                     
+                  ifelse(grepl("F1_m", dframe$mouse), "F1",     
+                             "other"))))))))))))))))))))))))))))))))))))
   
   dframe$category<- factor(dframe$category, ordered=TRUE, levels =c( "WSB female", "WSB male","G female", "G male", 
                                                       "LEW female", 'LEW male', "PERC male",
-                                  "PWD female", "PWD male", "MSM female", "MSM male", "MOLF female", "MOLF male",  "SKIVE female", "SKIVE male", 
+                                  "PWD female", "PWD male", "MSM female", "MSM male", "MOLF female", 
+                                  "MOLF male",  "SKIVE female", "SKIVE male", 
                                   "KAZ female","KAZ male","CZECH female","CZECH male", "AST male", "TOM male",
                                   "CAST female", "CAST male", "HMI female", "HMI male",
-                                                      "SPRET female", "SPRET male", "SPIC female", "SPIC male","CAROLI female","CAROLI male",
+                                  "SPRET female", "SPRET male", "SPIC female", "SPIC male","CAROLI female","CAROLI male","F1",
                                                       "other"))
   return(dframe)
 }

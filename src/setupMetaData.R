@@ -8,42 +8,92 @@ setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 
 #use updated metadata -- 
 #8.30.19
-meta.data.file = read.csv("~./MLH1repo/data/Mouse_MetaData_8.30.19.csv", header = TRUE)
+meta.data.file = read.csv("~./MLH1repo/data/DandM_8.30.19.csv", header = TRUE)
+#these are mostly clean ... some wrong things in the Maternal_DOB thing
+#all none age values removed from the csv file
+#had to reformat the dates, since there were inconsistancies in year digit length
+#had to clean up some cells
+
+meta.data.file <- meta.data.file[!(is.na(meta.data.file$mouse)|meta.data.file$mouse==""),]
+#445? -- probably extras at bottom not good
+
+#how many mice have maternal DOB
+meta.data.file.w.mat.DOB <- meta.data.file[!(is.na(meta.data.file$maternal_DOB)|meta.data.file$maternal_DOB==""),]
+#151
+
+#format this meta.data.file
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+
+meta.data.file.w.mat.DOB <- add_mouse(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_category(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_strain(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_sex(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_subsp(meta.data.file.w.mat.DOB)
+
+#check if date format's been applied before tryung the age functions
+str(meta.data.file.w.mat.DOB)
+
+#DOB and Mat.DOB need to be date formated, make sure that the dates are consistant in the original file
+#the dates in my file are not all standardized... year is somethimes 2 - sometimes 4
+meta.data.file.w.mat.DOB$DOB <- as.Date(meta.data.file.w.mat.DOB$DOB, format= "%m/%d/%Y")#%Y 2000, %y '18,
+meta.data.file.w.mat.DOB$maternal_DOB <-as.Date(meta.data.file.w.mat.DOB$maternal_DOB, format= "%m/%d/%Y")
+
+str(meta.data.file.w.mat.DOB)
+
+meta.data.file.w.mat.DOB <- add_euth_date(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_age(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_mat_age(meta.data.file.w.mat.DOB)
+
+#save this data frame... or put into permanate file
+
+
+#examine data
+
+
+
+
+
+n_occur <- data.frame(table(meta.data.file$fileName))
+
+#n_occur[n_occur$Freq > 1,] displays the dups
+original_DF_duplicates <- meta.data.file[meta.data.file$fileName %in% n_occur$Var1[n_occur$Freq > 1],]
 
 #meta.data.file = read.csv("~./MLH1repo/data/Mouse_MetaData_6.12.19.csv", header = TRUE)#455
 
 #loading previously cleaned data 
 #clean.meta.data <- read.csv("~./MLH1repo/data/clean.Meta.Data.txt",header = TRUE, sep='\t')
 #don't load this yet
-
-
 #integrate batch information
 
-#read or load MLH1 data
-#load most recent RData file
-load(file="~./MLH1repo/data/MLH1/MLH1_data_setup_8.29.19.RData")#8.29.19 has batch15
-
-
+#read or load MLH1 data  #load most recent RData file
+#load(file="~./MLH1repo/data/MLH1/MLH1_data_setup_8.29.19.RData")#8.29.19 has batch15
 #MLH1.data = read.csv("~/MLH1repo/data/MLH1/MLH1_data_setup_8.15.19.RData", header = TRUE) 
 
 #take note when I switch from 2 digit year (mouse, euth date) and 4-digit year 'DOB'!
 #remember to switch '/%y' to upper case 'Y'!!
 
-#clean up
+#clean up meta.data.file
+meta.data.file
+meta.data.file <- meta.data.file[!(is.na(meta.data.file$mouse)|meta.data.file$mouse==""),] #375
+meta.data.file$DOB <- as.Date(meta.data.file$DOB, format= "%m/%d/%Y")#%Y 2000, %y '18,
+
+
 meta.data <- meta.data[!(is.na(meta.data$mouse)|meta.data$mouse==""),] #375
 meta.data$DOB <- as.Date(meta.data$DOB, format= "%m/%d/%Y")#%Y 2000, %y '18,
 
-#calculate age ect, add other labels
+#calculate age ect, add other labels..
+#work with meta.data.file
+
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 meta.data <- add_euth_date(meta.data)
 meta.data <- add_age(meta.data)
+
+
 
 meta.data <- add_strain(meta.data)
 meta.data <- add_subsp(meta.data)
 meta.data <- add_sex(meta.data)
 meta.data <- add_category(meta.data)
-
-
 
 
 #subset org_DF for mice in meta_data list 
