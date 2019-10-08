@@ -8,6 +8,7 @@ output:
     toc_depth: '5'
     toc_float: yes
   pdf_document: default
+bibliography: refs_Main_Report.bib
 ---
 
 ```{r setup, echo=FALSE, include = FALSE}
@@ -370,6 +371,7 @@ original_DF_duplicates.notes$nMLH1.foci <- as.numeric(original_DF_duplicates.not
 old.master.MLH1 = read.csv("~./MLH1repo/data/old_master_MLH1_nov15.csv", header = TRUE)
 #remove all with 'X'
 #create a real fileName col, add rev.tif, 
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
 old.master.MLH1 <- add_mouse(old.master.MLH1)
 old.master.MLH1 <- add_strain(old.master.MLH1)
@@ -422,7 +424,7 @@ uutesting2 <- merge(old.master.MLH1, original_DF, by.x = fileName, by.y = Origin
 
 ```{r repeatability_rep3, echo=FALSE, include=FALSE}
 chrm.class.DF = read.csv("~./MLH1repo/data/ChrmClassProportions.csv", header = TRUE)
-
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 #what are the target columns for this excel sheet?
 #espically for getting repeat data
 #MLH1.dif  same_count  quality
@@ -660,43 +662,30 @@ The initial analysis uses plots. This should be double checked with a general li
 
 
 ```{r age.hists, echo=FALSE, eval=FALSE,  warning=FALSE}
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 meta.data$DOB <- as.Date(meta.data$DOB, format= "%m/%d/%Y")#%Y 2000, %y '18,
 
-#make Mouse meta data work
+#make Mouse meta data work .. rename these
 MouseMetaData.wrkin <- meta.data[,c(1,4)]
 colnames(MouseMetaData.wrkin) <- c("mouse", "DOB")
-
 MouseMetaData.wrkin <- MouseMetaData.wrkin[!(is.na(MouseMetaData.wrkin$mouse)|MouseMetaData.wrkin$mouse==""),]
-
 #do this for the mouse table instead of the MLH1 table
 MLH1.imprv <- merge(MLH1_data, MouseMetaData.wrkin)#don't apply the all parameters
-
-#add euth date for calculating age
-
+#DOB is date
 MLH1.imprv <- add_euth_date(MLH1.imprv)
-#
+#good euth date..
+
+#make backup date col #add euth date for calculating age
 MLH1.imprv$euth.date2 <- MLH1.imprv$euth.date
-MLH1.imprv$euth.date <- as.Date(as.character(MLH1.imprv$euth.date2), format='%d%b%y')
-#this is currently broken
 MLH1.imprv <- add_age(MLH1.imprv)
+#age works
 
 #remove mice that are older than 20 weeks
 MLH1.imprv.male <- MLH1.imprv[MLH1.imprv$sex == "male", ]
 MLH1.imprv.male <- MLH1.imprv.male[MLH1.imprv.male$age.weeks < 20, ]
 
-pp <- ggplot(MLH1.imprv.male, aes(age.weeks))+geom_histogram()+facet_wrap(~category)+ggtitle("Age Distributions")
+pp <- ggplot(MLH1.imprv[MLH1.imprv$sex == "male", ], aes(age.weeks))+geom_histogram()+facet_wrap(~category)+ggtitle("Male Age and MLH1 counts by subspecies")
 pp
-
-
-#what is this meta.data.file?
-#meta.data.file2 <- add_strain(meta.data.file2)
-#meta.data.file2 <- add_sex(meta.data.file2)
-#meta.data.file2 <- add_category(meta.data.file2)
-#meta.data.file2 <- add_euth_date(meta.data.file2)
-#meta.data.file2 <- add_age(meta.data.file2)
-
-#qq <- ggplot(meta.data.file2[meta.data.file2$sex == "male",], aes(age.weeks))+geom_histogram()+facet_wrap(~category)+ggtitle("recorded ages of dissected mice")
-#qq
 
 ```
 
@@ -761,16 +750,27 @@ I will try doing a logistic regression for embryonic vs neonate. The embyonic es
 
 
 ```{r age.effect.plot, warning=FALSE, echo=FALSE}
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+
+AP_mouse_table_w.Ages <- add_category(AP_mouse_table_w.Ages)
+#remove NAs
+AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[!(is.na(AP_mouse_table_w.Ages$Nmice) | AP_mouse_table_w.Ages$Nmice==""), ]
 
 #make sure the right dataset 
 male.data <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$sex.y == "male") & (AP_mouse_table_w.Ages$category.y != "other"),]
-#remove NAs
+#lots of NA rows... ugh .. remove them
+male.data <- male.data[!(is.na(male.data$Nmice) | male.data$Nmice==""), ]
 
+#other removed, no points,
 male.data <- male.data[male.data$Ncells > 10,]
 
-age.effect.plot <- ggplot(male.data, aes(y=mean_co, x=age.weeks, color=strain.y))+geom_point()+ ylim(c(19,34))+
-  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Age and mean CO per mouse")+facet_wrap(~subsp.y)
+age.effect.plot <- ggplot(male.data, aes(y=mean_co, x=age.weeks, color=(strain.y) ))+geom_point()+ ylim(c(19,34))+
+  #trying this
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Male Age and mean CO")+facet_wrap(~subsp.y)
 age.effect.plot
+#no longer has 'other', #yay I added purtty standard colors
+#there is an NA
 #todo add line to strain.y
 
 ```
