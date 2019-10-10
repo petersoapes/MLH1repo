@@ -72,14 +72,10 @@ MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 ```
 
 
-## Missing Mice, finishing dataset
-
-*Which mice are remaining and at what stage?*
-
 This section shows the number of mice which haven't been stained or quantified yet.
 
 
-```{r missing.mice, echo=FALSE}
+```{r missing.mice, echo=FALSE, warning=FALSE}
 
 setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 setwd("~./MLH1repo/")
@@ -785,7 +781,10 @@ While many slopes are different than 0, I am not convinced there is a clear age 
 
 Check if there is a maternal age effect for females and males.
 
-```{r mat.age.effect, echo=FALSE}
+```{r mat.age.effect, echo=FALSE, eval=FALSE}
+#pause evaluation -- needs debugging
+meta.data.file = read.csv("~./MLH1repo/data/DandM_8.30.19.csv", header = TRUE)
+
 meta.data.file <- meta.data.file[!(is.na(meta.data.file$mouse)|meta.data.file$mouse==""),]
 #445? -- probably extras at bottom not good
 
@@ -821,7 +820,7 @@ see.whatcha.do <- merge(AP_mouse_table_w.Ages, meta.data.file.w.mat.DOB, by.x = 
 #remove anything without mean_CO
 see.whatcha.do <- see.whatcha.do[!(is.na(see.whatcha.do$mean_co)|see.whatcha.do$mean_co==""),]
 see.whatcha.do <- see.whatcha.do[!(is.na(see.whatcha.do$mat.age.days)|see.whatcha.do$mat.age.days==""),]
-
+#what did I do with this DF...?
 
 #visualize the data
 
@@ -857,7 +856,6 @@ ALLmat.age.effect.plot.male <- ggplot(see.whatcha.do[see.whatcha.do$sex == "male
   #trying this
   scale_color_manual(values=colors_of_strains)+ #this list in setupdata
   geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Maternal Age and mean CO, male offspring")
-
 +facet_wrap(~subsp.y)
 
 #is there a correlation with proband age and maternal age?
@@ -900,7 +898,7 @@ Insert the code and results for effects of cell number/observations on MLH1 mean
 
 
 
-# Initial Results
+# Initial Results (change these colors)
 
 ```{r first.boxplots, echo=FALSE, fig.align='center'}
 
@@ -939,7 +937,7 @@ MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
 #don't show M.musculus by mouse
 
 #order MLH1_data by strain!!
-
+#colors_of_strains, colors .. 
 
 ff2 <- ggplot(MLH1_data[MLH1_data$species == "M.musculus", ])+
   geom_boxplot(aes(x = as.character(mouse), y = adj_nMLH1.foci, fill= strain,alpha=0.5) )+ ggtitle("Boxplots of MLH1 distributions by mouse") + theme(axis.title.x=element_blank(),
@@ -947,7 +945,10 @@ ff2 <- ggplot(MLH1_data[MLH1_data$species == "M.musculus", ])+
         axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue", "coral4","coral1", "#E69F00","red", "red3", "red4","orange","yellow", "yellow3", 
         "green","green4","grey",  "grey","grey","grey" )) +
  ylim( c((min(MLH1_data$adj_nMLH1.foci)-3) ), (max(MLH1_data$adj_nMLH1.foci)+3)) + 
-  facet_grid(subsp~ sex, scales="free_x")#scales="free_y"
+  facet_grid(subsp~ sex, scales="free_x")+scale_color_manual(values=colors_of_strains)
+
+
+#scales="free_y"
 #this is ok except for the set placement of mice on x axis
 #if the full dataset was ordered correctly, this would kinda fix it
 
@@ -955,8 +956,8 @@ ff2 <- ggplot(MLH1_data[MLH1_data$species == "M.musculus", ])+
 #boxplots by strain
 ss <- ggplot(MLH1_data, aes(x = as.factor(strain), y = adj_nMLH1.foci, fill= strain )) + geom_boxplot(aes(alpha=0.5))  + ggtitle("Boxplots of MLH1 distributions by strain") + theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue",  "coral1", "#E69F00","red", "yellowgreen", "green", "purple","grey1","grey","green", "purple","grey1","grey","white", "blue","orange" )) +
-  ylim( c( (min(MLH1_data$adj_nMLH1.foci)-3), (max(MLH1_data$adj_nMLH1.foci)+5)) )
+        axis.ticks.x=element_blank())+
+  ylim( c( (min(MLH1_data$adj_nMLH1.foci)-3), (max(MLH1_data$adj_nMLH1.foci)+5)) )+scale_fill_manual(values=colors_of_strains)
 
 ss <- ss   + facet_wrap(~ sex, scales="free")
 
@@ -1698,59 +1699,210 @@ chrm.class.DF$perBiv4<-chrm.class.DF$n4CO/chrm.class.DF$biv.sum.check
 #chrm.class.DF$biv.sum.check
 ```
 
-
-PWD and MSM have a higher proportion of 2CO chrms!
-
-what about the variance across cells?
-
-
-
-## Models for manuscript
-
-Ideas for models of evolution of Heterochiasmy and current idea for how to test them.
-
-- HetC arises due to more precursors (DSBs)
-
-    - Compare DSB counts
-    
-- Larger cell volume drives longer chrms axis (and maybe more DSB)
-
-    - Measure meiocyte diameter in males and females. Compare spermatocyte diameters in male biased and female biased strains. 
-    - Compare DSBs counts and average SC/axis lengths.
-
-
-- Difference in astral/MT organization
-
-    - ?
-
-
-- Something about interference and sister cohesin area
-
-    - Develope metric for sister cohesin area, and look at initial patterns.
-
-
+High musc males have half 1CO and 2CO bivalents.
+For following up on the biv stuff, find ways to compare the 1CO to 2COs in Dom and Musc. (sis-coten, length, distance from centromere).
 
 
 ## Mixed Model, compare within and between subspecies patterns
 
+The mixed model lets us sperate effects to see how they effect a mouse mean CO count. This seperation can also serve as proxies for divergence and polymorphism.
 
 Initial results indicate that male MLH1 counts have less variance within subspecies but more between subspecies compared to female data.
 
-*Does this hold up with the full data set?*
-*What's the best visualization for these questions?*
+> Mouse average Models
 
-Main focus is contrasting the level of difference within and between subspecies.
+  variables vs char coding of coefficents(opposite direction of sex)?
+  select1 (remove old mice, remove mice with low ncells)
+  select2 make sure there are equal numbers of observations
+  select3 low Musc males
+  
+  
+the pooled cell models are breaking for some reason, (the sexes)
+-pooled cells (nMLH1)
+  all 
+  pooled.HQ (1-4)
+  pooled.HQ.2 (sample equal numbers of cells)
 
-I'll do this with a mixed model framework approach (and analyze with ANOVA, a method to partition the variance of subset.)
 
-```{r mixed.model, echo=FALSE}
+```{r MxMdl.DF.setup, echo=FALSE, warning=FALSE}
+library(lme4)
+library(nlme)
+# seperate the data, both sexes, only Mus
+# decide on Musc - Molossinus
+AP_mouse_table_w.Ages$strain <- AP_mouse_table_w.Ages$strain.x
+AP_mouse_table_w.Ages$sex <- AP_mouse_table_w.Ages$sex.x
+AP_mouse_table_w.Ages$subsp <- AP_mouse_table_w.Ages$subsp.x
+
+AP_mouse_table_w.Ages <- add_species(AP_mouse_table_w.Ages)
+DF.HetC.MixedModel <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$species == "M.musculus",]
+
+#remove Castaneus (not females)
+DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$subsp.x != "Cast",]
+#remove musc strains
+DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "AST",]
+DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "TOM",]
+
+#remove PERC, MOLF, CZECH,
+DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "CZECH",]
+DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "MOLF",]
+DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "PERC",]
+
+
+#change molossinus to it's own subsp (grepl)
+
+DF.HetC.MixedModel2 <- DF.HetC.MixedModel
+
+#if(grepl("MSM", DF.HetC.MixedModel2$strain) ){ DF.HetC.MixedModel2$subsp <- "Mol" }
+
+DF.HetC.MixedModel2$subsp <- ifelse(grepl("MSM", DF.HetC.MixedModel2$strain), "Mol", 
+        ifelse(grepl("MOLF", DF.HetC.MixedModel2$strain), "Mol", DF.HetC.MixedModel2$subsp))
+
+DF.HetC.MixedModel2$subsp <- ifelse(grepl(1, DF.HetC.MixedModel2$subsp), "Dom", 
+        ifelse(grepl(2, DF.HetC.MixedModel2$subsp), "Musc", DF.HetC.MixedModel2$subsp))
+
+#subsp are charecters
+#change sex to charecter? (unordered sex)
+
+DF.HetC.MixedModel2$sex <- as.character(DF.HetC.MixedModel2$sex)
+
+model.ff2 <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel2, random=list(strain=pdDiag(~sex) ) )#adding mol 
+
+#pull out values / other things
+summary(model.ff2)# indeces for this object: [1]-structure
+ranef(model.ff2)
+#after coding subsp to chr from factor, the co-efficients are 
+
+#intercept should be the Dom female mean, looks right
+mean(DF.HetC.MixedModel2$mean_co[(DF.HetC.MixedModel2$sex == "female" &
+                                    DF.HetC.MixedModel2$subsp == "Dom" )] ) #26.5
+#male effect is -2
+#Musc and mol effec is almost -1
+
+
+
+DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "PERC",]
+
+DF.HetC.MixedModel <- droplevels(DF.HetC.MixedModel)
+table(DF.HetC.MixedModel$strain, DF.HetC.MixedModel$sex)
+
+#after initial analysis look into quality of these mice and ages
+
+#clean up the DF, remove extra cols
+
+colnames(DF.HetC.MixedModel)
+DF.HetC.MixedModel <- subset(DF.HetC.MixedModel, select= -c(sex.y,sex.x,
+                                                            subsp.y,subsp.x,
+                                                            category.y, category.x,
+                                                            strain.x,strain.y, mouse.1  )  )
+str(DF.HetC.MixedModel)
+
+#remove ncells <10
+
+DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$Ncells > 9,]
+DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$age.weeks < 25,]
+
+#pooled.cells
+
+DF.HetC.MixedModel.pooled <- MLH1_data[MLH1_data$species == "M.musculus",]
+
+DF.HetC.MixedModel.pooled <- DF.HetC.MixedModel.pooled[DF.HetC.MixedModel.pooled$subsp != "Cast",]
+#remove musc strains
+DF.HetC.MixedModel.pooled <- DF.HetC.MixedModel.pooled[DF.HetC.MixedModel.pooled$strain != "AST",]
+DF.HetC.MixedModel.pooled <- DF.HetC.MixedModel.pooled[DF.HetC.MixedModel.pooled$strain != "TOM",]
+
+#remove PERC, MOLF, CZECH,
+DF.HetC.MixedModel.pooled <- DF.HetC.MixedModel.pooled[DF.HetC.MixedModel.pooled$strain != "CZECH",]
+DF.HetC.MixedModel.pooled <- DF.HetC.MixedModel.pooled[DF.HetC.MixedModel.pooled$strain != "MOLF",]
+DF.HetC.MixedModel.pooled <- DF.HetC.MixedModel.pooled[DF.HetC.MixedModel.pooled$strain != "PERC",]
+```
+
+For mouse averages of MLH1 counts, only strain with observations for both sexes and are from Mus species. (maybe I'll look at Species level with spicilegus...?)
+
+subspecies levels: 2, Musc and Domesticus (maybe Molossinus soon)
+strain levels: Dom: 3, Musc: 4
+sex: 2 female male
+
+`r table(DF.HetC.MixedModel$sex, DF.HetC.MixedModel$strain)`
+
+
+```{r mixed.model,make, echo=FALSE, warning=FALSE}
 #build mixed model
 #run simulations for accounting for sampling error
 # old code uses base plot
+library(nlme)
+library(lme4)
+
+#L,Q,C  after the factors in the summary mean lme doesn't believe you used ordered factors
+
+#redo the orders just to be sure
+#sex, strain, subsp,
+
+DF.HetC.MixedModel$sex <- factor(DF.HetC.MixedModel$sex, ordered = TRUE, levels =c("female", "male") )
+
+DF.HetC.MixedModel$subsp <- factor(DF.HetC.MixedModel$subsp, ordered = TRUE, levels =c( "Dom", "Musc") )
+
+DF.HetC.MixedModel$strain<- factor(DF.HetC.MixedModel$strain, ordered = TRUE, levels =c( "WSB", "G", "LEW",
+                                                  "PWD", "MSM", "SKIVE", "KAZ") )
+
+#dframe$strain<- factor(dframe$strain, ordered = TRUE, levels =c( "WSB", "G", "LEW", "PERC",
+#                                                  "PWD", "MSM", "MOLF","SKIVE", "KAZ", "TOM", "AST","CZECH",
+#                                                  "CAST", "HMI",
+#                                                  "SPRET", "SPIC", "CAROLI", "F1", "other") )
+
+DF.HetC.MixedModel$mean_co <- as.integer(DF.HetC.MixedModel$mean_co)
+
+DF.HetC.MixedModel <- droplevels(DF.HetC.MixedModel)
+DF.HetC.MixedModel <- DF.HetC.MixedModel[!(is.na(DF.HetC.MixedModel$mouse) | DF.HetC.MixedModel$mouse==""), ]
+
+#female Dom are the first levels:
+#Intercept, 25.767065 mean for Dom female -- NS
+#
+#make sure the default (ordered factors of strains is set)
+#check level order etc.
+#build initialize model
+model.ff <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel, random=list(strain=pdDiag(~sex) ) )
+
+#pull out values / other things
+summary(model.ff)# indeces for this object: [1]-structure
+ranef(model.ff)
 
 
+#pooled cells,  DF.HetC.MixedModel.pooled
+DF.HetC.MixedModel.pooled <- droplevels(DF.HetC.MixedModel.pooled)
+DF.HetC.MixedModel.pooled <- DF.HetC.MixedModel.pooled[!(is.na(DF.HetC.MixedModel.pooled$mouse) | DF.HetC.MixedModel.pooled$mouse==""), ]
 
+
+DF.HetC.MixedModel.pooled$sex <- factor(DF.HetC.MixedModel.pooled$sex, ordered = TRUE, levels =c("male", "female") )
+
+DF.HetC.MixedModel.pooled$strain<- factor(DF.HetC.MixedModel.pooled$strain, ordered = TRUE, levels =c( "WSB", "G", "LEW", "PWD", "MSM", "SKIVE", "KAZ") )
+
+DF.HetC.MixedModel.pooled <- droplevels(DF.HetC.MixedModel.pooled)
+
+#sex only has 2 levels and this breaks...
+model.pooled <- lme(nMLH1.foci ~ subsp * sex, data=DF.HetC.MixedModel.pooled, random=list(strain=pdDiag(~sex) ) )
+
+#pull out values / other things
+summary(model.pooled)# indeces for this object: [1]-structure
+ranef(model.pooled)
 ```
+
+pooled cell data collection.
+
+`r table(DF.HetC.MixedModel.pooled$sex, DF.HetC.MixedModel.pooled$strain)`
+KAZ, LEWES has ~100 more for males, PWD has ~200 for females.
+
+
+Fixed effects
+
+look at the p-values for each of the effects as an indication if they are significant predictors.
+
+Subspecies
+
+
+Random effects
+
+
+try subsampling some of the 
 
 
 ## Meiotic Error
@@ -1966,6 +2118,8 @@ regress.1.KAZ <- ggplot(data = PWD_KAZ_BivData[PWD_KAZ_BivData$mouse == "21may18
 #doesn't look like the sis-co-ten is conserved across bivs
 
 ```
+
+
 
 
 ```{r within.cell.corr, echo=FALSE}
