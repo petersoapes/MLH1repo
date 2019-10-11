@@ -1,6 +1,6 @@
 # set up data file for ML data output
-# input: BivData 5-29-19
-# output: RData file, Table of counts
+# input: BivData from all the runs
+# output: RData file, Table of counts, cleaned up BivData.csv
 
 library(plyr)
 library(lattice)
@@ -11,24 +11,94 @@ library(ggplot2)
 #add IFD
 #add the melted foci here
 
+#make a master csv file for copying measurements into
+
+#make folder for copying the tif files (move all image output into data/BiVdata/image_output/)
+#(seperate for mat files?)
 setwd("~./MLH1repo/")
-fullBivData = read.csv("data/BivData/CLEAN_MUS_FULL_BIVDATA_5.28.19.csv")
-#5402
 
-#check dissection list
-Dissection_list = read.csv("data/mouseDissections.csv", sep = ",", header = TRUE)
+#load the master curated list for cross referencing!
+master_curated_BivDatalist.csv = read.csv("data/BivData/FULL_Merged_Curated_BivData.csv")
+#already has Obj.ID and SC/foci pass cols
+#need to clean up all the random numbers in pass.sc column
 
+master_fullBivData = read.csv("data/BivData/MUS_FULL_BIVDATA_10.11.19.csv")
+#33286 obs
+#+PWD and KAZ females 
+#+PWD (male)
+#+KAZ (male)
+#+LEW (female-male)
 
 #add obj.ID
-fullBivData$Obj.ID <- paste(fullBivData$fileName, fullBivData$boxNumber, sep = "_")
+master_fullBivData$Obj.ID <- paste(master_fullBivData$fileName, master_fullBivData$boxNumber, sep = "_")
 
+#some of the images have bad fileNames, -- so those should be removed, or Idk, checked
+#removed, PWD_f1_sp1  and 8oct14_PWDf2_sp1
+#not sure where these files/images are
+
+anyDuplicated(master_fullBivData$Obj.ID) #23393 duplicated values
+#9893 unique obj.id
+#
+
+#re-write the excel sheet for unique observations
+#mark which have been curated and which havent
+
+#making full bivData --> then requires a curate list (filtered from) Bivdata
+#that requires manual curation
+
+#merge the kaz-pwd datasets
+#MERGE THE msm and lew
 
 source("src/CommonFunc_MLH1repo.R")
-fullBivData <- add_mouse(fullBivData)
-fullBivData <- add_category(fullBivData)
-fullBivData <- add_strain(fullBivData)
-fullBivData <- add_sex(fullBivData)
-fullBivData <- add_subsp(fullBivData)
+master_fullBivData <- add_mouse(master_fullBivData)
+master_fullBivData <- add_category(master_fullBivData)
+master_fullBivData <- add_strain(master_fullBivData)
+master_fullBivData <- add_sex(master_fullBivData)
+master_fullBivData <- add_subsp(master_fullBivData)
+
+#tables of things
+table(master_fullBivData$mouse)
+#WSB, no G, no CZECH, SPIC, SKIVE, CAST (limited KAZ male), no PERC, CAROLI, AST,TOM,F1
+#update the data.files
+
+
+#check duplicates
+n_occur <- data.frame(table(master_fullBivData$Obj.ID))
+n_occur[n_occur$Freq > 1,]
+joined_full_bivData_curated_DF <- master_fullBivData[master_fullBivData$Obj.ID %in% master_curated_BivDatalist.csv$Obj.ID,]
+
+joined_curated_bivData_DF <- master_curated_BivDatalist.csv[master_curated_BivDatalist.csv$Obj.ID %in% master_fullBivData$Obj.ID,]
+#764 -- (these include pass and fail)
+
+table(joined_curated_bivData_DF$SC.pass)#1437 passing SC
+#need to clean up all the random numbers in pass.sc
+
+anyDuplicated(joined_curated_bivData_DF$Obj.ID)#0 duplicates
+
+table(joined_curated_bivData_DF$foci.pass)
+#629 foci passing 
+
+table(joined_curated_bivData_DF$hand.foci.count[joined_curated_bivData_DF$foci.pass == 1])
+
+joined_curated_bivData_DF <- add_mouse(joined_curated_bivData_DF)
+joined_curated_bivData_DF <- add_category(joined_curated_bivData_DF)
+joined_curated_bivData_DF <- add_strain(joined_curated_bivData_DF)
+joined_curated_bivData_DF <- add_sex(joined_curated_bivData_DF)
+joined_curated_bivData_DF <- add_subsp(joined_curated_bivData_DF)
+
+#only PWD and KAZ biv's for the curation sheet (no )
+
+#cleaned up file
+#re-write out cleaned up file
+
+#check dissection list agaisnt the BivData list
+Dissection_list = read.csv("data/mouseDissections.csv", sep = ",", header = TRUE)
+
+#check for complete data (which mice are missing)
+
+
+
+#add IFD -- add age?
 
 #####################
 # REMOVE EXTRA DATA #
@@ -230,6 +300,6 @@ dev.off()
 rm(DUP_list)
 
 #push the count numbers into a df?
-save.image("data/BivData.RData")
+save.image("data/BivData_date.RData")
 
 #save.image("data/returnPaper_NEW_BivData.RData")
