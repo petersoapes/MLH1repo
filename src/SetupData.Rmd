@@ -140,8 +140,10 @@ The original dataset contains the quantification batches
 ```{r mouse.table, echo=FALSE}
 #source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
+
+
 #Make a mouse level table
-AP_mouse_table <- ddply(MLH1_data, c("mouse"), summarise,
+AP_mouse_table.HQ <- ddply(MLH1_data[MLH1_data$quality < 5,], c("mouse"), summarise,
                         Nmice = length(unique(mouse)),
                         Ncells  = length(adj_nMLH1.foci),
                         mean_co = as.numeric(format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3) ),
@@ -152,19 +154,19 @@ AP_mouse_table <- ddply(MLH1_data, c("mouse"), summarise,
                         #quality?
 )
 
-AP_mouse_table <- add_strain(AP_mouse_table)
-AP_mouse_table <- add_subsp(AP_mouse_table)
-AP_mouse_table <- add_sex(AP_mouse_table)
-AP_mouse_table <- add_category(AP_mouse_table)
+AP_mouse_table <- add_strain(AP_mouse_table.HQ)
+AP_mouse_table.HQ <- add_subsp(AP_mouse_table.HQ)
+AP_mouse_table.HQ <- add_sex(AP_mouse_table.HQ)
+AP_mouse_table.HQ <- add_category(AP_mouse_table.HQ)
 
 #make sure they are all factors
-AP_mouse_table$mouse <- as.factor(AP_mouse_table$mouse)
-AP_mouse_table$sex <- as.factor(AP_mouse_table$sex)
-AP_mouse_table$strain <- as.factor(AP_mouse_table$strain)
-AP_mouse_table$subsp <-  as.factor(AP_mouse_table$subsp)
+AP_mouse_table.HQ$mouse <- as.factor(AP_mouse_table.HQ$mouse)
+AP_mouse_table.HQ$sex <- as.factor(AP_mouse_table.HQ$sex)
+AP_mouse_table.HQ$strain <- as.factor(AP_mouse_table.HQ$strain)
+AP_mouse_table.HQ$subsp <-  as.factor(AP_mouse_table.HQ$subsp)
 
 #add DOB to this table?
-mice.frm.meta <- AP_mouse_table[(AP_mouse_table$mouse %in% meta.data$mouse),]
+mice.frm.meta <- AP_mouse_table.HQ[(AP_mouse_table.HQ$mouse %in% meta.data$mouse),]
 
 batch.mouse.count <- table(original_DF$mouse,original_DF$Batch) #mouse count by batch
 batch.mouse.count.DF <- as.data.frame(batch.mouse.count)#this has a dif str, 3 cols -- like it was melted
@@ -178,7 +180,7 @@ meta.data <- add_category(meta.data)
 
 #merge with DOB
 mouse.table_w.Ages <- merge(batch.mouse.count.DF, meta.data, by.y = "mouse", by.x = "Var1", all = TRUE)
-AP_mouse_table_w.Ages <- merge(AP_mouse_table, meta.data, by.y = "mouse", by.x = "mouse", all = TRUE)
+AP_mouse_table_w.Ages <- merge(AP_mouse_table.HQ, meta.data, by.y = "mouse", by.x = "mouse", all = TRUE)
 #what are the differences between these two
 
 ```
@@ -198,9 +200,9 @@ Is there a detectable age effect?
 
 ```{r Age.Hists, echo=FALSE, warning=FALSE}
 
-male_mouse_table_w.Ages <- mouse.table_w.Ages[(mouse.table_w.Ages$sex == "male") &(mouse.table_w.Ages$category != "other"),]
+male_mouse_table_w.Ages <- AP_mouse_table.HQ[(AP_mouse_table.HQ$sex == "male") &(mouse.table_w.Ages$category != "other"),]
 
-all.ages_plot <- ggplot(male_mouse_table_w.Ages, aes(age.weeks))+geom_histogram(binwidth = 3)+facet_wrap(~category)+ggtitle("Male Age Distributions")
+all.ages_plot <- ggplot(AP_mouse_table.HQ, aes(age.weeks))+geom_histogram(binwidth = 3)+facet_wrap(~category)+ggtitle("Male Age Distributions")
 all.ages_plot
 
 male_mouse_table_w.good.ages <- male_mouse_table_w.Ages[male_mouse_table_w.Ages$age.weeks < 20,]
@@ -214,19 +216,20 @@ good.ages_plot <- ggplot(male_mouse_table_w.good.ages, aes(age.weeks))+geom_hist
 
 
 ```{r color.scheme}
-#color scheme
-#mouse colors
-
+#color scheme, #mouse colors
+#site for colors, #http://sape.inf.usi.ch/quick-reference/ggplot2/colour
 colors_of_strains <- c('WSB'= "#56B4E9",'G' ='cadetblue','LEW'= 'lightblue','PERC'= 'blue',
-                       #blue
+                       #blues
                        
-                       'PWD'= 'red','MSM'= 'darkorange', 'MOLF'= 'orange3',#red mucs, orange Molossi
+                       'PWD'= 'red2',
                        'SKIVE'= 'coral1','KAZ'= 'coral4', 'TOM'= 'indianred1','AST' = 'red4',
-                       'CZECH'= '#E69F00',
+                       'CZECH'= 'indianred4',
                        
-                    'CAST'='green','HMI'= 'forestgreen', #green
+                       'MSM'= 'deeppink', 'MOLF'= 'hotpink', #mol are pinks, bc they are fancy mice
+                       
+                    'CAST'='green','HMI'= 'forestgreen', #greens
                     
-                    'SPRET'='gold','SPIC'= 'goldenrod1',#gold?
+                    'SPRET'='gold','SPIC'= 'goldenrod1', #browns? color of mounds?
                     'CAROLI'='gold3',
                     
                     "F1"='grey', "other" = 'grey'
@@ -247,7 +250,7 @@ work on cleaning up all other df with bad names
 
 ```{r save.RData, echo=FALSE}
 
-save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_9.26.19.RData")
+save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_11.11.19.RData")
 
 #  OutPut: big large MLH1_data (AP's) df, big DF of BD with just the mice I want.
 #  MLH1_data_table, means and variance of AP and BD MLH1 values. made from seperate tables from AP and BD data.
