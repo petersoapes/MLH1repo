@@ -1,7 +1,7 @@
 ---
 title: "mouse level quality plots"
 author: "April Peterson"
-date: "August 29, 2019"
+date: "`r format(Sys.time(), '%d %B %Y')`"
 output: html_document
 ---
 
@@ -21,7 +21,8 @@ setwd("~./MLH1repo/")
 #load(file="data/MLH1/MLH1_data_setup.RData")
 
 #load main data file
-load(file="data/MLH1/MLH1_data_setup_9.26.19.RData")#added batch16
+load(file="data/MLH1/MLH1_data_setup_11.12.19.RData")#added batch17
+#load(file="data/MLH1/MLH1_data_setup_9.26.19.RData")#added batch16
 #load(file="data/MLH1/MLH1_data_setup_8.29.19.RData")#batch15 isn't showing up
 #load(file="data/MetaData.RData")#this Rdata was replacing the most current batch.. agg!
 
@@ -29,12 +30,19 @@ load(file="data/MLH1/MLH1_data_setup_9.26.19.RData")#added batch16
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
 knitr::opts_chunk$set(echo = TRUE)
+
+#remove other!
+MLH1_data <- MLH1_data[MLH1_data$strain != "other",]
+
+MLH1_data <- droplevels(MLH1_data)
 ```
 
 
 This rmd file shows the cell counts for mouse level for MLH1 count and quality. The black lines are the strain means and the red lines are the mouse level means. Points are colored by the quantification batch.
 
 These plots are meant to asses which mice can be removed from the final dataset for too few or low quality count data.
+
+Yellow colored boxes are mice that will be exclude from the final (HQ) dataset for low quality cells (5). Consider re-runing this with the final data frame to see how the strain and mouse means change.
 
 
 ### Updating plots
@@ -44,44 +52,61 @@ These plots are meant to asses which mice can be removed from the final dataset 
 *2. Run the code chunks.*
 
 
-These MLH1 data still have quality 5 cells observations. I might want to redo it without those observations.
-
 
 ```{r mouse.specific.Qplot, echo=FALSE, message=FALSE, results='hide', warning=TRUE}
 ### to integrate 'pass'/fail
 ### this should be in setup data
 
-#mice that don't have female data will break the chain-loop
-#MOLF female, HMI, CZECH female, CAROLI female, Tom male
+exclude_mice <- c("10mar15_WSB_m2", "8oct14_WSB_f1", "8oct14_WSB_f3", "18nov17_WSB_f5",
+                  "8jun15_G_f3", "8jun15_G_f4",
+                  "4jan17_LEW_f2",
+                  "8oct14_PWD_f3", "1apr15_PWD_f2", "8oct14_PWD_f5",
+                  "12sep16_MSM_f3",
+                  "27oct18_MOLF_m3",
+                  "26oct18_SKIVE_f1","26oct18_SKIVE_f2","26oct18_SKIVE_f3",
+                  "27aug18_CZECH_m1","8jun18_CZECH_m1",
+                  "3sep18_AST_m1",
+                  "3jel18_TOM_m1","3sep18_TOM_m1",
+                  "31jul17_HMI_m1",
+                 "21aug17_SPI_f1", "30may18_SPIC_f1", "30oct17_SPIC_m1", "8jun18_SPIC_m2"
+                  )
 
-#instead of adding fake data, remove the categories from list
-
-#filler_data_MOLF.f = c("BatchX", "1jan19_fake_MOLF_f1_sp1", "99999", "3","20","20","","","","","","1jan19_fake_MOLF_f1_sp1_rev.tif",
-#                       "fake_MOLF_f1", "MOLF female", "MOLF","female","Musc", "20","")
-#filler_data_HMI.f = c("BatchX", "1jan19_fake_HMI_f1_sp1", "99999", "3","20","20","","","","","","1jan19_fake_HMI_f1_sp1_rev.tif",
-#                       "fake_HMI_f1", "HMI female", "HMI","female","Cast", "20","")
-#filler_data_CZECH.f = c("BatchX", "1jan19_fake_CZECH_f1_sp1", "99999", "3","20","20","","","","","","1jan19_fake_CZECH_f1_sp1_rev.tif",
-#                       "fake_CZECH_f1", "CZECH female", "CZECH","female","Musc", "20","")
-#filler_data_CAROLI.f = c("BatchX", "1jan19_fake_CAROLI_f1_sp1", "99999", "3","20","20","","","","","","1jan19_fake_CAROLI_f1_sp1_rev.tif",
-#                       "fake_CAROLI_f1", "CAROLI female", "CAROLI","female","Caroli", "20","")
-#MLH1_data_table <- rbind(MLH1_data, filler_data_MOLF.f,filler_data_HMI.f,filler_data_CZECH.f,filler_data_CAROLI.f)#error from dataset thing
-
-pass_mice <- c("28sep18_CZECH_m3","26oct18_MOLF_m1","22jun15_G_m2")
+#based on this plot make a list of mice to exclude, and figure out code to outline in red
+#mostly excluding based on number of 5quality cells
 
 
-#this loop makes a quant_status col for a list of mice
+#mice.to.exclude <- 
+
+#WSB; "10mar15_WSB_m2", "8oct14_WSB_f1", "8oct14_WSB_f3", "18nov17_WSB_f5",
+#G;  "8jun15_G_f3", "8jun15_G_f4"
+#LEW; "4jan17_LEW_f2"
+#PWD; "8oct14_PWD_f3", "1apr15_PWD_f2", "8oct14_PWD_f5"
+#MSM; "12sep16_MSM_f3",#"14jul17_MSM_f1"
+#MOLF; "27oct18_MOLF_m3"
+#SKIVE; "26oct18_SKIVE_f1","26oct18_SKIVE_f2","26oct18_SKIVE_f3"
+#CZECH; "27aug18_CZECH_m1","8jun18_CZECH_m1"
+#AST: "3sep18_AST_m1"
+#TOM; "3jel18_TOM_m1","3sep18_TOM_m1"
+#HMI; "31jul17_HMI_m1"
+#SPIC; "21aug17_SPI_f1", "30may18_SPIC_f1", #"30oct17_SPIC_m1", "8jun18_SPIC_m2", 
+
+#these plots are filled in yellow, but a different alpha/transparency is being applied - I don't know why
+
+#this loop makes a quant_status col for a list of mice (THERE'S AN ARGUMENT FOR Drawing a box around the mouse blocks )
+#switch this loop to ex
 for(i in 1:length(MLH1_data$mouse)){
-  MLH1_data$quant_status[i] <- ifelse( is.element(MLH1_data$mouse[i], pass_mice), "pass", NA)
+  MLH1_data$quant_status[i] <- ifelse( is.element(MLH1_data$mouse[i], exclude_mice), "exclude", NA)
 }
 
+
+#CZECH is not in this list!!!
 
 df_list <- split(MLH1_data, (MLH1_data$category))
 #remove sections which are in category but have no data
 #this is where you remove the non-data data!
-df_list <- df_list[ -c(12,18,24,30) ]
-#there is PERC male
+df_list <- df_list[ -c(24, 29) ]
 
-#12 MOLF female, 18 CZECH female, 24 HMI female?, 
+#12 MOLF female, 18 CZECH female?, 24 HMI female, 29 CAROLI female? 31 other
 #
 
 #df list, is a list of df's which were split() from BIG df by category
@@ -89,7 +114,7 @@ df_list
 o=0
 i=0
 
-MLH1_data$quant_status <- as.factor(MLH1_data$quant_status)
+#MLH1_data$quant_status <- as.factor(MLH1_data$quant_status)
 
 #make a new empty df. create a ddply thing with mean calculations (this is like a list for matching up later)
 for(i in 1:(length(df_list))){
@@ -108,10 +133,19 @@ for(i in 1:(length(df_list))){
 plot_list = list()
 for (h in 1:length(df_list)) {
   pf <- ggplot(data = df_list[[h]], aes(colour = factor(Batch)), width = 0.25)+ 
-    geom_jitter(aes(y= adj_nMLH1.foci, x= quality)) + 
-    geom_rect(data = df_list[[h]], aes(fill=as.factor(quant_status)), alpha=0.5, xmin=-100, xmax=100, ymin=-100, ymax=100)+
+    geom_jitter(aes(y= adj_nMLH1.foci, x= quality)) + xlim(c(0.5,5.5))+
+  
+    #put a box over strain plots based on the col, 'quant_status'
+      geom_rect(data = df_list[[h]], aes(fill= quant_status), alpha= 0.045, xmin=-100, xmax=100, ymin=-100, ymax=100)+
+  
+      scale_fill_manual(values=c("yellow"), breaks=NULL) +   
+        
     facet_wrap(~ mouse, drop = TRUE) + 
-    geom_hline(aes(yintercept = mouse_mean_MLH1), color="red") +scale_fill_manual(values=c(NA, "red"), breaks=NULL) +    geom_hline(yintercept = c( mean(df_list[[h]]$adj_nMLH1.foci) ), color="black" )
+    geom_hline(aes(yintercept = mouse_mean_MLH1), color="red") +
+  
+
+  
+      geom_hline(yintercept = c( mean(df_list[[h]]$adj_nMLH1.foci) ), color="black" )
   #theme(plot.background = element_rect(fill = "green")) #theme for indiviual mice, 
   #make an empty ggplot? for missing data
   
