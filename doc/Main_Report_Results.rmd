@@ -190,6 +190,12 @@ check if there is a quality effect.
 
 #  Results
 
+## MLH1 means
+
+figure 1
+mixed models (ummary of mixed model, justificiation for going into post hoc 
+
+
 ```{r first.boxplots, echo=FALSE, fig.align='center'}
 
 #the below ordering works!! keep it
@@ -246,6 +252,202 @@ justMuscu
 ```
 
 
+
+
+### Mixed Model for MLH1 counts
+
+
+### Sex Specific Evolution
+
+
+
+#### Male Patterns
+
+rapid evolution in musculus and molossinus; high and low CO count males
+
+
+
+#### Female Patterns
+
+seems like female specific evolution in molossinus and musculus.
+
+more variation in domesticus females
+
+
+## Within Mouse Variation in MLH1 counts
+
+
+#DMC1 estimates
+
+to localize the evolution in the pathway
+
+  figure
+  ANOVA for L and Z
+  t-tests betwee high and low groups
+
+
+```{r DMC1_block1, echo=FALSE}
+#loadt DMC1 csv
+
+DMC1.DF <- read.csv("~./DMC1/newJuviQuant.csv", header = TRUE)
+DMC1.DF$fileName <- DMC1.DF$Original.Name
+DMC1.DF <- add_mouse(DMC1.DF)
+DMC1.DF <- add_strain(DMC1.DF)
+DMC1.DF <- add_subsp(DMC1.DF)
+DMC1.DF <- DMC1.DF[DMC1.DF$stage != "P",]
+
+#1. ANOVA, is there a difference in DMC1 counts across strains?
+mod.L <- lm(total.count ~ strain, data = DMC1.DF[DMC1.DF$stage == "L",])
+mod.Z <- lm(total.count ~ strain, data = DMC1.DF[DMC1.DF$stage == "Z",])
+
+l.anova <- anova(mod.L) #0.0002701 ***
+z.anova <- anova(mod.Z) #NS
+
+l.anova
+z.anova
+```
+
+
+In ANOVA analysis strain is significant for Leptotene cells but not Z cells.
+
+
+```{r DMC1_t.tests, echo=FALSE}
+#2. t-tests for the DMC1 counts 
+#need to account for sample sizes when comparing t.tests (KAZ and G don't have equal across )
+#best case scnario -- more microscoping to get ~20 cells for each stage by strain combo
+
+
+#L vs Z (all species)
+#jj <- t.test(DMC1.male.data$total.count[DMC1.male.data$stage == "Z"], DMC1.male.data$total.count[DMC1.male.data$stage == "L"] )
+#p-value = 1.032e-05
+#not a valid interpertation
+
+
+#high vs low group (L)
+zola <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )
+# p-value =  0.002145
+
+
+#high vs low group (Z)
+jesus <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )
+# p-value = 0.6628
+
+
+
+#dom vs musc (L) (2 subsp vs)
+#cheer <- t.test(DMC1.male.data$total.count[(DMC1.male.data$subsp == "Dom") & (DMC1.male.data$stage == "L")], #DMC1.male.data$total.count[(DMC1.male.data$subsp == "Musc") & (DMC1.male.data$stage == "L")] )
+# p-value = 0.003016
+
+#dom vs musc (Z)
+#up <- t.test(DMC1.male.data$total.count[(DMC1.male.data$subsp == "Dom") & (DMC1.male.data$stage == "Z")], #DMC1.male.data$total.count[(DMC1.male.data$subsp == "Musc") & (DMC1.male.data$stage == "Z")] )
+#p-value = 0.09588
+
+
+#KAZ vs Dom (Z) (only 1 L cell)
+#dont <- t.test(DMC1.male.data$total.count[(DMC1.male.data$subsp == "Dom") & (DMC1.male.data$stage == "Z")], 
+#      DMC1.male.data$total.count[(DMC1.male.data$strain == "KAZ") & (DMC1.male.data$stage == "Z")] )
+#p-value = 0.004148
+#Kaz Z are higher than Dom
+```
+
+
+The p values from the t.tests of the high vs low groups, indecate that the high recombining are significantly higher for the L cells (pvalue = `r zola$p.value`) while the Z cells, there is not a significant difference across the high and low groups (pvalue = `r jesus$p.value`).
+
+```{r DMC1.subsampling, echo=FALSE}
+
+#recreate the DMC1 data by subsampling ~9 or lowest cell number from 
+# the 2 groups
+
+#make the 2 pools
+High.L.pool <- DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ]
+High.Z.pool <- DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ]
+
+Low.L.pool <- DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]
+Low.Z.pool <- DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]
+
+
+#permute drawing / subsampling and performing the t-test
+#put the p.value results into a DF!
+
+
+#permut.SC.cv.diff  <- as.data.frame(
+#sample(THE.DF, SAMPLE.SIZE, REPLACE?)
+
+carry.on <-   replicate(10, 
+ sample(High.L.pool, 25, replace = FALSE) )#this makes 10x9 DF from the samples
+ 
+
+bunchOpvals.L <- replicate(10, 
+    # t.test
+    t.test( sample(High.L.pool, 25, replace = FALSE),
+            sample(Low.L.pool, 25, replace = FALSE), var.equal = FALSE )$p.value
+          )
+
+bunchOpvals.Z <- replicate(10, 
+    # t.test
+    t.test( sample(High.Z.pool, 25, replace = FALSE),
+            sample(Low.Z.pool, 25, replace = FALSE), var.equal = FALSE)$p.value
+          )
+
+colnames(permut.SC.cv.diff) <- "permuted.diff"
+
+#ASSUMPTIONS; normality, equal variance
+
+
+#The t.test( ) function produces a variety of t-tests. Unlike most statistical packages, the default assumes #unequal variance and applies the Welsh df modification.
+#n use the var.equal = TRUE
+#https://www.statmethods.net/stats/ttest.html
+```
+
+
+
+```{r DMC1.plot, echo=FALSE}
+#think of better color scheme
+#make the jitter col thinner or make the stacked dots.
+#remember that box-plots add outlier dots.
+#change y labels
+
+library(ggpubr)
+#https://www.r-bloggers.com/add-p-values-and-significance-levels-to-ggplots/
+
+DMC1.DF$strain<- factor(DMC1.DF$strain, levels =c("G","WSB","KAZ",
+              "PWD","MSM"), order=T )
+#order the data frame
+DMC1.DF <- with(DMC1.DF, DMC1.DF[order(strain),])
+
+#for the test bars
+my_comparisons <- list( c("KAZ", "MSM"))#no idea how to adjust
+
+#experimenting with ggboplot
+everyday <- ggboxplot(DMC1.DF[DMC1.DF$stage != "P",], x = "strain", y = "total.count",
+          color = "stage", palette = "jco",
+          add = "jitter", short.panel.labs = FALSE)
+  #library gpubr has functions to add in sig/test bars.
+
+DMC1.boxplot <- ggplot(aes(x=strain, y=total.count, color=stage), data=DMC1.DF[DMC1.DF$stage != "P",])+
+  geom_boxplot(aes(alpha=.5))+geom_jitter()+ggtitle("DMC1 averages in juvenile mice")+
+  
+  #this will add neat bars, but still need to figure out what groups ect it's actually using
+  stat_compare_means(comparisons = my_comparisons)
+
+#  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+#        panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+DMC1.boxplot
+```
+
+
+> At what stage are DMC1 foci nnumbers most correlated with MLH1?
+
+Leptotene is the max number of DMC1 -- so this would have more power to capture the variation in MLH1? Look into what baier et al do. 
+
+
+## Heterochiasmy
+
+- Xy xx  (female vs male adjustment)
+-	Chrm proportions (
 
 
 
@@ -765,7 +967,7 @@ Making all of these scatter plots, allows us to look at the whole distributions 
 
 
 
-### Difference in proportion of chrm classes
+### Proportion of chrm classes
 
 generate smaller data set of chrm proportions (0CO, 1CO,2CO ect)
 10 cells from each musc category. **Add Molf male**
