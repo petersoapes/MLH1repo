@@ -39,9 +39,27 @@ DMC1.DF <- read.csv("~./DMC1/newJuviQuant.csv", header = TRUE)
 DMC1.DF$fileName <- DMC1.DF$Original.Name
 DMC1.DF <- add_mouse(DMC1.DF)
 DMC1.DF <- add_strain(DMC1.DF)
+DMC1.DF <- add_category(DMC1.DF)
 DMC1.DF <- add_subsp(DMC1.DF)
 DMC1.DF <- DMC1.DF[DMC1.DF$stage != "P",]
 
+#make DMC1 table
+DMC1.mean.obs.L <- ddply(.data=DMC1.DF[DMC1.DF$stage == "L",],
+                 .(category),
+                 summarize, 
+                 mean.count = mean( total.count)
+)
+DMC1.mean.obs.L$stage <- "L"
+
+DMC1.mean.obs.Z <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Z",],
+                 .(category),
+                 summarize, 
+                 mean.count = mean( total.count)
+)
+DMC1.mean.obs.Z$stage <- "Z"
+
+#DMC1.Table <- merge(DMC1.mean.obs.L, DMC1.mean.obs.Z, by.x = "category")
+               # var.MLH1 = var(mean_co)
 ```
 
 
@@ -132,14 +150,11 @@ ToDo think of ways to add in the compared means for the high and low groups (acr
 
 ## Testing Normality
 
-
-- check that distributions are close to normal
-- check for equal variance.
-
-
 ```{r normality, echo=FALSE}
 #histograms for each
 
+#- check that distributions are close to normal
+#- check for equal variance.
 
 #checking equal variance, https://www.statmethods.net/stats/anovaAssumptions.html
 #bartlet's test, Levine's test
@@ -151,9 +166,7 @@ bartlett.test(total.count~strain, data=DMC1.DF[DMC1.DF$stage == "Z",])#Z
 ```
 
 
-
-
-From ANOVA analysis strain is significant for Leptotene cells but not Zygotene cells.
+From ANOVA analysis strain is significant for Leptotene cells but not Zygotene cells. (but take these results with a grain of salt before assumptions are tested.)
 
 ```{r DMC1_block1, echo=FALSE, warning=FALSE}
 #1. ANOVA, is there a difference in DMC1 counts across strains?
@@ -166,9 +179,6 @@ z.anova <- anova(mod.Z) #NS
 l.anova
 z.anova
 ```
-
-
-
 
 
 The two groups of mice will be split into high and low recombining groups. (to assess the patterns of variance across them)
@@ -186,35 +196,34 @@ The two groups of mice will be split into high and low recombining groups. (to a
 
 
 #high vs low group (L)
-ttest.L <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+ttest.HighLow.L <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
                DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )
 # p-value =  0.002145
 
 
 #high vs low group (Z)
-ttest.Z <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+ttest.HighLow.Z <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
                DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )
 # p-value = 0.6628
 
 
-
 #dom vs musc (L) (2 subsp vs)
-#cheer <- t.test(DMC1.male.data$total.count[(DMC1.male.data$subsp == "Dom") & (DMC1.male.data$stage == "L")], #DMC1.male.data$total.count[(DMC1.male.data$subsp == "Musc") & (DMC1.male.data$stage == "L")] )
+ttest.subsp.L <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "L")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "L")] )
 # p-value = 0.003016
 
 #dom vs musc (Z)
-#up <- t.test(DMC1.male.data$total.count[(DMC1.male.data$subsp == "Dom") & (DMC1.male.data$stage == "Z")], #DMC1.male.data$total.count[(DMC1.male.data$subsp == "Musc") & (DMC1.male.data$stage == "Z")] )
+ttest.subsp.Z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Z")] )
 #p-value = 0.09588
 
-
 #KAZ vs Dom (Z) (only 1 L cell)
-#dont <- t.test(DMC1.male.data$total.count[(DMC1.male.data$subsp == "Dom") & (DMC1.male.data$stage == "Z")], 
-#      DMC1.male.data$total.count[(DMC1.male.data$strain == "KAZ") & (DMC1.male.data$stage == "Z")] )
+ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], 
+      DMC1.DF$total.count[(DMC1.DF$strain == "KAZ") & (DMC1.DF$stage == "Z")] )
+
 #p-value = 0.004148
 #Kaz Z are higher than Dom
 ```
 
-Divide the Musculus strains into high and low recombining groups to characterize the difference in distributions. The p-values from the t.tests of the high vs low groups, indicate that the high recombining are significantly higher for the L cells (p value = `r ttest.L$p.value`) while the Z cells, there is not a significant difference across the high and low groups (value = `r ttest.Z$p.value`).
+Divide the Musculus strains into high and low recombining groups to characterize the difference in distributions. The p-values from the t.tests of the high vs low groups, indicate that the high recombining are significantly higher for the L cells (p value = `r ttest.HighLow.L$p.value`) while the Z cells, there is not a significant difference across the high and low groups (value = `r ttest.HighLow.Z$p.value`).
 
 
 ## Permutations with equal sampling
@@ -277,10 +286,10 @@ replicated.Ttests <- cbind(bunchOpvals.L, bunchOpvals.Z)
 
 #plot the lists of pvals in histogram? compare to the observed pvalue to get a sense as of how much sample size shifts the pvalues.
 
-plot.pvals.L <- ggplot(bunchOpvals.L, aes(bunchOpvals.L) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Leptotene")+geom_vline(xintercept=ttest.L$p.value, linetype="dotted", color="red")
+plot.pvals.L <- ggplot(bunchOpvals.L, aes(bunchOpvals.L) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Leptotene")+geom_vline(xintercept=ttest.HighLow.L$p.value, linetype="dotted", color="red")
 
 
-plot.pvals.Z <- ggplot(bunchOpvals.Z, aes(bunchOpvals.Z) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Zygotene")+geom_vline(xintercept=ttest.Z$p.value, linetype="dotted", color="red")
+plot.pvals.Z <- ggplot(bunchOpvals.Z, aes(bunchOpvals.Z) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Zygotene")+geom_vline(xintercept=ttest.HighLow.Z$p.value, linetype="dotted", color="red")
 plot.pvals.L
 plot.pvals.Z
 
@@ -291,12 +300,42 @@ plot.pvals.Z
 ```
 
 
+### DMC1 Correlation with MLH1
 
+
+```{r MLH1.cor, echo=FALSE}
+#make category averages from AP_mouse_table.HQ
+mean.MLH1.obs <- ddply(.data=AP_mouse_table.HQ,
+                 .(category),
+                 summarize, 
+                 mean.MLH1 = mean(mean_co),
+                 var.MLH1 = var(mean_co)
+)
+
+DMC1.target.strains <- subset(mean.MLH1.obs, category == "G male" |
+                   category == "WSB male" |
+                     category == "KAZ male" |
+                  category == "MSM male" |
+                    category == "PWD male")
+#attach this mini DF to the DMC1 data
+
+DMC1.mean.obs.L$mean.count.L <- DMC1.mean.obs.L$mean.count
+DMC1.mean.obs.Z$mean.count.Z <- DMC1.mean.obs.Z$mean.count
+
+
+DMC1table <- merge(DMC1.mean.obs.L, DMC1.mean.obs.Z, by="category")
+
+DMC1table.main <- merge(DMC1.target.strains, DMC1table, by="category")
+
+MLH1.DMC1.L_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.L, method = c("pearson"))#MLH1.DMC1.Z_cor
+
+MLH1.DMC1.Z_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.Z, method = c("pearson"))#0.2793237
+
+```
 
 
 > At what stage are DMC1 foci numbers most correlated with MLH1?
 
-Need to pull the strain average table
+The correlation with MLH1 and leptotene cells is `r MLH1.DMC1.L_cor`.
 
-
-Leptotene is the max number of DMC1 so this would have more power to capture the variation in MLH1? Look into what baier et al do. 
+The correlation with MLH1 and zygotene cells is `r MLH1.DMC1.Z_cor`.
