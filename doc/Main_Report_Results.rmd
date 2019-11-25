@@ -11,6 +11,8 @@ output:
 bibliography: refs_Main_Report.bib
 ---
 
+#Setup
+
 ```{r setup, echo=FALSE, include = FALSE}
 library(knitr)
 library(ggplot2)
@@ -22,6 +24,8 @@ library(raster)
 library(lme4)
 library(nlme)
 library(RLRsim)
+library(ggpubr)
+library(reshape2)
 
 setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 #setwd("C:/Users/April/Desktop/MLH1repo")
@@ -47,7 +51,6 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 MLH1_data <- MLH1_data %>%
   arrange(strain, sex, category, mouse) %>%
   mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
-
 MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
 
 # sort your dataframe, by the focal categories
@@ -72,9 +75,11 @@ MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 
 
 
+1. The quality of MLH1 counts for individual mice is / was assessed in the MouseLevelPlots Rmd (can I link this file?). A list, mice.to.exclude was made.
 
+2. The list of excluded mice is applied in the MLH1.setup.data script, to remove these mice from the main dataset/dataframe. This script saves .RData file of the dataset which is loaded into Rmd files for analysis
 
-
+Mouse specific plots of CO count and quality were examined for general quality from single mice. Mice which produced few cells of low quality were excluded to the 'HQ' (high quality) dataset. (The full dataset was used to look at some patterns)
 
 
 ```{r basic.numbers, echo=FALSE, eval=FALSE}
@@ -145,10 +150,9 @@ cor.test(AP_mouse_table.HQ.10plus$mean_co[AP_mouse_table.HQ.10plus$sex == "femal
 
 
 
+# Distributions of MLH1 counts across Samples
 
-
-### Distributions of MLH1 counts
-
+The histograms below are for total / pooled cells (for now, maybe compare with HQ data to see what changes)
 
 ```{r MLH1.histogram.2421, echo=FALSE, fig.caption= "histograms", warning=FALSE, fig.align='center'}
 
@@ -188,13 +192,10 @@ Most histograms of pooled MLH1 counts are all close to normal. Except PWD male, 
 check if there is a quality effect.
 
 
-#  Results
 
-## MLH1 means
+# MLH1 means
 
-figure 1
-mixed models (ummary of mixed model, justificiation for going into post hoc 
-
+figure 1, change to all white, add the subspecies lines below.
 
 ```{r first.boxplots, echo=FALSE, fig.align='center'}
 
@@ -251,51 +252,163 @@ ss
 justMuscu
 ```
 
+#### outgroups
 
-
-
-### Mixed Model for MLH1 counts
-
-
-### Sex Specific Evolution
-
-
+The outgroups (SPIC and SPRET) don't show strong evidence of evolution in gwRR.
 
 #### Male Patterns
 
-rapid evolution in musculus and molossinus; high and low CO count males
-
-
+Rapid evolution in musculus and molossinus; high and low CO count males (two instances of rapid gwRR evo, PWD and MSM)
 
 #### Female Patterns
 
 seems like female specific evolution in molossinus and musculus.
-
-more variation in domesticus females
-
-
-## Within Mouse Variation in MLH1 counts
+more variation in domesticus females.
+Females have more nuanced patterns, there is strain specific differences.
 
 
-#DMC1 estimates
+# DMC1 Results
 
-to localize the evolution in the pathway
+These data are meant to test if CO precursors, double strand breaks (DSBs), are significant predictors for MLH1 count variation. Simply, do mice with more DSBs also have more COs?
 
-  figure
-  ANOVA for L and Z
-  t-tests betwee high and low groups
+ToDo:
+  - attempt to supplement data with more KAZ DMC1 cell observations.
+  - change all the bad variable names
 
-
-```{r DMC1_block1, echo=FALSE}
-#loadt DMC1 csv
-
+```{r DMC1.setup, echo=FALSE}
+#load DMC1 csv
 DMC1.DF <- read.csv("~./DMC1/newJuviQuant.csv", header = TRUE)
 DMC1.DF$fileName <- DMC1.DF$Original.Name
 DMC1.DF <- add_mouse(DMC1.DF)
 DMC1.DF <- add_strain(DMC1.DF)
+DMC1.DF <- add_category(DMC1.DF)
 DMC1.DF <- add_subsp(DMC1.DF)
 DMC1.DF <- DMC1.DF[DMC1.DF$stage != "P",]
 
+#make DMC1 table
+DMC1.mean.obs.L <- ddply(.data=DMC1.DF[DMC1.DF$stage == "L",],
+                 .(category),
+                 summarize, 
+                 mean.count = mean( total.count)
+)
+DMC1.mean.obs.L$stage <- "L"
+
+DMC1.mean.obs.Z <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Z",],
+                 .(category),
+                 summarize, 
+                 mean.count = mean( total.count)
+)
+DMC1.mean.obs.Z$stage <- "Z"
+
+#these tables are merged latter
+
+```
+
+
+Potentially figure 2. Using a function to display the p-vales for mean comparison
+
+```{r DMC1.plot, echo=FALSE, warning=FALSE}
+#think of better color scheme
+#make the jitter col thinner or make the stacked dots.
+#remember that box-plots add outlier dots.
+#change y labels
+
+#experimenting with ggboplot
+everyday <- ggboxplot(DMC1.DF[DMC1.DF$stage != "P",], x = "strain", y = "total.count",
+          color = "stage", palette = "jco",
+          add = "jitter", short.panel.labs = FALSE)
+  #library gpubr has functions to add in sig/test bars.
+
+DMC1.boxplot <- ggplot(aes(x=strain, y=total.count, color=stage), data=DMC1.DF[DMC1.DF$stage != "P",])+
+  geom_boxplot(aes(alpha=.5))+geom_jitter()+ggtitle("DMC1 averages in juvenile mice")
+  DMC1.boxplot
+  #this will add neat bars, but still need to figure out what groups ect it's actually using
+#THE stat_compare function adds a arm thing and pvalue for 
+#  stat_compare_means(comparisons = my_comparisons)
+
+#status - legend, expression y-axis, facet, facet_wrap SYMBOL
+#legend - stage. y=total count, FACet strain
+
+
+#add column to distinguish high vs low rec strains
+DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
+                          ifelse(grepl("G",DMC1.DF$strain), "Low",
+                                 
+              ifelse(grepl("KAZ", DMC1.DF$strain), "Low",
+            ifelse(grepl("PWD", DMC1.DF$strain), "High",
+               ifelse(grepl("MSM", DMC1.DF$strain), "High","")))))
+DMC1.DF$rec_group <- as.factor(DMC1.DF$rec_group)
+
+                   
+# annotation table with adjusted pvals and y-position of the labels
+anno_df = compare_means(total.count ~ rec_group, group.by = "stage", data = DMC1.DF[DMC1.DF$stage != "P",]) %>% mutate(y_pos = 300)
+
+DMC1.bxlt_High.to.Low <- ggplot(DMC1.DF[DMC1.DF$stage != "P",], aes(x=rec_group, y=total.count)) + 
+  geom_boxplot(position=position_dodge()) + 
+  geom_point(aes(color=stage), position=position_jitterdodge()) + 
+  facet_wrap(~stage, nrow=1) + 
+  ggsignif::geom_signif(
+    data=anno_df, 
+    aes(xmin=group1, xmax=group2, annotations=p.adj, y_position=y_pos), 
+    manual=TRUE
+  )+ggtitle("Comparison of DMC1 means across high and low recombing groups")
+#this is kinda the plot I'm enivioning 
+DMC1.bxlt_High.to.Low
+
+#I want a test between 1) high vs low cell stages, 
+#I think a better way to display would be
+#facet by stage, x is the strain
+#compare means across high vs low  (this level isn't defined)
+
+#example from here
+#https://github.com/kassambara/ggpubr/issues/65
+
+
+#https://www.r-bloggers.com/add-p-values-and-significance-levels-to-ggplots/
+
+```
+
+Above figure shows p-values for comparison of means across the cell stages.
+
+Foci of DMC1 were scored from Leptotene and Zygotene spermatocytes of juvenile mice (12-14-18 days). One mouse represents each strain. The main comparison to examine is that between the high (PWD and MSM) and low recombining (WSB, G, KAZ) strains.
+
+ToDo think of ways to add in the compared means for the high and low groups (across cell stage)
+how similar are G-WSB or PWD-MSM to each other?
+
+
+## Testing Normality Assumptions
+
+```{r normality, echo=FALSE, warning=FALSE}
+#histograms for each
+
+#- check that distributions are close to normal
+#- check for equal variance.
+
+DMC1.histogram <- ggplot(DMC1.DF, aes(total.count, fill = stage)) + geom_histogram(alpha = 0.4)+facet_wrap(~strain)+ ggtitle("DMC1 histogram")
+
+DMC1.histogram
+#checking equal variance, https://www.statmethods.net/stats/anovaAssumptions.html
+#bartlet's test, Levine's test
+```
+
+The counts look close to normal.
+
+
+```{r barlett.test, echo=FALSE}
+
+#bartlett.test(total.count~strain, data=DMC1.DF[DMC1.DF$stage == "L",])#L (don't work with single KAZ L cell)
+bartlett.test(total.count~strain, data=DMC1.DF[DMC1.DF$stage == "Z",])#Z
+
+```
+
+Evidence for non-equal variance across strains for zygotene cells.
+
+Ideas for post-hoc tests, remove strains 1 at a time and test variance. Test variance for L cells without KAz.
+
+
+From ANOVA analysis strain is significant for Leptotene cells but not Zygotene cells. (but take these results with a grain of salt before assumptions are tested.)
+
+```{r DMC1_anova, echo=FALSE, warning=FALSE}
 #1. ANOVA, is there a difference in DMC1 counts across strains?
 mod.L <- lm(total.count ~ strain, data = DMC1.DF[DMC1.DF$stage == "L",])
 mod.Z <- lm(total.count ~ strain, data = DMC1.DF[DMC1.DF$stage == "Z",])
@@ -308,10 +421,7 @@ z.anova
 ```
 
 
-In ANOVA analysis strain is significant for Leptotene cells but not Z cells.
-
-
-```{r DMC1_t.tests, echo=FALSE}
+```{r DMC1_t.tests, echo=FALSE, warning=FALSE}
 #2. t-tests for the DMC1 counts 
 #need to account for sample sizes when comparing t.tests (KAZ and G don't have equal across )
 #best case scnario -- more microscoping to get ~20 cells for each stage by strain combo
@@ -324,36 +434,41 @@ In ANOVA analysis strain is significant for Leptotene cells but not Z cells.
 
 
 #high vs low group (L)
-zola <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+ttest.HighLow.L <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
                DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )
 # p-value =  0.002145
 
 
 #high vs low group (Z)
-jesus <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+ttest.HighLow.Z <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
                DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )
 # p-value = 0.6628
 
 
-
 #dom vs musc (L) (2 subsp vs)
-#cheer <- t.test(DMC1.male.data$total.count[(DMC1.male.data$subsp == "Dom") & (DMC1.male.data$stage == "L")], #DMC1.male.data$total.count[(DMC1.male.data$subsp == "Musc") & (DMC1.male.data$stage == "L")] )
+ttest.subsp.L <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "L")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "L")] )
 # p-value = 0.003016
 
 #dom vs musc (Z)
-#up <- t.test(DMC1.male.data$total.count[(DMC1.male.data$subsp == "Dom") & (DMC1.male.data$stage == "Z")], #DMC1.male.data$total.count[(DMC1.male.data$subsp == "Musc") & (DMC1.male.data$stage == "Z")] )
+ttest.subsp.Z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Z")] )
 #p-value = 0.09588
 
-
 #KAZ vs Dom (Z) (only 1 L cell)
-#dont <- t.test(DMC1.male.data$total.count[(DMC1.male.data$subsp == "Dom") & (DMC1.male.data$stage == "Z")], 
-#      DMC1.male.data$total.count[(DMC1.male.data$strain == "KAZ") & (DMC1.male.data$stage == "Z")] )
+ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], 
+      DMC1.DF$total.count[(DMC1.DF$strain == "KAZ") & (DMC1.DF$stage == "Z")] )
+
 #p-value = 0.004148
 #Kaz Z are higher than Dom
 ```
 
+Divide the Musculus strains into high and low recombining groups to characterize the difference in distributions. The p-values from the t.tests of the high vs low groups, indicate that the high recombining are significantly higher for the L cells (p value = `r ttest.HighLow.L$p.value`) while the Z cells, there is not a significant difference across the high and low groups (value = `r ttest.HighLow.Z$p.value`).
 
-The p values from the t.tests of the high vs low groups, indecate that the high recombining are significantly higher for the L cells (pvalue = `r zola$p.value`) while the Z cells, there is not a significant difference across the high and low groups (pvalue = `r jesus$p.value`).
+
+## Permutations with equal sampling
+
+The number of observations are not quite equal across strains and cell stages, so I ran permutations sampling 25 cells from the high and low recombining groups of cells. Below are the distributions of p values for permuted t-tests from sampling 25 cells from the pooled high and low recombining groups. Permutations were done for both cell stages. The actual p value is in red. 
+
+The observed p value does not fall outside of the permuted distribution with assumes equal cell sampling.
 
 ```{r DMC1.subsampling, echo=FALSE}
 
@@ -375,25 +490,43 @@ Low.Z.pool <- DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain 
 #permut.SC.cv.diff  <- as.data.frame(
 #sample(THE.DF, SAMPLE.SIZE, REPLACE?)
 
-carry.on <-   replicate(10, 
- sample(High.L.pool, 25, replace = FALSE) )#this makes 10x9 DF from the samples
- 
+#permuting samples -- and re-licating t-tests
 
-bunchOpvals.L <- replicate(10, 
+#nrep <- 1000
+
+#permuting samples to replicate the t.test across cell stages from high and low with equal sample sizes.
+bunchOpvals.L <- replicate(1000, 
     # t.test
     t.test( sample(High.L.pool, 25, replace = FALSE),
             sample(Low.L.pool, 25, replace = FALSE), var.equal = FALSE )$p.value
           )
+bunchOpvals.L <- as.data.frame(bunchOpvals.L)
+bunchOpvals.L$stage <- "L"
 
-bunchOpvals.Z <- replicate(10, 
+bunchOpvals.Z <- replicate(1000, 
     # t.test
     t.test( sample(High.Z.pool, 25, replace = FALSE),
             sample(Low.Z.pool, 25, replace = FALSE), var.equal = FALSE)$p.value
           )
 
-colnames(permut.SC.cv.diff) <- "permuted.diff"
+bunchOpvals.Z <- as.data.frame(bunchOpvals.Z)
+bunchOpvals.Z$stage <- "Z"
+
+#could merge the lists of p-values
+replicated.Ttests <- cbind(bunchOpvals.L, bunchOpvals.Z)
+#have to melt, the rbinded dataframe to get the cols 'stage' and 'pvale'
+
 
 #ASSUMPTIONS; normality, equal variance
+
+#plot the lists of pvals in histogram? compare to the observed pvalue to get a sense as of how much sample size shifts the pvalues.
+
+plot.pvals.L <- ggplot(bunchOpvals.L, aes(bunchOpvals.L) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Leptotene")+geom_vline(xintercept=ttest.HighLow.L$p.value, linetype="dotted", color="red")
+
+
+plot.pvals.Z <- ggplot(bunchOpvals.Z, aes(bunchOpvals.Z) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Zygotene")+geom_vline(xintercept=ttest.HighLow.Z$p.value, linetype="dotted", color="red")
+plot.pvals.L
+plot.pvals.Z
 
 
 #The t.test( ) function produces a variety of t-tests. Unlike most statistical packages, the default assumes #unequal variance and applies the Welsh df modification.
@@ -403,51 +536,62 @@ colnames(permut.SC.cv.diff) <- "permuted.diff"
 
 
 
-```{r DMC1.plot, echo=FALSE}
-#think of better color scheme
-#make the jitter col thinner or make the stacked dots.
-#remember that box-plots add outlier dots.
-#change y labels
+```{r DMC1_MLH1.cor, echo=FALSE}
+#make category averages from AP_mouse_table.HQ
+mean.MLH1.obs <- ddply(.data=AP_mouse_table.HQ,
+                 .(category),
+                 summarize, 
+                 mean.MLH1 = mean(mean_co),
+                 var.MLH1 = var(mean_co)
+)
 
-library(ggpubr)
-#https://www.r-bloggers.com/add-p-values-and-significance-levels-to-ggplots/
+DMC1.target.strains <- subset(mean.MLH1.obs, category == "G male" |
+                   category == "WSB male" |
+                     category == "KAZ male" |
+                  category == "MSM male" |
+                    category == "PWD male")
+#attach this mini DF to the DMC1 data
 
-DMC1.DF$strain<- factor(DMC1.DF$strain, levels =c("G","WSB","KAZ",
-              "PWD","MSM"), order=T )
-#order the data frame
-DMC1.DF <- with(DMC1.DF, DMC1.DF[order(strain),])
+DMC1.mean.obs.L$mean.count.L <- DMC1.mean.obs.L$mean.count
+DMC1.mean.obs.Z$mean.count.Z <- DMC1.mean.obs.Z$mean.count
 
-#for the test bars
-my_comparisons <- list( c("KAZ", "MSM"))#no idea how to adjust
 
-#experimenting with ggboplot
-everyday <- ggboxplot(DMC1.DF[DMC1.DF$stage != "P",], x = "strain", y = "total.count",
-          color = "stage", palette = "jco",
-          add = "jitter", short.panel.labs = FALSE)
-  #library gpubr has functions to add in sig/test bars.
+DMC1table <- merge(DMC1.mean.obs.L, DMC1.mean.obs.Z, by="category")
 
-DMC1.boxplot <- ggplot(aes(x=strain, y=total.count, color=stage), data=DMC1.DF[DMC1.DF$stage != "P",])+
-  geom_boxplot(aes(alpha=.5))+geom_jitter()+ggtitle("DMC1 averages in juvenile mice")+
-  
-  #this will add neat bars, but still need to figure out what groups ect it's actually using
-  stat_compare_means(comparisons = my_comparisons)
+DMC1table.main <- merge(DMC1.target.strains, DMC1table, by="category")
 
-#  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-#        panel.background = element_blank(), axis.line = element_line(colour = "black"))
+MLH1.DMC1.L_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.L, method = c("pearson"))#MLH1.DMC1.Z_cor
 
-DMC1.boxplot
+MLH1.DMC1.Z_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.Z, method = c("pearson"))#0.2793237
+
 ```
 
 
-> At what stage are DMC1 foci nnumbers most correlated with MLH1?
+> At what stage are DMC1 foci numbers most correlated with MLH1?
 
-Leptotene is the max number of DMC1 -- so this would have more power to capture the variation in MLH1? Look into what baier et al do. 
+The correlation with MLH1 and leptotene cells is `r MLH1.DMC1.L_cor`.
+
+The correlation with MLH1 and zygotene cells is `r MLH1.DMC1.Z_cor`.
 
 
-## Heterochiasmy
 
-- Xy xx  (female vs male adjustment)
--	Chrm proportions (
+
+# Note on Heterochiasmy Definition
+
+I present heterochiasmy as a comparison of oocyte to spermatocyte MLH1 counts, but the sex chromosomes/bivalents complicate this comparison.
+In females the XX bivalent is indistinguishable from the autosomes. To the meiotic recombination machinery, it is an autosome and has a similar REC landscape. 
+
+Whereas in spermatocytes the XY bivalent is visually distinct and any MLH1 where not included in the count). (I note if the and Y are paired, which they are at a high rate). The XY pair triggers a response to un-paired chromosomes and only has MLH1 foci within the PAR (the the tips of X and Y). 
+
+
+To make a more equivalent comparison I will estimate which bivalent is the XX in oocytes, and subtract that average REC from the category average of each strain.
+
+1. Compile full-cell data from females (all 20 bivalents measured)
+2. Look at the SC length -ranked data, extract the 3rd longest estimate average REC for this bivalent, 
+3. check how variable the REC is across the 1st,2nd,4th, and 5th are.
+
+
+According to mouse genome website, the X is the 3rd largest chromosome by total amount of DNA (Mb).
 
 
 
@@ -790,7 +934,6 @@ MOLF.HETC.val <- MOLF.mean.MLH1.obs$mean.MLH1[1] / MOLF.mean.MLH1.obs$mean.MLH1[
 
 
 
-
 ```{r HetC.plot, echo=FALSE, warning=FALSE}
 #HETC plot
 
@@ -850,12 +993,12 @@ There is now MOLF, which has female biased hetC
 
 
 
-#### Distributions by mouse
-
-
-There are code chunks that make a big dfs of CO count by quality score plot. The code has been commented out, and moved to it's own doc.
-
 ```{r mouse.specific.Qplot, echo=FALSE, message=FALSE, results='hide', warning=TRUE, include=FALSE, eval=FALSE}
+#### Distributions by mouse
+#There are code chunks that make a big dfs of CO count by quality score plot. The #code has been commented out, and moved to it's own doc.
+
+#remove this block since it has it's own src/script
+
 ### to integrate 'pass'/fail
 ### this should be in setup data
 
@@ -965,17 +1108,22 @@ The mouse specific scatter plots aren't show here because there are too bulky. T
 Making all of these scatter plots, allows us to look at the whole distributions of the data for each mouse. The distance of the red line from the black could be a indicator of slides or mice with slide specific technical noise.
 
 
+# Proportion of chrm classes
+
+These results are meant to compare the proportions of bivalents with 0,1,2 or 3 chromosomes.
+Most of the variation in gwRR across strains in is due to more 2COs at the 'expense' / trade off of 1COs. (the gwRR for most mice is low/close to the minimum)
 
 
-### Proportion of chrm classes
+This is also another way to score heterochiasmy (that gets around the sex chrms, i think)
 
-generate smaller data set of chrm proportions (0CO, 1CO,2CO ect)
+The data below are from hand measured cells (not from bivalent data)
+generate smaller data set of chrm proportions (0CO, 1CO,2CO etc)
 10 cells from each musc category. **Add Molf male**
 
+ToDo -- add more hand curated data for the bivalent proportions
 
 
 ```{r chrm_prop_data, echo=FALSE}
-
 chrm.class.DF = read.csv("~./MLH1repo/data/ChrmClassProportions.csv", header = TRUE)
 
 chrm.class.DF$fileName <- (chrm.class.DF$Original.Name)
@@ -1039,10 +1187,9 @@ oopp <-  lm( mean.MLH1.foci ~ per0CO+ per1CO +per2CO +per3CO, data = proportion_
 #2CO proportion is the most significant, 1CO is second most significat, 3CO doesn't have enough power - total bivalents is also significant, there might be a bias
 
 #MSM needs more bialent observations
-
 #use melt to put all propotions 
-
 #display / visualize / compare proportions
+#the table needs to be melted, because it's split by category
 
 melt.table = read.csv("~./MLH1repo/data/ChrmClassProportions_melt.csv", header = TRUE)
 melt.table$fileName <- (melt.table$Original.Name)
@@ -1057,7 +1204,7 @@ melt.table$strain<- factor(melt.table$strain,levels =c("LEW",
 
 melt.table <- with(melt.table, melt.table[order(strain),])
 
-other_thing <- ggplot(data = melt.table, aes(y = value, x = strain, fill=as.factor(type)) ) + geom_col(position = "dodge")+facet_grid(sex~subsp)
+other_thing <- ggplot(data = melt.table, aes(y = value, x = strain, fill=as.factor(type)) ) + geom_col(position = "dodge")+facet_grid(sex~subsp, scales = "free")+ggtitle("Chrm Proportions from Hand Measured")+ylim(c(0,1))
 
 other_thing
 
@@ -1074,18 +1221,104 @@ chrm.class.DF$perBiv4<-chrm.class.DF$n4CO/chrm.class.DF$biv.sum.check
 High musc males have half 1CO and 2CO bivalents.
 For following up on the biv stuff, find ways to compare the 1CO to 2COs in Dom and Musc. (sis-coten, length, distance from centromere).
 
+```{r chrm.pro.Curated.BivData, echo=FALSE}
+
+#bivalent data might be too big..
+load(file="~./MLH1repo/data/CleanBivData.RData")
+#Curates_BivData -- hand.foci.count!
+
+#For each mouse I need to count up
+#the number of bivalent classes are not counted up
+
+chrm.propotion.category <- ddply(.data=Curated_BivData, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(fileName)),
+                 nmice = length(unique(mouse)),
+                  tot_biv  = length(Obj.ID),
+
+                 n0CO = length(which(hand.foci.count == 0)),
+                  n1CO = length(which(hand.foci.count == 1)),
+                  n2CO = length(which(hand.foci.count == 2)),
+                  n3CO = length(which(hand.foci.count == 3)),
+                  #n4CO = sum(n4CO),
+                 
+                 per0CO = sum(n0CO) / tot_biv,                 
+                 per1CO= sum(n1CO)/ tot_biv,
+                 per2CO= sum(n2CO)/ tot_biv,
+                 per3CO= sum(n3CO)/ tot_biv )
+                # per4CO= sum(n4CO)/ tot_biv  )
+
+
+
+Chrm.proportions_Biv.Data <- melt(chrm.propotion.category, c(
+  "per0CO", "per1CO", "per2CO", "per3CO"), 
+  id=c("category", "tot_biv") )
+colnames(Chrm.proportions_Biv.Data) <- c("category","total_biv","Chrm.Type","value") 
+
+# I think I need to make 2 melt tables -- for count and proportions
+Chrm.numbers_Biv.Data <- melt(chrm.propotion.category, c("n0CO", "n1CO", "n2CO", "n3CO" ), 
+  id=c("category", "tot_biv") )
+colnames(Chrm.numbers_Biv.Data) <- c("category","total_biv", "Chrm.Type", "biv_count") 
+
+Chrm.prop_Biv.Data <- cbind(Chrm.proportions_Biv.Data, Chrm.numbers_Biv.Data[,4])
+colnames(Chrm.prop_Biv.Data) <- c("category","total_biv", "Chrm.Type","value", "biv_count") 
+
+Chrm.prop_Biv.Data <-Chrm.prop_Biv.Data[(!is.na(Chrm.prop_Biv.Data$value)),]
+
+Chrm.prop_Biv.Data$sex <- ifelse(grepl("female", Chrm.prop_Biv.Data$category), "female", ifelse(grepl("male", Chrm.prop_Biv.Data$category), "male", "" ))
+
+Chrm.prop_Biv.Data$strain <- ifelse(grepl("WSB", Chrm.prop_Biv.Data$category), "WSB", ifelse(grepl("G", Chrm.prop_Biv.Data$category), "G",
+ifelse(grepl("LEW", Chrm.prop_Biv.Data$category), "LEW",                                                                                                           
+      ifelse(grepl("KAZ", Chrm.prop_Biv.Data$category), "KAZ",           
+        ifelse(grepl("CZECH", Chrm.prop_Biv.Data$category), "CZECH", 
+        ifelse(grepl("SKIVE", Chrm.prop_Biv.Data$category), "SKIVE",
+        ifelse(grepl("PWD", Chrm.prop_Biv.Data$category), "PWD",  
+        ifelse(grepl("MSM", Chrm.prop_Biv.Data$category), "MSM", "" ))))))))
+
+Chrm.prop_Biv.Data$strain<- factor(Chrm.prop_Biv.Data$strain,levels =c("WSB","G","LEW",
+                       "KAZ","CZECH", "SKIVE","PWD","MSM"), order=T )
+#no mol yet
+
+Chrm.prop_Biv.Data <- with(Chrm.prop_Biv.Data, Chrm.prop_Biv.Data[order(strain),])
+
+#need to make list of positions
+
+chrm_prop.BivData_plot <- ggplot(data = Chrm.prop_Biv.Data, aes(y = value, x = strain, fill=as.factor(Chrm.Type)) ) + geom_col(position = "dodge")+ggtitle("Chrm Proportions from BivData")+ facet_wrap(~sex, scales = "free", ncol = 1 )+ylim(c(0,1)) + labs(x="", y='Proportions') +   geom_text(aes(label = biv_count), position = position_dodge(0.99))
+  
+chrm_prop.BivData_plot
+
+```
+
+number above bars are the raw counts for bivalent classes.
+
+Potential figure 2 (eventually). Try to make the figure taller.
+-- add more data to make sample sizes more equal.
+-- add space to indicate where female data is missing
+
+SKIVE male has lower proportion of 2CO compared to the hand measured, but it still looks like it's more than other strains.
+What's up with Lew females? there's lots of 2COs, also WSB female.
+
+This type of plot is another way to score heterochiasmy that gets around the sex chromosomes, because the data come from samples of bivalents and not averages of cells. If these data are random samples of bivalents, the X 
+
+
+ToDo: chisq tests for difference in proportions, 
+- within strain across sex,
+- males, across high and low groups
+- look at mouse level proportions
+
 
 # Mixed Models
 
-todo: make model with strain as fixed effect (since, there are interesting strain effects)
+todo: re-run the analysis with MOLF data
+make model with strain as fixed effect (since, there are interesting strain effects)
 
-The mixed model lets us sperate effects to see how they effect a mouse mean CO count. This seperation can also serve as proxies for divergence and polymorphism.
+The mixed model lets us separate effects to see how they effect a mouse mean CO count. This separation can also serve as proxies for divergence and polymorphism.
 
 Initial results indicate that male MLH1 counts have less variance within subspecies but more between subspecies compared to female data.
 
 
 ```{r mixed.models.setup, echo=FALSE}
-
 #make are the DFs for the models
 # seperate the data, both sexes, only Mus
 # decide on Musc - Molossinus
@@ -1098,9 +1331,9 @@ AP_mouse_table_w.Ages <- add_species(AP_mouse_table_w.Ages)
 DF.HetC.MixedModel <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$species == "M.musculus",]
 
 DF.HetC.MixedModel <- subset(DF.HetC.MixedModel, select= -c(sex.x, sex.y,
-                                                            subsp.y,subsp.x,
-                                                            category.y, category.x,
-                                                            strain.x,strain.y, mouse.1  )  )
+                            subsp.y,subsp.x,
+                    category.y, category.x,
+                        strain.x,strain.y, mouse.1  )  )
 
 #make dummy MOLF data, average of Musc females?
 #no MOLF male data?
@@ -1116,7 +1349,7 @@ female.musc.mice.table <- ddply(female.musc.cells, c("sex"), summarise,
                         sd   = round(sd(adj_nMLH1.foci), 3),
                         se   = round(sd / sqrt(Ncells), 3)
                         #quality?
-)#just 1 entry
+)
 
 female.musc.mice.table$mouse <- "1jan20_MOLF_f99"
 female.musc.mice.table$DOB <- as.Date("1/1/2020")
@@ -1168,23 +1401,19 @@ DF.HetC.MixedModel.HQ.mol$subsp <- ifelse(grepl(1, DF.HetC.MixedModel.HQ.mol$sub
         ifelse(grepl(2, DF.HetC.MixedModel.HQ.mol$subsp), "Musc", DF.HetC.MixedModel.HQ.mol$subsp))
 
 DF.HetC.MixedModel.HQ.mol <- DF.HetC.MixedModel.HQ.mol[!(is.na(DF.HetC.MixedModel.HQ.mol$mouse) | DF.HetC.MixedModel.HQ.mol$mouse==""), ]
-
-
-#sub-sample (need to think about this one)
-
 ```
 
-
+what are the table above this?
 
 For mouse averages of MLH1 counts, only strain with observations for both sexes and are from Mus species. (maybe I'll look at Species level with spicilegus...?)
 
-subspecies levels: 2, Musc and Domesticus (maybe Molossinus soon)
+subspecies levels: 2, Musc and Domesticus
 strain levels: Dom: 3, Musc: 4
 sex: 2 female male
 
 `r kable(table(DF.HetC.MixedModel$sex, DF.HetC.MixedModel$strain))`
 
-> Mouse average Models
+
 
 List of mixed models with mean_co
 
@@ -1204,7 +1433,7 @@ DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel[DF.HetC.MixedModel$Ncells > 9,]
 DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[!(is.na(DF.HetC.MixedModel.HQ$mouse) | DF.HetC.MixedModel.HQ$mouse==""), ]
 
 #these remove ALL male MSM!
-table(DF.HetC.MixedModel.HQ$strain, DF.HetC.MixedModel.HQ$sex)
+#table(DF.HetC.MixedModel.HQ$strain, DF.HetC.MixedModel.HQ$sex)
 
 #mean.co.HQ
 HetC.MixedModel.HQ <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel.HQ, random=list(strain=pdDiag(~sex) ) )
@@ -1258,11 +1487,10 @@ strain2noRandom <- anova(Reduced.strain.HQ, Reduced.all.HQ)#NS
 ```
 
 
-Moatly matches the base model results. the same fixed effects are significant in the reduced models. the random effects make sense
+Reading these outputs is not the clearest -- try just printing out the coefficient table with p values.
 
+Mostly matches the base model results. the same fixed effects are significant in the reduced models. the random effects make sense
 
-
-Peromyscus did everything as factors... (but unordered)
 
 random effects were tested with 
  #rand LRT
@@ -1270,16 +1498,16 @@ this function might not support MM, (and needs linear models instead)
 
 also throws an error about only looking at 1 random effect
 
-Species.COcount.mixed <- lmer(nMLH1.foci ~ species + quality + (1|mouse), data=MLH1.hq.lab, REML = TRUE)
-Species.COcount.mixed.sum <- summary(Species.COcount.mixed)
-SpeciesCOcount.fix.est <- drop1(Species.COcount.mixed, test="Chisq") 
-SpeciesCOcount.Rand.est <- exactRLRT(Species.COcount.mixed)
 
 (what does the significant random test mean) -- variance is not 0?
 
 
 ```{r variance.boxplots, echo=FALSE, eval=FALSE}
 #how did I make this 
+#Species.COcount.mixed <- lmer(nMLH1.foci ~ species + quality + (1|mouse), data=MLH1.hq.lab, REML = TRUE)
+#Species.COcount.mixed.sum <- summary(Species.COcount.mixed)
+#SpeciesCOcount.fix.est <- drop1(Species.COcount.mixed, test="Chisq") 
+#SpeciesCOcount.Rand.est <- exactRLRT(Species.COcount.mixed)
 
 
 #plot of variance
@@ -1372,7 +1600,7 @@ lmer.MM <- lmer(mean_co ~ subsp * sex + (1|strain), data=DF.HetC.MixedModel, REM
 
 
 Full model, so significant fixed effects. (For the full model, The proportions of the random effects make sense looking at the average CO data
-Models with random effects more significant than nulls (both just strain and no radom effects). The models with fewer random effects, the fixed effects, sex and sex*subspec (interaction) become significant.
+Models with random effects more significant than nulls (both just strain and no random effects). The models with fewer random effects, the fixed effects, sex and sex*subspec (interaction) become significant.
 
 ```{r Base.strain.fixed, echo=FALSE}
 
@@ -1455,12 +1683,13 @@ anova(HetC.MixedModel.mean_co, HetC.MixedModel.mol)
 ```
 
 
-Issue presented with is that we can see evolution across the strains, but it isn't predicted from mixed modles by strain.
-make articifial data / models, like human labels
+Issue presented with is that we can see evolution across the strains, but it isn't predicted from mixed models by strain.
+make artificial data / models, like human labels
+
+
 
 
 ## Mixed Model for the variance
-
 
 
 ```{r HQ.var, echo=FALSE}
@@ -1576,7 +1805,7 @@ DF.HetC.MixedModel.pooled <- droplevels(DF.HetC.MixedModel.pooled)
 
 
 
-- The MSM strain effec is 0, but the sex*strain for molossinus is 7 (this seems very high). This means there is 0 variance added to mean_CO to mean due to being MSM. Does this mean the model is very good at predicting MSM mean_CO. The fixed strain - sex effects are for musc are large. 
+- The MSM strain effect is 0, but the sex*strain for molossinus is 7 (this seems very high). This means there is 0 variance added to mean_CO to mean due to being MSM. Does this mean the model is very good at predicting MSM mean_CO. The fixed strain - sex effects are for musc are large. 
 This will likely change with MOLF (male molf are low, so smaller fixed effect and )
 
 - I think adding Mol, moves the highest strain into it's own category, so the coefficient is large.
@@ -1589,7 +1818,7 @@ changed all to unordered factors.
 all the variables are coded as ordered factors.
 When the variables are kept factors, and unordered the names appear! yay!
 
-Character assigned variables.  The values are now quite different. Male, sex coefficient is negative. The fixed sex coefficient is the sex effect independant of subspecies or strain.
+Character assigned variables.  The values are now quite different. Male, sex coefficient is negative. The fixed sex coefficient is the sex effect independent of subspecies or strain.
 
 
 
