@@ -44,6 +44,9 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 ```
 
 
+Terminology Note, leptonema, zygonema, and pachynema diplonema diakinesis, are the stage names.
+-ene endings refer to the cells/units within the cell stage? (I think)
+
 
 ```{r organizing.data, echo=FALSE }
 #set the order of another column, based on another variable. consistant order for ploting
@@ -70,6 +73,28 @@ MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 #  mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
 
 #MLH1_data <- with(MLH1_data, MLH1_data[order(category),])
+AP_mouse_table.HQ$var <- as.numeric(AP_mouse_table.HQ$var)
+
+AP_category_table <-  ddply(.data=AP_mouse_table.HQ,
+                 .(strain,sex),
+                 summarize,
+                 sum.ncells = sum(Ncells),
+                 mean.MLH1 = mean(mean_co),
+                 var.MLH1 = var(mean_co),
+                 AV.var_MLH1 = mean(var, na.rm=TRUE)
+                                  
+)
+
+write.table(AP_category_table, "~./MLH1repo/strain_table_variances.csv", sep=",", row.names = FALSE)
+
+AP_mouse_table.HQ_target <- AP_mouse_table.HQ[!(is.na(AP_mouse_table.HQ$sex) | AP_mouse_table.HQ$sex==""), ]
+
+remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC")
+AP_mouse_table.HQ_target <- AP_mouse_table.HQ_target[ ! AP_mouse_table.HQ_target$strain %in% remove_strains, ]
+
+  
+var.plot <- ggplot(AP_mouse_table.HQ_target, aes(y=var, x = sex, color=sex))+geom_jitter()+facet_wrap(~strain)+ggtitle("Plots of mouse Variances for MLH1 counts")+
+  scale_color_manual(values=c("royalblue", "limegreen"))+theme_bw()
 
 ```
 
