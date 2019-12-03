@@ -68,15 +68,24 @@ fullBivData <- fullBivData[!(fullBivData$fileName %in% MultiCells), ]
 
 
 #mice with good stains
-good_stain_mice = c("20dec16_LEW_m1", "20dec16_LEW_m2", "20dec16_LEW_m3", "8may17_LEW_m1","8may17_LEW_m2",
-         "13nov16_LEWES_m1","13jan17_LEW_m1","13nov16_MSM_f1","13nov16_MSM_f2","14jul17_SPRET_f3",
-         "13nov16_MSM_m1","13nov16_MSM_m2","30may17_MSM_m1","30sep16_MSM_f2",  "30may17_SPRET_m1",  "22jun15_G_m2",
-         "30dec14_WSB_m2","17mar16_G_f4","17mar16_G_f5","4jan17_LEW_f1","4jan17_LEW_f3","4jan17_LEW_f6",
-         "4jan17_LEW_f7","4jan17_LEW_m1", "3jan16_G_m2")
+#good_stain_mice = c("20dec16_LEW_m1", "20dec16_LEW_m2", "20dec16_LEW_m3", "8may17_LEW_m1","8may17_LEW_m2",
+#         "13nov16_LEWES_m1","13jan17_LEW_m1","13nov16_MSM_f1","13nov16_MSM_f2","14jul17_SPRET_f3",
+#         "13nov16_MSM_m1","13nov16_MSM_m2","30may17_MSM_m1","30sep16_MSM_f2",  "30may17_SPRET_m1",  "22jun15_G_m2",
+#         "30dec14_WSB_m2","17mar16_G_f4","17mar16_G_f5","4jan17_LEW_f1","4jan17_LEW_f3","4jan17_LEW_f6",
+#         "4jan17_LEW_f7","4jan17_LEW_m1", "3jan16_G_m2")
 
-bad_stain_mice = c("13jan17_LEW_f3","12jun15_WSB_m1","12sep16_MSM_f3","14jul17_SPRET_f2","13jan17_LEW_f2",
-        "30may17_SPRET_f1","30dec14_WSB_m4","31jul17_HMI_m1","30dec14_WSB_m5","16jun15_WSB_f4","30dec14_WSB_m1",
-        "30dec16_MSM_m1","14jul17_LEW_f1","1mar17_CAST_f1")
+exclude_mice_list = c("18nov17_WSB_f1", "8oct14_WSB_f1", "8oct14_WSB_f3",
+                      "10mar15_WSB_m2",
+                      "8jun15_G_f3", "8jun15_G_f4",
+                      "4jan17_LEW_f2",
+                      "1apr15_PWD_f2", "8oct14_PWD_f5", "8oct14_PWD_f3", 
+                      "12sep16_MSM_f3",
+                      "27oct18_MOLF_m3",
+                      "26oct18_SKIVE_f1","26oct18_SKIVE_f2","26oct18_SKIVE_f3",
+                      "27aug18_CZECH_m1", "8jun18_CZECH_m1",
+                      "3sep18_AST_m1","3sep18_TOM_m1","31jul17_HMI_m1",
+                      "21aug17_SPI_f1", "30may18_SPIC_f1","8jun18_SPIC_m2")
+
 
 
 bad_stain_mice_len <- length(BivData[BivData$mouse %in% bad_stain_mice, ])

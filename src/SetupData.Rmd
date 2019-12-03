@@ -26,10 +26,8 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 
-# First Steps
 
-
-```{r MLH1.DF.setup, warning=FALSE}
+```{r MLH1.DF.setup, warning=FALSE, echo=FALSE}
 
 #todo :
 #set the order to batches
@@ -59,6 +57,11 @@ original_DF_duplicates$unique.key <-  paste(original_DF_duplicates$fileName, ori
 #remove duplicates from original as well
 original_DF <- original_DF %>% distinct(Original.Name, .keep_all = TRUE)#5216 to 4983
 
+```
+
+
+
+```{r clean_MLH1_data, echo=FALSE}
 #Clean up main DF, MLH1_data
 #remove duplicated data from MLH1 -- remove 1 or the two rows
 #https://www.datanovia.com/en/lessons/identify-and-remove-duplicate-data-in-r/
@@ -92,12 +95,38 @@ MLH1_data <- add_sex(MLH1_data)
 MLH1_data <- add_subsp(MLH1_data)
 #add species
 MLH1_data <- add_species(MLH1_data)
+```
 
+
+```{r exclude.mice, echo=FALSE}
+#remove mice 
+exclude_mice_list = c("18nov17_WSB_f1", "8oct14_WSB_f1", "8oct14_WSB_f3",
+                      "10mar15_WSB_m2",
+                      "8jun15_G_f3", "8jun15_G_f4",
+                      "4jan17_LEW_f2",
+                      "1apr15_PWD_f2", "8oct14_PWD_f5", "8oct14_PWD_f3", 
+                      "12sep16_MSM_f3",
+                      "27oct18_MOLF_m3",
+                   "26oct18_SKIVE_f1","26oct18_SKIVE_f2","26oct18_SKIVE_f3",
+                      "27aug18_CZECH_m1", "8jun18_CZECH_m1",
+                      "3sep18_AST_m1","3sep18_TOM_m1","31jul17_HMI_m1",
+                      "21aug17_SPI_f1", "30may18_SPIC_f1","8jun18_SPIC_m2")
+
+
+MLH1_data <- MLH1_data[ ! MLH1_data$mouse %in% exclude_mice_list, ]
+
+```
+
+
+```{r adj_nMLH1, echo=FALSE}
 
 #add a column with male adjusted MLH1 values (+1 to all males)
 MLH1_data$adj_nMLH1.foci <- ifelse(MLH1_data$sex=="male", MLH1_data$nMLH1.foci+1, MLH1_data$nMLH1.foci)
 MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
+```
 
+
+```{r reorder.DF, echo=FALSE}
 #reorder dataframe
 MLH1_data <- MLH1_data %>%
   arrange(strain, sex, mouse) %>%
@@ -108,14 +137,7 @@ MLH1_data <- MLH1_data %>%
 ```
 
 
-
- Settting up main data file with explanation and examination of data.  Make the raw original DF and main working DF with bad cells exlcuede.  (inline code add the numbers)
-
-There are `r length(original_DF_duplicates$fileName)` duplicated file names. These data will be used to quantify repeatability, and remove from the final DFs.
-Using the distinct() function for the MLH1_data, the first duplicated filename is kept and the second removed.
-
-
-```{r kable.table}
+```{r kable.table, echo=FALSE}
 #table comparing number of images in quantification batches
 #ToDo:  correct the case of all batches, better names
 #set an order to batches?
@@ -126,21 +148,31 @@ final_batches <- as.data.frame(table(MLH1_data$Batch) ) #these look bad
 colnames(final_batches) <- c("BatchNum", "main")
 
 batch.stats <- merge(original_batches,final_batches, by="BatchNum")## mm is the table of batch stats
+
 ```
 
 
 The original dataset contains the quantification batches 
 
-`r kable(final_batches, caption = "This is the table caption") ) %>% kable_styling()`
+`r kable(final_batches, caption = "Number of Images across all the anonimized Batches") %>% kable_styling()`
 
+
+# Quality Cleaning steps
+
+
+Settting up main data file with explanation and examination of data.  Make the raw original DF and main working DF with bad cells exlcuede.  (inline code add the numbers)
+
+There are `r length(original_DF_duplicates$fileName)` duplicated file names. These data will be used to quantify repeatability, and remove from the final DFs.
+Using the distinct() function for the MLH1_data, the first duplicated filename is kept and the second removed.
+
+
+Take out mice from the exclude list based on the output from Mouse level quality plots.
 
 # Mouse Data
 
+Make mouse level tables
 
-```{r mouse.table, echo=FALSE}
-#source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
-
-
+```{r mouse.table, echo=FALSE, warning=FALSE}
 
 #Make a mouse level table
 AP_mouse_table.HQ <- ddply(MLH1_data[MLH1_data$quality < 5,], c("mouse"), summarise,
@@ -189,7 +221,8 @@ AP_mouse_table_w.Ages <- merge(AP_mouse_table.HQ, meta.data, by.y = "mouse", by.
 ## Number of mice per category
 
 
-X number of mice are in the main DF (discribe the results for missing mice)
+ number of mice are in the main DF (discribe the results for missing mice)
+
 
 
 ## Mouse Ages
@@ -198,7 +231,8 @@ Testes were collected from mice at various ages. For some poor breeding mice, I 
 
 Is there a detectable age effect?
 
-```{r Age.Hists, echo=FALSE, warning=FALSE}
+```{r Age.Hists, echo=FALSE, warning=FALSE, eval=FALSE}
+#age.weeks col is missing
 
 male_mouse_table_w.Ages <- AP_mouse_table.HQ[(AP_mouse_table.HQ$sex == "male") &(mouse.table_w.Ages$category != "other"),]
 
@@ -238,6 +272,7 @@ colors_of_strains <- c('WSB'= "#56B4E9",'G' ='cadetblue','LEW'= 'lightblue','PER
 ```
 
 
+
 # Saving Data file
 
 
@@ -250,7 +285,7 @@ work on cleaning up all other df with bad names
 
 ```{r save.RData, echo=FALSE}
 
-save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_11.12.19.RData")
+save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_12.3.19.RData")
 
 #  OutPut: big large MLH1_data (AP's) df, big DF of BD with just the mice I want.
 #  MLH1_data_table, means and variance of AP and BD MLH1 values. made from seperate tables from AP and BD data.
