@@ -151,22 +151,23 @@ batch.stats <- merge(original_batches,final_batches, by="BatchNum")## mm is the 
 
 ```
 
-
-The original dataset contains the quantification batches 
+All images were manually quantified after the file name was anonimized. The original (full) dataset contains the quantification batches with the following number of images. Each batch csv file was merged into Anon.csv by hand.
 
 `r kable(final_batches, caption = "Number of Images across all the anonimized Batches") %>% kable_styling()`
 
 
 # Quality Cleaning steps
 
-
-Settting up main data file with explanation and examination of data.  Make the raw original DF and main working DF with bad cells exlcuede.  (inline code add the numbers)
-
-There are `r length(original_DF_duplicates$fileName)` duplicated file names. These data will be used to quantify repeatability, and remove from the final DFs.
-Using the distinct() function for the MLH1_data, the first duplicated filename is kept and the second removed.
-
+The original dataset was cleaned up in the following ways before analysis. Settting up main data file with explanation and examination of data. Make the raw original DF and main working DF with bad cells exlcuede. The original dataset had `r length(original_DF_duplicates$fileName)` duplicated file names. These were removed and can be used to quantify repeatability or repair. Using the distinct() function for the MLH1_data, the first duplicated filename is kept and the second removed.
 
 Take out mice from the exclude list based on the output from Mouse level quality plots.
+
+1. The quality of MLH1 counts for individual mice is / was assessed in the MouseLevelPlots Rmd (can I link this file?). A list, mice.to.exclude was made.
+
+2. The list of excluded mice is applied in the MLH1.setup.data script, to remove these mice from the main dataset/dataframe. This script saves .RData file of the dataset which is loaded into Rmd files for analysis
+
+Mouse specific plots of CO count and quality were examined for general quality from single mice. Mice which produced few cells of low quality were excluded to the 'HQ' (high quality) dataset. (The full dataset was used to look at some patterns)
+
 
 # Mouse Data
 
@@ -284,9 +285,7 @@ Now that the dataframes have been process and formated, they will be saved as RD
 work on cleaning up all other df with bad names
 
 ```{r save.RData, echo=FALSE}
-
 save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_12.3.19.RData")
-
 #  OutPut: big large MLH1_data (AP's) df, big DF of BD with just the mice I want.
 #  MLH1_data_table, means and variance of AP and BD MLH1 values. made from seperate tables from AP and BD data.
 #  make sure decimal places are consistant
