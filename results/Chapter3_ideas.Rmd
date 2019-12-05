@@ -1,0 +1,300 @@
+---
+title: "Chapter3_ideas"
+author: "April Peterson"
+date: "November 26, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#load biv data
+#load MLH1 data
+
+
+```
+
+
+Take some mouse level distributions -- pull cells from top and bottom 10%?
+(gather whole bivalent level data,)
+
+-start making comparisons for the 2 pools
+  how much technical noise is there? (staining differences?/ quality score?
+  
+Mice with many cells and BivData
+17mar16_G_f4 - BivData
+17mar16_G_f1
+
+
+```{r choosing.mice, echo=FALSE}
+#Choose mice with many cells
+
+#G_f, G_m
+#SKIVE_f, SKIVE_m #have BivData
+
+#remove all the quality 5
+
+#make plot/histogram of the MLH1 count distribution
+counts <- MLH1_data$nMLH1.foci[MLH1_data$mouse == "31may19_SKIVE_f6"]
+
+mouse.DF <- MLH1_data[MLH1_data$mouse == "31may19_SKIVE_f6",]
+mouse.DF <- mouse.DF[mouse.DF$quality < 5,]
+high.bin.DF <- mouse.DF[mouse.DF$nMLH1.foci>=quantile(counts, 0.9, na.rm=TRUE), ]
+low.bin.DF <- mouse.DF[mouse.DF$nMLH1.foci<=quantile(counts, 0.1, na.rm=TRUE), ]
+
+ordered.MLH1 <- mouse.DF[with(mouse.DF,order(nMLH1.foci)),]#this returns ordered
+topsy <- ordered.MLH1[1:5,]
+bottomzy <- ordered.MLH1[(length(ordered.MLH1$nMLH1.foci)-5):length(ordered.MLH1$nMLH1.foci),]
+#now have top and bottom 5 cell observations 
+
+#merge
+top.n.bottom.bin <- rbind(topsy,bottomzy)
+
+#write 
+write.table(top.n.bottom.bin, "~./MLH1repo/curated.bins.csv", sep=",", row.names = FALSE)
+
+
+shiz <- ggplot(data = MLH1_data[MLH1_data$mouse == "31may19_SKIVE_f6",],
+       aes(x=nMLH1.foci))+geom_histogram(stat = "bin", binwidth = 1)+ggtitle("31may19_SKIVE_f6 Cell counts")+
+geom_vline(xintercept = c(min(high.bin), max(low.bin)), color= "red")
+#highest of the low bin
+#lowest value of the high bin
+shiz
+#get the filenames for this groups of cells
+
+#10mar15_PWD_m1#10mar15_PWD_m2 -- not found in BivData, re-running all of the PWD male data
+#28feb15_PWD_f2, in PWD--female .xlsx file
+
+#31may19_SKIVE_m2
+male.one.DF <- MLH1_data[MLH1_data$mouse == "28feb15_PWD_f2",]
+male.one.DF <- male.one.DF[male.one.DF$quality < 5,]
+
+ordered.MLH1.male <- male.one.DF[with(male.one.DF,order(nMLH1.foci)),]#this returns ordered
+male.high.bin.DF <- ordered.MLH1.male[1:5,]
+male.low.bin.DF <- ordered.MLH1.male[(length(ordered.MLH1.male$nMLH1.foci)-5):length(ordered.MLH1.male$nMLH1.foci),]
+#now have top and bottom 5 cell observations 
+
+#merge
+male.top.n.bottom.bin <- rbind(male.high.bin.DF, male.low.bin.DF)
+#write 
+write.table(male.top.n.bottom.bin, "~./MLH1repo/female.PWD.curated.bins.csv", sep=",", row.names = FALSE)
+
+
+shiz.too <- ggplot(data = MLH1_data[MLH1_data$mouse == "31may19_SKIVE_m2",],
+       aes(x=nMLH1.foci))+geom_histogram(stat = "bin", binwidth = 1)+ggtitle("31may19_SKIVE_m2 Cell counts")+
+geom_vline(xintercept = c(min(male.high.bin.DF$nMLH1.foci), max(male.low.bin.DF$nMLH1.foci)), color= "red")
+#highest of the low bin
+#lowest value of the high bin
+shiz.too
+
+
+```
+
+
+the plot above shows an example plot of --- where the pools are from, currently these are 10 quantille and 90 quantile. setting threshold by percentile doesn't always give enough cells. 
+Should I be comparing cells with the same number of COs?
+
+
+
+```{r getting.cell.names, echo=FALSE}
+
+#load in the cell dataset
+#28feb15_PWD_f2  from Curated_BivData
+#for a mouse, pull the 10 highest rec cells
+
+PWD.female_hand.measure = read.csv("~./MLH1repo/data/BivData/PWD_female_hand_measure.csv", header = TRUE, strip.white = TRUE)
+#"fileName"                "boxNumber"               "blobjectClass"           "chromosomeLength"        "centromere_ABS_Position" "Foci1"                   "Foci2"                  
+#"Foci3"                   "curation.notes"  
+female.mouse_bivData <- Curated_BivData[Curated_BivData$mouse == "28feb15_PWD_f2",]
+
+write.table(female.mouse_bivData, "~./MLH1repo/28feb15_PWD_f2.csv", sep=",", row.names = FALSE)
+
+PWD.female_hand.measure = read.csv("~./MLH1repo/28feb15_PWD_f2.csv", header = TRUE, strip.white = TRUE)
+PWD.female_hand.measure$Obj.ID <- paste(PWD.female_hand.measure$fileName, PWD.female_hand.measure$boxNumber, sep = "_")
+
+#merge with hand data
+#mergy <- merge(PWD.female_hand.measure, female.mouse_bivData)
+#PWD.female_hand.measure$hand.foci.count <- as.numeric(PWD.female_hand.measure$hand.foci.count)
+
+
+cells.BivData_table_28feb15_PWD_f2 <- ddply(.data=PWD.female_hand.measure, 
+                            .(fileName),
+                            summarize, 
+                            ncells = length(unique(fileName)),
+                            nbivs = length(unique(Obj.ID)),
+                            n.foci = sum(hand.foci.count),
+                            total.SC = sum(chromosomeLength),
+                            mean.SC = mean(chromosomeLength)
+                            
+)
+#add hand data
+ll <- cells.BivData_table_28feb15_PWD_f2[cells.BivData_table_28feb15_PWD_f2$nbivs > 18,]
+
+#I have 3 cells with full 20
+
+```
+
+
+Start discribing the Bivalent patterns for the PWD female patterns
+
+
+```{r mini.biv, echo=FALSE}
+#make mini biv plots
+
+#PWD.female
+#PWD.female_hand.measure
+
+cell.1 <- PWD.female_hand.measure[PWD.female_hand.measure$fileName == "13mar15_28feb15_PWD_f2_sp1_10_rev",]
+cell.2 <- PWD.female_hand.measure[PWD.female_hand.measure$fileName == "13mar15_28feb15_PWD_f2_sp1_38_rev",]
+
+
+two_groups <- transform(cell.1, category2 = factor(paste(fileName, chromosomeLength)))
+two_groups <- transform(two_groups, category2 = reorder(category2, rank(chromosomeLength)))
+
+#this plot function takes the new df, and plots cat2(x) by SC length (y). cat2 has been ordered by the ranked length
+#of SC.
+MiniBiv_plot1 <-  ggplot(two_groups, aes(category2, chromosomeLength)) +
+    geom_bar(aes(fill= as.factor(hand.foci.count)), stat = "identity") +
+  #  geom_vline(xintercept = c(male_IFD, 1) ) +  #
+ #geom_hline(yintercept = c(male_IFD) ) +
+  
+  scale_fill_manual(values=c("red", "red", "red")) +   #0CO;"#FFCC66"
+  #how to add points for 2foci
+  geom_point(aes(x=two_groups$category2, y=two_groups$Foci1),colour = "green",size = 3 ) +   
+  #foci.1.position, two_groups$distal.foci.position)
+  geom_point(aes(x=two_groups$category2, y=two_groups$Foci2),colour = "green",size = 3 ) +
+  
+#add centromeres...  
+  geom_point(aes(x=two_groups$category2, y=0), colour = "purple4",size =5)+
+
+
+  facet_wrap( ~ fileName, scales = "free_x", ncol = 5) +
+ # scale_x_discrete(labels=two_groups$strain, breaks=two_groups$category2) +
+  ylim(c(0,200))+
+     theme(axis.line=element_blank(),axis.text.x=element_blank(),
+        axis.ticks=element_blank())  #for removeing x labels
+
+#MiniBiv_plot1
+#MiniBiv_plot2
+
+#save the files 
+
+```
+
+
+
+```{r biscribe.Biv.Pattern, echo=FALSE}
+#start discribing the basic 
+
+#start merging curated bivData with handmeasured data
+
+
+#BivData - Curated
+```
+
+# Whole Cell Measures
+
+excel sheet Whole_cell_measures.xlsx has 840 bivalent measures.
+
+colum
+
+
+```{r whole.cell.data, echo=FALSE}
+
+#read in csv of whole cell hand measures
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+#setwd("C:/Users/April/Desktop/MLH1repo")
+#load(file="data/MLH1/MLH1_data_setup.RData")
+
+#load main data file
+whole.cell.data <- read.csv("~./MLH1repo/whole_cell_measures.csv")
+
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+#add sex since there is a difference in sample size
+whole.cell.data <- add_mouse(whole.cell.data)
+whole.cell.data <- add_sex(whole.cell.data)
+
+whole.cell.data <- whole.cell.data[!(is.na(whole.cell.data$fileName) | whole.cell.data$fileName==""), ]
+
+whole.cell.data.XY <- whole.cell.data
+
+whole.cell.data <- whole.cell.data[(whole.cell.data$hand.foci.count!="XY"), ]
+
+
+#find cells with the wrong number
+
+biv.count_table <-  ddply(.data=whole.cell.data,
+                 .(fileName),
+                 summarize,
+                 nbiv = length(SC.length)
+)
+#all have 20 or 19 (after removing XY)
+
+
+for(musy in as.character(unique(whole.cell.data$fileName))){
+  print(musy)
+  
+  #order the chrm lengths -- this is order
+  chrm.order = order(whole.cell.data$SC.length[whole.cell.data$fileName == musy])
+  whole.cell.data$rank[whole.cell.data$fileName == musy] <- chrm.order #19 to 20
+}
+#I think I saved the Excel with sorted SC lengths
+#Yay I printed the rank in this
+
+```
+
+Try doing the permutations
+
+```{r permutations, echo=FALSE}
+
+#need to seperate sexes cause diff numbers
+male.whole.cell <- whole.cell.data[whole.cell.data$sex == "male", ]#359
+#ncells
+length(unique(male.whole.cell$fileName) ) #24 cells
+
+female.whole.cell <- whole.cell.data[whole.cell.data$sex == "female", ]#456
+
+
+#not sure how to make the initial DF
+#replicate 24 rows with 19 cols
+DF.for.perm  <- as.data.frame( replicate(24, "") )
+colnames(DF.for.perm) <- c("blah")
+
+DF.permutations <- data.frame( nuc.sim = seq(1:24), rank1 = replicate(24, ""),rank2= replicate(24, ""),
+                       rank3= replicate(24, ""),     rank4= replicate(24, ""),
+                       rank5= replicate(24, ""),   rank6= replicate(24, ""),
+                       rank7= replicate(24, ""), rank8= replicate(24, ""),
+                       rank9= replicate(24, ""), rank10= replicate(24, ""),
+                       rank11= replicate(24, ""),     rank12= replicate(24, ""),
+                       rank13= replicate(24, ""),     rank14= replicate(24, ""),
+                       rank15= replicate(24, ""),     rank16= replicate(24, ""),
+                       rank17= replicate(24, ""),rank18= replicate(24, ""),rank19= replicate(24, "")
+                       )
+
+iterations = 24
+variables = 20
+DF.permutations <- matrix(ncol=variables, nrow=iterations)
+colnames(DF.permutations) <- c("1", "rank1", "rank2", "rank3", "rank4", "rank5",
+                               "rank6","rank7","rank8","rank9","rank10","rank11",
+                               "rank12","rank13","rank14","rank15","rank16",
+                               "rank17","rank18","rank19" )
+
+#ROW IS FIRST
+                     
+for(row.num in 1:24){
+  
+  #print(c(row.num, "rowis") )
+  
+  for(col.num in 2:ncol(DF.permutations) ){
+  
+  #print(c(col.num, "colis") ) 
+  
+ DF.permutations[row.num,col.num] <- sample(male.whole.cell$SC.length[male.whole.cell$rank == col.num-1], 1, replace = FALSE)
+  
+      }
+
+  }
+#yes this finally works!!!!
+
+
+
+```
+
