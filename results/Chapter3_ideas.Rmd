@@ -8,7 +8,9 @@ output: html_document
 ```{r setup, include=FALSE}
 #load biv data
 #load MLH1 data
-
+library(dplyr)
+library(plyr)
+library(ggplot2)
 
 ```
 
@@ -24,7 +26,7 @@ Mice with many cells and BivData
 17mar16_G_f1
 
 
-```{r choosing.mice, echo=FALSE}
+```{r choosing.mice, echo=FALSE, eval=FALSE}
 #Choose mice with many cells
 
 #G_f, G_m
@@ -94,7 +96,7 @@ Should I be comparing cells with the same number of COs?
 
 
 
-```{r getting.cell.names, echo=FALSE}
+```{r getting.cell.names, echo=FALSE,eval=FALSE}
 
 #load in the cell dataset
 #28feb15_PWD_f2  from Curated_BivData
@@ -136,7 +138,7 @@ ll <- cells.BivData_table_28feb15_PWD_f2[cells.BivData_table_28feb15_PWD_f2$nbiv
 Start discribing the Bivalent patterns for the PWD female patterns
 
 
-```{r mini.biv, echo=FALSE}
+```{r mini.biv, echo=FALSE,eval=FALSE}
 #make mini biv plots
 
 #PWD.female
@@ -194,13 +196,11 @@ MiniBiv_plot1 <-  ggplot(two_groups, aes(category2, chromosomeLength)) +
 
 excel sheet Whole_cell_measures.xlsx has 840 bivalent measures.
 
-colum
-
 
 ```{r whole.cell.data, echo=FALSE}
 
 #read in csv of whole cell hand measures
-setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+#setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 #setwd("C:/Users/April/Desktop/MLH1repo")
 #load(file="data/MLH1/MLH1_data_setup.RData")
 
@@ -215,9 +215,11 @@ whole.cell.data <- add_sex(whole.cell.data)
 whole.cell.data <- whole.cell.data[!(is.na(whole.cell.data$fileName) | whole.cell.data$fileName==""), ]
 
 whole.cell.data.XY <- whole.cell.data
-
 whole.cell.data <- whole.cell.data[(whole.cell.data$hand.foci.count!="XY"), ]
 
+#make sure foci.count is number
+whole.cell.data$hand.foci.count <- as.character(whole.cell.data$hand.foci.count)
+whole.cell.data$hand.foci.count <- as.numeric(whole.cell.data$hand.foci.count)
 
 #find cells with the wrong number
 
@@ -228,7 +230,7 @@ biv.count_table <-  ddply(.data=whole.cell.data,
 )
 #all have 20 or 19 (after removing XY)
 
-
+#ADD THE RANK
 for(musy in as.character(unique(whole.cell.data$fileName))){
   print(musy)
   
@@ -241,23 +243,212 @@ for(musy in as.character(unique(whole.cell.data$fileName))){
 
 ```
 
+
+
+
 Try doing the permutations
 
-```{r permutations, echo=FALSE}
+```{r permutations.sc, echo=FALSE}
 
-#need to seperate sexes cause diff numbers
 male.whole.cell <- whole.cell.data[whole.cell.data$sex == "male", ]#359
 #ncells
 length(unique(male.whole.cell$fileName) ) #24 cells
 
+
 female.whole.cell <- whole.cell.data[whole.cell.data$sex == "female", ]#456
+length(unique(female.whole.cell$fileName) ) #18 cells
+
+male.biv.count_table <-  ddply(.data=male.whole.cell,
+                 .(fileName),
+                 summarize,
+                 nbiv = length(SC.length),
+                 mean_co = mean(hand.foci.count),
+                 mean_sc = mean(SC.length),
+                   var_co = var(hand.foci.count),
+                   var_sc = var(SC.length)
+)
 
 
 #not sure how to make the initial DF
 #replicate 24 rows with 19 cols
-DF.for.perm  <- as.data.frame( replicate(24, "") )
-colnames(DF.for.perm) <- c("blah")
+iterations = 24
+variables = 20
+DF.permutations.sc <- matrix(ncol=variables, nrow=iterations)
+colnames(DF.permutations.sc) <- c("1", "rank1", "rank2", "rank3", "rank4", "rank5",
+                               "rank6","rank7","rank8","rank9","rank10","rank11",
+                               "rank12","rank13","rank14","rank15","rank16",
+                               "rank17","rank18","rank19" )
 
+#ROW IS FIRST
+for(row.num in 1:24){
+  #print(c(row.num, "rowis") )
+  for(col.num in 2:ncol(DF.permutations.sc) ){
+  rand.rank.sc <- sample(male.whole.cell$SC.length[male.whole.cell$rank == col.num-1], 1, replace = FALSE)
+  #print(SCll)   
+  DF.permutations.sc[row.num,col.num] <- rand.rank.sc
+   }
+  }#yes this finally works!!!!
+DF.permutations.sc <- as.data.frame(DF.permutations.sc)
+
+
+#pair with real within cell SC variance
+for( o in 1:nrow(DF.permutations.sc) ) {
+  DF.permutations.sc$var_sc[o] <- var(as.numeric(DF.permutations.sc[o,2:20]))
+  }
+
+
+
+#permutations without accounting for rank
+its = 24
+varis = 20
+DF.permutations.no_rank <- matrix(ncol=varis, nrow=its)
+#colnames(DF.permutations.sc) <- c("1", "rank1", "rank2", "rank3", "rank4", "rank5",
+#                               "rank6","rank7","rank8","rank9","rank10","rank11",
+#                               "rank12","rank13","rank14","rank15","rank16",
+#                               "rank17","rank18","rank19" )
+
+for(row.num in 1:24){
+  #print(c(row.num, "rowis") )
+  for(col.num in 2:ncol(DF.permutations.no_rank) ){
+  rand.sc <- sample(male.whole.cell$SC.length[male.whole.cell$rank == col.num-1], 1, replace = FALSE)
+  #print(SCll)   
+  DF.permutations.no_rank[row.num,col.num] <- rand.sc
+   }
+  }#yes this finally works!!!!
+DF.permutations.no_rank <- as.data.frame(DF.permutations.no_rank)
+
+for( o in 1:nrow(DF.permutations.sc) ) {
+  DF.permutations.no_rank$var_rand.sc[o] <- var(as.numeric(DF.permutations.no_rank[o,2:20]))
+  }
+
+#merge with real
+sc.var.for.plot <- matrix(ncol=3, nrow=72)
+sc.var.for.plot <- as.data.frame(sc.var.for.plot)
+colnames(sc.var.for.plot) <- c("cell.id","var","type")
+
+sc.var.for.plot$var[1:24] <- DF.permutations.sc$var_sc
+sc.var.for.plot$type[1:24] <- "sim"
+
+sc.var.for.plot$var[25:48] <- male.biv.count_table$var_sc
+sc.var.for.plot$type[25:48] <- "real"
+
+sc.var.for.plot$var[49:72] <- DF.permutations.no_rank$var_rand.sc
+sc.var.for.plot$type[49:72] <- "sim_no_rank"
+
+
+#plot the forms
+#plot within cell variance
+whole.cell.var_SC.plot  <- ggplot(sc.var.for.plot, aes(y=var, x=type))+geom_jitter()+ggtitle("within cell sc variance")
+whole.cell.var_SC.plot
+```
+
+
+
+```{r per.co.count, echo=FALSE}
+
+iterations = 24
+variables = 20
+DF.permutations_CO.count <- matrix(ncol=variables, nrow=iterations)
+colnames(DF.permutations_CO.count) <- c("1", "rank1", "rank2", "rank3", "rank4", "rank5",
+                               "rank6","rank7","rank8","rank9","rank10","rank11",
+                               "rank12","rank13","rank14","rank15","rank16",
+                               "rank17","rank18","rank19" )
+
+for(row.num in 1:24){
+  
+  #print(c(row.num, "rowis") )
+  for(col.num in 2:ncol(DF.permutations_CO.count) ){
+  
+  rand.rank.co <- sample(male.whole.cell$hand.foci.count[male.whole.cell$rank == col.num-1], 1, replace = FALSE)
+  #print(SCll)   
+  DF.permutations_CO.count[row.num,col.num] <- rand.rank.co
+   }
+  }
+DF.permutations_CO.count <- as.data.frame(DF.permutations_CO.count)
+
+
+#no rank - iterate / permute the sampling X times
+its = 24
+varis = 20
+DF.permutations.CO.no_rank <- matrix(ncol=varis, nrow=its)
+
+#make LIST of X DATAFRAMES
+
+for(row.num in 1:24){
+  #print(c(row.num, "rowis") )
+  for(col.num in 2:ncol(DF.permutations.CO.no_rank) ){
+  rand.co <- sample(male.whole.cell$hand.foci.count, 1, replace = FALSE)
+  #print(SCll)   
+  DF.permutations.CO.no_rank[row.num,col.num] <- rand.co
+   }
+  }#yes this finally works!!!!
+DF.permutations.CO.no_rank <- as.data.frame(DF.permutations.CO.no_rank)
+
+#
+for( o in 1:nrow(DF.permutations.CO.no_rank) ) {
+  DF.permutations.CO.no_rank$var_rand.co[o] <- var(as.numeric(DF.permutations.CO.no_rank[o,2:20]))
+  }
+
+
+
+
+
+#merge with real
+co.var.for.plot <- matrix(ncol=3, nrow=72)
+co.var.for.plot <- as.data.frame(co.var.for.plot)
+colnames(co.var.for.plot) <- c("cell.id","var","type")
+
+co.var.for.plot$var[1:24] <- DF.permutations_CO.count$var_CO.count
+co.var.for.plot$type[1:24] <- "sim"
+
+co.var.for.plot$var[25:48] <- male.biv.count_table$var_co
+co.var.for.plot$type[25:48] <- "real"
+
+co.var.for.plot$var[49:72] <- DF.permutations.CO.no_rank$var_rand.co
+co.var.for.plot$type[49:72] <- "sim_no_rank"
+
+
+#plot
+whole.cell.var_CO.plot  <- ggplot(co.var.for.plot, aes(y=var, x=type))+geom_jitter()+ggtitle("within cell CO variance")
+whole.cell.var_CO.plot
+
+```
+
+
+
+
+```{r permuted.v.real, echo=FALSE}
+#evaluating the permuted 
+library(plyr)
+
+for( o in 1:nrow(DF.permutations_CO.count) ) {
+  DF.permutations_CO.count$var_CO.count[o] <- var(as.numeric(DF.permutations_CO.count[o,2:20]))
+  }
+
+#two data frames of within cell var
+#cell.id, var, type
+var.for.plot <- matrix(ncol=3, nrow=48)
+var.for.plot <- as.data.frame(var.for.plot)
+colnames(var.for.plot) <- c("cell.id","var","type")
+
+var.for.plot$var[1:24] <- DF.permutations_CO.count$var_CO.count
+var.for.plot$type[1:24] <- "sim"
+
+var.for.plot$var[24:48] <- male.biv.count_table$var_co
+var.for.plot$type[24:48] <- "real"
+
+
+#my permuted DFs are in a strange str
+
+#plot within cell variance
+whole.cell.var.plot  <- ggplot(var.for.plot, aes(y=var, x=type))+geom_jitter()+ggtitle("within cell variance between types")
+
+whole.cell.var.plot
+```
+
+
+
+```{r junk, eval=FALSE}
 DF.permutations <- data.frame( nuc.sim = seq(1:24), rank1 = replicate(24, ""),rank2= replicate(24, ""),
                        rank3= replicate(24, ""),     rank4= replicate(24, ""),
                        rank5= replicate(24, ""),   rank6= replicate(24, ""),
@@ -268,33 +459,5 @@ DF.permutations <- data.frame( nuc.sim = seq(1:24), rank1 = replicate(24, ""),ra
                        rank15= replicate(24, ""),     rank16= replicate(24, ""),
                        rank17= replicate(24, ""),rank18= replicate(24, ""),rank19= replicate(24, "")
                        )
-
-iterations = 24
-variables = 20
-DF.permutations <- matrix(ncol=variables, nrow=iterations)
-colnames(DF.permutations) <- c("1", "rank1", "rank2", "rank3", "rank4", "rank5",
-                               "rank6","rank7","rank8","rank9","rank10","rank11",
-                               "rank12","rank13","rank14","rank15","rank16",
-                               "rank17","rank18","rank19" )
-
-#ROW IS FIRST
-                     
-for(row.num in 1:24){
-  
-  #print(c(row.num, "rowis") )
-  
-  for(col.num in 2:ncol(DF.permutations) ){
-  
-  #print(c(col.num, "colis") ) 
-  
- DF.permutations[row.num,col.num] <- sample(male.whole.cell$SC.length[male.whole.cell$rank == col.num-1], 1, replace = FALSE)
-  
-      }
-
-  }
-#yes this finally works!!!!
-
-
-
 ```
 
