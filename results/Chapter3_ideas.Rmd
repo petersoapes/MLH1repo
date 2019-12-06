@@ -17,20 +17,15 @@ library(raster) #cv
 #read files
 whole.cell.data <- read.csv("~./MLH1repo/whole_cell_measures.csv")
 load(file="~./MLH1repo/data/CleanBivData.RData")#added batch17
-
-
 ```
 
 
-# Summary and recreation of Wang et al 2019
+# Summary and of Wang et al 2019
 
-insert summary of the Wang paper
+Main take away from Wang et al 2019 is that chromosomes with the same nucleus covary in number of crossovers. Axis lengths / SC lengths show the same pattern and is known to be regulated at the cell wide level. The authors suggest that the within nucleus covariation in CO per chromosome is mediated through cell wide regulation of SC area. (the lengths of SC for chromosomes within a cell a correlated, there is more area for COs).
 
-which data did they use? what summary stat were they comparing
-What were their results?
-
-human data- 
-Gruhn et al 2013 (ploted below)
+Data used in the paper
+human data- Gruhn et al 2013 (ploted below, 755 cells)
 Sun et al 2006
 Oliver-Bonet et al 2007 
 Lian et al 2008
@@ -38,10 +33,11 @@ Lu et al 2012
 Hou et al 2013
 
 
+Was there originall CO position data for this human data? (MLH1 spreads) (there is axis length and CO count per chrm -- this should mean there is position )
+
 ```{r human.male.data, echo=FALSE}
 #read files
 Hs.male_axis <- read.csv("~./MLH1repo/data/Human_male_axis_length.csv", header = TRUE)
-Hs.male_MLH1 <- read.csv("~./MLH1repo/data/Human_male_MLH1.csv", header = TRUE)
 #I assume that the rows of MLH1 and SC lengths are the linked observations, check or verify this assumption
 #if they are using within cell -- they must
 
@@ -65,23 +61,1100 @@ hs.sc.length_plot <- ggplot(Melted.Hs.male_axis, aes(y=axis.length, x=Chrm.id))+
 hs.sc.length_plot
 
 
+#### .. Hs.male_MLH1
+Hs.male_MLH1 <- read.csv("~./MLH1repo/data/Human_male_MLH1.csv", header = TRUE)
+
+Melted.Hs.male_MLH1 <- melt(Hs.male_MLH1, 
+                            c("row.name", "chr1","chr2","chr3",  "chr4",  "chr5",  "chr6",  "chr7",  "chr8",  "chr9",  "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22"), 
+                         id=c("row.name") )
+#remove the first part with of data frame, variable = "row.name""
+
+
+#clean up dm1 (there are a bunch of rows without useful information)
+Melted.Hs.male_MLH1 <- Melted.Hs.male_MLH1[(!is.na(Melted.Hs.male_MLH1$value)),]
+Melted.Hs.male_MLH1 <- Melted.Hs.male_MLH1[((Melted.Hs.male_MLH1$variable != "row.name")),]
+colnames(Melted.Hs.male_MLH1) <- c("row.name", "Chrm.id", "CO")
+
+
+#Seems like there is an outlier, 
+#Melted.Hs.male_axis <- Melted.Hs.male_axis[(Melted.Hs.male_axis$axis.length < 700 #),]
+
+hs.CO.length_plot <- ggplot(Melted.Hs.male_MLH1, aes(y=CO, x=Chrm.id))+geom_jitter(aes( color=row.name, alpha = .2))+ 
+  ggtitle("Human male CO Counts")+theme(legend.position="none")
+hs.CO.length_plot
+```
+
+
+approach -- they compared covariation (cV) of per chrm CO count and SC length for permuted/randomized groupd of chromosome observations representing 'in silico' nuclei.
+
+
+## Redoing the permutaitons
+
+Cell summaries below
+
+```{r Hs.cell_table, echo=FALSE}
+#make table for cell wide measures
+Hs.CO_cell_wide <- ddply(.data=Melted.Hs.male_MLH1, 
+                            .(row.name),
+                            summarize, 
+                            nbivs = length(unique(Chrm.id)),
+                            n.CO = sum(CO),
+                            mean.CO = mean(CO),
+                            cV.CO = cv(CO)
+)
+head(Hs.CO_cell_wide)
+
+Hs.SC_cell_wide <- ddply(.data=Melted.Hs.male_axis, 
+                            .(row.name),
+                            summarize, 
+                            
+                            nbivs = length(unique(Chrm.id)),
+                            total.SC = sum(axis.length),
+                            mean.SC = mean(axis.length),
+                            cV.SC = cv(axis.length)
+)
+head(Hs.SC_cell_wide)
 
 ```
 
 
-Neat. cool to see human SC data plotted. One outlier was removed.
+```{r Hs.Perm_noRank, echo=FALSE}
+
+Melted.Hs.male_MLH1$chrm.num <- (Melted.Hs.male_MLH1$Chrm.id)
+levels(Melted.Hs.male_MLH1$chrm.num) <- 1:23
+
+Melted.Hs.male_MLH1$chrm.num <- as.character(Melted.Hs.male_MLH1$chrm.num)
+Melted.Hs.male_MLH1$chrm.num <- as.numeric(Melted.Hs.male_MLH1$chrm.num)
+#chrm.num is now 1:23
+
+#LIST of DF, no rank (include all), samples all 19 bivs at a time
+Hs_male.BIG.DF.LIST_no.rank <- replicate(755,
+                  list(bind_rows(list( 
+          #can't make do logic on factors
+          Melted.Hs.male_MLH1[ sample( which( Melted.Hs.male_MLH1$chrm.num < 24), 22),]
+) ) ) )
+#now have randomized DF of 1000 cells
+```
 
 
-# Adding to whole Cells
+```{r Hs.Perm_wRank, echo=FALSE}
+#rank (sample all of the ranks then stich them together)
+Hs.CO_BIG.LIST_w.rank <- replicate(755,
+  list(bind_rows(list( 
 
-Look/use the DF, Curated_BivData
-
-Take some mouse level distributions -- pull cells from top and bottom 10%?
-(gather whole bivalent level data,)
-
--start making comparisons for the 2 pools
-  how much technical noise is there? (staining differences?/ quality score?
+  Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==2), 1, replace = FALSE ),],
+  Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==3), 1, replace = FALSE ),],
+  Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==4), 1, replace = FALSE ),],
+  Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==5), 1, replace = FALSE ),],
+   Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==6), 1, replace = FALSE ),],
+  Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==7), 1, replace = FALSE ),],
+  Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==8), 1, replace = FALSE ),],
+  Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==9), 1, replace = FALSE ),],
+  Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==10), 1, replace = FALSE ),],
   
+   Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==11), 1, replace = FALSE ),],
+  Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==12), 1, replace = FALSE ),],
+  Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==13), 1, replace = FALSE ),],
+  Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==14), 1, replace = FALSE ),],
+  Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==15), 1, replace = FALSE ),],
+  Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==16), 1, replace = FALSE ),],
+  Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==17), 1, replace = FALSE ),],
+  Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==18), 1, replace = FALSE ),],
+  Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==19), 1, replace = FALSE ),],
+    Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==20), 1, replace = FALSE ),],
+  Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==21), 1, replace = FALSE ),],
+    Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==22), 1, replace = FALSE ),],
+      Melted.Hs.male_MLH1[ sample( which(Melted.Hs.male_MLH1$chrm.num==23), 1, replace = FALSE ),]
+))
+)) #list of DFs which are 'cells' with observations drawn from pooled chrm bins
+```
+
+```{r sum.stat.display, echo=FALSE}
+#after making big randomize / permuted data sets, CALCULATE the metrics / sum.stat
+#Hs.CO_BIG.LIST_w.rank
+#Hs_male.BIG.DF.LIST_no.rank
+
+
+#Calq cV for the rank perm
+#1. make empty DF
+Hs.CO_cv_rank <- data.frame(  cV.CO = rep(0, length(Hs.CO_BIG.LIST_w.rank) ) )
+
+for(j in 1:length(Hs.CO_BIG.LIST_w.rank)){  #inside loop, move thru the LISTs of DFs
+  #print(j)
+  #fill in the cells of given index
+  Hs.CO_cv_rank$cV.CO[j] <-cv(  Hs.CO_BIG.LIST_w.rank[[j]]$CO ) #but j should be row, row should be a cell
+  #add CO per nuc
+  Hs.CO_cv_rank$co.per.nuc[j] <- sum(Hs.CO_BIG.LIST_w.rank[[j]]$CO)
+  }
+
+#Calq cV for no rank
+Hs.CO_cv_no.rank <- data.frame(  cV.CO = rep(0, length(Hs_male.BIG.DF.LIST_no.rank) ) ) #first initialize the DF results will go in outside of loop
+for(i in 1:length(Hs_male.BIG.DF.LIST_no.rank)){  #inside loop, move thru the LISTs of DFs
+  #print(i)
+  #fill in the cells of given index
+  Hs.CO_cv_no.rank$cV.CO[i] <-cv(  Hs_male.BIG.DF.LIST_no.rank[[i]]$CO )
+  Hs.CO_cv_no.rank$co.per.nuc[i] <- sum(Hs_male.BIG.DF.LIST_no.rank[[i]]$CO) #these are the total sum, not divided out by nuc!
+  }
+
+#merge simulated and real values into 1DF
+Hs.CO_cv_rank$type <- "sim w.rank"
+colnames(Hs.CO_cv_rank) <- c("cV","COs","type" )
+
+Hs.CO_cv_no.rank$type <- "sim no rank"
+colnames(Hs.CO_cv_no.rank) <- c("cV", "COs","type")
+
+#then add the real values   Hs.CO_cell_wide
+Hs_real.cv.co <- data.frame(cV = Hs.CO_cell_wide$cV.CO, Hs.CO_cell_wide$n.CO)
+Hs_real.cv.co$type <- "real"
+colnames(Hs_real.cv.co) <- c("cV","COs", "type")
+
+#merge
+Hs.CO_cVs.DF <- rbind(Hs.CO_cv_rank, Hs.CO_cv_no.rank, Hs_real.cv.co)
+
+# need to melt the DFs before ploting?
+#ploting --- plot with more sims
+#HS.plot <- ggplot(Hs.CO_cVs.DF, aes(y = cV, x=type) )+ geom_jitter()+ ggtitle("Cell-wide cv for CO, Human male")
+#HS.plot
+```
+
+
+```{r HS.plots, echo=FALSE}
+
+HS.scatter.plot <- ggplot(Hs.CO_cVs.DF, aes(y = COs, x=type) )+ geom_jitter()+ ggtitle("COs per cell, Human male")
+HS.scatter.plot
+
+
+#make density distributions
+#percent of cells
+
+#quantilles of COs
+ 
+hist <- ggplot(Hs.CO_cVs.DF, aes(x = COs)) + geom_histogram(aes(fill=type), binwidth = 2 )
+hist
+
+HS.density.plot <- ggplot(Hs.CO_cVs.DF, aes(x = COs, fill=type) )+geom_density(alpha=.6) + ggtitle("CO per cell, Human male")+xlim(c(0,100))
+HS.density.plot
+```
+
+To calculate the variability index, authors take percent of cells(integrated curve area) which differ between the empiracal and simulated distributions.
+
+I changed the number of permutations to 200, which should be the same number of oberved cells, but it looks like the real data is much larger....the sheet has 755 cell observations, not 200. This might be due to how histograms are presented.
+
+
+The rank distinction is to test if sampling within pools of specific chromsomes makes a difference. The smaller/tighter distribution between CO count per nuc with the ranked and non-ranked distributions indecate there is a small chromosome specific effect.
+
+Not sure how to calculate the differences in distributions yet.
+
+this current data shows random samples, not permuted random samples. 
+
+# Mus whole Cell Data Set
+
+```{r setup.whole.cell.data, echo=FALSE}
+
+#read in csv of whole cell hand measures
+#setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+#setwd("C:/Users/April/Desktop/MLH1repo")
+#load(file="data/MLH1/MLH1_data_setup.RData")
+
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+#add sex since there is a difference in sample size
+whole.cell.data <- add_mouse(whole.cell.data)
+whole.cell.data <- add_sex(whole.cell.data)
+whole.cell.data <- add_strain(whole.cell.data)
+whole.cell.data <- add_category(whole.cell.data)
+
+whole.cell.data <- whole.cell.data[!(is.na(whole.cell.data$fileName) | whole.cell.data$fileName==""), ]
+#this doesn't remove all of the data that are missing values
+
+whole.cell.data$Obj.ID <- paste(whole.cell.data$fileName, whole.cell.data$boxNumber, sep = "_")
+
+whole.cell.data.XY <- whole.cell.data
+whole.cell.data <- whole.cell.data[(whole.cell.data$hand.foci.count!="XY"), ]
+
+#make sure foci.count is number
+whole.cell.data$hand.foci.count <- as.character(whole.cell.data$hand.foci.count)
+whole.cell.data$hand.foci.count <- as.numeric(whole.cell.data$hand.foci.count)
+
+whole.cell.data$Foci1 <- whole.cell.data$F1
+whole.cell.data$Foci2 <- whole.cell.data$F2
+whole.cell.data$Foci3 <- whole.cell.data$F3
+
+#add IFDs and normalized positions 
+whole.cell.data$Foci1.PER <- whole.cell.data$F1 / whole.cell.data$SC.length
+whole.cell.data$Foci2.PER <- whole.cell.data$F2 / whole.cell.data$SC.length
+whole.cell.data$Foci3.PER <- whole.cell.data$F3 / whole.cell.data$SC.length
+
+whole.cell.data <- add_IFD(whole.cell.data)
+whole.cell.data <-  add_IFD.2(whole.cell.data)
+
+
+Curated_BivData$IFD1_PER = Curated_BivData$IFD1_ABS / Curated_BivData$chromosomeLength
+#IFD.2 does mulitple IFDs (just absolute)
+Curated_BivData <- add_IFD.2(Curated_BivData)
+
+
+#find cells with the wrong number
+#whole.cell.data_cell.table <- 
+
+
+#ADD THE RANK
+for(musy in as.character(unique(whole.cell.data$fileName))){
+  #print(musy)
+  
+  #order the chrm lengths -- this is order
+  chrm.order = order(whole.cell.data$SC.length[whole.cell.data$fileName == musy])
+  whole.cell.data$rank[whole.cell.data$fileName == musy] <- chrm.order #19 to 20
+}
+#I think I saved the Excel with sorted SC lengths
+#Yay I printed the rank in this
+
+```
+
+
+To make the same comparisons, I need chromosome/bivalent level observations for whole cells (all chromosomes). 
+I have a data set of hand measured whole cells, in excel sheet Whole_cell_measures.xlsx with has 840 bivalent measures. The table below shows the number of bivalent observations
+
+```{r whole.cell.table, echo=FALSE}
+
+table(whole.cell.data$category)
+
+#table(cell.table$category)
+
+```
+
+
+```{r cell.level.tables, echo=FALSE}
+
+whole.cell.data <- whole.cell.data[(whole.cell.data$hand.foci.count!="XY"), ]
+male.whole.cell <- whole.cell.data[whole.cell.data$sex == "male", ]#359
+#ncells
+#length(unique(male.whole.cell$fileName) ) #24 cells
+
+female.whole.cell <- whole.cell.data[whole.cell.data$sex == "female", ]#456
+#length(unique(female.whole.cell$fileName) ) #18 cells
+
+biv.count_table <-  ddply(.data=whole.cell.data,
+                 .(fileName),
+                 summarize,
+                 nbiv = length(SC.length)
+)#all have 20 or 19 (after removing XY)
+
+#real data
+male.biv.count_table <-  ddply(.data=male.whole.cell,
+                 .(fileName),
+                 summarize,
+                 nbiv = length(SC.length),
+                  nCO0 =  sum(hand.foci.count == 0, na.rm=TRUE), 
+                       nCO1 =  sum(hand.foci.count == 1, na.rm=TRUE), 
+                       nCO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                       nCO3 = sum(hand.foci.count == 3, na.rm=TRUE),
+                 
+                 CO = sum(hand.foci.count),
+                 total.SC = sum(SC.length),
+                 mean_co = mean(hand.foci.count, rm.na = TRUE),
+                 mean_sc = mean(SC.length),
+                   var_co = var(hand.foci.count),
+                   var_sc = var(SC.length),
+                 cv_co.count = cv(hand.foci.count),
+                 cv_SC.length = cv(SC.length)
+)
+
+female.biv.count_table <-  ddply(.data=female.whole.cell,
+                 .(fileName),
+                 summarize,
+                 nbiv = length(SC.length),
+                 
+                  nCO0 =  sum(hand.foci.count == 0, na.rm=TRUE), 
+                       nCO1 =  sum(hand.foci.count == 1, na.rm=TRUE), 
+                       nCO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                       nCO3 = sum(hand.foci.count == 3, na.rm=TRUE),
+                 
+                 CO = sum(hand.foci.count),
+                  total.SC = sum(SC.length),
+                 mean_co = mean(hand.foci.count),
+                 mean_sc = mean(SC.length),
+                   var_co = var(hand.foci.count),
+                   var_sc = var(SC.length),
+                 cv_co.count = cv(hand.foci.count),
+                 cv_SC.length = cv(SC.length)
+)#one of the female cells is missing values
+
+```
+
+I calulate within cell ranked SC length to use rank as a proxy for chromsome ID for bivalents. 
+
+Below are plots of the SC distributions across the rank
+
+```{r play.plots, echo=FALSE}
+#female.whole.cell
+#male.whole.cell
+female.whole.cell <- female.whole.cell[!(is.na(female.whole.cell$SC.length) | female.whole.cell$SC.length==""), ]
+
+cow.hugger <- ggplot(female.whole.cell, aes(x=rank, y=SC.length, color=mouse) ) +geom_jitter()
+
+rank.length.boxplot <- ggplot(data=female.whole.cell) + geom_boxplot( aes(x=as.factor(rank), y=SC.length, fill=rank) )+geom_jitter(aes(x=as.factor(rank), y=SC.length) )+ggtitle("blaah")
+
+
+
+rank.length.boxplot.xx <- ggplot(data=female.whole.cell, aes(x=as.factor(rank), y=SC.length) ) + geom_boxplot()+ geom_jitter(aes( color=fileName))+
+  ggtitle("Female SC Length Dist by ranks")+theme(legend.position="none")
+
+rank.length.boxplot.xy <- ggplot(data=male.whole.cell, aes(x=as.factor(rank), y=SC.length)) + geom_boxplot()+ geom_jitter(aes( color=fileName)) +ggtitle("Male SC Length Dist by ranks")+theme(legend.position="none")
+
+
+rank.length.boxplot.xx
+rank.length.boxplot.xy
+
+```
+
+
+# PERMUTATION SETUP
+
+```{r per.co.count, echo=FALSE, eval=FALSE}
+#I don't think ... I end up useing these (matrics / DFs)
+iterations = 24
+variables = 20
+DF.permutations_CO.count <- matrix(ncol=variables, nrow=iterations)
+colnames(DF.permutations_CO.count) <- c("1", "rank1", "rank2", "rank3", "rank4", "rank5",
+                               "rank6","rank7","rank8","rank9","rank10","rank11",
+                               "rank12","rank13","rank14","rank15","rank16",
+                               "rank17","rank18","rank19" )
+
+for(row.num in 1:24){
+  
+  #print(c(row.num, "rowis") )
+  for(col.num in 2:ncol(DF.permutations_CO.count) ){
+  
+  rand.rank.co <- sample(male.whole.cell$hand.foci.count[male.whole.cell$rank == col.num-1], 1, replace = FALSE)
+  #print(SCll)   
+  DF.permutations_CO.count[row.num,col.num] <- rand.rank.co
+   }
+  }
+DF.permutations_CO.count <- as.data.frame(DF.permutations_CO.count)
+
+
+#no rank - iterate / permute the sampling X times
+its = 24
+varis = 20
+DF.permutations.CO.no_rank <- matrix(ncol=varis, nrow=its)
+
+#make LIST of X DATAFRAMES
+
+for(row.num in 1:24){
+  #print(c(row.num, "rowis") )
+  for(col.num in 2:ncol(DF.permutations.CO.no_rank) ){
+  rand.co <- sample(male.whole.cell$hand.foci.count, 1, replace = FALSE)
+  #print(SCll)   
+  DF.permutations.CO.no_rank[row.num,col.num] <- rand.co
+   }
+  }#yes this finally works!!!!
+DF.permutations.CO.no_rank <- as.data.frame(DF.permutations.CO.no_rank)
+
+#
+for( o in 1:nrow(DF.permutations.CO.no_rank) ) {
+  DF.permutations.CO.no_rank$var_rand.co[o] <- var(as.numeric(DF.permutations.CO.no_rank[o,2:20]))
+  }
+
+
+#merge with real
+#co.var.for.plot <- matrix(ncol=3, nrow=72)
+#co.var.for.plot <- as.data.frame(co.var.for.plot)
+#colnames(co.var.for.plot) <- c("cell.id","var","type")
+
+#co.var.for.plot$var[1:24] <- DF.permutations_CO.count$var_CO.count
+#co.var.for.plot$type[1:24] <- "sim"
+
+#co.var.for.plot$var[25:48] <- male.biv.count_table$var_co
+#co.var.for.plot$type[25:48] <- "real"
+
+#co.var.for.plot$var[49:72] <- DF.permutations.CO.no_rank$var_rand.co
+#co.var.for.plot$type[49:72] <- "sim_no_rank"
+
+#plot
+#whole.cell.var_CO.plot  <- ggplot(co.var.for.plot, aes(y=var, x=type))+geom_jitter()+ggtitle("within cell CO variance")
+#whole.cell.var_CO.plot
+
+```
+
+
+## CO count, male
+
+Make list of DFs to fill with permutations
+
+```{r list.of.DF, echo=FALSE}
+
+#dataframes to recreate -- and fill with 
+#24 rows (cells/in silico nuclei) by 19 cols, (bivalent traits)
+
+#make subsampled piece of DF here -- these are taking the whole DF
+#I will just take single values
+#Curated_BivData[ sample( which(Curated_BivData$category=="WSB female"), Biv.sample.Number ), ]
+#male.whole.cell
+#rand.rank.co <- sample(male.whole.cell$hand.foci.count[male.whole.cell$rank == col.num-1], 1, replace = FALSE)
+
+#rank (sample all of the ranks then stich them together)
+#replication should match the num
+BIG.LIST_w.rank <- replicate(18,
+  list(bind_rows(list( 
+  male.whole.cell[ sample( which(male.whole.cell$rank==1), 1, replace = FALSE ),],
+  male.whole.cell[ sample( which(male.whole.cell$rank==2), 1, replace = FALSE ),],
+  male.whole.cell[ sample( which(male.whole.cell$rank==3), 1, replace = FALSE ),],
+  male.whole.cell[ sample( which(male.whole.cell$rank==4), 1, replace = FALSE ),],
+  male.whole.cell[ sample( which(male.whole.cell$rank==5), 1, replace = FALSE ),],
+   male.whole.cell[ sample( which(male.whole.cell$rank==6), 1, replace = FALSE ),],
+  male.whole.cell[ sample( which(male.whole.cell$rank==7), 1, replace = FALSE ),],
+  male.whole.cell[ sample( which(male.whole.cell$rank==8), 1, replace = FALSE ),],
+  male.whole.cell[ sample( which(male.whole.cell$rank==9), 1, replace = FALSE ),],
+  male.whole.cell[ sample( which(male.whole.cell$rank==10), 1, replace = FALSE ),],
+  
+   male.whole.cell[ sample( which(male.whole.cell$rank==11), 1, replace = FALSE ),],
+  male.whole.cell[ sample( which(male.whole.cell$rank==12), 1, replace = FALSE ),],
+  male.whole.cell[ sample( which(male.whole.cell$rank==13), 1, replace = FALSE ),],
+  male.whole.cell[ sample( which(male.whole.cell$rank==14), 1, replace = FALSE ),],
+  male.whole.cell[ sample( which(male.whole.cell$rank==15), 1, replace = FALSE ),],
+  male.whole.cell[ sample( which(male.whole.cell$rank==16), 1, replace = FALSE ),],
+  male.whole.cell[ sample( which(male.whole.cell$rank==17), 1, replace = FALSE ),],
+  male.whole.cell[ sample( which(male.whole.cell$rank==18), 1, replace = FALSE ),],
+  male.whole.cell[ sample( which(male.whole.cell$rank==19), 1, replace = FALSE ),]
+))))
+#this is replicating single cell (NOT a SAMPLE of 24)
+
+
+#LIST of DF, no rank (include all), samples all 19 bivs at a time
+#makes a list of 10 -- [[]]
+BIG.DF.LIST_no.rank <- replicate(18,
+                  list(bind_rows(list( 
+          male.whole.cell[ sample( which( male.whole.cell$rank < 20), 19, replace = FALSE ),]
+) ) ) )
+```
+
+```{r sum.stat, echo=FALSE}
+#dealing with lists of DFs, 
+#2. #Loop through the list of DFs and do the ... make the cell level cVs calculations
+#i is this index of the dataframes in the list?
+
+#Calq cV for the rank perm
+cv.val.DF_rank <- data.frame(  cV = rep(0, length(BIG.LIST_w.rank) ) ) #first initialize the DF results will go in outside of loop
+for(j in 1:length(BIG.LIST_w.rank)){  #inside loop, move thru the LISTs of DFs
+ # print(j)
+  #fill in the cells of given index
+  cv.val.DF_rank$cV[j] <-cv(  BIG.LIST_w.rank[[j]]$hand.foci.count )
+    cv.val.DF_rank$CO[j] <-sum(  BIG.LIST_w.rank[[j]]$hand.foci.count )
+  
+    }
+
+
+#Calq cV for no rank
+cv.val.DF_no.rank <- data.frame(  cV_CO = rep(0, length(BIG.DF.LIST_no.rank) ) ) #first initialize the DF results will go in outside of loop
+for(i in 1:length(BIG.DF.LIST_no.rank)){  #inside loop, move thru the LISTs of DFs
+  #print(i)
+  #fill in the cells of given index
+  cv.val.DF_no.rank$cV_CO[i] <-cv(  BIG.DF.LIST_no.rank[[i]]$hand.foci.count )
+   cv.val.DF_no.rank$CO[i] <- sum(  BIG.DF.LIST_no.rank[[i]]$hand.foci.count )
+  }
+#extract the 
+#next step make cell-level calqs of cV -- for plotting
+
+#merge + plots of the cvs
+#10 and 10 rows from the permuted
+cv.val.DF_rank$type <- "sim w.rank"
+colnames(cv.val.DF_rank) <- c("cV", "CO", "type" )
+
+cv.val.DF_no.rank$type <- "sim no rank"
+colnames(cv.val.DF_no.rank) <- c("cV", "CO", "type")
+
+#then add the real values
+real.vals.cv.co <- data.frame(male.biv.count_table$cv_co.count,male.biv.count_table$CO )
+real.vals.cv.co$type <- "real"
+colnames(real.vals.cv.co) <- c("cV","CO", "type")
+
+#merge
+cVs_permutations.DF <- rbind(cv.val.DF_rank, cv.val.DF_no.rank, real.vals.cv.co)
+
+
+  
+#  geom_histogram(bins = 50)+facet_wrap(.~Test.type, scales = "free") 
+
+#biggie <- ggplot(Melted.pval.DF, aes(pval) )+geom_histogram(bins = 50)+facet_wrap(.~Test.type, scales = "free") + ggtitle("pvalues for 1000 replicated t.tests")
+
+```
+
+```{r perm.plots, echo=FALSE}
+#plots for permutations
+
+# need to melt the DFs before ploting?
+#ploting --- plot with more sims
+oo.plot <- ggplot(cVs_permutations.DF, aes(y = cV, x=type) )+ geom_jitter()+ ggtitle("cv for cell co count, 1000 simulated")
+
+ 
+Mus_hist <- ggplot(cVs_permutations.DF, aes(x = CO)) + geom_histogram(aes(fill=type), binwidth = 2 )+ggtitle("COs per cell, Mus male")
+
+
+HS.density.plot <- ggplot(cVs_permutations.DF, aes(x = CO, fill=type) )+geom_density(alpha=.6) + ggtitle("CO per cell, Mus male")+xlim(c(0,100))
+HS.density.plot
+
+```
+
+Above plot shows overdispersion of CO counts per cell for my Mus male dataset.
+The above plot the real data might have more variance because it's a combination of strains
+
+
+## CO count, female
+
+```{r rand.DF_CO.count.female, echo=FALSE}
+
+#dataframes to recreate -- and fill with 
+#24 rows (cells/in silico nuclei) by 19 cols, (bivalent traits)
+
+#make subsampled piece of DF here -- these are taking the whole DF
+#I will just take single values
+#Curated_BivData[ sample( which(Curated_BivData$category=="WSB female"), Biv.sample.Number ), ]
+#male.whole.cell
+#rand.rank.co <- sample(male.whole.cell$hand.foci.count[male.whole.cell$rank == col.num-1], 1, replace = FALSE)
+
+#rank (sample all of the ranks then stich them together)
+BIG.LIST_w.rank_female <- replicate(24,
+  list(bind_rows(list( 
+  female.whole.cell[ sample( which(female.whole.cell$rank==1), 1, replace = FALSE ),],
+  female.whole.cell[ sample( which(female.whole.cell$rank==2), 1, replace = FALSE ),],
+  female.whole.cell[ sample( which(female.whole.cell$rank==3), 1, replace = FALSE ),],
+  female.whole.cell[ sample( which(female.whole.cell$rank==4), 1, replace = FALSE ),],
+  female.whole.cell[ sample( which(female.whole.cell$rank==5), 1, replace = FALSE ),],
+   female.whole.cell[ sample( which(female.whole.cell$rank==6), 1, replace = FALSE ),],
+  female.whole.cell[ sample( which(female.whole.cell$rank==7), 1, replace = FALSE ),],
+  female.whole.cell[ sample( which(female.whole.cell$rank==8), 1, replace = FALSE ),],
+  female.whole.cell[ sample( which(female.whole.cell$rank==9), 1, replace = FALSE ),],
+  female.whole.cell[ sample( which(female.whole.cell$rank==10), 1, replace = FALSE ),],
+  
+   female.whole.cell[ sample( which(female.whole.cell$rank==11), 1, replace = FALSE ),],
+  female.whole.cell[ sample( which(female.whole.cell$rank==12), 1, replace = FALSE ),],
+  female.whole.cell[ sample( which(female.whole.cell$rank==13), 1, replace = FALSE ),],
+  female.whole.cell[ sample( which(female.whole.cell$rank==14), 1, replace = FALSE ),],
+  female.whole.cell[ sample( which(female.whole.cell$rank==15), 1, replace = FALSE ),],
+  female.whole.cell[ sample( which(female.whole.cell$rank==16), 1, replace = FALSE ),],
+  female.whole.cell[ sample( which(female.whole.cell$rank==17), 1, replace = FALSE ),],
+  female.whole.cell[ sample( which(female.whole.cell$rank==18), 1, replace = FALSE ),],
+  female.whole.cell[ sample( which(female.whole.cell$rank==19), 1, replace = FALSE ),],
+  female.whole.cell[ sample( which(female.whole.cell$rank==20), 1, replace = FALSE ),]
+  ))))
+
+
+#LIST of DF, no rank (include all), samples all 19 bivs at a time
+BIG.DF.LIST_no.rank_female <- replicate(24,
+                  list(bind_rows(list( 
+          female.whole.cell[ sample( which( female.whole.cell$rank < 20), 20, replace = FALSE ),]
+) ) ) )
+
+```
+
+These permuted dataframes can be reused for all the meiotic traits, (CO.count, SC length, and position).
+
+
+```{r sum.stat_cv.CO, echo=FALSE}
+#CALUCULATING SUMMARY STAT from the permuted DFs
+#dealing with lists of DFs, 
+#2. #Loop through the list of DFs and do the ... make the cell level cVs calculations
+#i is this index of the dataframes in the list?
+
+#Calq cV for the rank perm
+cv.val.DF_rank.female <- data.frame(  cV = rep(0, length(BIG.LIST_w.rank_female) ) ) #first initialize the DF results will go in outside of loop
+for(j in 1:length(BIG.LIST_w.rank_female)){  #inside loop, move thru the LISTs of DFs
+ # print(j)
+  #fill in the cells of given index
+  cv.val.DF_rank.female$cV[j] <-cv(  BIG.LIST_w.rank_female[[j]]$hand.foci.count ) #for each
+  cv.val.DF_rank.female$CO[j] <-sum(  BIG.LIST_w.rank_female[[j]]$hand.foci.count )
+  }
+
+
+#Calq cV for no rank
+cv.val.DF_no.rank.female <- data.frame(  cV = rep(0, length(BIG.DF.LIST_no.rank_female) ) ) #first initialize the DF results will go in outside of loop
+for(i in 1:length(BIG.DF.LIST_no.rank_female)){  #inside loop, move thru the LISTs of DFs
+  #print(i)
+  #fill in the cells of given index
+  cv.val.DF_no.rank.female$cV[i] <-cv(  BIG.DF.LIST_no.rank_female[[i]]$hand.foci.count )
+  cv.val.DF_no.rank.female$CO[i] <-sum(  BIG.DF.LIST_no.rank_female[[i]]$hand.foci.count )
+}
+
+#merge + plots of the cvs
+#10 and 10 rows from the permuted
+cv.val.DF_rank.female$type <- "sim w.rank"
+colnames(cv.val.DF_rank) <- c("cV","CO","type" )
+
+cv.val.DF_no.rank.female$type <- "sim no rank"
+colnames(cv.val.DF_no.rank.female) <- c("cV","CO", "type")
+
+#then add the real values
+real.vals.cv.co_female <- data.frame(cv = female.biv.count_table$cv_co.count, CO = female.biv.count_table$CO)
+real.vals.cv.co_female$type <- "real"
+colnames(real.vals.cv.co_female) <- c("cV","CO", "type")
+
+#merge
+cVs_permutations.DF_female <- rbind(cv.val.DF_rank.female, cv.val.DF_no.rank.female, real.vals.cv.co_female)
+
+
+# need to melt the DFs before ploting?
+#ploting --- plot with more sims
+Femaleplot_cV <- ggplot(cVs_permutations.DF_female, aes(y = cV, x=type) )+ geom_jitter()+ ggtitle("cv for cell co count female, 1000 simulated")
+  
+
+Mus_hist_F <- ggplot(cVs_permutations.DF_female, aes(x = CO)) + geom_histogram(aes(fill=type), binwidth = 2 )+ggtitle("COs per cell, Mus female")
+
+
+Mus.density.plot_F <- ggplot(cVs_permutations.DF_female, aes(x = CO, fill=type) )+geom_density(alpha=.6) + ggtitle("CO per cell, Mus female")+xlim(c(0,50))
+Mus.density.plot_F
+
+#  geom_histogram(bins = 50)+facet_wrap(.~Test.type, scales = "free") 
+
+#biggie <- ggplot(Melted.pval.DF, aes(pval) )+geom_histogram(bins = 50)+facet_wrap(.~Test.type, scales = "free") + ggtitle("pvalues for 1000 replicated t.tests")
+
+cVs_permutations.DF$sex <- "male"
+cVs_permutations.DF_female$sex <- "female"
+
+all.cv <- rbind(cVs_permutations.DF, cVs_permutations.DF_female)
+cV_plot <- ggplot(all.cv, aes(y = cV, x=type) )+ geom_jitter()+ ggtitle("cv for cell co count, 1000 simulated")+facet_wrap(~sex)
+
+```
+
+
+```{r female.plot, echo=FALSE}
+
+```
+
+
+Density plot above also shows that the female CO count data is overdispersed compered to a randomized distribution.
+
+
+# SC length, bivalent level
+
+Start doing the same thing but for bivalent SC lengths.
+Use the same randomized data sets!
+summary stats - mean SC length, cV SC length, total SC area
+
+don't need to remake permuted DFs, reuse the DFs:  BIG.LIST_w.rank, BIG.DF.LIST_no.rank, BIG.LIST_w.rank_female and BIG.DF.LIST_no.rank_female.
+
+
+```{r SC_Sum.Stats.male, echo=FALSE}
+# calq the sum stats
+SC_Mus.male_w.rank <- data.frame(  SC.cv = rep(0, length(BIG.LIST_w.rank) ) ) #first initialize the DF results will go in outside of loop
+for(j in 1:length(BIG.LIST_w.rank)){  #inside loop, move thru the LISTs of DFs
+ # print(j)
+  #fill in the cells of given index
+  SC_Mus.male_w.rank$SC.cv[j] <-cv(  BIG.LIST_w.rank[[j]]$SC.length ) #for each
+  SC_Mus.male_w.rank$total_SC[j] <-sum(  BIG.LIST_w.rank[[j]]$SC.length )
+  SC_Mus.male_w.rank$mean_SC[j] <-mean(  BIG.LIST_w.rank[[j]]$SC.length )
+  }
+
+#Calq cV for no rank
+SC_Mus.male_no.rank <- data.frame(  cV = rep(0, length(BIG.DF.LIST_no.rank) ) ) #first initialize the DF results will go in outside of loop
+for(i in 1:length(BIG.DF.LIST_no.rank)){  #inside loop, move thru the LISTs of DFs
+  #print(i)
+  #fill in the cells of given index
+  SC_Mus.male_no.rank$cV[i] <-cv(  BIG.DF.LIST_no.rank[[i]]$SC.length )
+  SC_Mus.male_no.rank$total_SC[i] <-sum(  BIG.DF.LIST_no.rank[[i]]$SC.length )
+  SC_Mus.male_no.rank$mean_SC[i] <-mean(  BIG.DF.LIST_no.rank[[i]]$SC.length )
+}
+
+
+#10 and 10 rows from the permuted
+SC_Mus.male_w.rank$type <- "sim w.rank"
+colnames(SC_Mus.male_w.rank) <- c("SC.cV", "tot.SC", "mean.SC", "type" )
+
+SC_Mus.male_no.rank$type <- "sim_no.rank"
+colnames(SC_Mus.male_no.rank) <- c("SC.cV", "tot.SC", "mean.SC", "type" )
+
+real_SC.Mus <- data.frame(male.biv.count_table$var_sc,  male.biv.count_table$total.SC, male.biv.count_table$mean_sc )
+real_SC.Mus$type <- "real"
+
+colnames(real_SC.Mus) <- c("SC.cV", "tot.SC", "mean.SC", "type")
+#merge
+SC_Mus_male <- rbind(SC_Mus.male_w.rank, SC_Mus.male_no.rank,real_SC.Mus)
+
+```
+
+```{r SC.plots_Mus.male, echo=FALSE}
+Mus_SC_hist <- ggplot(SC_Mus_male, aes(x = tot.SC)) + geom_histogram(aes(fill=type), binwidth = 50 )+ggtitle("total SC per cell, Mus male")
+
+Mus_SC_density <- ggplot(SC_Mus_male, aes(x = tot.SC, fill=type) )+geom_density(alpha=.6) + ggtitle("Total SC per cell, Mus male")+xlim(c(800,2000))
+Mus_SC_density
+
+#plot the forms
+#plot within cell variance
+#whole.cell.var_SC.plot  <- ggplot(sc.var.for.plot, aes(y=var, x=type))+geom_jitter()+ggtitle("within cell sc variance")
+```
+
+```{r SC_sum.stats.female, echo=FALSE, eval=FALSE}
+
+# calq the sum stats
+SC_Mus.female_w.rank <- data.frame(  SC.cv = rep(0, length(BIG.LIST_w.rank_female) ) ) #first initialize the DF results will go in outside of loop
+for(j in 1:length(BIG.LIST_w.rank_female)){  #inside loop, move thru the LISTs of DFs
+ # print(j)
+  #fill in the cells of given index
+  SC_Mus.female_w.rank$SC.cv[j] <-cv(  BIG.LIST_w.rank_female[[j]]$SC.length ) #for each
+  SC_Mus.female_w.rank$total_SC[j] <-sum(  BIG.LIST_w.rank_female[[j]]$SC.length )
+  SC_Mus.female_w.rank$mean_SC[j] <-mean(  BIG.LIST_w.rank_female[[j]]$SC.length )
+  }
+
+#Calq cV for no rank
+SC_Mus.female_no.rank <- data.frame(  cV = rep(0, length(BIG.DF.LIST_no.rank_female.) ) ) #first initialize the DF results will go in outside of loop
+for(i in 1:length(BIG.DF.LIST_no.rank)){  #inside loop, move thru the LISTs of DFs
+  #print(i)
+  #fill in the cells of given index
+  SC_Mus.female_no.rank$cV[i] <-cv(  BIG.DF.LIST_no.rank_female.[[i]]$SC.length )
+  SC_Mus.female_no.rank$total_SC[j] <-sum(  BIG.DF.LIST_no.rank_female.[[j]]$SC.length )
+  SC_Mus.female_no.rank$mean_SC[j] <-mean(  BIG.DF.LIST_no.rank_female.[[j]]$SC.length )
+}
+
+```
+
+```{r sum.stat.SClength, echo=FALSE}
+
+#Calq SC cV for the SC length FEMALE
+SCcv.val.DF_rank.female <- data.frame(  cV = rep(0, length(BIG.LIST_w.rank_female) ) ) #first initialize the DF results will go in outside of loop
+for(j in 1:length(BIG.LIST_w.rank_female)){  #inside loop, move thru the LISTs of DFs
+  #print(j)
+  #fill in the cells of given index
+  SCcv.val.DF_rank.female$cV[j] <-cv(  BIG.LIST_w.rank_female[[j]]$SC.length ) #for each
+  }
+
+#Calq SC cV for no rank
+SCcv.val.DF_no.rank.female <- data.frame(  cV = rep(0, length(BIG.DF.LIST_no.rank_female) ) ) #first initialize the DF results will go in outside of loop
+for(i in 1:length(BIG.DF.LIST_no.rank_female)){  #inside loop, move thru the LISTs of DFs
+  #print(i)
+  #fill in the cells of given index
+  SCcv.val.DF_no.rank.female$cV[i] <-cv(  BIG.DF.LIST_no.rank_female[[i]]$SC.length ) #for each 
+}
+
+#merge + plots of the cvs
+#10 and 10 rows from the permuted
+SCcv.val.DF_rank.female$type <- "sim w.rank"
+colnames(SCcv.val.DF_rank.female) <- c("cV","type" )
+
+SCcv.val.DF_no.rank.female$type <- "sim no rank"
+colnames(SCcv.val.DF_no.rank.female) <- c("cV", "type")
+
+#then add the real values
+real.vals.cv.SC_female <- data.frame(female.biv.count_table$cv_SC.length)
+real.vals.cv.SC_female$type <- "real"
+colnames(real.vals.cv.SC_female) <- c("cV", "type")
+
+#merge and plots
+cV.SC_permutations.DF_female <- rbind(SCcv.val.DF_rank.female, SCcv.val.DF_no.rank.female, real.vals.cv.SC_female)
+
+#MALE --BIG.LIST_w.rank, BIG.DF.LIST_no.rank,
+#Calq cV for the SC length
+SCcv.val.DF_rank.male <- data.frame(  cV = rep(0, length(BIG.LIST_w.rank) ) ) #first initialize the DF results will go in outside of loop
+for(j in 1:length(BIG.LIST_w.rank)){  #inside loop, move thru the LISTs of DFs
+  #print(j)
+  #fill in the cells of given index
+  SCcv.val.DF_rank.male$cV[j] <-cv(  BIG.LIST_w.rank[[j]]$SC.length ) #for each
+  }
+
+#Calq cV for no rank
+SCcv.val.DF_no.rank.male <- data.frame(  cV = rep(0, length(BIG.DF.LIST_no.rank) ) ) #first initialize the DF results will go in outside of loop
+for(i in 1:length(BIG.DF.LIST_no.rank)){  #inside loop, move thru the LISTs of DFs
+  #print(i)
+  #fill in the cells of given index
+  SCcv.val.DF_no.rank.male$cV[i] <-cv(  BIG.DF.LIST_no.rank[[i]]$SC.length ) #for each 
+}
+
+#merge + plots of the cvs
+#10 and 10 rows from the permuted
+SCcv.val.DF_rank.male$type <- "sim w.rank"
+colnames(SCcv.val.DF_rank.male) <- c("cV","type" )
+
+SCcv.val.DF_no.rank.male$type <- "sim no rank"
+colnames(SCcv.val.DF_no.rank.male) <- c("cV", "type")
+
+#then add the real values-- male.biv.count_table
+real.vals.cv.SC_male <- data.frame(male.biv.count_table$cv_SC.length)
+real.vals.cv.SC_male$type <- "real"
+colnames(real.vals.cv.SC_male) <- c("cV", "type")
+
+#merge and plots
+cV.SC_permutations.DF_male <- rbind(SCcv.val.DF_rank.male, SCcv.val.DF_no.rank.male, real.vals.cv.SC_male)
+cV.SC_permutations.DF_male$sex <- "male"
+cV.SC_permutations.DF_female$sex <- "female"  #cV.SC_permutations.DF_female
+all_cv.SC <- rbind(cV.SC_permutations.DF_female, cV.SC_permutations.DF_male)
+
+cV.SC_plot <- ggplot(all_cv.SC, aes(y = cV, x=type) )+ geom_jitter()+ ggtitle("cv of within cell SC lengths")+facet_wrap(~sex)
+```
+
+```{r permuted.v.real, echo=FALSE, eval=FALSE}
+for( o in 1:nrow(DF.permutations_CO.count) ) {
+  DF.permutations_CO.count$var_CO.count[o] <- var(as.numeric(DF.permutations_CO.count[o,2:20]))
+  }
+
+#two data frames of within cell var
+#cell.id, var, type
+var.for.plot <- matrix(ncol=3, nrow=48)
+var.for.plot <- as.data.frame(var.for.plot)
+colnames(var.for.plot) <- c("cell.id","var","type")
+
+var.for.plot$var[1:24] <- DF.permutations_CO.count$var_CO.count
+var.for.plot$type[1:24] <- "sim"
+
+var.for.plot$var[24:48] <- male.biv.count_table$var_co
+var.for.plot$type[24:48] <- "real"
+
+
+#my permuted DFs are in a strange str
+
+#plot within cell variance
+whole.cell.var.plot  <- ggplot(var.for.plot, aes(y=var, x=type))+geom_jitter()+ggtitle("within cell variance between types")
+
+whole.cell.var.plot
+```
+
+
+
+# CO Position
+
+don't need to remake permuted DFs, reuse the DFs:  BIG.LIST_w.rank, BIG.DF.LIST_no.rank, BIG.LIST_w.rank_female and BIG.DF.LIST_no.rank_female.
+
+look at CO position metrics.
+Do I need to melt the plots 
+the position col names are also, messed up I need to fix them --
+
+1. use the same randomized dataframe
+2. use the summary stat
+
+How do I randomize CO pos for a chrm?
+I want to draw positions from chrm_classes
+
+For each cell observation, note the classes,  I want to 
+make bins for positions of all 
+
+
+```{r CO.pos, echo=FALSE}
+#male.whole.cell
+#female.whole.cell
+#fix the data DF for PERMUTING CO
+
+whole.cell.data <- whole.cell.data[(whole.cell.data$hand.foci.count!="XY"), ]
+male.whole.cell <- whole.cell.data[whole.cell.data$sex == "male", ]#359
+
+male.biv.count_table <- male.biv.count_table[!(is.na(male.biv.count_table$fileName) | male.biv.count_table$fileName==""), ]
+
+pos.pool_1CO <- male.whole.cell[male.whole.cell$hand.foci.count == 1,]
+pos.pool_2CO <- male.whole.cell[male.whole.cell$hand.foci.count == 2,]
+pos.pool_3CO <- male.whole.cell[male.whole.cell$hand.foci.count == 3,]
+
+#now make the randomized data set for CO pos
+#do whole row -- so I can cen n
+
+random_pos <- data.frame(male.whole.cell$fileName, male.whole.cell$SC.length, male.whole.cell$hand.foci.count, male.whole.cell$Obj.ID  )
+
+
+#INITIALIZE EMPTY list of DFs
+#fill in with full DF
+
+LIST.DFs <- setNames( replicate( length(male.biv.count_table$fileName), data.frame( obj.ID = c())), male.biv.count_table$fileName)
+
+ids <-    male.whole.cell$Obj.ID[which(male.whole.cell$fileName == '14oct16_30jun16_CAST_m3_sp1_3.2')]  
+
+LIST.DFs[1]$obj.ID[1:19] <- ids[1:19]
+
+#INITALIZE empty LIST (make DF in the loop)
+
+LIST <- list()
+
+#Loop for rand sampling  
+for( male.cell in male.biv.count_table$fileName){
+  
+  #for each fileName, make a new DF
+  DF.in.loop <- data.frame(matrix(ncol = 1, nrow = 19))
+  #making the Within loop DF
+  DF.in.loop$X1 <- male.whole.cell$fileName[male.whole.cell$fileName ==male.cell]
+  DF.in.loop$obj.ID <- male.whole.cell$Obj.ID[male.whole.cell$fileName ==male.cell]
+  DF.in.loop$SC.length <- male.whole.cell$SC.length[male.whole.cell$fileName ==male.cell]
+  DF.in.loop$hand.foci.count <- male.whole.cell$hand.foci.count[male.whole.cell$fileName ==male.cell]
+  
+  
+  #LIST.DFs[[male.cell]]$obj.ID[1:19] <- male.whole.cell$Obj.ID[male.whole.cell$fileName == male.cell]
+    #print(male.cell)
+    n0CO = male.biv.count_table$nCO0[male.biv.count_table$fileName == male.cell] #this reference needs to be from male.biv.count_table
+    n1CO = male.biv.count_table$nCO1[male.biv.count_table$fileName == male.cell]
+    n2CO = male.biv.count_table$nCO2[male.biv.count_table$fileName == male.cell]
+    n3CO = male.biv.count_table$nCO3[male.biv.count_table$fileName == male.cell]
+    
+   #rand samples for foci.pos
+    #JUST DO THIS FOR 1CO bivs
+    DF.in.loop$rand_F1
+    sample.n1CO <- sample(pos.pool_1CO$Foci1.PER, n1CO, replace = FALSE )  #sample from the cell.table
+   
+    #sample a random 2CO chrm (obj.ID),    #doesn't make sense to sample a random position from 2CO pool, need to sample the linked positions, or get the 
+    #chrm observation
+   sample.n2CO.obj.id <- sample(pos.pool_2CO$Obj.ID, n2CO, replace = FALSE )
+   sample.n3CO.obj.id <- sample(pos.pool_2CO$Obj.ID, n3CO, replace = FALSE )
+   
+   #MAP normalized positions onto SC lengths/chrms of the fileName cell obs
+   #map the 1CO rand Foci position onto 1CO SCLength
+   
+   #for i in n1CO
+#   which(random_pos$fileName == male.cell)
+   random_pos$Rand.F1[which(random_pos$fileName == male.cell)][i] <- sample(pos.pool_1CO$Foci1.PER, 1, replace = FALSE)
+   
+   #list of the chrm lengths for all the 1COs for the current cell obs
+   #SC.Length_1COs <- 
+   
+}
+
+
+#need to define number of chrm classes within each nuc
+n1CO = 9
+
+BIG.DF.LIST_COpos_no.rank <- replicate(10,
+                  list(bind_rows(list( 
+          
+  pos.pool_1CO[ sample( which( pos.pool_1CO$hand.foci.count == 1), n1CO, replace = FALSE ),]
+          
+) ) ) )
+
+
+BIG.DF.LIST_no.rank <- replicate(18,
+                  list(bind_rows(list( 
+          male.whole.cell[ sample( which( male.whole.cell$rank < 20), 19, replace = FALSE ),]
+) ) ) )
+
+```
+
+
+```{r sum.stat.CO.pos, echo=FALSE}
+#remove F1 without values
+#and 1CO with 2 values
+
+SC_Mus.male_w.rank <- data.frame(  SC.cv = rep(0, length(BIG.LIST_w.rank) ) ) #first initialize the DF results will go in outside of loop
+for(j in 1:length(BIG.LIST_w.rank)){  #inside loop, move thru the LISTs of DFs
+ # print(j)
+  #fill in the cells of given index
+  SC_Mus.male_w.rank$SC.cv[j] <-cv(  BIG.LIST_w.rank[[j]]$SC.length ) #for each
+  SC_Mus.male_w.rank$total_SC[j] <-sum(  BIG.LIST_w.rank[[j]]$SC.length )
+  SC_Mus.male_w.rank$mean_SC[j] <-mean(  BIG.LIST_w.rank[[j]]$SC.length )
+  }
+
+#Calq cV for no rank
+SC_Mus.male_no.rank <- data.frame(  cV = rep(0, length(BIG.DF.LIST_no.rank) ) ) #first initialize the DF results will go in outside of loop
+for(i in 1:length(BIG.DF.LIST_no.rank)){  #inside loop, move thru the LISTs of DFs
+  #print(i)
+  #fill in the cells of given index
+  SC_Mus.male_no.rank$cV[i] <-cv(  BIG.DF.LIST_no.rank[[i]]$SC.length )
+  SC_Mus.male_no.rank$total_SC[i] <-sum(  BIG.DF.LIST_no.rank[[i]]$SC.length )
+  SC_Mus.male_no.rank$mean_SC[i] <-mean(  BIG.DF.LIST_no.rank[[i]]$SC.length )
+}
+
+```
+
+
+
+## Adding to Data set
+
+how to best increase the size of the dataset, with my bivalent data. From the curated BivData, figure out which can be added / into the whole cell data. I think there might only be a couple cell to add in.
+
+```{r getting.cell.names, echo=FALSE,eval=FALSE}
+
+#load in the cell dataset
+#28feb15_PWD_f2  from Curated_BivData
+#for a mouse, pull the 10 highest rec cells
+
+PWD.female_hand.measure = read.csv("~./MLH1repo/data/BivData/PWD_female_hand_measure.csv", header = TRUE, strip.white = TRUE)
+#"fileName"                "boxNumber"               "blobjectClass"           "chromosomeLength"        "centromere_ABS_Position" "Foci1"                   "Foci2"                  
+#"Foci3"                   "curation.notes"  
+female.mouse_bivData <- Curated_BivData[Curated_BivData$mouse == "28feb15_PWD_f2",]
+
+write.table(female.mouse_bivData, "~./MLH1repo/28feb15_PWD_f2.csv", sep=",", row.names = FALSE)
+
+PWD.female_hand.measure = read.csv("~./MLH1repo/28feb15_PWD_f2.csv", header = TRUE, strip.white = TRUE)
+PWD.female_hand.measure$Obj.ID <- paste(PWD.female_hand.measure$fileName, PWD.female_hand.measure$boxNumber, sep = "_")
+
+#merge with hand data
+#mergy <- merge(PWD.female_hand.measure, female.mouse_bivData)
+#PWD.female_hand.measure$hand.foci.count <- as.numeric(PWD.female_hand.measure$hand.foci.count)
+
+
+cells.BivData_table_28feb15_PWD_f2 <- ddply(.data=PWD.female_hand.measure, 
+                            .(fileName),
+                            summarize, 
+                            ncells = length(unique(fileName)),
+                            nbivs = length(unique(Obj.ID)),
+                            n.foci = sum(hand.foci.count),
+                            total.SC = sum(chromosomeLength),
+                            mean.SC = mean(chromosomeLength)
+                            
+)
+#add hand data
+ll <- cells.BivData_table_28feb15_PWD_f2[cells.BivData_table_28feb15_PWD_f2$nbivs > 18,]
+
+#I have 3 cells with full 20
+
+```
+
+```{r mini.biv, echo=FALSE,eval=FALSE}
+#make mini biv plots
+
+#PWD.female
+#PWD.female_hand.measure
+
+cell.1 <- PWD.female_hand.measure[PWD.female_hand.measure$fileName == "13mar15_28feb15_PWD_f2_sp1_10_rev",]
+cell.2 <- PWD.female_hand.measure[PWD.female_hand.measure$fileName == "13mar15_28feb15_PWD_f2_sp1_38_rev",]
+
+
+two_groups <- transform(cell.1, category2 = factor(paste(fileName, chromosomeLength)))
+two_groups <- transform(two_groups, category2 = reorder(category2, rank(chromosomeLength)))
+
+#this plot function takes the new df, and plots cat2(x) by SC length (y). cat2 has been ordered by the ranked length
+#of SC.
+MiniBiv_plot1 <-  ggplot(two_groups, aes(category2, chromosomeLength)) +
+    geom_bar(aes(fill= as.factor(hand.foci.count)), stat = "identity") +
+  #  geom_vline(xintercept = c(male_IFD, 1) ) +  #
+ #geom_hline(yintercept = c(male_IFD) ) +
+  
+  scale_fill_manual(values=c("red", "red", "red")) +   #0CO;"#FFCC66"
+  #how to add points for 2foci
+  geom_point(aes(x=two_groups$category2, y=two_groups$Foci1),colour = "green",size = 3 ) +   
+  #foci.1.position, two_groups$distal.foci.position)
+  geom_point(aes(x=two_groups$category2, y=two_groups$Foci2),colour = "green",size = 3 ) +
+  
+#add centromeres...  
+  geom_point(aes(x=two_groups$category2, y=0), colour = "purple4",size =5)+
+
+
+  facet_wrap( ~ fileName, scales = "free_x", ncol = 5) +
+ # scale_x_discrete(labels=two_groups$strain, breaks=two_groups$category2) +
+  ylim(c(0,200))+
+     theme(axis.line=element_blank(),axis.text.x=element_blank(),
+        axis.ticks=element_blank())  #for removeing x labels
+
+#MiniBiv_plot1
+#MiniBiv_plot2
+
+#save the files 
+
+```
+
+```{r discribe.Biv.Pattern, echo=FALSE}
+#start discribing the basic 
+
+#start merging curated bivData with handmeasured data
+
+
+#BivData - Curated
+```
+
+
+
+
+
+```{r add.more.whole.cell, echo=FALSE}
+
+#load data curatedBiv Data
+#load in hand measures
+
+
+```
+
+
+Look/use the DF, Curated_BivData data frame for mice with many cell measures and cells with whole cell measures (all bivalents have been measured).
+
 Mice with many cells and BivData
 17mar16_G_f4 - BivData
 17mar16_G_f1
@@ -157,662 +1230,10 @@ shiz.too
 the plot above shows an example plot of --- where the pools are from, currently these are 10 quantille and 90 quantile. setting threshold by percentile doesn't always give enough cells. 
 Should I be comparing cells with the same number of COs?
 
-
-
-```{r getting.cell.names, echo=FALSE,eval=FALSE}
-
-#load in the cell dataset
-#28feb15_PWD_f2  from Curated_BivData
-#for a mouse, pull the 10 highest rec cells
-
-PWD.female_hand.measure = read.csv("~./MLH1repo/data/BivData/PWD_female_hand_measure.csv", header = TRUE, strip.white = TRUE)
-#"fileName"                "boxNumber"               "blobjectClass"           "chromosomeLength"        "centromere_ABS_Position" "Foci1"                   "Foci2"                  
-#"Foci3"                   "curation.notes"  
-female.mouse_bivData <- Curated_BivData[Curated_BivData$mouse == "28feb15_PWD_f2",]
-
-write.table(female.mouse_bivData, "~./MLH1repo/28feb15_PWD_f2.csv", sep=",", row.names = FALSE)
-
-PWD.female_hand.measure = read.csv("~./MLH1repo/28feb15_PWD_f2.csv", header = TRUE, strip.white = TRUE)
-PWD.female_hand.measure$Obj.ID <- paste(PWD.female_hand.measure$fileName, PWD.female_hand.measure$boxNumber, sep = "_")
-
-#merge with hand data
-#mergy <- merge(PWD.female_hand.measure, female.mouse_bivData)
-#PWD.female_hand.measure$hand.foci.count <- as.numeric(PWD.female_hand.measure$hand.foci.count)
-
-
-cells.BivData_table_28feb15_PWD_f2 <- ddply(.data=PWD.female_hand.measure, 
-                            .(fileName),
-                            summarize, 
-                            ncells = length(unique(fileName)),
-                            nbivs = length(unique(Obj.ID)),
-                            n.foci = sum(hand.foci.count),
-                            total.SC = sum(chromosomeLength),
-                            mean.SC = mean(chromosomeLength)
-                            
-)
-#add hand data
-ll <- cells.BivData_table_28feb15_PWD_f2[cells.BivData_table_28feb15_PWD_f2$nbivs > 18,]
-
-#I have 3 cells with full 20
-
-```
-
-
-Start discribing the Bivalent patterns for the PWD female patterns
-
-
-```{r mini.biv, echo=FALSE,eval=FALSE}
-#make mini biv plots
-
-#PWD.female
-#PWD.female_hand.measure
-
-cell.1 <- PWD.female_hand.measure[PWD.female_hand.measure$fileName == "13mar15_28feb15_PWD_f2_sp1_10_rev",]
-cell.2 <- PWD.female_hand.measure[PWD.female_hand.measure$fileName == "13mar15_28feb15_PWD_f2_sp1_38_rev",]
-
-
-two_groups <- transform(cell.1, category2 = factor(paste(fileName, chromosomeLength)))
-two_groups <- transform(two_groups, category2 = reorder(category2, rank(chromosomeLength)))
-
-#this plot function takes the new df, and plots cat2(x) by SC length (y). cat2 has been ordered by the ranked length
-#of SC.
-MiniBiv_plot1 <-  ggplot(two_groups, aes(category2, chromosomeLength)) +
-    geom_bar(aes(fill= as.factor(hand.foci.count)), stat = "identity") +
-  #  geom_vline(xintercept = c(male_IFD, 1) ) +  #
- #geom_hline(yintercept = c(male_IFD) ) +
-  
-  scale_fill_manual(values=c("red", "red", "red")) +   #0CO;"#FFCC66"
-  #how to add points for 2foci
-  geom_point(aes(x=two_groups$category2, y=two_groups$Foci1),colour = "green",size = 3 ) +   
-  #foci.1.position, two_groups$distal.foci.position)
-  geom_point(aes(x=two_groups$category2, y=two_groups$Foci2),colour = "green",size = 3 ) +
-  
-#add centromeres...  
-  geom_point(aes(x=two_groups$category2, y=0), colour = "purple4",size =5)+
-
-
-  facet_wrap( ~ fileName, scales = "free_x", ncol = 5) +
- # scale_x_discrete(labels=two_groups$strain, breaks=two_groups$category2) +
-  ylim(c(0,200))+
-     theme(axis.line=element_blank(),axis.text.x=element_blank(),
-        axis.ticks=element_blank())  #for removeing x labels
-
-#MiniBiv_plot1
-#MiniBiv_plot2
-
-#save the files 
-
-```
-
-
-
-```{r biscribe.Biv.Pattern, echo=FALSE}
-#start discribing the basic 
-
-#start merging curated bivData with handmeasured data
-
-
-#BivData - Curated
-```
-
-
-from the curated BivData, figure out which can be added / into the whole cell data. I think there might only be a couple cell to add in.
-
-
-```{r add.more.whole.cell, echo=FALSE}
-
-#load data curatedBiv Data
-#load in hand measures
-
-
-```
-
-
-# Whole Cell Measures
-
-excel sheet Whole_cell_measures.xlsx has 840 bivalent measures.
-
-
-```{r setup.whole.cell.data, echo=FALSE}
-
-#read in csv of whole cell hand measures
-#setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
-#setwd("C:/Users/April/Desktop/MLH1repo")
-#load(file="data/MLH1/MLH1_data_setup.RData")
-
-source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
-#add sex since there is a difference in sample size
-whole.cell.data <- add_mouse(whole.cell.data)
-whole.cell.data <- add_sex(whole.cell.data)
-
-whole.cell.data <- whole.cell.data[!(is.na(whole.cell.data$fileName) | whole.cell.data$fileName==""), ]
-
-whole.cell.data.XY <- whole.cell.data
-whole.cell.data <- whole.cell.data[(whole.cell.data$hand.foci.count!="XY"), ]
-
-#make sure foci.count is number
-whole.cell.data$hand.foci.count <- as.character(whole.cell.data$hand.foci.count)
-whole.cell.data$hand.foci.count <- as.numeric(whole.cell.data$hand.foci.count)
-
-#find cells with the wrong number
-
-
-#ADD THE RANK
-for(musy in as.character(unique(whole.cell.data$fileName))){
-  #print(musy)
-  
-  #order the chrm lengths -- this is order
-  chrm.order = order(whole.cell.data$SC.length[whole.cell.data$fileName == musy])
-  whole.cell.data$rank[whole.cell.data$fileName == musy] <- chrm.order #19 to 20
-}
-#I think I saved the Excel with sorted SC lengths
-#Yay I printed the rank in this
-
-```
-
-## Adding to whole cell measures
-
-
-calculated the observed values in this chunk.
-
-```{r cell.level.tables, echo=FALSE}
-
-whole.cell.data <- whole.cell.data[(whole.cell.data$hand.foci.count!="XY"), ]
-
-male.whole.cell <- whole.cell.data[whole.cell.data$sex == "male", ]#359
-#ncells
-#length(unique(male.whole.cell$fileName) ) #24 cells
-
-female.whole.cell <- whole.cell.data[whole.cell.data$sex == "female", ]#456
-#length(unique(female.whole.cell$fileName) ) #18 cells
-
-biv.count_table <-  ddply(.data=whole.cell.data,
-                 .(fileName),
-                 summarize,
-                 nbiv = length(SC.length)
-)#all have 20 or 19 (after removing XY)
-
-#real data
-male.biv.count_table <-  ddply(.data=male.whole.cell,
-                 .(fileName),
-                 summarize,
-                 nbiv = length(SC.length),
-                 mean_co = mean(hand.foci.count, rm.na = TRUE),
-                 mean_sc = mean(SC.length),
-                   var_co = var(hand.foci.count),
-                   var_sc = var(SC.length),
-                 cv_co.count = cv(hand.foci.count),
-                 cv_SC.length = cv(SC.length)
-)
-
-female.biv.count_table <-  ddply(.data=female.whole.cell,
-                 .(fileName),
-                 summarize,
-                 nbiv = length(SC.length),
-                 mean_co = mean(hand.foci.count),
-                 mean_sc = mean(SC.length),
-                   var_co = var(hand.foci.count),
-                   var_sc = var(SC.length),
-                 cv_co.count = cv(hand.foci.count),
-                 cv_SC.length = cv(SC.length)
-)#one of the female cells is missing values
-
-```
-
-
-
-# Plots of whole cell data
-
-show SC length (y) by rank  (x), facet (sex)
-
-```{r play.plots, echo=FALSE}
-#female.whole.cell
-#male.whole.cell
-
-female.whole.cell <- female.whole.cell[!(is.na(female.whole.cell$SC.length) | female.whole.cell$SC.length==""), ]
-
-cow.hugger <- ggplot(female.whole.cell, aes(x=rank, y=SC.length, color=mouse) ) +geom_jitter()
-
-
-rank.length.boxplot <- ggplot(data=female.whole.cell) + geom_boxplot( aes(x=as.factor(rank), y=SC.length, fill=rank) )+geom_jitter(aes(x=as.factor(rank), y=SC.length) )+ggtitle("blaah")
-
-
-
-rank.length.boxplot.xx <- ggplot(data=female.whole.cell, aes(x=as.factor(rank), y=SC.length) ) + geom_boxplot()+ geom_jitter(aes( color=fileName))+
-  ggtitle("Female SC Length Dist by ranks")+theme(legend.position="none")
-
-rank.length.boxplot.xy <- ggplot(data=male.whole.cell, aes(x=as.factor(rank), y=SC.length)) + geom_boxplot()+ geom_jitter(aes( color=fileName)) +ggtitle("Male SC Length Dist by ranks")+theme(legend.position="none")
-
-
-rank.length.boxplot.xx
-rank.length.boxplot.xy
-
-```
-
-
-
-
-# PERMUTATION SETUP
-
-
-```{r per.co.count, echo=FALSE, eval=FALSE}
-#I don't think ... I end up useing these (matrics / DFs)
-iterations = 24
-variables = 20
-DF.permutations_CO.count <- matrix(ncol=variables, nrow=iterations)
-colnames(DF.permutations_CO.count) <- c("1", "rank1", "rank2", "rank3", "rank4", "rank5",
-                               "rank6","rank7","rank8","rank9","rank10","rank11",
-                               "rank12","rank13","rank14","rank15","rank16",
-                               "rank17","rank18","rank19" )
-
-for(row.num in 1:24){
-  
-  #print(c(row.num, "rowis") )
-  for(col.num in 2:ncol(DF.permutations_CO.count) ){
-  
-  rand.rank.co <- sample(male.whole.cell$hand.foci.count[male.whole.cell$rank == col.num-1], 1, replace = FALSE)
-  #print(SCll)   
-  DF.permutations_CO.count[row.num,col.num] <- rand.rank.co
-   }
-  }
-DF.permutations_CO.count <- as.data.frame(DF.permutations_CO.count)
-
-
-#no rank - iterate / permute the sampling X times
-its = 24
-varis = 20
-DF.permutations.CO.no_rank <- matrix(ncol=varis, nrow=its)
-
-#make LIST of X DATAFRAMES
-
-for(row.num in 1:24){
-  #print(c(row.num, "rowis") )
-  for(col.num in 2:ncol(DF.permutations.CO.no_rank) ){
-  rand.co <- sample(male.whole.cell$hand.foci.count, 1, replace = FALSE)
-  #print(SCll)   
-  DF.permutations.CO.no_rank[row.num,col.num] <- rand.co
-   }
-  }#yes this finally works!!!!
-DF.permutations.CO.no_rank <- as.data.frame(DF.permutations.CO.no_rank)
-
-#
-for( o in 1:nrow(DF.permutations.CO.no_rank) ) {
-  DF.permutations.CO.no_rank$var_rand.co[o] <- var(as.numeric(DF.permutations.CO.no_rank[o,2:20]))
-  }
-
-
-#merge with real
-co.var.for.plot <- matrix(ncol=3, nrow=72)
-co.var.for.plot <- as.data.frame(co.var.for.plot)
-colnames(co.var.for.plot) <- c("cell.id","var","type")
-
-co.var.for.plot$var[1:24] <- DF.permutations_CO.count$var_CO.count
-co.var.for.plot$type[1:24] <- "sim"
-
-co.var.for.plot$var[25:48] <- male.biv.count_table$var_co
-co.var.for.plot$type[25:48] <- "real"
-
-co.var.for.plot$var[49:72] <- DF.permutations.CO.no_rank$var_rand.co
-co.var.for.plot$type[49:72] <- "sim_no_rank"
-
-#plot
-#whole.cell.var_CO.plot  <- ggplot(co.var.for.plot, aes(y=var, x=type))+geom_jitter()+ggtitle("within cell CO variance")
-#whole.cell.var_CO.plot
-
-```
-
-
-## CO count, male
-
-
-Make list of DFs to fill with permutations
-
-```{r list.of.DF,echo=FALSE}
-
-#dataframes to recreate -- and fill with 
-#24 rows (cells/in silico nuclei) by 19 cols, (bivalent traits)
-
-#make subsampled piece of DF here -- these are taking the whole DF
-#I will just take single values
-#Curated_BivData[ sample( which(Curated_BivData$category=="WSB female"), Biv.sample.Number ), ]
-#male.whole.cell
-#rand.rank.co <- sample(male.whole.cell$hand.foci.count[male.whole.cell$rank == col.num-1], 1, replace = FALSE)
-
-#rank (sample all of the ranks then stich them together)
-BIG.LIST_w.rank <- replicate(1000,
-  list(bind_rows(list( 
-  male.whole.cell[ sample( which(male.whole.cell$rank==1), 1, replace = FALSE ),],
-  male.whole.cell[ sample( which(male.whole.cell$rank==2), 1, replace = FALSE ),],
-  male.whole.cell[ sample( which(male.whole.cell$rank==3), 1, replace = FALSE ),],
-  male.whole.cell[ sample( which(male.whole.cell$rank==4), 1, replace = FALSE ),],
-  male.whole.cell[ sample( which(male.whole.cell$rank==5), 1, replace = FALSE ),],
-   male.whole.cell[ sample( which(male.whole.cell$rank==6), 1, replace = FALSE ),],
-  male.whole.cell[ sample( which(male.whole.cell$rank==7), 1, replace = FALSE ),],
-  male.whole.cell[ sample( which(male.whole.cell$rank==8), 1, replace = FALSE ),],
-  male.whole.cell[ sample( which(male.whole.cell$rank==9), 1, replace = FALSE ),],
-  male.whole.cell[ sample( which(male.whole.cell$rank==10), 1, replace = FALSE ),],
-  
-   male.whole.cell[ sample( which(male.whole.cell$rank==11), 1, replace = FALSE ),],
-  male.whole.cell[ sample( which(male.whole.cell$rank==12), 1, replace = FALSE ),],
-  male.whole.cell[ sample( which(male.whole.cell$rank==13), 1, replace = FALSE ),],
-  male.whole.cell[ sample( which(male.whole.cell$rank==14), 1, replace = FALSE ),],
-  male.whole.cell[ sample( which(male.whole.cell$rank==15), 1, replace = FALSE ),],
-  male.whole.cell[ sample( which(male.whole.cell$rank==16), 1, replace = FALSE ),],
-  male.whole.cell[ sample( which(male.whole.cell$rank==17), 1, replace = FALSE ),],
-  male.whole.cell[ sample( which(male.whole.cell$rank==18), 1, replace = FALSE ),],
-  male.whole.cell[ sample( which(male.whole.cell$rank==19), 1, replace = FALSE ),]
-))))
-#this is replicating single cell (NOT a SAMPLE of 24)
-
-
-#LIST of DF, no rank (include all), samples all 19 bivs at a time
-#makes a list of 10 -- [[]]
-BIG.DF.LIST_no.rank <- replicate(1000,
-                  list(bind_rows(list( 
-          male.whole.cell[ sample( which( male.whole.cell$rank < 20), 19, replace = FALSE ),]
-) ) ) )
-
-
-#dealing with lists of DFs, 
-#2. #Loop through the list of DFs and do the ... make the cell level cVs calculations
-#i is this index of the dataframes in the list?
-
-#Calq cV for the rank perm
-cv.val.DF_rank <- data.frame(  cV_co.count_rank = rep(0, length(BIG.LIST_w.rank) ) ) #first initialize the DF results will go in outside of loop
-for(j in 1:length(BIG.LIST_w.rank)){  #inside loop, move thru the LISTs of DFs
- # print(j)
-  #fill in the cells of given index
-  cv.val.DF_rank$cV_co.count_rank[j] <-cv(  BIG.LIST_w.rank[[j]]$hand.foci.count )
-  }
-
-
-#Calq cV for no rank
-cv.val.DF_no.rank <- data.frame(  cV_co.count_no.rank = rep(0, length(BIG.DF.LIST_no.rank) ) ) #first initialize the DF results will go in outside of loop
-for(i in 1:length(BIG.DF.LIST_no.rank)){  #inside loop, move thru the LISTs of DFs
-  #print(i)
-  #fill in the cells of given index
-  cv.val.DF_no.rank$cV_co.count_no.rank[i] <-cv(  BIG.DF.LIST_no.rank[[i]]$hand.foci.count )
-  }
-#extract the 
-#next step make cell-level calqs of cV -- for plotting
-
-#merge + plots of the cvs
-#10 and 10 rows from the permuted
-cv.val.DF_rank$type <- "sim w.rank"
-colnames(cv.val.DF_rank) <- c("cV","type" )
-
-cv.val.DF_no.rank$type <- "sim no rank"
-colnames(cv.val.DF_no.rank) <- c("cV", "type")
-
-#then add the real values
-real.vals.cv.co <- data.frame(male.biv.count_table$cv_co.count)
-real.vals.cv.co$type <- "real"
-colnames(real.vals.cv.co) <- c("cV", "type")
-
-#merge
-cVs_permutations.DF <- rbind(cv.val.DF_rank, cv.val.DF_no.rank, real.vals.cv.co)
-
-# need to melt the DFs before ploting?
-#ploting --- plot with more sims
-oo.plot <- ggplot(cVs_permutations.DF, aes(y = cV, x=type) )+ geom_jitter()+ ggtitle("cv for cell co count, 1000 simulated")
-  
-#  geom_histogram(bins = 50)+facet_wrap(.~Test.type, scales = "free") 
-
-#biggie <- ggplot(Melted.pval.DF, aes(pval) )+geom_histogram(bins = 50)+facet_wrap(.~Test.type, scales = "free") + ggtitle("pvalues for 1000 replicated t.tests")
-
-```
-
-The above plot the real data might have more variance because it's a combination of strains
-
-
-## CO count, female
-
-```{r CO.count.female, echo=FALSE}
-
-#dataframes to recreate -- and fill with 
-#24 rows (cells/in silico nuclei) by 19 cols, (bivalent traits)
-
-#make subsampled piece of DF here -- these are taking the whole DF
-#I will just take single values
-#Curated_BivData[ sample( which(Curated_BivData$category=="WSB female"), Biv.sample.Number ), ]
-#male.whole.cell
-#rand.rank.co <- sample(male.whole.cell$hand.foci.count[male.whole.cell$rank == col.num-1], 1, replace = FALSE)
-
-#rank (sample all of the ranks then stich them together)
-BIG.LIST_w.rank_female <- replicate(1000,
-  list(bind_rows(list( 
-  female.whole.cell[ sample( which(female.whole.cell$rank==1), 1, replace = FALSE ),],
-  female.whole.cell[ sample( which(female.whole.cell$rank==2), 1, replace = FALSE ),],
-  female.whole.cell[ sample( which(female.whole.cell$rank==3), 1, replace = FALSE ),],
-  female.whole.cell[ sample( which(female.whole.cell$rank==4), 1, replace = FALSE ),],
-  female.whole.cell[ sample( which(female.whole.cell$rank==5), 1, replace = FALSE ),],
-   female.whole.cell[ sample( which(female.whole.cell$rank==6), 1, replace = FALSE ),],
-  female.whole.cell[ sample( which(female.whole.cell$rank==7), 1, replace = FALSE ),],
-  female.whole.cell[ sample( which(female.whole.cell$rank==8), 1, replace = FALSE ),],
-  female.whole.cell[ sample( which(female.whole.cell$rank==9), 1, replace = FALSE ),],
-  female.whole.cell[ sample( which(female.whole.cell$rank==10), 1, replace = FALSE ),],
-  
-   female.whole.cell[ sample( which(female.whole.cell$rank==11), 1, replace = FALSE ),],
-  female.whole.cell[ sample( which(female.whole.cell$rank==12), 1, replace = FALSE ),],
-  female.whole.cell[ sample( which(female.whole.cell$rank==13), 1, replace = FALSE ),],
-  female.whole.cell[ sample( which(female.whole.cell$rank==14), 1, replace = FALSE ),],
-  female.whole.cell[ sample( which(female.whole.cell$rank==15), 1, replace = FALSE ),],
-  female.whole.cell[ sample( which(female.whole.cell$rank==16), 1, replace = FALSE ),],
-  female.whole.cell[ sample( which(female.whole.cell$rank==17), 1, replace = FALSE ),],
-  female.whole.cell[ sample( which(female.whole.cell$rank==18), 1, replace = FALSE ),],
-  female.whole.cell[ sample( which(female.whole.cell$rank==19), 1, replace = FALSE ),],
-  female.whole.cell[ sample( which(female.whole.cell$rank==20), 1, replace = FALSE ),]
-  ))))
-
-
-#LIST of DF, no rank (include all), samples all 19 bivs at a time
-#makes a list of 10 -- [[]]
-BIG.DF.LIST_no.rank_female <- replicate(1000,
-                  list(bind_rows(list( 
-          female.whole.cell[ sample( which( female.whole.cell$rank < 20), 20, replace = FALSE ),]
-) ) ) )
-
-```
-
-These permuted dataframes can be reused for all the meiotic traits, (CO.count, SC length, and position).
-
-
-```{r sum.stat_cv.CO, echo=FALSE}
-#CALUCULATING SUMMARY STAT from the permuted DFs
-#dealing with lists of DFs, 
-#2. #Loop through the list of DFs and do the ... make the cell level cVs calculations
-#i is this index of the dataframes in the list?
-
-#Calq cV for the rank perm
-cv.val.DF_rank.female <- data.frame(  cV = rep(0, length(BIG.LIST_w.rank_female) ) ) #first initialize the DF results will go in outside of loop
-for(j in 1:length(BIG.LIST_w.rank_female)){  #inside loop, move thru the LISTs of DFs
- # print(j)
-  #fill in the cells of given index
-  cv.val.DF_rank.female$cV[j] <-cv(  BIG.LIST_w.rank_female[[j]]$hand.foci.count ) #for each
-  }
-
-
-#Calq cV for no rank
-cv.val.DF_no.rank.female <- data.frame(  cV = rep(0, length(BIG.DF.LIST_no.rank_female) ) ) #first initialize the DF results will go in outside of loop
-for(i in 1:length(BIG.DF.LIST_no.rank_female)){  #inside loop, move thru the LISTs of DFs
-  #print(i)
-  #fill in the cells of given index
-  cv.val.DF_no.rank.female$cV[i] <-cv(  BIG.DF.LIST_no.rank_female[[i]]$hand.foci.count ) #for each 
-}
-
-#merge + plots of the cvs
-#10 and 10 rows from the permuted
-cv.val.DF_rank.female$type <- "sim w.rank"
-colnames(cv.val.DF_rank) <- c("cV","type" )
-
-cv.val.DF_no.rank.female$type <- "sim no rank"
-colnames(cv.val.DF_no.rank.female) <- c("cV", "type")
-
-#then add the real values
-real.vals.cv.co_female <- data.frame(female.biv.count_table$cv_co.count)
-real.vals.cv.co_female$type <- "real"
-colnames(real.vals.cv.co_female) <- c("cV", "type")
-
-#merge
-cVs_permutations.DF_female <- rbind(cv.val.DF_rank.female, cv.val.DF_no.rank.female, real.vals.cv.co_female)
-
-
-# need to melt the DFs before ploting?
-#ploting --- plot with more sims
-Femaleplot_cV <- ggplot(cVs_permutations.DF_female, aes(y = cV, x=type) )+ geom_jitter()+ ggtitle("cv for cell co count female, 1000 simulated")
-  
-#  geom_histogram(bins = 50)+facet_wrap(.~Test.type, scales = "free") 
-
-#biggie <- ggplot(Melted.pval.DF, aes(pval) )+geom_histogram(bins = 50)+facet_wrap(.~Test.type, scales = "free") + ggtitle("pvalues for 1000 replicated t.tests")
-
-cVs_permutations.DF$sex <- "male"
-cVs_permutations.DF_female$sex <- "female"
-
-all.cv <- rbind(cVs_permutations.DF, cVs_permutations.DF_female)
-cV_plot <- ggplot(all.cv, aes(y = cV, x=type) )+ geom_jitter()+ ggtitle("cv for cell co count, 1000 simulated")+facet_wrap(~sex)
-cV_plot
-
-```
-
-
-
-# SC length, bivalent level
-
-don't need to remake permuted DFs, reuse the DFs:  BIG.LIST_w.rank, BIG.DF.LIST_no.rank, BIG.LIST_w.rank_female and BIG.DF.LIST_no.rank_female.
-
-
-```{r permutations.sc, echo=FALSE, eval=FALSE}
-
-#merge with real
-sc.var.for.plot <- matrix(ncol=3, nrow=72)
-sc.var.for.plot <- as.data.frame(sc.var.for.plot)
-colnames(sc.var.for.plot) <- c("cell.id","var","type")
-
-sc.var.for.plot$var[1:24] <- DF.permutations.sc$var_sc
-sc.var.for.plot$type[1:24] <- "sim"
-
-sc.var.for.plot$var[25:48] <- male.biv.count_table$var_sc
-sc.var.for.plot$type[25:48] <- "real"
-
-sc.var.for.plot$var[49:72] <- DF.permutations.no_rank$var_rand.sc
-sc.var.for.plot$type[49:72] <- "sim_no_rank"
-
-
-#plot the forms
-#plot within cell variance
-whole.cell.var_SC.plot  <- ggplot(sc.var.for.plot, aes(y=var, x=type))+geom_jitter()+ggtitle("within cell sc variance")
-whole.cell.var_SC.plot
-```
-
-
-```{r sum.stat.SClength, echo=FALSE}
-
-#Calq SC cV for the SC length FEMALE
-SCcv.val.DF_rank.female <- data.frame(  cV = rep(0, length(BIG.LIST_w.rank_female) ) ) #first initialize the DF results will go in outside of loop
-for(j in 1:length(BIG.LIST_w.rank_female)){  #inside loop, move thru the LISTs of DFs
-  #print(j)
-  #fill in the cells of given index
-  SCcv.val.DF_rank.female$cV[j] <-cv(  BIG.LIST_w.rank_female[[j]]$SC.length ) #for each
-  }
-
-#Calq SC cV for no rank
-SCcv.val.DF_no.rank.female <- data.frame(  cV = rep(0, length(BIG.DF.LIST_no.rank_female) ) ) #first initialize the DF results will go in outside of loop
-for(i in 1:length(BIG.DF.LIST_no.rank_female)){  #inside loop, move thru the LISTs of DFs
-  #print(i)
-  #fill in the cells of given index
-  SCcv.val.DF_no.rank.female$cV[i] <-cv(  BIG.DF.LIST_no.rank_female[[i]]$SC.length ) #for each 
-}
-
-#merge + plots of the cvs
-#10 and 10 rows from the permuted
-SCcv.val.DF_rank.female$type <- "sim w.rank"
-colnames(SCcv.val.DF_rank.female) <- c("cV","type" )
-
-SCcv.val.DF_no.rank.female$type <- "sim no rank"
-colnames(SCcv.val.DF_no.rank.female) <- c("cV", "type")
-
-#then add the real values
-real.vals.cv.SC_female <- data.frame(female.biv.count_table$cv_SC.length)
-real.vals.cv.SC_female$type <- "real"
-colnames(real.vals.cv.SC_female) <- c("cV", "type")
-
-#merge and plots
-cV.SC_permutations.DF_female <- rbind(SCcv.val.DF_rank.female, SCcv.val.DF_no.rank.female, real.vals.cv.SC_female)
-
-#MALE --BIG.LIST_w.rank, BIG.DF.LIST_no.rank,
-#Calq cV for the SC length
-SCcv.val.DF_rank.male <- data.frame(  cV = rep(0, length(BIG.LIST_w.rank) ) ) #first initialize the DF results will go in outside of loop
-for(j in 1:length(BIG.LIST_w.rank)){  #inside loop, move thru the LISTs of DFs
-  #print(j)
-  #fill in the cells of given index
-  SCcv.val.DF_rank.male$cV[j] <-cv(  BIG.LIST_w.rank[[j]]$SC.length ) #for each
-  }
-
-#Calq cV for no rank
-SCcv.val.DF_no.rank.male <- data.frame(  cV = rep(0, length(BIG.DF.LIST_no.rank) ) ) #first initialize the DF results will go in outside of loop
-for(i in 1:length(BIG.DF.LIST_no.rank)){  #inside loop, move thru the LISTs of DFs
-  #print(i)
-  #fill in the cells of given index
-  SCcv.val.DF_no.rank.male$cV[i] <-cv(  BIG.DF.LIST_no.rank[[i]]$SC.length ) #for each 
-}
-
-#merge + plots of the cvs
-#10 and 10 rows from the permuted
-SCcv.val.DF_rank.male$type <- "sim w.rank"
-colnames(SCcv.val.DF_rank.male) <- c("cV","type" )
-
-SCcv.val.DF_no.rank.male$type <- "sim no rank"
-colnames(SCcv.val.DF_no.rank.male) <- c("cV", "type")
-
-#then add the real values-- male.biv.count_table
-real.vals.cv.SC_male <- data.frame(male.biv.count_table$cv_SC.length)
-real.vals.cv.SC_male$type <- "real"
-colnames(real.vals.cv.SC_male) <- c("cV", "type")
-
-#merge and plots
-cV.SC_permutations.DF_male <- rbind(SCcv.val.DF_rank.male, SCcv.val.DF_no.rank.male, real.vals.cv.SC_male)
-cV.SC_permutations.DF_male$sex <- "male"
-cV.SC_permutations.DF_female$sex <- "female"  #cV.SC_permutations.DF_female
-all_cv.SC <- rbind(cV.SC_permutations.DF_female, cV.SC_permutations.DF_male)
-
-cV.SC_plot <- ggplot(all_cv.SC, aes(y = cV, x=type) )+ geom_jitter()+ ggtitle("cv of within cell SC lengths, 1000 permutations")+facet_wrap(~sex)
-```
-
-
-
-
-```{r permuted.v.real, echo=FALSE, eval=FALSE}
-for( o in 1:nrow(DF.permutations_CO.count) ) {
-  DF.permutations_CO.count$var_CO.count[o] <- var(as.numeric(DF.permutations_CO.count[o,2:20]))
-  }
-
-#two data frames of within cell var
-#cell.id, var, type
-var.for.plot <- matrix(ncol=3, nrow=48)
-var.for.plot <- as.data.frame(var.for.plot)
-colnames(var.for.plot) <- c("cell.id","var","type")
-
-var.for.plot$var[1:24] <- DF.permutations_CO.count$var_CO.count
-var.for.plot$type[1:24] <- "sim"
-
-var.for.plot$var[24:48] <- male.biv.count_table$var_co
-var.for.plot$type[24:48] <- "real"
-
-
-#my permuted DFs are in a strange str
-
-#plot within cell variance
-whole.cell.var.plot  <- ggplot(var.for.plot, aes(y=var, x=type))+geom_jitter()+ggtitle("within cell variance between types")
-
-whole.cell.var.plot
-```
-
-
-
 # Junk
 
 
-```{r junk, eval=FALSE}
+```{r junk, eval=FALSE, echo=FALSE}
 DF.permutations <- data.frame( nuc.sim = seq(1:24), rank1 = replicate(24, ""),rank2= replicate(24, ""),
                        rank3= replicate(24, ""),     rank4= replicate(24, ""),
                        rank5= replicate(24, ""),   rank6= replicate(24, ""),
