@@ -1,0 +1,181 @@
+# Total.SC
+# input: output from RW SC_skel run over Anon_Data images. The file names are random
+# output: matched random names with real names.
+
+
+#merge the sc.skel outputs with the master MLH1 measures
+#match up random names with original names
+
+#the skel output and scripts are in the SC_skel dir. it was run on all images in the anon_data folder. 
+#I haven't manually confirmed that the default parameters are skeletonizing the images correctly.
+
+#load main MLH1 files
+
+
+setwd("~./")
+SC.skel = read.csv("~./SC_skeletonize/data/SCskel_output_nov19.csv", header = TRUE, strip.white = TRUE)
+
+SC.skel$rand_name <- as.character(SC.skel$rand_name)
+
+#check for duplicatations of the random name
+original_DF$Random.Name <- as.character(original_DF$Random.Name)
+duplies <- original_DF[duplicated(original_DF$Random.Name),]
+#3 duplicate rows in original DF -- because Random name was blank -- how will these be matched to total.SC?
+
+
+str(SC.skel)
+#str(original_DF)
+
+MLH1.merge.Skel <- merge(original_DF, SC.skel, by.x = "Random.Name", by.y = "rand_name", all= F)
+#for some reason this only worked after the chr and all = F
+
+#clean up this DataFrame
+MLH1.merge.Skel <- MLH1.merge.Skel[ !grepl("X", MLH1.merge.Skel$Batch) , ]
+MLH1.merge.Skel <- MLH1.merge.Skel[ !grepl("x", MLH1.merge.Skel$X) , ]
+MLH1.merge.Skel <- MLH1.merge.Skel[!(is.na(MLH1.merge.Skel$quality) | MLH1.merge.Skel$quality==""), ]
+
+MLH1.merge.Skel <- add_mouse(MLH1.merge.Skel)
+MLH1.merge.Skel <- add_strain(MLH1.merge.Skel)
+MLH1.merge.Skel <- add_sex(MLH1.merge.Skel)
+
+MLH1.merge.Skel <- add_category(MLH1.merge.Skel)
+MLH1.merge.Skel <- add_subsp(MLH1.merge.Skel)
+
+#mlh1.skel.og <- add_euth_date(mlh1.skel.og)
+#mlh1.skel.og <- add_age(mlh1.skel.og)
+
+#str(mlh1.skel.og)
+MLH1.merge.Skel$skel_size  <- as.numeric(MLH1.merge.Skel$skel_size)
+MLH1.merge.Skel$bin_size <- as.numeric(MLH1.merge.Skel$bin_size)
+MLH1.merge.Skel$nMLH1.foci <- as.numeric(MLH1.merge.Skel$nMLH1.foci)
+
+#it seems like this has duplicates
+MLH1.merge.Skel.DUPs <- MLH1.merge.Skel[duplicated(MLH1.merge.Skel$Random.Name),]
+#with new dataframe, there are 0 duplicates..
+#900 duplicates -- not sure where they are from -- maybe how I merge them
+#4000
+
+#make sure to seperate mice based on adult and juvinille
+
+
+#remove for now
+MLH1.merge.Skel <- MLH1.merge.Skel %>% distinct()
+
+#keep list of outliers (need to adjust threshold with lastest batch)
+Total.SC.above.threshold <- MLH1.merge.Skel[MLH1.merge.Skel$skel_size > 25000,]
+
+#write out these cell's info so I can double check them.
+write.table(Total.SC.above.threshold, "~./MLH1repo/data/BivData/total_SC_above_threshold.csv", sep=",", row.names = FALSE)
+
+# I noticed that these cells have the same bin sizes and skel sizes
+#this is written within RW's code
+
+#now there are quite a few cells above the threshold
+table(Total.SC.above.threshold$category)
+#more female cells than male
+
+#remove outliers 
+MLH1.merge.Skel <- MLH1.merge.Skel[MLH1.merge.Skel$skel_size < 25000,]
+#try with subset
+
+write.table(MLH1.merge.Skel, "~./MLH1repo/data/BivData/total_SC_below_threshold.csv", sep=",", row.names = FALSE)
+
+
+#to clean up the total SC data -- use the images with no in redo crop (400 vs 2500)
+#could also compare to quality =1 cells
+
+
+#ploting
+#skel size has smaller range?
+
+Total.SC.box <- ggplot(data = MLH1.merge.Skel, aes(y=skel_size, x=strain, color=sex) ) + geom_boxplot()+ggtitle("Total SC Measures")
+#should confirm all of the female images-- since they are more likely to have broken SC
+
+#ToDo re-run the pipeline, to get measues for SKIVE and MOLF females
+#molf has almost eq SC -- but this is just 1 female
+
+Total.SC.points <- ggplot(data = MLH1.merge.Skel, aes(y=skel_size, x=strain, color=sex) ) + 
+  geom_jitter()+ggtitle("Total SC Measures")
+
+
+clean.crop <- MLH1.merge.Skel[MLH1.merge.Skel$REDO.crop == 'no',]
+# make tables of the means ect to measure how much change there is between these subseted data sets
+
+table(clean.crop$category)
+table(MLH1.merge.Skel$category)
+
+#table of clean crop stat
+#table of total (minus clean crop, stat)
+#% difference in means is the amount of error 
+
+
+clean.crop.table <- ddply(.data=clean.crop, 
+                             .(category),
+                             summarize, 
+                          #mean skel, mean binary, var for the two
+                          n.obs = length(unique(Original.Name)),
+                          mean.skel = mean(skel_size), 
+                          mean.bin = mean(bin_size),
+                          var.skel = var(skel_size),
+                          var.bin = var(bin_size)
+                          #ncells = length(unique(fileName)),
+                             #nbivs = length(unique(Obj.ID))
+                             
+)
+
+
+not.clean.crop.table <- ddply(.data=MLH1.merge.Skel[!MLH1.merge.Skel$REDO.crop == 'no',], 
+                          .(category),
+                          summarize, 
+                          #mean skel, mean binary, var for the two
+                          n.obs = length(unique(Original.Name)),
+                          mean.skel = mean(skel_size), 
+                          mean.bin = mean(bin_size),
+                          var.skel = var(skel_size),
+                          var.bin = var(bin_size)
+                          #ncells = length(unique(fileName)),
+                          #nbivs = length(unique(Obj.ID))
+                          
+)
+
+weee <- merge(clean.crop.table, not.clean.crop.table, by.x = 'category', by.y = 'category', all = FALSE)
+
+weee$dif.skel.mean <-  ( (weee$mean.skel.x - weee$mean.skel.y) / weee$mean.skel.x ) *100
+#for some categories the difference is ~20% between the means
+#usuall difference means the croped version has less compared to other
+
+
+MLH1.merge.Skel <- merge(original_DF, SC.skel, by.x = "Random.Name", by.y = "rand_name", all= F)
+
+Total.SC.points2 <- ggplot(data = clean.crop, aes(y=skel_size, x=strain, color=sex) ) + 
+  geom_jitter()+ggtitle("Total SC Measures, clean crops")
+
+#mouse level
+mouse.level.skel <- ddply(.data=mlh1.skel.og, 
+                          .(mouse),
+                          summarize, 
+                          ncells = length(unique(Original.Name)),
+                          nmice = length(unique(mouse)),
+                          mean.MLH1 = mean(nMLH1.foci),
+                          mean.skel = mean(skel_size)
+)
+
+mouse.level.skel <- add_strain(mouse.level.skel)
+mouse.level.skel <- add_sex(mouse.level.skel)
+mouse.level.skel <- add_category(mouse.level.skel)
+mouse.level.skel <- add_subsp(mouse.level.skel)
+
+
+looky.mouse <- ggplot(data = mouse.level.skel[mouse.level.skel$subsp == "Musc",], aes(y=mean.skel, x=mean.MLH1, color=strain) ) + geom_jitter() +ylim(c(150,1200))+facet_wrap(subsp~sex)
+
+looky.mouseDom <- ggplot(data = mouse.level.skel[mouse.level.skel$subsp == "Dom",], aes(y=mean.skel, x=mean.MLH1, color=strain) ) + geom_jitter() +ylim(c(150,1200))+facet_wrap(subsp~sex)
+
+#theme(legend.position="none") 
+
+#double check a way to visually inspect the python skel output
+#
+#repeat random numbers?
+
+
+#some of richard's analysis show negative relationship with SC length and MLH1 (his QTL word doc). Could this be sign
+# of pwd like regulation?
