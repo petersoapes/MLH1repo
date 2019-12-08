@@ -935,12 +935,68 @@ male.whole.cell <- whole.cell.data[whole.cell.data$sex == "male", ]#359
 
 male.biv.count_table <- male.biv.count_table[!(is.na(male.biv.count_table$fileName) | male.biv.count_table$fileName==""), ]
 
+male.whole.cell <- male.whole.cell[!(is.na(male.whole.cell$fileName) | male.whole.cell$fileName==""), ]
+
+#make sure male.whole.cell has nrm oci positions
 pos.pool_1CO <- male.whole.cell[male.whole.cell$hand.foci.count == 1,]
 pos.pool_2CO <- male.whole.cell[male.whole.cell$hand.foci.count == 2,]
 pos.pool_3CO <- male.whole.cell[male.whole.cell$hand.foci.count == 3,]
 
+pos.pool_1CO <- pos.pool_1CO[!(is.na(pos.pool_1CO$fileName) | pos.pool_1CO$fileName==""), ]
+pos.pool_2CO <- pos.pool_2CO[!(is.na(pos.pool_2CO$fileName) | pos.pool_2CO$fileName==""), ]
+pos.pool_3CO <- pos.pool_3CO[!(is.na(pos.pool_3CO$fileName) | pos.pool_3CO$fileName==""), ]
 #now make the randomized data set for CO pos
 #do whole row -- so I can cen n
+
+male.whole.cell.mini <- male.whole.cell#[190:455, ]
+
+
+for(oar in 1:length(male.whole.cell.mini$fileName)){
+  print(oar)
+   if(male.whole.cell.mini$hand.foci.count[oar] == 1){
+    print("oner")
+     #random sample
+     rand.obj.id.1CO <- sample(pos.pool_1CO$Obj.ID, 1)
+     
+     male.whole.cell.mini$rand.ID[oar] <- rand.obj.id.1CO
+     male.whole.cell.mini$rand.Foci1[oar] <- as.numeric(pos.pool_1CO$Foci1[which(pos.pool_1CO$Obj.ID == rand.obj.id.1CO)])
+     #  sample(pos.pool_1CO$F1, 1, replace = FALSE)
+     male.whole.cell.mini$rand.Foci2[oar] <- ""
+     male.whole.cell.mini$rand.Foci3[oar] <- ""
+   }
+  
+  if(male.whole.cell.mini$hand.foci.count[oar] == 2){
+    print("twoer")
+    
+    #random sampl of obj.id
+    rand.obj.id <- sample(pos.pool_2CO$Obj.ID, 1)
+    
+    male.whole.cell.mini$rand.ID[oar] <- rand.obj.id
+    #asign the F1s and F2s from the fit obj.id
+    
+    male.whole.cell.mini$rand.Foci1[oar] <-as.numeric(pos.pool_2CO$Foci1[which(pos.pool_2CO$Obj.ID == rand.obj.id)])
+  #  male.whole.cell.mini$rand.Foci2[oar] <- "blah"
+    male.whole.cell.mini$rand.Foci2[oar] <-as.numeric(pos.pool_2CO$Foci2[which(pos.pool_2CO$Obj.ID == rand.obj.id)])
+    male.whole.cell.mini$rand.Foci3[oar] <- ""
+ }
+
+  if(male.whole.cell.mini$hand.foci.count[oar] == 3){
+    print("threer")
+    rand.obj.id_3co <- sample(pos.pool_3CO$Obj.ID, 1)
+    
+    male.whole.cell.mini$rand.ID[oar] <- rand.obj.id_3co
+
+        male.whole.cell.mini$rand.Foci1[oar] <-as.numeric(pos.pool_3CO$Foci1[which(pos.pool_3CO$Obj.ID == rand.obj.id_3co)])
+  #  male.whole.cell.mini$rand.Foci2[oar] <- "blah"
+    male.whole.cell.mini$rand.Foci2[oar] <-as.numeric(pos.pool_3CO$Foci2[which(pos.pool_3CO$Obj.ID == rand.obj.id_3co)])
+    
+    male.whole.cell.mini$rand.Foci3[oar] <-as.numeric(pos.pool_3CO$Foci2[which(pos.pool_3CO$Obj.ID == rand.obj.id_3co)])
+    
+  }
+    
+  }
+
+
 
 random_pos <- data.frame(male.whole.cell$fileName, male.whole.cell$SC.length, male.whole.cell$hand.foci.count, male.whole.cell$Obj.ID  )
 
@@ -1229,6 +1285,8 @@ shiz.too
 
 the plot above shows an example plot of --- where the pools are from, currently these are 10 quantille and 90 quantile. setting threshold by percentile doesn't always give enough cells. 
 Should I be comparing cells with the same number of COs?
+
+
 
 # Junk
 
