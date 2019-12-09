@@ -394,7 +394,7 @@ add_IFD <- function(DF){
 #First form used colnames from DNA Crossover. With curation step -- I'm switching to the curation step colnames
 #these have more reliable values
 
-addIFD.2 <- function(DF){
+add_IFD.2 <- function(DF){
   
   DF$IFD1 <- ifelse(  as.numeric(DF$hand.foci.count >= 2), 
                       DF$Foci2 - DF$Foci1,   "" )
@@ -424,15 +424,15 @@ calq.intra.rbar <- function(chrm_row){
   # rrbar <- c()
   for(o in 1:length(chrm_row$fileName) ){
     #print(chrm_row$fileName[o])
-    if(grepl(0, chrm_row$handFoci[o])){
+    if(grepl(0, chrm_row$hand.foci.count[o])){
       #print("fist has 0 CO")
       #rrbar[o] <- NA
       rrbar <- 0
     }
-    if(grepl(1, chrm_row$handFoci[o])){  #do the block here
+    if(grepl(1, chrm_row$hand.foci.count[o])){  #do the block here
       #print("fist has 1 CO")
       #rrbar[o] <- "1CO"
-      portion1 <- chrm_row$F1[o]
+      portion1 <- chrm_row$Foci1[o]
       portion2  <- chrm_row$chromosomeLength[o] - portion1
       portion.sum <- portion1+portion2
       rel.portion1 <- (portion1 / portion.sum)
@@ -446,11 +446,11 @@ calq.intra.rbar <- function(chrm_row){
       rrbar <- 0.5*(1-chrm.sq)
       #o = o +1
     }
-    if(grepl(2, chrm_row$handFoci[o])){  #do the block here
+    if(grepl(2, chrm_row$hand.foci.count[o])){  #do the block here
       #print("this has 2 CO")
-      portion1 <- chrm_row$F1[o]
-      portion2  <- chrm_row$F2[o] - chrm_row$F1[o]
-      portion3 <- chrm_row$chromosomeLength[o] - chrm_row$F2[o]+1
+      portion1 <- chrm_row$Foci1[o]
+      portion2  <- chrm_row$Foci2[o] - chrm_row$Foci1[o]
+      portion3 <- chrm_row$chromosomeLength[o] - chrm_row$Foci2[o]+1
       portion.sum <- portion1+portion2+portion3 #in 2CO portions 
       rel.portion1 <- (portion1 / portion.sum)
       rel.portion2 <- (portion2 / portion.sum)
@@ -467,11 +467,11 @@ calq.intra.rbar <- function(chrm_row){
       #rbar[o] <- 0.5*(1-chrm.sq)
       #o = o +1
     }
-    if(grepl(3, chrm_row$handFoci)){
-      portion1 <- chrm_row$F1
-      portion2  <- chrm_row$F2 - chrm_row$F1
-      portion3 <- chrm_row$F3 - chrm_row$F2
-      portion4 <- chrm_row$chromosomeLength - chrm_row$F3
+    if(grepl(3, chrm_row$hand.foci.count)){
+      portion1 <- chrm_row$Foci1
+      portion2  <- chrm_row$Foci2 - chrm_row$Foci1
+      portion3 <- chrm_row$Foci3 - chrm_row$Foci2
+      portion4 <- chrm_row$chromosomeLength - chrm_row$Foci3
       portion.sum <- portion1+portion2+portion3+portion4
       rel.portion1 <- (portion1 / portion.sum)
       rel.portion2 <- (portion2 / portion.sum)
