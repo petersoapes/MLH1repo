@@ -2,26 +2,128 @@
 # input: BBIIGG type bivdata file (raw bivdata from DNAcrossover)
 # output: new file for manual curation
 
+setwd("~./MLH1repo/")
+
+#in.progress.Lew_BivData = read.csv("results/LEW_forcuration.csv", header=TRUE )
+#~500 scored in ~5 hrs
+
+#FULL_BivData = read.csv("data/BivData/MUS_FULL_BIVDATA_11.14.19.csv", header=TRUE ) #10.25.19, 41499
+#keep track of which mice have bivalent data and what still needs to be run
+#focus on getting female bivdata (PWD and KAZ)
+
+
+#FULL.BIVDATA FILES are too big -- must do with smaller batches
+#DEALING With the new BivData files
+#FULL_BivData_REDO2 = read.csv("data/BivData/FULL_MERGED_BIVDATA.csv", header=TRUE )
+#FULL_BivData_REDO = read.csv("data/BivData/FULL_MERGED_BIVDATA.csv", header=TRUE )
+
+
+#11.16.19 6pm - full merged bivData, 1,048,576 
+#7pm 1,048,576
+#THIS IS a very loong set to up dated this
+#check all of the repeats so that it speeds up in the future
+WSB_BivData = read.csv("data/BivData/algorithm\ output/WSB_output111419_BBIIGG_11.16.19.csv", header=TRUE )
+WSB_BivData$Obj.ID <- paste(WSB_BivData$fileName, WSB_BivData$boxNumber, sep = "_")
+
+G_BivData = read.csv("data/BivData/algorithm\ output/G_output111419_BBIIGG_11.16.19.csv", header=TRUE )
+G_BivData$Obj.ID <- paste(G_BivData$fileName, G_BivData$boxNumber, sep = "_")
+
+
+#CZECH
+CZECH_BivData = read.csv("data/BivData/algorithm\ output/SKIVE_CZECH_BBIIGG_11.15.19.csv", header=TRUE )
+CZECH_BivData$Obj.ID <- paste(CZECH_BivData$fileName, CZECH_BivData$boxNumber, sep = "_")
+
+
+
+#check for duplicate lines
+anyDuplicated(CZECH_BivData$Obj.ID)
+the.dups <- CZECH_BivData[duplicated(CZECH_BivData$Obj.ID),]
+#I think just the headers usually are duplicated
+
+#don't need to add these cols if taken from single batches
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+CZECH_BivData <- add_mouse(CZECH_BivData)
+CZECH_BivData <- add_strain(CZECH_BivData)
+CZECH_BivData <- add_subsp(CZECH_BivData)
+CZECH_BivData <- add_sex(CZECH_BivData)
+CZECH_BivData <- add_category(CZECH_BivData)
+
+table(CZECH_BivData$strain)#only 1 strain
+
+#SKIVE_bivData <- FULL_BivData_REDO[FULL_BivData_REDO$strain == "SKIVE",]
+CZECH_BivData <- CZECH_BivData[CZECH_BivData$strain == "CZECH",]
+#keep MSM male / since female seems to be complete
+#MSM_male_BivData <- FULL_BivData_REDO[FULL_BivData_REDO$category == "MSM male",]
+
+
+#filter by centromere
+CZECH_BivData$centromere_PER_Position <- as.character(CZECH_BivData$centromere_PER_Position)
+CZECH_BivData$centromere_PER_Position <- as.numeric(CZECH_BivData$centromere_PER_Position)
+CZECH_BivData <- CZECH_BivData[CZECH_BivData$centromere_PER_Position < 0.2,]
+
+#remove extra cols  (conservative  9:80)
+CZECH_BivData <- CZECH_BivData[ -c(9:70) ]
+
+CZECH_BivData$SC.pass <- ""
+CZECH_BivData$foci.pass<- ""
+CZECH_BivData$curated.1pass.0fail<- ""
+CZECH_BivData$curation.notes<- ""
+CZECH_BivData$hand.foci.count	<- ""
+CZECH_BivData$Foci1	<- ""
+CZECH_BivData$Foci2<- ""
+CZECH_BivData$Foci3<- ""
+CZECH_BivData$notes<- ""
+
+#CZECH
+write.table(CZECH_BivData, "~./MLH1repo/data/BivData/curation/redo_CZECH_11.19.19.csv", sep=",", row.names = FALSE)
+
+
+#WSB
+write.table(G_BivData, "~./MLH1repo/data/BivData/curation/G_for_curation_11.18.19.csv", sep=",", row.names = FALSE)
+
+#write to file for making manual notes
+write.table(CZECH_bivData, "~./MLH1repo/results/CZECH_for_curation_10.25.19.txt", sep="\t", row.names = FALSE)
+write.table(SKIVE_bivData, "~./MLH1repo/results/SKIVE_for_curation_11.15.19.txt", sep="\t", row.names = FALSE)
+
+#MSM sheet
+write.table(MSM_male_BivData, "~./MLH1repo/results/newMSM_for_curation_11.16.19.txt", sep="\t", row.names = FALSE)
+
+
+#read in the curated file -- and merge
+#NEEDS to fill in the fileName
+new.curated.SKIVE = read.csv("data/BivData/SKIVE_new_curation_11.15.19.csv", header=TRUE )
+#new file has curated things ... but is missing some of the lines
+
+new.curated.SKIVE$Obj.ID <- paste(new.curated.SKIVE$fileName, new.curated.SKIVE$boxNumber, sep = "_")
+
+newSKIVE_bivData <- FULL_BivData_REDO[FULL_BivData_REDO$strain == "SKIVE",]
+
+newSKIVE_bivData$Obj.ID <- paste(newSKIVE_bivData$fileName, newSKIVE_bivData$boxNumber, sep = "_")
+
+SKIVE.merge <- merge(new.curated.SKIVE, newSKIVE_bivData, by="Obj.ID", all.y = TRUE)
+
+write.table(SKIVE.merge, "~./MLH1repo/results/REDO_SKIVE_curate.csv", sep=",", row.names = FALSE)
+
+
+
+
+#remove mice 13nov16_MSM_m1 and 13nov16_MSM_m2 -- so I don't double curate, I think I avoided running these
+#MSM.male_bivData.dup.remove <- MSM.male_bivData[ ! MSM.male_bivData$Obj.ID %in% MSM_bivData$Obj.ID, ]
+
+#write to file for making manual notes
+write.table(MSM.male_bivData, "~./MLH1repo/results/MSM_male_for_curation_10.17.19.txt", sep="\t", row.names = FALSE)
+
+write.table(MSM_bivData, "~./MLH1repo/results/MSM_for_curation_10.16.19.txt", sep="\t", row.names = FALSE)
+#think about adding ~6 more columns for the curation process
+
+
+#str(LEW_bivData)
 
 #load/read in fullBivdata file
 new_PWD.KAZ_BivData_8.12.19.org = 
   read.csv("~./MLH1repo/data/BivData/PWD_KAZ_female_BivData_8.12.19.csv", header = TRUE)#740
 
 #(PWD-KAZ females), 8.12.19
-
-#delete 'p_rev' files
-
-
-#filter by centromere
-new_PWD.KAZ_BivData_8.12.19 <- new_PWD.KAZ_BivData_8.12.19.org[new_PWD.KAZ_BivData_8.12.19.org$centromere_PER_Position < 0.2,] #665
-#14000 bivalents
-
-#add Obj.ID
-new_PWD.KAZ_BivData_8.12.19$Obj.ID <- paste(new_PWD.KAZ_BivData_8.12.19$fileName, new_PWD.KAZ_BivData_8.12.19$boxNumber, sep = "_")
-
-#KAZ-PWD female
-#remove bad mice
-
 
 #extra filters?  extra chrms?  too long chrms?
 #20 lower end?
@@ -31,24 +133,10 @@ new_PWD.KAZ_BivData_8.12.19$Obj.ID <- paste(new_PWD.KAZ_BivData_8.12.19$fileName
 #consider altering the cols -- to make curation easier
 #remove all foci position columns
 
-new_PWD.KAZ_BivData_8.12.19$SC.pass <- ""
-new_PWD.KAZ_BivData_8.12.19$foci.pass<- ""
-new_PWD.KAZ_BivData_8.12.19$curated.1pass.0fail<- ""
-new_PWD.KAZ_BivData_8.12.19$curation.notes<- ""
-new_PWD.KAZ_BivData_8.12.19$hand.foci.count	<- ""
-new_PWD.KAZ_BivData_8.12.19$Foci1	<- ""
-new_PWD.KAZ_BivData_8.12.19$Foci2<- ""
-new_PWD.KAZ_BivData_8.12.19$Foci3<- ""
-
 
 #remove this mouse
 #8oct14_PWDf2_sp1
 #PWD_f1_sp1
-
-
-#write to file for making manual notes
-write.table(new_PWD.KAZ_BivData_8.12.19, "~./MLH1repo/results/forCuration_PWD.KAZfemale_8.12.19.txt", sep="\t", row.names = FALSE)
-#think about adding ~6 more columns for the curation process
 
 
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
