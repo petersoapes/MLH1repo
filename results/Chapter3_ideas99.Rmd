@@ -16,7 +16,7 @@ library(raster) #cv
 
 #read files
 whole.cell.data <- read.csv("~./MLH1repo/whole_cell_measures.csv")
-load(file="~./MLH1repo/data/CleanBivData.RData")#added batch17
+#load(file="~./MLH1repo/data/CleanBivData.RData")#added batch17
 ```
 
 
@@ -285,12 +285,12 @@ whole.cell.data$Foci2.PER <- whole.cell.data$F2 / whole.cell.data$SC.length
 whole.cell.data$Foci3.PER <- whole.cell.data$F3 / whole.cell.data$SC.length
 
 whole.cell.data <- add_IFD(whole.cell.data)
-whole.cell.data <-  add_IFD.2(whole.cell.data)
+#whole.cell.data <-  add_IFD.2(whole.cell.data)
 
 
-Curated_BivData$IFD1_PER = Curated_BivData$IFD1_ABS / Curated_BivData$chromosomeLength
+#Curated_BivData$IFD1_PER = Curated_BivData$IFD1_ABS / Curated_BivData$chromosomeLength
 #IFD.2 does mulitple IFDs (just absolute)
-Curated_BivData <- add_IFD.2(Curated_BivData)
+#Curated_BivData <- add_IFD.2(Curated_BivData)
 
 
 #find cells with the wrong number
@@ -917,6 +917,7 @@ the position col names are also, messed up I need to fix them --
 
 1. use the same randomized dataframe
 2. use the summary stat
+3. draw rand nrm foci position ... then map that onto the raw SC length
 
 How do I randomize CO pos for a chrm?
 I want to draw positions from chrm_classes
@@ -935,88 +936,228 @@ male.whole.cell <- whole.cell.data[whole.cell.data$sex == "male", ]#359
 
 male.biv.count_table <- male.biv.count_table[!(is.na(male.biv.count_table$fileName) | male.biv.count_table$fileName==""), ]
 
+male.whole.cell <- male.whole.cell[!(is.na(male.whole.cell$fileName) | male.whole.cell$fileName==""), ]
+
+#make sure male.whole.cell has nrm oci positions
 pos.pool_1CO <- male.whole.cell[male.whole.cell$hand.foci.count == 1,]
 pos.pool_2CO <- male.whole.cell[male.whole.cell$hand.foci.count == 2,]
 pos.pool_3CO <- male.whole.cell[male.whole.cell$hand.foci.count == 3,]
 
+pos.pool_1CO <- pos.pool_1CO[!(is.na(pos.pool_1CO$fileName) | pos.pool_1CO$fileName==""), ]
+pos.pool_2CO <- pos.pool_2CO[!(is.na(pos.pool_2CO$fileName) | pos.pool_2CO$fileName==""), ]
+pos.pool_3CO <- pos.pool_3CO[!(is.na(pos.pool_3CO$fileName) | pos.pool_3CO$fileName==""), ]
 #now make the randomized data set for CO pos
 #do whole row -- so I can cen n
 
-random_pos <- data.frame(male.whole.cell$fileName, male.whole.cell$SC.length, male.whole.cell$hand.foci.count, male.whole.cell$Obj.ID  )
+
+#make a copy of main DF
+male.whole.cell.mini <- male.whole.cell#[190:455, ]
 
 
-#INITIALIZE EMPTY list of DFs
-#fill in with full DF
-
-LIST.DFs <- setNames( replicate( length(male.biv.count_table$fileName), data.frame( obj.ID = c())), male.biv.count_table$fileName)
-
-ids <-    male.whole.cell$Obj.ID[which(male.whole.cell$fileName == '14oct16_30jun16_CAST_m3_sp1_3.2')]  
-
-LIST.DFs[1]$obj.ID[1:19] <- ids[1:19]
-
-#INITALIZE empty LIST (make DF in the loop)
-
-LIST <- list()
-
-#Loop for rand sampling  
-for( male.cell in male.biv.count_table$fileName){
+for(oar in 1:length(male.whole.cell.mini$fileName)){
+ # print(oar)
+   if(male.whole.cell.mini$hand.foci.count[oar] == 1){
+    print("oner")
+     #random sample -- there could be replicates in the random sample
+     rand.obj.id.1CO <- sample(pos.pool_1CO$Obj.ID, 1)
+     
+     male.whole.cell.mini$rand.ID[oar] <- rand.obj.id.1CO
+     male.whole.cell.mini$rand.Foci1[oar] <- as.numeric(pos.pool_1CO$Foci1.PER[which(pos.pool_1CO$Obj.ID == rand.obj.id.1CO)])
+     #  sample(pos.pool_1CO$F1, 1, replace = FALSE)
+     male.whole.cell.mini$rand.Foci2[oar] <- ""
+     male.whole.cell.mini$rand.Foci3[oar] <- ""
+   }
   
-  #for each fileName, make a new DF
-  DF.in.loop <- data.frame(matrix(ncol = 1, nrow = 19))
-  #making the Within loop DF
-  DF.in.loop$X1 <- male.whole.cell$fileName[male.whole.cell$fileName ==male.cell]
-  DF.in.loop$obj.ID <- male.whole.cell$Obj.ID[male.whole.cell$fileName ==male.cell]
-  DF.in.loop$SC.length <- male.whole.cell$SC.length[male.whole.cell$fileName ==male.cell]
-  DF.in.loop$hand.foci.count <- male.whole.cell$hand.foci.count[male.whole.cell$fileName ==male.cell]
-  
-  
-  #LIST.DFs[[male.cell]]$obj.ID[1:19] <- male.whole.cell$Obj.ID[male.whole.cell$fileName == male.cell]
-    #print(male.cell)
-    n0CO = male.biv.count_table$nCO0[male.biv.count_table$fileName == male.cell] #this reference needs to be from male.biv.count_table
-    n1CO = male.biv.count_table$nCO1[male.biv.count_table$fileName == male.cell]
-    n2CO = male.biv.count_table$nCO2[male.biv.count_table$fileName == male.cell]
-    n3CO = male.biv.count_table$nCO3[male.biv.count_table$fileName == male.cell]
+  if(male.whole.cell.mini$hand.foci.count[oar] == 2){
+   # print("twoer")
     
-   #rand samples for foci.pos
-    #JUST DO THIS FOR 1CO bivs
-    DF.in.loop$rand_F1
-    sample.n1CO <- sample(pos.pool_1CO$Foci1.PER, n1CO, replace = FALSE )  #sample from the cell.table
-   
-    #sample a random 2CO chrm (obj.ID),    #doesn't make sense to sample a random position from 2CO pool, need to sample the linked positions, or get the 
-    #chrm observation
-   sample.n2CO.obj.id <- sample(pos.pool_2CO$Obj.ID, n2CO, replace = FALSE )
-   sample.n3CO.obj.id <- sample(pos.pool_2CO$Obj.ID, n3CO, replace = FALSE )
-   
-   #MAP normalized positions onto SC lengths/chrms of the fileName cell obs
-   #map the 1CO rand Foci position onto 1CO SCLength
-   
-   #for i in n1CO
-#   which(random_pos$fileName == male.cell)
-   random_pos$Rand.F1[which(random_pos$fileName == male.cell)][i] <- sample(pos.pool_1CO$Foci1.PER, 1, replace = FALSE)
-   
-   #list of the chrm lengths for all the 1COs for the current cell obs
-   #SC.Length_1COs <- 
-   
-}
+    #random sampl of obj.id
+    rand.obj.id <- sample(pos.pool_2CO$Obj.ID, 1)
+    
+    male.whole.cell.mini$rand.ID[oar] <- rand.obj.id
+    #asign the F1s and F2s from the fit obj.id
+    
+    male.whole.cell.mini$rand.Foci1[oar] <-as.numeric(pos.pool_2CO$Foci1.PER[which(pos.pool_2CO$Obj.ID == rand.obj.id)])
+  #  male.whole.cell.mini$rand.Foci2[oar] <- "blah"
+    male.whole.cell.mini$rand.Foci2[oar] <-as.numeric(pos.pool_2CO$Foci2.PER[which(pos.pool_2CO$Obj.ID == rand.obj.id)])
+    male.whole.cell.mini$rand.Foci3[oar] <- ""
+ }
 
+  if(male.whole.cell.mini$hand.foci.count[oar] == 3){
+   # print("threer")
+    rand.obj.id_3co <- sample(pos.pool_3CO$Obj.ID, 1)
+    
+    male.whole.cell.mini$rand.ID[oar] <- rand.obj.id_3co
 
-#need to define number of chrm classes within each nuc
-n1CO = 9
+        male.whole.cell.mini$rand.Foci1[oar] <-as.numeric(pos.pool_3CO$Foci1.PER[which(pos.pool_3CO$Obj.ID == rand.obj.id_3co)])
+  #  male.whole.cell.mini$rand.Foci2[oar] <- "blah"
+    male.whole.cell.mini$rand.Foci2[oar] <-as.numeric(pos.pool_3CO$Foci2.PER[which(pos.pool_3CO$Obj.ID == rand.obj.id_3co)])
+    
+    male.whole.cell.mini$rand.Foci3[oar] <-as.numeric(pos.pool_3CO$Foci3.PER[which(pos.pool_3CO$Obj.ID == rand.obj.id_3co)])
+    
+  }
+    
+  }
 
-BIG.DF.LIST_COpos_no.rank <- replicate(10,
-                  list(bind_rows(list( 
-          
-  pos.pool_1CO[ sample( which( pos.pool_1CO$hand.foci.count == 1), n1CO, replace = FALSE ),]
-          
-) ) ) )
-
-
-BIG.DF.LIST_no.rank <- replicate(18,
-                  list(bind_rows(list( 
-          male.whole.cell[ sample( which( male.whole.cell$rank < 20), 19, replace = FALSE ),]
-) ) ) )
 
 ```
+
+
+
+### merge daata
+
+
+```{r merging.data,echo=FALSE}
+
+#melt the nrmfoci.pos, for real and randomized data
+REAL.melt.whole.cell.mini <- melt(male.whole.cell.mini,
+              c("Obj.ID","SC.length", "hand.foci.count","Foci1.PER","Foci2.PER","Foci3.PER"),
+                                  
+              id=c("Obj.ID","SC.length", "hand.foci.count")
+                                  )
+REAL.melt.whole.cell.mini <- REAL.melt.whole.cell.mini[!(is.na(REAL.melt.whole.cell.mini$value) | REAL.melt.whole.cell.mini$value==""), ]
+
+REAL.melt.whole.cell.mini <- REAL.melt.whole.cell.mini[ (REAL.melt.whole.cell.mini$variable != "hand.foci.count"), ]
+REAL.melt.whole.cell.mini <- REAL.melt.whole.cell.mini[ (REAL.melt.whole.cell.mini$variable != "Obj.ID"), ]
+REAL.melt.whole.cell.mini <- REAL.melt.whole.cell.mini[ (REAL.melt.whole.cell.mini$variable != "SC.length"), ]
+
+#make random melted DF
+RAND.melt.whole.cell.mini <- melt(male.whole.cell.mini, c("rand.ID","SC.length","hand.foci.count","rand.Foci1","rand.Foci2","rand.Foci3"),
+                                  id=c("rand.ID", "SC.length","hand.foci.count")
+)
+RAND.melt.whole.cell.mini <- RAND.melt.whole.cell.mini[!(is.na(RAND.melt.whole.cell.mini$value) | RAND.melt.whole.cell.mini$value==""), ]
+
+RAND.melt.whole.cell.mini <- RAND.melt.whole.cell.mini[ (RAND.melt.whole.cell.mini$variable != "hand.foci.count"), ]
+RAND.melt.whole.cell.mini <- RAND.melt.whole.cell.mini[ (RAND.melt.whole.cell.mini$variable != "rand.ID"), ]
+RAND.melt.whole.cell.mini <- RAND.melt.whole.cell.mini[ (RAND.melt.whole.cell.mini$variable != "SC.length"), ]
+
+```
+
+
+
+```{r merge.real.rand, echo=FALSE}
+
+REAL.melt.whole.cell.mini$type <- "real"
+RAND.melt.whole.cell.mini$type <- "sim"
+
+colnames(RAND.melt.whole.cell.mini) <- c("Obj.ID","SC.length", "hand.foci.count","variable","value", "type" )
+
+Position.DF <- rbind(REAL.melt.whole.cell.mini,RAND.melt.whole.cell.mini)
+
+Position.DF$value <- as.numeric(Position.DF$value )
+Position.DF$SC.length <- as.numeric(Position.DF$SC.length )
+
+```
+
+### plot relative foci positions
+
+```{r Pos.plot, echo=FALSE}
+
+#density or histogram plot facet hand foci count, plot value, fill type
+
+pos.plot <- ggplot(Position.DF[Position.DF$hand.foci.count == 1,], aes(x=as.numeric(value), fill=type))+geom_density(alpha=.6)
+
+pos.plot <- ggplot(Position.DF[Position.DF$hand.foci.count == 1,], aes(x=as.numeric(value), fill=type))+geom_histogram()
+
+
+pos.plot.all <- ggplot(Position.DF, aes(x=as.numeric(value), fill=type))+geom_density(alpha=.6)+facet_wrap(~hand.foci.count,ncol = 1)+ggtitle("Simulated and normalized positions, male mus")
+
+pos.plot.all
+
+pos.plot.one <- ggplot(Position.DF[Position.DF$hand.foci.count == 2,], aes(x=as.numeric(value), fill=type))+geom_density(alpha=.6)+facet_wrap(~hand.foci.count)+ggtitle("Simulated and normalized positions")
+
+
+
+HS.density.plot <- ggplot(Hs.CO_cVs.DF, aes(x = COs, fill=type) )+geom_density(alpha=.6) + ggtitle("CO per cell, Human male")+xlim(c(0,100))
+
+```
+
+The above distributions of relative foci position compare the real data pink to randomized data set of relative positions where for each bivalent observations the normalized position was replaced with positions from a randomly draw bivalent with the same CO number. For multi co bivalents relative foci positions were kept together. For example, a random 2CO bivalent choosen and the normalize foci1 and foci2 for that bivalent were used.
+
+
+In terms of normalized foci positions, the empiracal distribution isn't very different from a randomized distribution.
+
+Not exactly sure if this is the right randomization procedure, the same 'random' bivalent could be drawn more than once.
+
+Next, map the randomized positions onto the real sc.lengths for cell cell observation. 
+
+### Map normalized positions onto real SC
+
+
+```{r map.rand2real, echo=FALSE}
+
+#need sc length from the original
+Position.DF$raw.foci.pos <- Position.DF$SC.length *Position.DF$value
+
+male.whole.cell.mini$raw.rand_Foci1 <- male.whole.cell.mini$SC.length *male.whole.cell.mini$rand.Foci1
+male.whole.cell.mini$raw.rand_Foci2 <- male.whole.cell.mini$SC.length *male.whole.cell.mini$rand.Foci2
+male.whole.cell.mini$raw.rand_Foci3 <- male.whole.cell.mini$SC.length *male.whole.cell.mini$rand.Foci3
+
+male.whole.cell.mini$rand.Foci2 <- as.numeric(male.whole.cell.mini$rand.Foci2 )
+male.whole.cell.mini$rand.Foci3 <- as.numeric(male.whole.cell.mini$rand.Foci3)
+
+#calq telo distnce
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+
+for(y in 1:length(male.whole.cell.mini)  ){
+  male.whole.cell.mini$rbar[y] <- calq.intra.rbar(male.whole.cell.mini[y,])
+}
+
+for(rr in 1:length(male.whole.cell.mini)  ){
+  male.whole.cell.mini$rand.rbar[rr] <- calq.intra.rbar_rand(male.whole.cell.mini[rr,])
+}
+
+mapp.cell.wide <- add_mouse(mapp.cell.wide)
+mapp.cell.wide <- add_strain(mapp.cell.wide)
+
+
+#cell wide telomere covariance bias
+mapp.cell.wide <-  ddply(.data=male.whole.cell.mini,
+                 .(fileName, hand.foci.count),
+                 summarize,
+                 nbiv = length(SC.length),
+                 tot.SC = sum(SC.length),
+                 mean.pos = mean(Foci1.PER),
+                 mean.rand.pos = mean(rand.Foci1),
+                 mean.raw = mean(c(Foci1,Foci2, Foci3), na.rm=TRUE ),
+                 mean.raw.rand = mean( c(raw.rand_Foci1,raw.rand_Foci2,raw.rand_Foci3), na.rm=TRUE ),
+                 
+                var.raw = var(c(Foci1,Foci2, Foci3), na.rm=TRUE ),
+                 var.raw.rand = var( c(raw.rand_Foci1,raw.rand_Foci2,raw.rand_Foci3), na.rm=TRUE ),
+               
+                mean_rbar = mean(rbar),
+                mean_rand.rbar = mean(rand.rbar)
+)
+
+maisel <- ggplot(mapp.cell.wide, aes(x=mean_rbar, y=mean_rand.rbar))+geom_point()+xlim(c(0,.3))+ylim(c(0,.3))
+maisel
+
+oopp <- ggplot(mapp.cell.wide, aes(y=mean.raw, x=mean.raw.rand, color=mouse) ) +geom_point()+ggtitle("average foci position by cell, real vs randomized")
+oopp
+
+hh <- ggplot(mapp.cell.wide, aes(y=var.raw,x=var.raw.rand) ) +geom_point()+ggtitle("variance in foci position (per cell), between real and randomized")
+
+
+#what is the best way to plot these?
+
+#gg <- ggplot(Position.DF, aes(y=raw.foci.pos, x=variable, color= as.factor(hand.foci.count) ))+geom_jitter()+ggtitle("raw foci positions, reals and rand")
+#gg
+
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+
+```
+
+distributions don't look different. 
+Since I randomized the cell effect -- I need to map back into a cell wide summary to effectively compare the differences.
+
+NEED to Calculate cell-wide telomere bias (use a ddplyr thing)
+
+some of the plots compare the cell wide measures from real and randomized (I think this difference is what I should calculate for permuting or randomizing)
+
+points closer to 1:1 line have foci position features near the average of the group
+
+
+the random r bar is higher than the real r bar positions. meaning on average the male cell rbar values are lower (less to the middle and more to the ends) -- would this be the same as in female cells?
 
 
 ```{r sum.stat.CO.pos, echo=FALSE}
@@ -1229,6 +1370,8 @@ shiz.too
 
 the plot above shows an example plot of --- where the pools are from, currently these are 10 quantille and 90 quantile. setting threshold by percentile doesn't always give enough cells. 
 Should I be comparing cells with the same number of COs?
+
+
 
 # Junk
 
