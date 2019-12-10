@@ -541,6 +541,10 @@ The above plot the real data might have more variance because it's a combination
 
 ## CO count, female
 
+For mus, data frames that sample based on SC.length / rank, can be used for SC length and CO count metrics. Not CO position
+
+both SC and CO count randomized data 
+
 These code chunks make a randomized data set of 18 nuclei with 20 random chromosome draws each.
 
 ```{r rand.DF_CO.count.female, echo=FALSE, warning=FALSE}
@@ -839,6 +843,9 @@ I think the difference in variance of the rank and non-rank suimulations shows t
 
 # CO Position
 
+I think new randomized DFs must be made (male.whole.cell.min, not the DF.list)
+(previous ones made lists of DFs, which were made of simulated DFs for each nucleus/cell)
+My current code for position data, takes the current real DF, adds new columns with random draws of relative CO positions.
 
 I am still working on the metrics to compare (and the ones that are best for cell wide descriptions).
 - cell wide telomere bias
@@ -847,16 +854,16 @@ I am still working on the metrics to compare (and the ones that are best for cel
 
 (should these metrics should be weighted by CO count?)
 
-
+-measure the CO-variation of metrics within cells!
+for each cell, make even-rank and odd-rank columns of rbar or another metric. Measure covariance of the 2 sets of pairs (real and random, even-odd).
 
 ## Male CO Position
-
 
 Comparing cell wide statistics for CO position metrics across the real and randomized data sets.
 
 The permuted/randomized data set is made by keeping CO count and SC lengths constant, but replacing the normalized foci position with a random normalized foci position(s) drawn from a pool of the same CO counts. The randomized relative positions are converted into raw/absolute positions (for the original SC length of that bivalent observation). 
 
-```{r CO.pos, echo=FALSE}
+```{r random.CO.pos, echo=FALSE}
 #male.whole.cell
 #female.whole.cell
 #fix the data DF for PERMUTING CO
@@ -927,17 +934,114 @@ for(oar in 1:length(male.whole.cell.mini$fileName)){
     
   }
     
-  }
+}
 
+male.whole.cell.mini$SC.length <- as.numeric(as.character(male.whole.cell.mini$SC.length))
+male.whole.cell.mini$rand.Foci2 <- as.numeric(as.character(male.whole.cell.mini$rand.Foci2))
+male.whole.cell.mini$rand.Foci3 <- as.numeric(as.character(male.whole.cell.mini$rand.Foci3))
+
+male.whole.cell.mini$raw.rand_Foci1 <- male.whole.cell.mini$rand.Foci1 * male.whole.cell.mini$SC.length
+male.whole.cell.mini$raw.rand_Foci2 <- male.whole.cell.mini$rand.Foci2 * male.whole.cell.mini$SC.length
+male.whole.cell.mini$raw.rand_Foci3 <- male.whole.cell.mini$rand.Foci3 * male.whole.cell.mini$SC.length
 
 ```
 
 
+### calq within nuc COVARIATION
 
-### merge data
+```{r even.odd, echo=FALSE}
+#4 new columns for testing with in nuc covariance
+
+#this doesn't works as well for male 19! (get ride of shortest?)
+#make new DF (copy, or empty?)
+
+covary.DF <- male.whole.cell.mini[male.whole.cell.mini$fileName == "1mar16_3jan16_G_m2_sp1_19.3_rev",]
+#loop
+
+#I HAVE to make sure they are all ordered by metric, or the pairing for cov() will not make sense
+
+covary.DF <- with(covary.DF, covary.DF[order(SC.length),])
+evens <- covary.DF[which(covary.DF$rank %% 2 == 0),]
+odds <- covary.DF[which(covary.DF$rank %% 2 != 0),]
+cov(evens$SC.length,odds$SC.length[2:10])#303 (lots of variance)
+cor(evens$SC.length,odds$SC.length[2:10])# 0.2480786
+#do this for each cell / filename
+
+#covary, rbar -- within the same nuc
+#real and rand cov
+for(y in 1:length(covary.DF$fileName)  ){
+  covary.DF$rbar[y] <- calq.intra.rbar(covary.DF[y,])
+}
 
 
-```{r merging.data,echo=FALSE}
+
+covary.DF <- with(covary.DF, covary.DF[order(rbar),])
+evens <- covary.DF[which(covary.DF$rank %% 2 == 0),]
+odds <- covary.DF[which(covary.DF$rank %% 2 != 0),]
+
+cov(evens$rbar,odds$rbar[2:10])#0.007357481
+cor(evens$rbar,odds$rbar[2:10])# 0.9734986
+#I don't know how to interpert the scales of the covariaition values...
+#correlation is simpler to me
+
+#male.whole.cell.mini
+#counter of file 
+
+
+for(y in 1:length(male.whole.cell.mini$fileName)  ){
+  male.whole.cell.mini$rbar[y] <- calq.intra.rbar(male.whole.cell.mini[y,])
+}
+for(rr in 1:length(male.whole.cell.mini$fileName)  ){
+  male.whole.cell.mini$rand.rbar[rr] <- calq.intra.rbar_rand(male.whole.cell.mini[rr,])
+}
+
+
+#make smaller cell.level DF
+smllr.list = data.frame(fileName = unique(male.whole.cell.mini$fileName))
+i = 1
+#the loop isn't cycling
+for(each in unique(male.whole.cell.mini$fileName) ) {
+ # print(each)
+  
+  #make smaller DF, list of all obs of that file
+  temp.Df = male.whole.cell.mini[ male.whole.cell.mini$fileName == each,]
+  ordered.DF.rbar = with(temp.Df, temp.Df[order(rbar),])
+
+  #order by the metric (SC,rbar)  #make list of even and odd
+  evens <- ordered.DF.rbar$rbar[which(ordered.DF.rbar$rank %% 2 == 0)]
+  odds <- ordered.DF.rbar$rbar[which(ordered.DF.rbar$rank %% 2 != 0)]
+  
+  evens.rand <- ordered.DF.rbar$rand.rbar[which(ordered.DF.rbar$rank %% 2 == 0)]
+  odds.rand <- ordered.DF.rbar$rand.rbar[which(ordered.DF.rbar$rank %% 2 != 0)]
+
+  #calq cor,cov
+  smllr.list$fileName[i] <- each
+  smllr.list$cov[i] <- cov(evens,odds[2:10])
+  smllr.list$cor[i] <- cor(evens,odds[2:10])
+  
+  smllr.list$cov.rand[i] <- cov(evens.rand, odds.rand[2:10])
+  smllr.list$cor.rand[i] <- cor(evens.rand, odds.rand[2:10])
+  
+  #print(i)
+  i = i+1
+  }
+
+#plotty <- ggplot(smllr.list, #aes(x=cov,y=cov.rand))+geom_jitter()+xlim(c(-.005,.006))+ylim(c(-.005,.006))
+
+  
+```
+
+
+Calq the within cell covariance for the true and randomized values. 
+Not sure how to use them yet
+
+
+### merge melt data
+
+don't use melt data
+
+```{r melt.data,echo=FALSE}
+
 
 #melt the nrmfoci.pos, for real and randomized data
 REAL.melt.whole.cell.mini <- melt(male.whole.cell.mini,
@@ -962,13 +1066,7 @@ RAND.melt.whole.cell.mini <- RAND.melt.whole.cell.mini[ (RAND.melt.whole.cell.mi
 RAND.melt.whole.cell.mini <- RAND.melt.whole.cell.mini[ (RAND.melt.whole.cell.mini$variable != "SC.length"), ]
 
 
-male.whole.cell.mini$SC.length <- as.numeric(as.character(male.whole.cell.mini$SC.length))
-male.whole.cell.mini$rand.Foci2 <- as.numeric(as.character(male.whole.cell.mini$rand.Foci2))
-male.whole.cell.mini$rand.Foci3 <- as.numeric(as.character(male.whole.cell.mini$rand.Foci3))
 
-male.whole.cell.mini$raw.rand_Foci1 <- male.whole.cell.mini$rand.Foci1 * male.whole.cell.mini$SC.length
-male.whole.cell.mini$raw.rand_Foci2 <- male.whole.cell.mini$rand.Foci2 * male.whole.cell.mini$SC.length
-male.whole.cell.mini$raw.rand_Foci3 <- male.whole.cell.mini$rand.Foci3 * male.whole.cell.mini$SC.length
 
 ```
 
@@ -1015,8 +1113,11 @@ colnames(rand_rbar.Mus) <- c("rbar",  "type" )
 #merge
 Mus_rbar_male <- rbind(rand_rbar.Mus, real_rbar.Mus)
 
+dense1 <- ggplot(real_rbar.Mus, aes(x = rbar, fill=type) )+geom_density(alpha=.6)
+
+
 #
-density.plot_rbars <- ggplot(Mus_rbar_male, aes(x = rbar, fill=type) )+geom_density(alpha=.6) + ggtitle("Bivalent Rbar distributions, Mus male")+xlim(c(0,.3))
+density.plot_rbars <- ggplot(Mus_rbar_male, aes(x = rbar, fill=type) )+geom_density(alpha=.6) + ggtitle("Bivalent Rbar distributions, Mus male")+xlim(c(0,.55))
 density.plot_rbars
 
 mapp.cell.wide_cells <-  ddply(.data=male.whole.cell.mini,
@@ -1064,7 +1165,7 @@ cell.wide.tot.rbar_Musmale <- rbind(real_tot.cell_rbar.Mus, rand_tot.cell_rbar.M
 
 
 #
-density.plot_cell.wide.rbars <- ggplot(cell.wide.tot.rbar_Musmale, aes(x = sum.rbar, fill=type) )+geom_density(alpha=.6) + ggtitle("Cell wide total Rbar distributions, Mus male")+xlim(c(0,4))
+density.plot_cell.wide.rbars <- ggplot(cell.wide.tot.rbar_Musmale, aes(x = sum.rbar, fill=type) )+geom_density(alpha=.6) + ggtitle("Cell wide total Rbar distributions, Mus male")+xlim(c(0,6))
 
 density.plot_cell.wide.rbars
 
@@ -1098,17 +1199,13 @@ The above distributions of relative foci position compare the real data pink to 
 In terms of normalized foci positions, the empirical distribution isn't very different from a randomized distribution. Not exactly sure if this is the right randomization procedure, the same 'random' bivalent could be drawn more than once.
 
 
-I didn't include the 2 types of simulations? 
-rank is not considered for these simluations because -- I assume 
 
-I might write in a way to account for rank -- to follow the assumption that the relative foci positions vary for short and long chromosomes. but for now, just simulate across the whole/full pool.
-
-
-### Map normalized positions onto real SC
+I might write in a way to account for rank, to account for how the relative foci positions vary for short and long chromosomes. but for now, just simulate across the whole/full pool.
 
 
 
-```{r map.rand2real, echo=FALSE}
+
+```{r map.rand2real, echo=FALSE, warning=FALSE}
 
 #need sc length from the original
 Position.DF$raw.foci.pos <- Position.DF$SC.length * Position.DF$value
