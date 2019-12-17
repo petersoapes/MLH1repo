@@ -26,14 +26,28 @@ whole.cell.data <- read.csv("~./MLH1repo/whole_cell_measures.csv")
 
 Main take away from Wang et al 2019 is that chromosomes with the same nucleus co-vary in number of crossovers. Axis lengths / SC lengths show the same pattern and is known to be regulated at the cell wide level. The authors suggest that the within nucleus co-variation in CO per chromosome is mediated through cell wide regulation of SC area. (the lengths of SC for chromosomes within a cell a correlated, there is more area for COs).
 
-Data used in the paper
-human data- Gruhn et al 2013 (plotted below, 755 cells)
-Sun et al 2006
-Oliver-Bonet et al 2007 
-Lian et al 2008
-Lu et al 2012
-Hou et al 2013
+human Data used in the paper
 
+Gruhn et al 2013 - T. Hassold,
+4660 prophase sperm from 56 biopsies, 2000 prophase oocytes
+
+Sun et al 2006 --  F. Sun, 824 MLH1 FISH spreads(~100 cells / 10 men)
+
+Oliver-Bonet et al 2007 -- Oliver-
+Bonet  (RPA foci for 5 different SCs ~50 cells, ~400 cells with FISH + MLH1). problem if these data are included in big dataset
+
+Lian et al 2008 - S. Xie, (maybe similar data as sun et al 2008?)
+Lian, Jie, et al. "Variation in crossover interference levels on individual chromosomes from human males." Human molecular genetics 17.17 (2008): 2583-2594.
+
+Lu et al 2012 - 
+Hou et al 2013 - no SC lengths, (CO sounts 68 cells (oocytes?))
+
+Human data are from mulitple citations; Gruhn et al 2013, Sun et al 2006, Oliver-Bonet et al 2007, Lian et al 2008, Lu et al 2012, Hou et al 2013.
+
+
+Cytological Studies of Human Meiosis: Sex-Specific
+Differences in Recombination Originate at, or Prior to,
+Establishment of Double-Strand Breaks
 
 Was there original CO position data for this human data? (MLH1 spreads) (there is axis length and CO count per chrm -- this should mean there is position )
 
@@ -77,19 +91,20 @@ Melted.Hs.male_MLH1 <- Melted.Hs.male_MLH1[(!is.na(Melted.Hs.male_MLH1$value)),]
 Melted.Hs.male_MLH1 <- Melted.Hs.male_MLH1[((Melted.Hs.male_MLH1$variable != "row.name")),]
 colnames(Melted.Hs.male_MLH1) <- c("row.name", "Chrm.id", "CO")
 
+Melted.Hs.male_axis$Chrm.id <- factor(Melted.Hs.male_axis$Chrm.id, ordered = TRUE, levels=c("chr1","chr2","chr3",  "chr4",  "chr5",  "chr6",  "chr7",  "chr8",  "chr9",  "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22") )
 
 #Seems like there is an outlier, 
 #Melted.Hs.male_axis <- Melted.Hs.male_axis[(Melted.Hs.male_axis$axis.length < 700 #),]
 
 hs.CO.length_plot <- ggplot(Melted.Hs.male_MLH1, aes(y=CO, x=Chrm.id))+geom_jitter(aes( color=row.name, alpha = .2))+ 
   ggtitle("Human male CO Counts")+theme(legend.position="none")
-hs.CO.length_plot
+#hs.CO.length_plot
 ```
 
 
 ## Permutations of Human Data
 
-Heads of the cell-wide summary statistics
+Heads of the cell-wide summary statistics.
 
 ```{r Hs.cell_table, echo=FALSE}
 #make table for cell wide measures
@@ -110,16 +125,57 @@ Hs.SC_cell_wide <- ddply(.data=Melted.Hs.male_axis,
                             nbivs = length(unique(Chrm.id)),
                             total.SC = sum(axis.length),
                             mean.SC = mean(axis.length),
-                            cV.SC = cv(axis.length)
+                            cV.SC = cv(axis.length)#this does within cell cV (dif than cov)
 )
 head(Hs.SC_cell_wide)
+
+#the mus is rank based on SC, can I write in rank based on Chrm.id
+for(cellys in as.character(unique(Melted.Hs.male_axis$row.name))){
+  chrm.order = rank(Melted.Hs.male_axis$axis.length[whole.cell.data$row.name == cellys])
+  Melted.Hs.male_axis$rank[Melted.Hs.male_axis$row.name == cellys] <- chrm.order  
+}
+
+
+#
+two_groups2 <- transform(Melted.Hs.male_axis, category2 = factor(paste(row.name, Chrm.id)))
+two_groups2 <- transform(two_groups2, category2 = reorder(category2, rank(desc(axis.length)), decreasing = FALSE))
+#use desc for DECENDING order
+MiniBiv_line.plot <-  ggplot(two_groups2, aes(category2, axis.length, group=row.name, color=row.name)) +  geom_line(alpha = 0.2) + 
+  ggtitle("700 human male chrms ranked by Length")+ labs(x = "")+theme(axis.line=element_blank(),axis.text.x=element_blank(),
+        axis.ticks=element_blank()) 
+
+MiniBiv_line.plot
+
+
+#order by chrm id (they are now an ordered factor)
+#it might be kinda hard to subset the melted data, because they aren't organized into cells
+#
+
+Melted.Hs.male_axis.mini <- subset(Melted.Hs.male_axis, row.name < 101)
+
+two_groups <- transform(Melted.Hs.male_axis.mini, category2 = factor(paste(row.name, Chrm.id)))
+two_groups <- transform(two_groups, category2 = reorder(category2, rank(Chrm.id)))
+
+MiniBiv_line.plot2 <-  ggplot(data=two_groups, aes(category2, axis.length, group=row.name, color=row.name)) +  geom_line(alpha = 0.5) +  ggtitle("700 human male chrms ranked by chrm ID")+ labs(x = "")+theme(axis.line=element_blank(),axis.text.x=element_blank(),
+        axis.ticks=element_blank()) 
+
+MiniBiv_line.plot2
+
+#I could check a couple hundred, and remove cells with noticible spikes
 
 ```
 
 
+I added in single cell ranked axis curves. That is 22 axis/chromsomes for a human spermatocyte are ranked smallest to largest and I draw a curve over them. There are 700 cells, which obscure some patterns. A simple discription is that wider/thicker color indicates more variation in the final rank.
+
+I'm trying to think more about the single cell looping factor. -- how would I discribe this, slope of ranked 
+Sometimes the chrm id doesn't fit rank expectations.  (looking at the mini.biv plots, )
+
 I ran two types of permutations for the CO count per cell data. 'sim no rank' is a dataset where chromosome CO counts were drawn from the entire pool of chromosome observations. 'Sim w.rank' is a randomized pool, but each cell is made of random draws from one of each of the chromosome bins.
 
-I didn't test the axis length trait yet.
+I didn't test the axis length trait yet.  (See below for axis traits)
+
+
 
 ```{r Hs.Perm_noRank, echo=FALSE}
 
@@ -290,6 +346,29 @@ for(musy in as.character(unique(whole.cell.data$fileName))){
 ```
 
 
+```{r Mus.physcial.genome, echo=FALSE}
+#distribution of genome sizes from reference Mus genome
+#haploid genome size
+refMus.geome_Mb_male <- c(195,182,160,152,150,145,129,125,131,122,120,120,125,104,91,95,91,61)# 1109.412
+
+refMus.geome_Mb_XX <- c(195,182,160,152,150,145,129,125,131,122,120,120,125,104,91,95,91,61, 171)
+
+#note, this ommits telomeres and centromeres!
+#read the 
+#on average 8Mb worth of centromeres and telomeres are added to each chrm
+#i will try to find estimates of variation across indiviual chromosomes
+
+```
+
+Show a plot of the estimates chrm sizes. These values from MGI page omit centromere and telomere estimates. Read up on the T2T project lit to see if I can find better estimates of physical chormosome sizes.
+
+
+Do I need most accurate estimate of Mb size variance? would I expect -- similar variance among cells? If i ran jack-knifing or sub-sampling permutations of the within cell covariance calculations -- if the covariation eatimate remained about the same, I would be more convinced that the 'packing' ratio is mostly uniform WITHIN cells.
+Null/ comparison value might be, randomize cell.id for all bivalent observations.
+(maybe I should first try this in human data? (minus the wacky looking cells / bad chrm id))
+
+This might be the best thing to do to account for different physical sizes across other strains (non reference genome)
+
 
 I have a data set of hand measured whole cells, in excel sheet Whole_cell_measures.xlsx with has 840 bivalent measures. The table below shows the number of bivalent observations by categories.
 
@@ -371,6 +450,13 @@ male.biv.count_table <-  ddply(.data=male.whole.cell,
                  cv_co.count = cv(hand.foci.count),
                  cv_SC.length = cv(SC.length)
 )
+#exclude last one
+male.biv.count_table <- male.biv.count_table[!(is.na(male.biv.count_table$fileName) | male.biv.count_table$fileName==""), ]
+
+
+male.biv.count_table$ratio.now <- var(refMus.geome_Mb_male) / male.biv.count_table$var_sc
+male.biv.count_table$ratio.invert <-  male.biv.count_table$var_sc / var(refMus.geome_Mb_male)
+#have to think of which is right
 
 female.biv.count_table <-  ddply(.data=female.whole.cell,
                  .(fileName),
@@ -390,8 +476,19 @@ female.biv.count_table <-  ddply(.data=female.whole.cell,
                  cv_co.count = cv(hand.foci.count),
                  cv_SC.length = cv(SC.length)
 )
+#exclude last nas
+female.biv.count_table <- female.biv.count_table[!(is.na(female.biv.count_table$fileName) | female.biv.count_table$fileName==""), ]
+
+female.biv.count_table$ratio.now <- var(refMus.geome_Mb_XX) / female.biv.count_table$var_sc
+female.biv.count_table$ratio.invert <-  female.biv.count_table$var_sc / var(refMus.geome_Mb_XX)
+
 
 ```
+
+
+Calculated the ratio of genome size variance (haploid chrm variance), (I think the right denominator is SC length variance)
+most all are above 1 (for both female and male) -- indicates the packing ratio / packing process doesn't maintain (our guess about genome size of chromosomes)
+
 
 I calculate within cell ranked SC length to use rank as a proxy for chromosome ID for bivalents. 
 
