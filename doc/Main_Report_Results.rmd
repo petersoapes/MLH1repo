@@ -11,7 +11,7 @@ output:
 bibliography: refs_Main_Report.bib
 ---
 
-#Setup
+# Results
 
 ```{r setup, echo=FALSE, include = FALSE}
 library(knitr)
@@ -33,7 +33,8 @@ setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 
 #load main data file
 
-load(file="data/MLH1/MLH1_data_setup_11.12.19.RData")#added batch17
+load(file="data/MLH1/MLH1_data_setup_12.3.19.RData")#removed exclude mice
+#load(file="data/MLH1/MLH1_data_setup_11.12.19.RData")#added batch17
 #load(file="data/MLH1/MLH1_data_setup_11.11.19.RData")#deleted DUP image
 #load(file="data/MLH1/MLH1_data_setup_9.26.19.RData")#added batch16
 #load(file="data/MLH1/MLH1_data_setup_8.29.19.RData") #
@@ -99,13 +100,9 @@ var.plot <- ggplot(AP_mouse_table.HQ_target, aes(y=var, x = sex, color=sex))+geo
 ```
 
 
+Details of dataset cleaning ect is in SetupData.rmd
 
-1. The quality of MLH1 counts for individual mice is / was assessed in the MouseLevelPlots Rmd (can I link this file?). A list, mice.to.exclude was made.
-
-2. The list of excluded mice is applied in the MLH1.setup.data script, to remove these mice from the main dataset/dataframe. This script saves .RData file of the dataset which is loaded into Rmd files for analysis
-
-Mouse specific plots of CO count and quality were examined for general quality from single mice. Mice which produced few cells of low quality were excluded to the 'HQ' (high quality) dataset. (The full dataset was used to look at some patterns)
-
+Effects from different factors are reviewed in Effects.Rmd
 
 ```{r basic.numbers, echo=FALSE, eval=FALSE}
 
@@ -216,6 +213,51 @@ histM
 Most histograms of pooled MLH1 counts are all close to normal. Except PWD male, LEW female, SKIVE male, SPIC male.
 check if there is a quality effect.
 
+
+```{r MLH1.histogram.2, echo=FALSE}
+#remake the pooled MLH1 histgoram plot from above but facet by quality
+
+#PWD male, MSM male
+#LEW female, WSB female
+mean.MLH1.obs_qual <- ddply(.data=MLH1_data, 
+                 .(category, quality),
+                 summarize, 
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+#what's the point of the above table? -- add vlines?
+
+#I think I should do some t-tests across the groups of quality bins to better asess the amount of quality effect
+
+histM_qual.KAZ_male <- ggplot(data=MLH1_data[MLH1_data$category == "KAZ male",],(aes(x=adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ quality, ncol = 5)+ggtitle("KAZ male Pooled Cell Histograms by quality")+ geom_vline(xintercept=mean.MLH1.obs_qual$mean.MLH1[mean.MLH1.obs_qual$category == "KAZ male"],color="red")
+histM_qual.KAZ_male
+
+
+histM_qual.PWD_male <- ggplot(data=MLH1_data[MLH1_data$category == "PWD male",],(aes(x=adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ quality, ncol = 5)+ggtitle("PWD male Pooled Cell Histograms by quality")+ geom_vline(xintercept=mean.MLH1.obs_qual$mean.MLH1[mean.MLH1.obs_qual$category == "PWD male"],color="red")
+histM_qual.PWD_male
+
+histM_qual.MSM_male <- ggplot(data=MLH1_data[MLH1_data$category == "MSM male",],(aes(x=adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ quality, ncol = 5)+ggtitle("MSM male Pooled Cell Histograms by quality")+geom_vline(xintercept=mean.MLH1.obs_qual$mean.MLH1[mean.MLH1.obs_qual$category == "MSM male"], color="red")
+histM_qual.MSM_male
+
+histM_qual.WSB_female <- ggplot(data=MLH1_data[MLH1_data$category == "WSB female",],(aes(x=adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ quality, ncol = 5)+ggtitle("WSB female Pooled Cell Histograms by quality")+ geom_vline(xintercept=mean.MLH1.obs_qual$mean.MLH1[mean.MLH1.obs_qual$category == "WSB female"],color="red")
+histM_qual.WSB_female
+
+histM_qual.LEW_female <- ggplot(data=MLH1_data[MLH1_data$category == "LEW female",],(aes(x=adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ quality, ncol = 5)+ggtitle("LEW female Pooled Cell Histograms by quality")+ geom_vline(xintercept=mean.MLH1.obs_qual$mean.MLH1[mean.MLH1.obs_qual$category == "LEW female"],color="red")
+histM_qual.LEW_female
+
+
+#plot.pvals.L <- ggplot(bunchOpvals.L, aes(bunchOpvals.L) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Leptotene")+geom_vline(xintercept=ttest.HighLow.L$p.value, linetype="dotted", color="red")
+
+
+#when I try to add the mean lines, error returned that it can't find the adj_MLH1 ....?
+#histM <- histM +  geom_line(data=mean.MLH1.obs, aes(y=mean.MLH1.obs$mean.MLH1))
+  
+#ad
+#  geom_smooth(method = lm, se = FALSE
+ # geom_smooth(method = lm, formula = mean.MLH1.obs$mean.MLH1 ~ mean.MLH1.obs$category, se = FALSE)
+  
+
+```
 
 
 # MLH1 means
