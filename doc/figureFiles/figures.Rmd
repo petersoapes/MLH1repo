@@ -1,0 +1,289 @@
+---
+title: "Chapter 2 Figures"
+author: "April Peterson"
+date: "December 16, 2019"
+output: html_document
+---
+
+```{r setup, echo=FALSE, warning=FALSE, include=FALSE}
+#load data ect
+library(knitr)
+library(ggplot2)
+#library(pwr)
+library(plyr)
+library(dplyr)
+library(lattice)
+library(dplyr)
+library("cowplot")
+library(raster)#for cV
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+#setwd("C:/Users/April/Desktop/MLH1repo")
+#load(file="data/MLH1/MLH1_data_setup.RData")
+
+#load main data file
+load(file="data/MLH1/MLH1_data_setup_12.3.19.RData")#removed exclude mice
+
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+```
+
+
+```{r strain.color, echo=FALSE}
+
+colors_of_strains <- c('WSB'= "#56B4E9",'G' ='cadetblue','LEW'= 'lightblue','PERC'= 'blue',
+                       #blues
+                       
+                       'PWD'= 'red2',
+                       'SKIVE'= 'coral1','KAZ'= 'coral4', 'TOM'= 'indianred1','AST' = 'red4',
+                       'CZECH'= 'indianred4',
+                       
+                       'MSM'= 'deeppink', 'MOLF'= 'hotpink', #mol are pinks, bc they are fancy mice
+                       
+                    'CAST'='green','HMI'= 'forestgreen', #greens
+                    
+                    'SPRET'='gold','SPIC'= 'goldenrod1', #browns? color of mounds?
+                    'CAROLI'='gold3',
+                    
+                    "F1"='grey', "other" = 'grey'
+                    )
+
+```
+
+
+```{r setting.data, echo=FALSE, warning=FALSE}
+#remove F1
+AP_mouse_table.HQ <- AP_mouse_table.HQ[(AP_mouse_table.HQ$strain != "F1"),]
+
+#remove outgroups
+AP_mouse_table.HQ <- AP_mouse_table.HQ[(AP_mouse_table.HQ$strain != "SPRET"),]
+AP_mouse_table.HQ <- AP_mouse_table.HQ[(AP_mouse_table.HQ$strain != "SPIC"),]
+AP_mouse_table.HQ <- AP_mouse_table.HQ[(AP_mouse_table.HQ$strain != "CAROLI"),]
+
+#quality control - remove outlier mice
+AP_mouse_table.HQ <- AP_mouse_table.HQ[(AP_mouse_table.HQ$mouse != "18nov17_WSB_f5"),] #this mouse only had 1 cell
+
+#I need cell level data 
+
+uni.mice <- unique(AP_mouse_table.HQ$mouse)
+fig.data<- MLH1_data[ MLH1_data$mouse %in% uni.mice, ]
+
+#take all mouse levels from AP.table,
+#subset MLH1 data with those mice
+```
+
+
+```{r fig1_scatter_basic, echo=FALSE, warning=FALSE}
+#mouse averages
+#AP_mouse_table.HQ
+#fig.data  cell data
+
+
+fig.data <- fig.data %>%
+  arrange(strain, sex, mouse) %>%
+  mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
+
+# sort your dataframe, by the focal categories
+fig.data$mouse <- factor(fig.data$mouse, levels=unique(fig.data$mouse))
+
+fig.data.male <- subset(fig.data, sex== "male")
+
+#male
+Fig1_A_mouse.male <- ggplot(fig.data.male[order(fig.data.male$strain), ],
+  aes(y=nMLH1.foci, x=as.factor(mouse), color=strain))+  #geom_jitter()+
+  geom_boxplot(alpha = 0.6)+ylim(c(12,48))+
+  facet_grid(~sex, scales = "free", space="free")+scale_color_manual(values=colors_of_strains)+geom_boxplot(alpha = 0.6)+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position="none",
+        panel.background = element_blank(), axis.line = element_line(colour = "black"),
+  
+  #lines -- these might be tricky with the faceting
+  axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())  +
+  #Dom
+  annotate("segment", x= 10, xend=20.5, y=15, yend=15, colour="black", size=1)+
+  #Musc
+  annotate("segment", x= 50, xend=55, y=15, yend=15, colour="black", size=1)+
+  #Cast
+  annotate("segment", x=70, xend=80, y=15, yend=15, colour="black", size=1)
+
+
+#female
+#the data is mouse mean 
+fig.data.female <- subset(fig.data, sex== "female")
+
+Fig1_A_mouse.female <- ggplot(fig.data.female[order(fig.data.female$strain), ], aes(y=nMLH1.foci, x=as.factor(mouse), color=strain))+ #geom_jitter(width = 0.25)+
+  geom_boxplot(alpha = 0.6)+ylim(c(12,48))+
+  facet_grid(~sex, scales = "free", space="free")+scale_color_manual(values=colors_of_strains)+
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position="none",
+        panel.background = element_blank(), axis.line = element_line(colour = "black"),
+  #lines -- these might be tricky with the faceting
+ axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) +
+  #Dom
+  annotate("segment", x= 10, xend=20.5, y=18, yend=18, colour="black", size=1)+
+  #Musc
+  annotate("segment", x= 50, xend=55, y=18, yend=18, colour="black", size=1)+
+  #Cast
+  annotate("segment", x=70, xend=80, y=18, yend=18, colour="black", size=1)
+
+```
+
+
+# Figure 1
+
+```{r strain.table, echo=FALSE, warning=FALSE}
+#fig.data -- (only mice from better list)
+
+#there are still quality 5 cells in this dataframe
+fig.data <- subset(fig.data, quality < 5)
+
+#use the MLH1 / cell level data to calq the error bars
+strain.table.HQ <- ddply(fig.data, c("strain", "sex"), summarise,
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(nMLH1.foci),
+                        mean_co = as.numeric(format(round(  mean(nMLH1.foci), 3 ), nsmall=3) ),
+                        cV = cv(nMLH1.foci, na.rm = TRUE),
+                        var = as.numeric(format(round(   var(nMLH1.foci, na.rm = TRUE),3), nsmall=3)), #this turns to chr
+                        sd   = round(sd(nMLH1.foci, na.rm = TRUE), 3),
+                        se   = round(sd / sqrt(Nmice), 3)
+    )
+
+
+#cv, sd and se are all NA / empty
+strain.table.HQ <- strain.table.HQ[!(is.na(strain.table.HQ$cV) | strain.table.HQ$cV== "" ), ]
+
+#remove outgroups
+#remove F1
+strain.table.HQ <- strain.table.HQ[(strain.table.HQ$strain != "F1"),]
+
+#remove outgroups
+strain.table.HQ <- strain.table.HQ[(strain.table.HQ$strain != "SPRET"),]
+strain.table.HQ <- strain.table.HQ[(strain.table.HQ$strain != "SPIC"),]
+strain.table.HQ <- strain.table.HQ[(strain.table.HQ$strain != "CAROLI"),]
+
+```
+
+
+```{r reorder.strain, echo=FALSE}
+
+#re-order strains
+#Musc
+#PWD, SKIVE, KAZ, CZECH, TOM, AST
+
+#MOl
+#MSM, MOLF
+strain.table.HQ$strain<- factor(strain.table.HQ$strain, ordered = TRUE, levels =c( "WSB", "G", "LEW", "PERC",
+                                                                   "PWD", "SKIVE", "KAZ", "TOM", "AST","CZECH",
+                                                                  "MSM", "MOLF",
+                                                                    "CAST", "HMI",
+                                                                   "SPRET", "SPIC", "CAROLI", "F1", "other") )
+```
+
+
+I think some strain observations can be removed, since they only have 
+
+```{r strain.table.plot, echo=FALSE, warning=FALSE}
+#use the MLH1 / cell level data to calq the error bars
+#strain table ggplot
+
+Fig1_B_strain.male <- ggplot(strain.table.HQ[strain.table.HQ$sex == "male",], aes(y=mean_co, x=strain, color=strain))+facet_grid(~sex, scales = "free", space="free")+ 
+  ylab("")+
+  geom_point(size=3)+
+  geom_errorbar(aes(ymin=mean_co-se, ymax=mean_co+se), width=.3)+
+  ylim(c(18, 35))+
+ scale_color_manual(values=colors_of_strains)+ 
+  theme(legend.position="none",
+  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line=element_line(colour = "black"),
+  axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())+
+#remove y labfor male  
+  
+  #segments
+  annotate("segment", x= 0, xend=5, y=21, yend=21, colour="black", size=1)+
+  #Musc
+  annotate("segment", x= 5, xend=8, y=20, yend=20, colour="black", size=1)+
+  #Cast
+  annotate("segment", x=11, xend=15, y=18, yend=18, colour="black", size=1)+
+  #label
+  annotate("text", x = c(1.5,8,10.5, 11), #list of all x points 
+           y = c(20,18, 20,18),
+           
+           label = c("M. m. domesticus","M. m. musculus", "M.m.molossinus", "M.m.castaneus"),
+           fontface = 'italic', hjust = 0.5, size=3.5)
+
+#this can pull just the lengend object
+#grobs <- ggplotGrob(Fig1_B_strain.male)$grobs
+#legend <- grobs[[which(sapply(grobs, function(x) x$name) == "guide-box")]]
+
+# 2
+Fig1_B_strain.female <- ggplot(strain.table.HQ[strain.table.HQ$sex == "female",], aes(y=mean_co, x=strain, color=strain))+facet_grid(~sex, scales = "free", space="free")+ ylab("Average MLH1 foci per Cell")+
+  geom_point(size=3)+
+  ylim(c(18, 35))+
+  geom_errorbar(aes(ymin=mean_co-se, ymax=mean_co+se), width=.3) +
+  scale_color_manual(values=colors_of_strains)+ 
+  theme(legend.position="none", panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line = element_line(colour = "black"),
+  axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())+
+  #segments
+  annotate("segment", x=1, xend=3.5, y=22, yend=22, colour="black", size=1)+
+  #Musc
+  annotate("segment", x=5, xend=8.5, y=20, yend=20, colour="black", size=1)+
+  #Cast
+#  annotate("segment", x=4, xend=2, y=18, yend=18, colour="black", size=1)
+#Labels
+ annotate("text", x = c(1.5,8), #list of all x points 
+           y = c(20,18),
+           label = c("M. m. domesticus","M. m. musculus"),
+           fontface = 'italic', hjust = 0.5, size=3)
+ 
+
+```
+
+
+```{r Strain.fig.merge, echo=FALSE}
+fig1_B  <- ggdraw() +
+  draw_plot(Fig1_B_strain.female, x=0, y = 0, width=.48, height=.88) +
+  draw_plot(Fig1_B_strain.male, x=.5, y=0, width=.48, height=.88) +
+  
+  draw_plot_label(label = c("A", "B"), size = 15,
+                  x = c(0, .5), y = c(1, 1) )
+fig1_B
+```
+
+
+add molossinus
+
+re-arrange Muusc strain level order to highlight the polymorphism to musc
+
+
+Clean up segments
+There are many more male strains represented.
+
+
+The male plot is squished because of the legend
+
+
+## Figure 1, mouse levels shown
+
+
+
+```{r cow.plot.fig1, echo=FALSE}
+
+fig1  <- ggdraw() +
+  draw_plot(Fig1_A_mouse.female, x=0, y = 0, width=.48, height=.88) +
+  draw_plot(Fig1_A_mouse.male, x=.5, y=0, width=.48, height=.88) +
+  draw_plot_label(label = c("A", "B"), size = 15,
+                  x = c(0, .5), y = c(1, 1) )
+
+fig1
+```
+
+USE boxplots --- this is a bit too busy with single mouse level observations. (so forget the cell level data I just coded. What if I sub-sampled?)
+
+Draft first fig. MLH1 distributions will be the main first figure
+I think a strain level would look better.  Add white space between 
+
+I still need to work on some colors
+add line segments, they are good at anchoring 
+
+add line segments for strain means?, do boxplots?
+
+Note that this figure knitted in html will look different than a saved png or tif.
+change the ylabel 'Mean Number of MLH1 Foci per Cell'
+
+
