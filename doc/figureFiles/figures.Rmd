@@ -125,7 +125,6 @@ strain.table.HQ <- strain.table.HQ[(strain.table.HQ$strain != "CAST"),]
 ```
 
 
-
 ```{r reorder.strain.v2, echo=FALSE}
 
 #re-order strains
@@ -149,7 +148,7 @@ strain.table.HQ$strain<- factor(strain.table.HQ$strain, ordered = TRUE, levels =
 Fig1_Bv2_strain.male <- ggplot(strain.table.HQ[strain.table.HQ$sex == "male",], aes(y=mean_co, x=strain, color=strain))+facet_grid(~sex, scales = "free", space="free")+ 
   ylab("")+
   geom_point(size=3)+
-  geom_errorbar(aes(ymin=mean_co-se, ymax=mean_co+se), width=.3)+
+  geom_errorbar(aes(ymin=mean_co-(se*2), ymax=mean_co+(se*2) ), width=.3)+
   ylim(c(18, 35))+
  scale_color_manual(values=colors_of_strains)+ 
   theme(legend.position="none",
@@ -164,8 +163,8 @@ Fig1_Bv2_strain.male <- ggplot(strain.table.HQ[strain.table.HQ$sex == "male",], 
   #mol
   annotate("segment", x=6.5, xend=8.1, y=19.5, yend=19.5, colour="black", size=1)+
   #label
-  annotate("text", x = c(2,5,7.15), #list of all x points 
-           y = c(18.5,18.5, 18.5),
+  annotate("text", x = c(2.2,5.9,6.1), #list of all x points 
+           y = c(18.5,18.5, 33),
            
    label = c("M. m. domesticus","M. m. musculus", "M.m.molossinus"),
            fontface = 'italic', hjust = 0.5, size=3.5)
@@ -178,7 +177,7 @@ Fig1_Bv2_strain.male <- ggplot(strain.table.HQ[strain.table.HQ$sex == "male",], 
 Fig1_Bv2_strain.female <- ggplot(strain.table.HQ[strain.table.HQ$sex == "female",], aes(y=mean_co, x=strain, color=strain))+facet_grid(~sex, scales = "free", space="free")+ ylab("Average MLH1 Foci per Cell")+
   geom_point(size=3)+
   ylim(c(18, 35))+
-  geom_errorbar(aes(ymin=mean_co-se, ymax=mean_co+se), width=.3) +
+  geom_errorbar(aes(ymin=mean_co-(se*2), ymax=mean_co+(se*2)), width=.3) +
   scale_color_manual(values=colors_of_strains)+ 
   theme(legend.position="none", panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
   panel.background = element_blank(), axis.line = element_line(colour = "black"),
@@ -192,8 +191,8 @@ Fig1_Bv2_strain.female <- ggplot(strain.table.HQ[strain.table.HQ$sex == "female"
     #Cast
 #  annotate("segment", x=4, xend=2, y=18, yend=18, colour="black", size=1)
 #Labels
- annotate("text", x = c(2.25,5.6,6.5), #list of all x points 
-           y = c(18.5,18.5,18.5),
+ annotate("text", x = c(2.25,5.9,6.1), #list of all x points 
+           y = c(18.5,18.5,33),
            label = c("M. m. domesticus","M. m. musculus", "M.m.molossinus"),
            fontface = 'italic', hjust = 0.5, size=3.5)
  
@@ -202,13 +201,12 @@ Fig1_Bv2_strain.female <- ggplot(strain.table.HQ[strain.table.HQ$sex == "female"
 
 
 ```{r Strain.fig.merge.v2, echo=FALSE}
-
 fig1_B_v2  <- ggdraw() +
-  draw_plot(Fig1_Bv2_strain.female, x=0, y = 0, width=.5, height=.97) +
-  draw_plot(Fig1_Bv2_strain.male, x=.45, y=0, width=.5, height=.97) +
+  draw_plot(Fig1_Bv2_strain.female, x=0, y = 0, width=.47, height=.97) +
+  draw_plot(Fig1_Bv2_strain.male, x=.49, y=0, width=.48, height=.97) +
   
   draw_plot_label(label = c("A", "B"), size = 15,
-                  x = c(0, .45), y = c(1, 1) )
+                  x = c(0, .465), y = c(1, 1) )
 fig1_B_v2
 ```
 
@@ -217,7 +215,7 @@ Molf female data point is missing because there is only 1 female, so NAs were ge
 Mol text should be moved back above the points.
 
 
-## option 2, strain averages, more strains
+## Option 2, strain averages, more strains
 
 
 ```{r strain.table, echo=FALSE, warning=FALSE}
@@ -351,6 +349,7 @@ fig1_B_v1  <- ggdraw() +
                   x = c(0, .5), y = c(1, 1) )
 fig1_B_v1
 ```
+
 
 
 This is currently backup version.
