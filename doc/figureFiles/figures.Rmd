@@ -77,7 +77,7 @@ fig.data<- MLH1_data[ MLH1_data$mouse %in% uni.mice, ]
 
 
 
-# Option 1, strain averages, sexes matched
+# Option 1, strain averages, sexes matched, cells pooled
 
 
 ```{r strain.table.v2, echo=FALSE, warning=FALSE}
@@ -85,15 +85,20 @@ fig.data<- MLH1_data[ MLH1_data$mouse %in% uni.mice, ]
 #there are still quality 5 cells in this dataframe
 fig.data <- subset(fig.data, quality < 5)
 
-#use the MLH1 / cell level data to calq the error bars
+
+#step-wise, 1)mouse-level, 2)averages of mouse-levels
+
+
+#Pooling all cells for a category
 strain.table.HQ <- ddply(fig.data, c("strain", "sex"), summarise,
-                        Nmice = length(unique(mouse)),
-                        Ncells  = length(nMLH1.foci),
-                        mean_co = as.numeric(format(round(  mean(nMLH1.foci), 3 ), nsmall=3) ),
+                        Nmice =length(unique(mouse)),
+                        Ncells  =length(nMLH1.foci),
+                        mean_co =as.numeric(format(round(mean(nMLH1.foci), 3 ), nsmall=3) ),
                         cV = cv(nMLH1.foci, na.rm = TRUE),
-                        var = as.numeric(format(round(   var(nMLH1.foci, na.rm = TRUE),3), nsmall=3)), #this turns to chr
+                        var = as.numeric(format(round(   var(nMLH1.foci, na.rm = TRUE),3), nsmall=3)), 
                         sd   = round(sd(nMLH1.foci, na.rm = TRUE), 3),
-                        se   = round(sd / sqrt(Nmice), 3)
+                       #Standard error (mice vs cells)
+                        se  = round(sd / sqrt(Ncells), 3)
     )
 
 
@@ -144,78 +149,56 @@ strain.table.HQ$strain<- factor(strain.table.HQ$strain, ordered = TRUE, levels =
 ```{r strain.table.plot.v2, echo=FALSE, warning=FALSE}
 #use the MLH1 / cell level data to calq the error bars
 #strain table ggplot
+#remove facet by sex
 
-Fig1_Bv2_strain.male <- ggplot(strain.table.HQ[strain.table.HQ$sex == "male",], aes(y=mean_co, x=strain, color=strain))+facet_grid(~sex, scales = "free", space="free")+ 
-  ylab("")+
-  geom_point(size=3)+
-  geom_errorbar(aes(ymin=mean_co-(se*2), ymax=mean_co+(se*2) ), width=.3)+
-  ylim(c(18, 35))+
+Fig1_Bv2_strain <- ggplot(strain.table.HQ, aes(y=mean_co, x=strain, color=strain, shape = sex))+
+  #facet_grid(~sex, scales = "free", space="free")+ 
+  ylab("Average MLH1 Foci per Cell")+
+  geom_point(aes(shape = sex), size=3, position=position_dodge(.5))+
+ 
+   geom_errorbar(aes(ymin=mean_co-(se*2), ymax=mean_co+(se*2) ), width=.3, position = position_dodge(.5), size=1.001)+
+  
+  ylim(c(19.5, 33))+
  scale_color_manual(values=colors_of_strains)+ 
-  theme(legend.position="none",
+  #legend.position="none",
+  theme(legend.position="bottom",legend.box = "horizontal",
   panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
   panel.background = element_blank(), axis.line=element_line(colour = "black"),
   axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())+
+  
 #remove y labfor male 
   #Dom
-  annotate("segment", x=.75, xend=3.6, y=19.5, yend=19.5, colour="black", size=1)+
+  annotate("segment", x=.75, xend=3.6, y=21, yend=21, colour="black", size=1)+
   #Musc
-  annotate("segment", x=3.9, xend=6.15, y=19.5, yend=19.5, colour="black", size=1)+
+  annotate("segment", x=3.9, xend=6.15, y=21, yend=21, colour="black", size=1)+
   #mol
-  annotate("segment", x=6.5, xend=8.1, y=19.5, yend=19.5, colour="black", size=1)+
+  annotate("segment", x=6.5, xend=8.1, y=21, yend=21, colour="black", size=1)+
   #label
-  annotate("text", x = c(2.2,5.9,6.1), #list of all x points 
-           y = c(18.5,18.5, 33),
-           
-   label = c("M. m. domesticus","M. m. musculus", "M.m.molossinus"),
+  annotate("text", x = c(2.2, 4.5, 7), #list of all x points 
+           y = c(20.2,20.2,20.2),
+   label = c("M. m. domesticus","M. m. musculus", "M. m. molossinus"),
            fontface = 'italic', hjust = 0.5, size=3.5)
 
 #this can pull just the lengend object
 #grobs <- ggplotGrob(Fig1_B_strain.male)$grobs
 #legend <- grobs[[which(sapply(grobs, function(x) x$name) == "guide-box")]]
-
-# 2
-Fig1_Bv2_strain.female <- ggplot(strain.table.HQ[strain.table.HQ$sex == "female",], aes(y=mean_co, x=strain, color=strain))+facet_grid(~sex, scales = "free", space="free")+ ylab("Average MLH1 Foci per Cell")+
-  geom_point(size=3)+
-  ylim(c(18, 35))+
-  geom_errorbar(aes(ymin=mean_co-(se*2), ymax=mean_co+(se*2)), width=.3) +
-  scale_color_manual(values=colors_of_strains)+ 
-  theme(legend.position="none", panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-  panel.background = element_blank(), axis.line = element_line(colour = "black"),
-  axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())+
-  #segments
-  annotate("segment", x=.75, xend=3.5,y=19.5, yend=19.5, colour="black", size=1)+
-  #Musc
-  annotate("segment", x=4, xend=6.5, y=19.5, yend=19.5, colour="black", size=1)+
-#mol
- annotate("segment", x=7, xend=8.5, y=19.5, yend=19.5, colour="black", size=1)+
-    #Cast
-#  annotate("segment", x=4, xend=2, y=18, yend=18, colour="black", size=1)
-#Labels
- annotate("text", x = c(2.25,5.9,6.1), #list of all x points 
-           y = c(18.5,18.5,33),
-           label = c("M. m. domesticus","M. m. musculus", "M.m.molossinus"),
-           fontface = 'italic', hjust = 0.5, size=3.5)
- 
-
 ```
 
 
 ```{r Strain.fig.merge.v2, echo=FALSE}
-fig1_B_v2  <- ggdraw() +
-  draw_plot(Fig1_Bv2_strain.female, x=0, y = 0, width=.47, height=.97) +
-  draw_plot(Fig1_Bv2_strain.male, x=.49, y=0, width=.48, height=.97) +
-  
-  draw_plot_label(label = c("A", "B"), size = 15,
-                  x = c(0, .465), y = c(1, 1) )
-fig1_B_v2
+Fig1_Bv2_strain
+#save a tif or png file
+ggsave("~./MLH1repo/doc/figureFiles/MLH1Fig1.png")
 ```
 
 
-Molf female data point is missing because there is only 1 female, so NAs were generated.
-Mol text should be moved back above the points.
+Error bars are 2 SE, 
+
+S.E. = sd( all cells) / n.cells
 
 
-## Option 2, strain averages, more strains
+
+## Option 2, strain averages, more strains, pooled cells
 
 
 ```{r strain.table, echo=FALSE, warning=FALSE}
@@ -223,6 +206,30 @@ Mol text should be moved back above the points.
 
 #there are still quality 5 cells in this dataframe
 fig.data <- subset(fig.data, quality < 5)
+
+mouse.table.HQ.backup <- ddply(fig.data, c("mouse"), summarise,
+                        Ncells  = length(nMLH1.foci),
+                        mean_co = as.numeric(format(round(  mean(nMLH1.foci), 3 ), nsmall=3) ),
+                        cV = cv(nMLH1.foci, na.rm = TRUE),
+                        var = as.numeric(format(round(   var(nMLH1.foci, na.rm = TRUE),3), nsmall=3)), #this turns to chr
+                        sd   = round(sd(nMLH1.foci, na.rm = TRUE), 3),
+                        se   = round(sd / sqrt(Ncells), 3) #mean is pooled cells, so sd should be pooled
+    )
+#need to add strain and sex
+mouse.table.HQ.backup <- add_strain(mouse.table.HQ.backup)
+mouse.table.HQ.backup <- add_sex(mouse.table.HQ.backup)
+
+
+strain.table.from.mouse.HQ.backup <- ddply(mouse.table.HQ.backup, c("strain","sex"), summarise,
+                  Nmice  = length(mouse),
+                  mean_co.of.mice = as.numeric(format(round(  mean(mean_co), 3 ), nsmall=3) ),
+                  cV.of.mice = cv(mean_co, na.rm = TRUE),
+                   var.of.mice = as.numeric(format(round(   var(mean_co, na.rm = TRUE),3), nsmall=3)), #this turns to chr
+                  sd.of.mice   = round(sd(mean_co, na.rm = TRUE), 3),
+                  se.of.mice   = round(sd.of.mice / sqrt(Nmice), 3) #mean is pooled cells, so sd should be pooled
+    )
+
+
 
 #use the MLH1 / cell level data to calq the error bars
 strain.table.HQ.backup <- ddply(fig.data, c("strain", "sex"), summarise,
@@ -232,7 +239,7 @@ strain.table.HQ.backup <- ddply(fig.data, c("strain", "sex"), summarise,
                         cV = cv(nMLH1.foci, na.rm = TRUE),
                         var = as.numeric(format(round(   var(nMLH1.foci, na.rm = TRUE),3), nsmall=3)), #this turns to chr
                         sd   = round(sd(nMLH1.foci, na.rm = TRUE), 3),
-                        se   = round(sd / sqrt(Nmice), 3)
+                        se   = round(sd / sqrt(Ncells), 3) #mean is pooled cells, so sd should be pooled
     )
 
 
@@ -342,8 +349,8 @@ Fig1_B_strain.female <- ggplot(strain.table.HQ.backup[strain.table.HQ.backup$sex
 
 ```{r Strain.fig.merge, echo=FALSE}
 fig1_B_v1  <- ggdraw() +
-  draw_plot(Fig1_B_strain.female, x=0, y = 0, width=.5, height=.97) +
-  draw_plot(Fig1_B_strain.male, x=.45, y=0, width=.5, height=.97) +
+  draw_plot(Fig1_B_strain.female, x=0, y = 0, width=.45, height=.97) +
+  draw_plot(Fig1_B_strain.male, x=.5, y=0, width=.45, height=.97) +
   
   draw_plot_label(label = c("A", "B"), size = 15,
                   x = c(0, .5), y = c(1, 1) )
@@ -355,6 +362,86 @@ fig1_B_v1
 This is currently backup version.
 
 I removed the cast and outgroup measures. I left off the color legend, but I think I could add one to the bottom of the figure. These show the strain averages, but I can try adding the mouse averages, if you think having mulitple points would show the data better.
+
+## Option 2.B strain averages, mouse observations
+
+```{r strain.table.plot.mouse.level, echo=FALSE, warning=FALSE}
+#use the MLH1 / cell level data to calq the error bars
+#strain table ggplot
+
+Fig1_C_strain.male <- ggplot(strain.table.from.mouse.HQ.backup[strain.table.from.mouse.HQ.backup$sex == "male",], aes(y=mean_co.of.mice, x=strain, color=strain))+facet_grid(~sex, scales = "free", space="free")+ 
+  ylab("")+
+  geom_point(size=3)+
+  geom_errorbar(aes(ymin=mean_co.of.mice-(se.of.mice*2) , ymax=mean_co.of.mice+(se.of.mice*2) ), width=.3)+
+  ylim(c(18, 35))+
+ scale_color_manual(values=colors_of_strains)+ 
+  theme(legend.position="none",
+  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line=element_line(colour = "black"),
+  axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())+
+#remove y labfor male 
+  #segments
+  annotate("segment", x=.75, xend=4.5, y=19.5, yend=19.5, colour="black", size=1)+
+  #Musc
+  annotate("segment", x= 5.5, xend=10.2, y=19.5, yend=19.5, colour="black", size=1)+
+  #mol
+  annotate("segment", x=11, xend=12.25, y=19.5, yend=19.5, colour="black", size=1)+
+  #label
+  annotate("text", x = c(3,8.5,10), #list of all x points 
+           y = c(18.5,18.5,33),
+           
+   label = c("M. m. domesticus","M. m. musculus", "M.m.molossinus"),
+           fontface = 'italic', hjust = 0.5, size=3.5)
+
+#this can pull just the lengend object
+#grobs <- ggplotGrob(Fig1_B_strain.male)$grobs
+#legend <- grobs[[which(sapply(grobs, function(x) x$name) == "guide-box")]]
+
+# 2
+Fig1_C_strain.female <- ggplot(strain.table.from.mouse.HQ.backup[strain.table.from.mouse.HQ.backup$sex == "female",], aes(y=mean_co.of.mice, x=strain, color=strain))+facet_grid(~sex, scales = "free", space="free")+ ylab("Average MLH1 Foci per Cell")+
+  geom_point(size=3)+
+  ylim(c(18, 35))+
+  geom_errorbar(aes(ymin=mean_co.of.mice-(se.of.mice*2), ymax=mean_co.of.mice+(se.of.mice*2)  ), width=.3) +
+  scale_color_manual(values=colors_of_strains)+ 
+  theme(legend.position="none", panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line = element_line(colour = "black"),
+  axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())+
+  #segments
+  annotate("segment", x=.75, xend=3.5,y=19.5, yend=19.5, colour="black", size=1)+
+  #Musc
+  annotate("segment", x=4, xend=6.5, y=19.5, yend=19.5, colour="black", size=1)+
+#mol
+ annotate("segment", x=7, xend=8.5, y=19.5, yend=19.5, colour="black", size=1)+
+    #Cast
+#  annotate("segment", x=4, xend=2, y=18, yend=18, colour="black", size=1)
+#Labels
+ annotate("text", x = c(2.25,5.6,6.5), #list of all x points 
+           y = c(18.5,18.5,33),
+           label = c("M. m. domesticus","M. m. musculus", "M.m.molossinus"),
+           fontface = 'italic', hjust = 0.5, size=3.5)
+ 
+
+```
+
+
+```{r Strain.fig.merge.mouse.level, echo=FALSE}
+fig1_C_v1  <- ggdraw() +
+  draw_plot(Fig1_C_strain.female, x=0, y = 0, width=.5, height=.97) +
+  draw_plot(Fig1_C_strain.male, x=.45, y=0, width=.5, height=.97) +
+  
+  draw_plot_label(label = c("A", "B"), size = 15,
+                  x = c(0, .5), y = c(1, 1) )
+fig1_C_v1
+```
+
+
+Error bars above are 2 S.E. of mouse average COs, 
+
+S.E. = sd( mouse average COs ) / Nmice
+
+
+MOLF and SKIVE female data point is missing because there is only 1 female, so NAs were generated.
+Mol text should be moved back above the points.
 
 
 ## Option 3, mouse boxplots
