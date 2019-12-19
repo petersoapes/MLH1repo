@@ -27,13 +27,15 @@ library(RLRsim)
 library(ggpubr)
 library(reshape2)
 
+#setwd("~./MLH1repo/doc/")
 setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 #setwd("C:/Users/April/Desktop/MLH1repo")
 #load(file="data/MLH1/MLH1_data_setup.RData")
 
 #load main data file
 
-load(file="data/MLH1/MLH1_data_setup_12.3.19.RData")#removed exclude mice
+load(file="~./data/MLH1/MLH1_data_setup_12.20.19.RData")#fixing bugs, formating
+#load(file="data/MLH1/MLH1_data_setup_12.3.19.RData")#removed exclude mice
 #load(file="data/MLH1/MLH1_data_setup_11.12.19.RData")#added batch17
 #load(file="data/MLH1/MLH1_data_setup_11.11.19.RData")#deleted DUP image
 #load(file="data/MLH1/MLH1_data_setup_9.26.19.RData")#added batch16
@@ -126,7 +128,7 @@ AP_mouse_table.HQ <- AP_mouse_table.HQ[!(is.na(AP_mouse_table.HQ$sex) | AP_mouse
 AP_mouse_table.HQ <- AP_mouse_table.HQ[!(is.na(AP_mouse_table.HQ$var) | AP_mouse_table.HQ$var==""), ]
 #plot variance and mean (facet sex)
 
-#AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[!( AP_mouse_table_w.Ages$strain.x =="F1"), ]
+AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[!( AP_mouse_table_w.Ages$strain.x =="F1"), ]
 
 VandMean.mouse <- ggplot(aes(x=mean_co, y = var), data=AP_mouse_table.HQ )+geom_point(aes(color=strain))+facet_wrap(~sex)+ggtitle("mouse MLH1 averages; variance by mean")
 
@@ -171,93 +173,6 @@ cor.test(AP_mouse_table.HQ.10plus$mean_co[AP_mouse_table.HQ.10plus$sex == "femal
 ```
 
 
-
-# Distributions of MLH1 counts across Samples
-
-The histograms below are for total / pooled cells (for now, maybe compare with HQ data to see what changes)
-
-```{r MLH1.histogram.2421, echo=FALSE, fig.caption= "histograms", warning=FALSE, fig.align='center'}
-
-
-#gg <- data.frame(weight=rep(x,nrow(df)),df)
-#gg$y <- with(gg,dnorm(x,mean,sd))
-#gg$y <- gg$y * aggregate(weight~sex, weight,length)$weight * #diff(range(weight$weight))/30
-
-mean.MLH1.obs <- ddply(.data=MLH1_data, 
-                 .(category),
-                 summarize, 
-                 mean.MLH1 = mean(adj_nMLH1.foci),
-                 var.MLH1 = var(adj_nMLH1.foci)
-)
-
-
-histM <- ggplot(data=MLH1_data,(aes(x=adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ category)+ggtitle("Pooled Cell Histograms")
-
-#when I try to add the mean lines, error returned that it can't find the adj_MLH1 ....?
-#histM <- histM +  geom_line(data=mean.MLH1.obs, aes(y=mean.MLH1.obs$mean.MLH1))
-  
-#ad
-#  geom_smooth(method = lm, se = FALSE
- # geom_smooth(method = lm, formula = mean.MLH1.obs$mean.MLH1 ~ mean.MLH1.obs$category, se = FALSE)
-  
-histM
-
-#playing with expected posisson plot...
-#function = glm(y ~ x, family = poisson)
-#add Poission curve behind
-#geom_smooth(method = lm, formula = y ~ splines::bs(x, 3), se = FALSE)
-#not sure how to add Expected poisson curve
-
-```
-
-Most histograms of pooled MLH1 counts are all close to normal. Except PWD male, LEW female, SKIVE male, SPIC male.
-check if there is a quality effect.
-
-
-```{r MLH1.histogram.2, echo=FALSE}
-#remake the pooled MLH1 histgoram plot from above but facet by quality
-
-#PWD male, MSM male
-#LEW female, WSB female
-mean.MLH1.obs_qual <- ddply(.data=MLH1_data, 
-                 .(category, quality),
-                 summarize, 
-                 mean.MLH1 = mean(adj_nMLH1.foci),
-                 var.MLH1 = var(adj_nMLH1.foci)
-)
-#what's the point of the above table? -- add vlines?
-
-#I think I should do some t-tests across the groups of quality bins to better asess the amount of quality effect
-
-histM_qual.KAZ_male <- ggplot(data=MLH1_data[MLH1_data$category == "KAZ male",],(aes(x=adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ quality, ncol = 5)+ggtitle("KAZ male Pooled Cell Histograms by quality")+ geom_vline(xintercept=mean.MLH1.obs_qual$mean.MLH1[mean.MLH1.obs_qual$category == "KAZ male"],color="red")
-histM_qual.KAZ_male
-
-
-histM_qual.PWD_male <- ggplot(data=MLH1_data[MLH1_data$category == "PWD male",],(aes(x=adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ quality, ncol = 5)+ggtitle("PWD male Pooled Cell Histograms by quality")+ geom_vline(xintercept=mean.MLH1.obs_qual$mean.MLH1[mean.MLH1.obs_qual$category == "PWD male"],color="red")
-histM_qual.PWD_male
-
-histM_qual.MSM_male <- ggplot(data=MLH1_data[MLH1_data$category == "MSM male",],(aes(x=adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ quality, ncol = 5)+ggtitle("MSM male Pooled Cell Histograms by quality")+geom_vline(xintercept=mean.MLH1.obs_qual$mean.MLH1[mean.MLH1.obs_qual$category == "MSM male"], color="red")
-histM_qual.MSM_male
-
-histM_qual.WSB_female <- ggplot(data=MLH1_data[MLH1_data$category == "WSB female",],(aes(x=adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ quality, ncol = 5)+ggtitle("WSB female Pooled Cell Histograms by quality")+ geom_vline(xintercept=mean.MLH1.obs_qual$mean.MLH1[mean.MLH1.obs_qual$category == "WSB female"],color="red")
-histM_qual.WSB_female
-
-histM_qual.LEW_female <- ggplot(data=MLH1_data[MLH1_data$category == "LEW female",],(aes(x=adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ quality, ncol = 5)+ggtitle("LEW female Pooled Cell Histograms by quality")+ geom_vline(xintercept=mean.MLH1.obs_qual$mean.MLH1[mean.MLH1.obs_qual$category == "LEW female"],color="red")
-histM_qual.LEW_female
-
-
-#plot.pvals.L <- ggplot(bunchOpvals.L, aes(bunchOpvals.L) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Leptotene")+geom_vline(xintercept=ttest.HighLow.L$p.value, linetype="dotted", color="red")
-
-
-#when I try to add the mean lines, error returned that it can't find the adj_MLH1 ....?
-#histM <- histM +  geom_line(data=mean.MLH1.obs, aes(y=mean.MLH1.obs$mean.MLH1))
-  
-#ad
-#  geom_smooth(method = lm, se = FALSE
- # geom_smooth(method = lm, formula = mean.MLH1.obs$mean.MLH1 ~ mean.MLH1.obs$category, se = FALSE)
-  
-
-```
 
 
 # MLH1 means
@@ -374,6 +289,8 @@ Fig1_v1_strain
 ```
 
 
+*cast female data came from another publication
+
 
 
 # Mixed Models
@@ -381,9 +298,9 @@ Fig1_v1_strain
 
 These are the basic Mixed Models we used as a frame work to analyze all the MLH1 data.
 
-$$mouse .mean CO ~=~ subsp * sex + rand(strain* sex)$$
+$$mouse .mean CO ~=~ subsp * sex + rand(strain* sex)  + \varepsilon$$
 
-$$mouse .var CO ~=~ subsp * sex + rand(strain* sex)$$
+$$mouse .var CO ~=~ subsp * sex + rand(strain* sex) + \varepsilon $$
 
 The mixed model lets us separate effects to see how they effect a mouse mean CO count. The subspecies effect is a proxy for **Divergence** and the random strain effect is a proxy for **Polymorphism**.
 
@@ -391,14 +308,21 @@ Initial results indicate that male MLH1 counts have less variance within subspec
 
 
 ```{r mixed.models.setup, echo=FALSE, warning=FALSE}
+#https://rcompanion.org/handbook/G_03.html
+#testing random effects within lme
 
-#why merged 
+#notes for testing random effects
+
+#variance is still chr
+AP_mouse_table_w.Ages$var <- as.numeric(AP_mouse_table_w.Ages$var)
+
+#use the merged DF to filter by age 
 AP_mouse_table_w.Ages$strain <- AP_mouse_table_w.Ages$strain.x
 AP_mouse_table_w.Ages$sex <- AP_mouse_table_w.Ages$sex.x
 AP_mouse_table_w.Ages$subsp <- AP_mouse_table_w.Ages$subsp.x
-
 #main file, make everything unordered factors
 AP_mouse_table_w.Ages <- add_species(AP_mouse_table_w.Ages)
+
 DF.HetC.MixedModel <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$species == "M.musculus",]
 
 DF.HetC.MixedModel <- subset(DF.HetC.MixedModel, select= -c(sex.x, sex.y,
@@ -406,10 +330,8 @@ DF.HetC.MixedModel <- subset(DF.HetC.MixedModel, select= -c(sex.x, sex.y,
                     category.y, category.x,
                         strain.x,strain.y, mouse.1  )  )
 
-#make dummy MOLF data, average of Musc females?
-#no MOLF male data?
+#why did I male just a female table?
 female.musc.cells <- MLH1_data[( MLH1_data$sex == "female") & (MLH1_data$subsp == "Musc" ), ]
-table(female.musc.cells$quality)
 
 female.musc.mice.table <- ddply(female.musc.cells, c("sex"), summarise,
                         Nmice = length(unique(mouse)),
@@ -422,22 +344,8 @@ female.musc.mice.table <- ddply(female.musc.cells, c("sex"), summarise,
                         #quality?
 )
 
-#female.musc.mice.table$mouse <- "1jan20_MOLF_f99"
-#female.musc.mice.table$DOB <- as.Date("1/1/2020")
 
-#female.musc.mice.table$strain <- "MOLF"
-#female.musc.mice.table$subsp <- "Musc"
-#female.musc.mice.table$species <- "M.musculus"
-
-#female.musc.mice.table$female.stage <- "emb"
-#female.musc.mice.table$age.days <-""
-#female.musc.mice.table$age.weeks <- ""
-#female.musc.mice.table$ID <- ""
-#female.musc.mice.table$notes <- ""
-#female.musc.mice.table$euth.date <- ""
-
-#DF.HetC.MixedModel <- rbind(DF.HetC.MixedModel, female.musc.mice.table)
-
+#REMOVE EXTRA STRAINS
 DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$subsp != "Cast",]
 #remove musc strains
 DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "AST",]
@@ -445,23 +353,33 @@ DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "TOM",]
 #remove PERC, MOLF, CZECH, (no females)
 DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "CZECH",]
 DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "PERC",]
-#DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "MOLF",]
 
+DF.HetC.MixedModel <- droplevels(DF.HetC.MixedModel)#remove levels not used
 
-DF.HetC.MixedModel <- droplevels(DF.HetC.MixedModel)
-DF.HetC.MixedModel <- DF.HetC.MixedModel[!(is.na(DF.HetC.MixedModel$mouse) | DF.HetC.MixedModel$mouse==""), ]
+#remove blank rows (which are these?)
+#DF.HetC.MixedModel <- DF.HetC.MixedModel[!(is.na(DF.HetC.MixedModel$mouse) | #DF.HetC.MixedModel$mouse==""), ]
+#151 mice, no rows with nas for values
 
 #main df with variables coded as chr
 DF.HetC.MixedModel <- DF.HetC.MixedModel
 DF.HetC.MixedModel$subsp <- factor(DF.HetC.MixedModel$subsp, ordered = FALSE)
 DF.HetC.MixedModel$sex <- factor(DF.HetC.MixedModel$sex, ordered = FALSE)
 DF.HetC.MixedModel$strain <- factor(DF.HetC.MixedModel$strain, ordered = FALSE)
+```
+
+
+```{r HQ.dataset, echo=FALSE}
+
+#also make a HQ dataset, tighter window for ages,
 
 #mean_co.HQ  (this might remove some of the MOLF males)
 DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel[DF.HetC.MixedModel$Ncells > 9,]
 DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[DF.HetC.MixedModel.HQ$age.weeks < 25,]
 DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[!(is.na(DF.HetC.MixedModel.HQ$mouse) | DF.HetC.MixedModel.HQ$mouse==""), ]
+```
 
+
+```{r Mol.dataset, echo=FALSE}
 #mean_co.HQ.mol
 DF.HetC.MixedModel.HQ.mol <- DF.HetC.MixedModel.HQ
 
@@ -477,208 +395,240 @@ DF.HetC.MixedModel.HQ.mol <- DF.HetC.MixedModel.HQ.mol[!(is.na(DF.HetC.MixedMode
 ```
 
 
-For mouse averages of MLH1 counts, only strain with observations for both sexes and are from Mus species. (maybe I'll look at Species level with spicilegus.?)
+Seting up the data set for using the mixed model (base data set, HQ dataset)
 
-subspecies levels: 2, Musc and Domesticus  
+- only Mus musculus strains with sex matched observations  
 
-strain levels: Dom: 3, Musc: 4  
+- Unorder factors  
 
-sex: 2 female male  
+- male ages within range
 
+Currently I ran through 3 datasets: 1) base, 2) HQ and 3) Molf (from HQ)
 
 `r kable(table(DF.HetC.MixedModel$sex, DF.HetC.MixedModel$strain))`
 
 Above are the total number of mice in the data set  
 
 
+For mouse averages of MLH1 counts, only strain with observations for both sexes and are from Mus species. 
 
-These are the List of mixed models I built
+subspecies levels: 2(3), Musc and Domesticus (Molossinus)
 
-1. mean_co (chr coded, instead of factors)  
+strain levels: Dom: 3, Musc: 4  (Mol: 2)
 
-2. mean_co.HQ  
-
-3. mean_co with Mol (Mol coded as a distinct subsp)  
-
-4. sub-sampling (not sure if I made this one)
+sex: 2 female male  
 
 
+## Mean CO Count
 
-```{r HQ.MixedModel.1, echo=FALSE}
+
+$$mouse .mean CO ~=~ subsp * sex  + rand(strain*sex) + \varepsilon$$
+
+```{r HQ.MixedModel.1, echo=FALSE, digits = 2}
 #table(DF.HetC.MixedModel$strain, DF.HetC.MixedModel$sex)
-
 #mean_co.HQ  (this might remove some of the MOLF males)
-DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel[DF.HetC.MixedModel$Ncells > 9,]
-DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[DF.HetC.MixedModel.HQ$age.weeks < 25,]
-DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[!(is.na(DF.HetC.MixedModel.HQ$mouse) | DF.HetC.MixedModel.HQ$mouse==""), ]
 
-#mean.co.HQ
 HetC.MixedModel.HQ <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel.HQ, random=list(strain=pdDiag(~sex) ) )
 
-#summary(HetC.MixedModel.HQ)
+as.data.frame( round(  summary(HetC.MixedModel.HQ)$tTable, 6 ) )
+
 #ranef(HetC.MixedModel.HQ)
+#which is the test for random effects
+
 ```
+
+
+Above is the table of coefficients for MM.1, HQ dataset, lme(), random effects strain and strain specific sex effect.  
+
+
+$$mouse .mean CO ~=~ subsp * sex  + rand(strain*sex) + \varepsilon$$
+
+```{r MM.1.Mol, echo=FALSE}
+
+HetC.MixedModel.HQ.mol <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel.HQ.mol, random=list(strain=pdDiag(~sex) ) )
+
+as.data.frame( round(   summary(HetC.MixedModel.HQ.mol)$tTable, 6) )
+
+```
+
+
+Above is the table of coefficients for MM.1.mol, molssinus coded as seperate subspecies, lme(), random effects strain and strain specific sex effect.  
+
+
+$$mouse .mean CO ~=~ subsp * sex  + rand(1|strain) + \varepsilon$$
 
 ```{r MixedModel.2, echo=FALSE}
 #reduced models
 Reduced.strain.HQ <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel.HQ, random = ~1|strain)
 #summary(Reduced.strain.HQ)
+
+as.data.frame(round(summary(Reduced.strain.HQ)$tTable, 6))
+#add a aption to this code chunk
 #ranef(Reduced.strain.HQ)
+
 ```
 
-```{r MixedModel.2.2, echo=FALSE}
+Above is the table of coefficients for MM.2, HQ dataset, lme(), random effects coded without sex specific effect.
+This is model has sex and interaction coefficient is significant.
 
+> MM.2.Mol
+
+ 
+```{r MixedModel.2.mol, echo=FALSE}
+#reduced models
+Reduced.strain.HQ.mol <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel.HQ.mol, random = ~1|strain)
+#summary(Reduced.strain.HQ)
+
+as.data.frame(round(summary(Reduced.strain.HQ.mol)$tTable, 6))
+#add a aption to this code chunk
+#ranef(Reduced.strain.HQ.mol)
+
+```
+
+The model for MM.2.Mol has similar results as the above model, with just 2 subsps
+This model has significant coefficients for sex and the 2 interaction effects (sex:musc, sex:mol)
+
+> MM2.2
+
+$$mouse .mean CO ~=~ subsp * sex  + \varepsilon$$
+
+```{r MixedModel.2.2, echo=FALSE}
 Reduced.all.HQ <- gls(mean_co ~ subsp * sex, data=DF.HetC.MixedModel.HQ)
+
+as.data.frame( round(summary(Reduced.all.HQ)$tTable, 6))
 #summary(Reduced.all.HQ)
 #ranef(Reduced.all.HQ)
 ```
 
+Above is the table of coefficients for MM.2.2, HQ dataset, gls(), No random effects.  
+I think this gls has sex and interaction term as significant.
+
+
+> MM3
+
+$$mouse .mean CO ~=~ subsp * sex * strain + \varepsilon$$
+
 ```{r MixedModel.3, echo=FALSE}
 #strain = fixed
 strain.fixed.full <- lm(mean_co ~ subsp * sex * strain, data=DF.HetC.MixedModel.HQ)
+#library(xtable)
+
+#this table of results is broken -- might be too long -- lm
+#lm has different names
+as.data.frame(round( summary(strain.fixed.full)$coefficients, 6))
+
 #summary(strain.fixed.full)
 #when strain added as fixed, MSM, PWD and WSB are signifcant, subsp*sex is most significant
 
 #non of the 3-way interactions are significant, very puzzeled that WSB is significant and non of ht ehigh Musc are 
 ```
 
+Above is the table of coefficients for MM.3, HQ dataset, lm function, sex, strain and subsp are interacting fixed effects.  
 
+Strain G is significant (p=0.0005), 
+
+interaction terms of sex and strain for (G, MSM, PWD).
+
+How are these models different from the last one -- MM4 is missing subsp, so only sex * strain effects.
+
+
+> MM.4
+
+$$mouse .mean CO ~=~ sex * strain + \varepsilon$$
 
 ```{r MixedModel.4, echo=FALSE}
 
 strain.fixed <- lm(mean_co ~ sex * strain, data=DF.HetC.MixedModel.HQ)
-#summary(strain.fixed)
 
+#below table is broken
+as.data.frame( round( summary(strain.fixed)$coefficients, 6))
+
+#summary(strain.fixed)
 #maybe this WSB effec is just in the HQ data set?
+```
+
+Above is the table of coefficients for **MM.4**, HQ dataset, lm function, just sex and strain, no subspecies.
+
+Significant factors are 
+strainG (p=0.0005), strainMSM and strainPWD (very slight),
+sex:G (p=0.001),
+sex:MSM, Sex:PWD (very slight p=.05, p=0.3), 
+
+
+#### ANOVA, mean CO count full vs reduced
+
+Use Anova to compare full vs reduced models
+the reduced models will be those missing either, strain, sex, or subsp.
+
+```{r anova.full.v.reduced, echo=FALSE, eval=FALSE}
+
+#strain as fixed
+#CONTRAST models
+#newnew <- lme(mean_co ~ sex * strain, data=DF.HetC.MixedModel )
+
+HetC.MixedModel.mean_co <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel, random=list(strain=pdDiag(~sex) ) )
+R.strain.HetC.MixedModel.mean_co <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel, random = ~1|strain)#musc-male fixed effect is now significant, and male
+
+full.Reduced.HetC.MixedModel.mean_co <- gls(mean_co ~ subsp * sex, data=DF.HetC.MixedModel)
+
+#base vs strain
+fullVstrain <- anova(HetC.MixedModel.mean_co, R.strain.HetC.MixedModel.mean_co) #<.0001
+
+#show scientific vs normal
+#vv <- fullVstrain$`p-value`
+#round(vv[2], 8)
+#format(vv[2], scientific=F)
+
+#strain vs no random full.reduce
+fullVnon <- anova(HetC.MixedModel.mean_co, full.Reduced.HetC.MixedModel.mean_co) #<.0001
+
+strain.vs.non <- anova(R.strain.HetC.MixedModel.mean_co, full.Reduced.HetC.MixedModel.mean_co) #<.0001
+
+#fullreduce vs strain
+#can't distinguish which random effects are more significant -- both tests are significant
+
+fullVreduce22 <- anova(HetC.MixedModel.mean_co, full.Reduced.HetC.MixedModel.mean_co)
+
 #anova for comparing reduced and full models -- 1 of the models should be strain as fixed instead
 full2strain <- anova(HetC.MixedModel.HQ, Reduced.strain.HQ)#slightly significant
 
 full.v.fixed <- anova(HetC.MixedModel.HQ, strain.fixed)
 #this comparison not useful when there are different fixed effects
 
-full2noRandom <- anova(HetC.MixedModel.HQ, Reduced.all.HQ)# < .0001 
+full2noRandom <- anova(HetC.MixedModel.HQ, Reduced.all.HQ) # < .0001 
 
-strain2noRandom <- anova(Reduced.strain.HQ, Reduced.all.HQ)#NS
+strain2noRandom <- anova(Reduced.strain.HQ, Reduced.all.HQ) #NS
 ```
 
 
+```{r MolossinusMixedModel, echo=FALSE, eval=FALSE, include=FALSE}
+#base model with molossinus level ... why am I making molossinus model?
+#mean.co
+HetC.MixedModel.mol <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel.mol, random=list(strain=pdDiag(~sex) ) )
 
+#mreducing the model (reducing the random effects)
+Reduced.strain.mol <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel.mol, random = ~1|strain)
 
+Reduced.all.mol <- gls(mean_co ~ subsp * sex, data=DF.HetC.MixedModel.mol)
 
-```{r try.blah, echo=FALSE}
-#library(jtools)
-#states <- as.data.frame(state.x77)
-#fit <- lm(Income ~ Frost + Illiteracy + Murder, data = states)
-#summ(fit)
-#this is a nice display package for lm
+#anova tests
+#full vs strain
+full2strain.mol <- anova(HetC.MixedModel.mol, Reduced.strain.mol)# < .0001
+#full vs non
+full2noRandom.mol <- anova(HetC.MixedModel.mol, Reduced.all.mol)# < .0001
+#strain vs non
+strain2noRandom.mol <- anova(Reduced.strain.mol, Reduced.all.mol)# < .0001
 
-res.table <- as.data.frame(coef(summary(Reduced.all.HQ)))
-res.table
-```
+anova(Reduced.strain.mol, Reduced.all.mol, HetC.MixedModel.mol)
 
-
-
-
-
-```{r variance.boxplots, echo=FALSE, eval=FALSE}
-#how did I make this 
-#Species.COcount.mixed <- lmer(nMLH1.foci ~ species + quality + (1|mouse), data=MLH1.hq.lab, REML = TRUE)
-#Species.COcount.mixed.sum <- summary(Species.COcount.mixed)
-#SpeciesCOcount.fix.est <- drop1(Species.COcount.mixed, test="Chisq") 
-#SpeciesCOcount.Rand.est <- exactRLRT(Species.COcount.mixed)
-
-
-#plot of variance
-var.boxplot <- ggplot(DF.HetC.MixedModel.HQ, aes(x = as.factor(mouse), y = var, fill= strain,alpha=0.5))+ geom_point()+
- ggtitle("Boxplots of MLH1 distributions") + theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +
- ylim( c((min(MLH1_data$adj_nMLH1.foci)-3) ), (max(MLH1_data$adj_nMLH1.foci)+3)) +   scale_fill_manual(values=colors_of_strains)
-var.boxplot <- var.boxplot   + facet_wrap(sex ~ strain, scales="free")
-
-
-#plot by sex / seperately
-# HQ data DF.HetC.MixedModel.HQ
-
-var.male <- ggplot(DF.HetC.MixedModel.HQ[DF.HetC.MixedModel.HQ$sex == "male",], aes(x = as.factor(mouse), y = var, fill= strain,alpha=0.5))+ geom_point()+
- ggtitle("Male variance levels") + theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +
-  scale_fill_manual(values=colors_of_strains)+  ylim( c( 5, 20) )
-
-var.male <- var.male   + facet_wrap( ~ strain, scales="free")
-
-
-
-cV.male <- ggplot(DF.HetC.MixedModel.HQ[DF.HetC.MixedModel.HQ$sex == "male",], aes(x = as.factor(mouse), y = cV, fill= strain,alpha=0.5))+ geom_point()+
- ggtitle("Male variance levels") + theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +
-  scale_fill_manual(values=colors_of_strains)+  ylim( c( 5, 20) )
-
-cV.male <- cV.male   + facet_wrap( ~ strain, scales="free")
-
-
-```
-
-
-
-```{r BaseMixedModel, echo=FALSE, eval=FALSE, include=FALSE}
-#https://rcompanion.org/handbook/G_03.html
-#testing random effects within lme
-#strain as fixed
-newnew <- lme(mean_co ~ sex * strain, data=DF.HetC.MixedModel )
-
-
-
-HetC.MixedModel.mean_co <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel, random=list(strain=pdDiag(~sex) ) )
-
-R.strain.HetC.MixedModel.mean_co <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel, random = ~1|strain)#musc-male fixed effect is now significant, and male
-
-full.Reduced.HetC.MixedModel.mean_co <- gls(mean_co ~ subsp * sex, data=DF.HetC.MixedModel)
-
-
-#CONTRAST models
-
-#base vs strain
-fullVstrain <- anova(HetC.MixedModel.mean_co, R.strain.HetC.MixedModel.mean_co)# <.0001
-
-#strain vs no random full.reduce
-fullVnon <- anova(HetC.MixedModel.mean_co, full.Reduced.HetC.MixedModel.mean_co) #<.0001
-
-strain.vs.non <- anova(R.strain.HetC.MixedModel.mean_co, full.Reduced.HetC.MixedModel.mean_co)#<.0001
-
-#fullreduce vs strain
-
-#can't distinguish which random effects are more significant -- both tests are significant
-
-fullVreduce22 <- anova(HetC.MixedModel.mean_co, full.Reduced.HetC.MixedModel.mean_co)
-
-
-#random effects for base model
-ranef(HetC.MixedModel.mean_co)
-#random effect for just strain
-ranef(R.strain.HetC.MixedModel.mean_co)
-
-#reduced model's PWD radom effects is much smaller
-#the full model's largest random effects are for PWD and MSM (and MOLF, KAZ for negative)
-
-#fixed effects from full
-anova(HetC.MixedModel.mean_co)#NS
-
-
-#Check how the fixed effects change across these
-
-HetC.MixedModel.mean_co2 <- lmer(mean_co ~ subsp * sex + (1|strain), data=DF.HetC.MixedModel)
-#lmer(y~x1 + x2 + (1|g1), data=pbDat)
-
-lmer.MM <- lmer(mean_co ~ subsp * sex + (1|strain), data=DF.HetC.MixedModel, REML = TRUE)
-
+#base vs mol model (this only makes sense if these are nested models)
+anova(HetC.MixedModel.mean_co, HetC.MixedModel.mol)
 ```
 
 
 Full model, so significant fixed effects. (For the full model, The proportions of the random effects make sense looking at the average CO data
 Models with random effects more significant than nulls (both just strain and no random effects). The models with fewer random effects, the fixed effects, sex and sex*subspec (interaction) become significant.
+
 
 ```{r Base.strain.fixed, echo=FALSE}
 
@@ -688,7 +638,8 @@ HetC.MM.strain.fixed <- lm(mean_co ~ strain*sex, data= DF.HetC.MixedModel )
 #this produces several significant factors
 
 HetC.MM.strain.fixed2 <- lm(mean_co ~ (subsp/strain)*sex, data= DF.HetC.MixedModel )
-summary(HetC.MM.strain.fixed2)
+
+#summary(HetC.MM.strain.fixed2)
 #(WSB and G have the most observations, maybe this is biasing the results (for WSB?))
 
 
@@ -707,68 +658,73 @@ summary(HetC.MM.strain.fixed2)
 ```
 
 
-```{r MolossinusMixedModel, echo=FALSE, eval=FALSE, include=FALSE}
-#base model with molossinus level ... why am I making molossinus model?
+#### Summary of mean COs
 
-DF.HetC.MixedModel.mol <- DF.HetC.MixedModel
-str(DF.HetC.MixedModel.mol)#subsp is factor with 2 levels
+MM.2 has significant coefficients, sex and sex*subsp interaction.
 
-DF.HetC.MixedModel.mol$subsp <- as.character(DF.HetC.MixedModel.mol$subsp)
+MM.2.Mol, the sex and interaction term (subsp*sex) are significant.  
 
-#turn to chr first?
-#apparently ifelse doesn't retain class
-library(data.table)
-
-DF.HetC.MixedModel.mol$subsp <- if_else(grepl("MSM", DF.HetC.MixedModel.mol$strain), "Mol", 
-        if_else(grepl("MOLF", DF.HetC.MixedModel.mol$strain), "Mol", DF.HetC.MixedModel.mol$subsp))
-
-str(DF.HetC.MixedModel.mol)
-DF.HetC.MixedModel.mol$subsp <- factor(DF.HetC.MixedModel.mol$subsp, ordered = FALSE)
+MM.4 the strains which are significant are G, PWD and MSM. These 3 strains also have significant interaction (sex*strain) terms.
 
 
-#these remove ALL male MSM!
-table(DF.HetC.MixedModel.HQ$strain, DF.HetC.MixedModel.HQ$sex)
+# Variance in CO count
+
+The **biological significance** of within mouse variance in CO per cell is...
+
+I can show the variance boxplots?  Not sure if it's very helpful.
+Use the same Datasets HQ and mol for the mean CO counts. Use both var and cV as dependant variables
+
+DF.HetC.MixedModel.HQ.mol
+DF.HetC.MixedModel.HQ
 
 
-#mean.co
-HetC.MixedModel.mol <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel.mol, random=list(strain=pdDiag(~sex) ) )
-
-summary(HetC.MixedModel.mol)
-ranef(HetC.MixedModel.mol)
-
-#mreducing the model (reducing the random effects)
-Reduced.strain.mol <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel.mol, random = ~1|strain)
-summary(Reduced.strain.mol)
-ranef(Reduced.strain.mol)
-
-Reduced.all.mol <- gls(mean_co ~ subsp * sex, data=DF.HetC.MixedModel.mol)
-summary(Reduced.all.mol)
-
-#anova tests
-#full vs strain
-full2strain.mol <- anova(HetC.MixedModel.mol, Reduced.strain.mol)# < .0001
-#full vs non
-full2noRandom.mol <- anova(HetC.MixedModel.mol, Reduced.all.mol)# < .0001
-#strain vs non
-strain2noRandom.mol <- anova(Reduced.strain.mol, Reduced.all.mol)# < .0001
-
-anova(Reduced.strain.mol, Reduced.all.mol, HetC.MixedModel.mol)
+```{r variance.boxplots, echo=FALSE, eval=FALSE}
+#how did I make this 
+#Species.COcount.mixed <- lmer(nMLH1.foci ~ species + quality + (1|mouse), data=MLH1.hq.lab, REML = TRUE)
+#Species.COcount.mixed.sum <- summary(Species.COcount.mixed)
+#SpeciesCOcount.fix.est <- drop1(Species.COcount.mixed, test="Chisq") 
+#SpeciesCOcount.Rand.est <- exactRLRT(Species.COcount.mixed)
 
 
-#base vs mol model (this only makes sense if these are nested models)
-anova(HetC.MixedModel.mean_co, HetC.MixedModel.mol)
+#plot of variance
+var.boxplot <- ggplot(DF.HetC.MixedModel.HQ, aes(x = as.factor(mouse), y = var, fill= strain,alpha=0.5))+ geom_point()+
+ ggtitle("Boxplots of MLH1 distributions") + theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+ ylim( c((min(MLH1_data$adj_nMLH1.foci)-3) ), (max(MLH1_data$adj_nMLH1.foci)+3)) +   scale_fill_manual(values=colors_of_strains)
+var.boxplot <- var.boxplot   + facet_wrap(sex ~ strain, scales="free")
+#this plot shows variance as points/single values
+
+
+#plot by sex / seperately
+# HQ data DF.HetC.MixedModel.HQ
+
+var.male <- ggplot(DF.HetC.MixedModel.HQ[DF.HetC.MixedModel.HQ$sex == "male",], aes(x = as.factor(mouse), y = var, fill= strain,alpha=0.5))+ geom_point()+
+ ggtitle("Male variance levels") + theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  scale_fill_manual(values=colors_of_strains)+  ylim( c( 5, 20) )
+
+var.male <- var.male   + facet_wrap( ~ strain, scales="free")
+
+
+
+cV.male <- ggplot(DF.HetC.MixedModel.HQ[DF.HetC.MixedModel.HQ$sex == "male",], aes(x = as.factor(mouse), y = cV, fill= strain,alpha=0.5))+ geom_point()+
+ ggtitle("Male cV levels") + theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  scale_fill_manual(values=colors_of_strains)+  ylim( c( 5, 20) )
+
+cV.male <- cV.male   + facet_wrap( ~ strain, scales="free")
+
 
 ```
 
 
-Issue presented with is that we can see evolution across the strains, but it isn't predicted from mixed models by strain.
-make artificial data / models, like human labels
 
+$$mouse .cV CO ~=~ subsp * sex + rand(strain*sex)+ \varepsilon$$
 
-## Mixed Model for variance
-
-
-```{r HQ.var, echo=FALSE}
+```{r cV.model.setup, echo=FALSE}
 #modeling within mouse variance
 
 DF.HetC.MixedModel.HQ$var <-  as.numeric(DF.HetC.MixedModel.HQ$var)
@@ -776,17 +732,57 @@ DF.HetC.MixedModel.HQ$var <-  as.numeric(DF.HetC.MixedModel.HQ$var)
 #HQ var.CO
 HetC.MixedModel.HQ.var_co <- lme(cV ~ subsp * sex, data=DF.HetC.MixedModel.HQ, random=list(strain=pdDiag(~sex) ) )
 
-summary(HetC.MixedModel.HQ.var_co)
-ranef(HetC.MixedModel.HQ.var_co)
+#summary(HetC.MixedModel.HQ.var_co)
+
+as.data.frame( round(summary(HetC.MixedModel.HQ.var_co)$tTable, 6))
+
+#ranef(HetC.MixedModel.HQ.var_co)
+```
+
+lme function, Cv modeled. Only sex is significant.
 
 
+```{r cv.mod1.mol, echo=FALSE}
+
+HetC.MixedModel.HQ_mol.cV_co <- lme(cV ~ subsp * sex, data=DF.HetC.MixedModel.HQ.mol, random=list(strain=pdDiag(~sex) ) )
+
+as.data.frame( round(summary(HetC.MixedModel.HQ_mol.cV_co)$tTable, 6))
+
+```
+
+
+
+$$mouse .cV CO ~=~ subsp * sex + rand(1|strain)+ \varepsilon$$
+
+```{r cV.models, echo=FALSE}
 HQjust.strain.var_co <- lme(cV ~ subsp * sex, data=DF.HetC.MixedModel.HQ, random = ~1|strain) 
 
-summary(HQjust.strain.var_co)
+as.data.frame( round(summary(Reduced.all.HQ)$tTable, 6))
+
+#summary(HQjust.strain.var_co)
+```
+
+Sex and sex*subsp interaction effect are significant.
 
 
+
+```{r cV.mod.mol, echo=FALSE}
+
+HQ.mol.cV_co <- lme(cV ~ subsp * sex, data=DF.HetC.MixedModel.HQ.mol, random = ~1|strain) 
+
+as.data.frame( round(summary(HQ.mol.cV_co)$tTable, 6))
+
+
+```
+
+Sex is significant, when mol is a seperate subspecies interaction is no longer significant.
+
+
+$$mouse .cV CO ~=~ subsp * sex + \varepsilon$$
+```{r more.cV.CO, echo=FALSE}
 HQfull.Reduced.cv_co <- gls(cV ~ subsp * sex, data=DF.HetC.MixedModel.HQ)
-summary(HQfull.Reduced.cv_co)
+as.data.frame( round(summary(HQfull.Reduced.cv_co)$tTable, 6))
+#summary(HQfull.Reduced.cv_co)
 
 #contrast models
 full2strain.CV <- anova(HetC.MixedModel.HQ.var_co, HQjust.strain.var_co)#
@@ -794,37 +790,86 @@ full2strain.CV <- anova(HetC.MixedModel.HQ.var_co, HQjust.strain.var_co)#
 full2noRandom.CV <- anova(HetC.MixedModel.HQ.var_co, HQfull.Reduced.cv_co)#
 
 strain2noRandom.CV <- anova(HQjust.strain.var_co, HQfull.Reduced.cv_co)# 0.0469
-
-
 ```
 
 
+
+
+
+$$mouse .var CO ~=~ subsp * sex + rand(strain*sex) + \varepsilon$$
 
 ```{r Base.Variance.MM, echo=FALSE, eval=FALSE}
 
 #there's 1 mouse with just 1 cell remove
 DF.HetC.MixedModel <- DF.HetC.MixedModel[!(is.na(DF.HetC.MixedModel$var) | DF.HetC.MixedModel$var==""), ]
-
 DF.HetC.MixedModel$var <-  as.numeric(DF.HetC.MixedModel$var)
 
 #main var.CO
-HetC.MixedModel.var_co <- lme(var ~ subsp * sex, data=DF.HetC.MixedModel, random=list(strain=pdDiag(~sex) ) )
+HetC.MixedModel.var_co <- lme(var ~ subsp * sex, data=DF.HetC.MixedModel.HQ, random=list(strain=pdDiag(~sex) ) )
 
-summary(HetC.MixedModel.var_co)
-ranef(HetC.MixedModel.var_co)
+as.data.frame( round(summary(HetC.MixedModel.var_co)$tTable, 6))
 
+#summary(HetC.MixedModel.var_co)
+#ranef(HetC.MixedModel.var_co)
+```
+Above error says missing values in object -- I don't understand. Mol version of data frame works...
+
+Base DF, lme function, random sex specific strain effects
+
+
+
+$$mouse .var CO ~=~ subsp * sex  + \varepsilon$$
+```{r base.var.mol, echo=FALSE}
+HetC.MixedModel.mol.var_co <- lme(var ~ subsp * sex, data=DF.HetC.MixedModel.HQ.mol, random=list(strain=pdDiag(~sex) ) )
+
+as.data.frame( round(summary(HetC.MixedModel.mol.var_co)$tTable, 6))
+
+```
+
+
+
+
+$$mouse .var CO ~=~ subsp * sex + rand(strain * sex) + \varepsilon$$
+```{r var.model.1, echo=FALSE, eval=FALSE}
 #main cV.CO
 HetC.MixedModel.varco <- lme(var ~ subsp * sex, data=DF.HetC.MixedModel, random=list(strain=pdDiag(~sex) ) )
 
-summary(HetC.MixedModel.cVco)
-ranef(HetC.MixedModel.cVco)
+as.data.frame( round(summary(HetC.MixedModel.varco)$tTable, 6))
 
+#summary(HetC.MixedModel.cVco)
+#ranef(HetC.MixedModel.cVco)
+```
+
+
+$$mouse .var CO ~=~ subsp * sex + rand(1|strain) + \varepsilon$$
+
+```{r var.model.2, echo=FALSE, eval=FALSE}
 just.strain.var_co <- lme(var ~ subsp * sex, data=DF.HetC.MixedModel, random = ~1|strain) 
-summary(just.strain.cV_co)
+
+as.data.frame( round(summary(just.strain.var_co)$tTable, 6))
+
+#summary(just.strain.cV_co)
+```
+
+lme model above
+
+
+$$mouse .var CO ~=~ subsp * sex + \varepsilon$$
+
+```{r var.mod.3, echo=FALSE}
 
 full.Reduced.cv_co <- gls(cV ~ subsp * sex, data=DF.HetC.MixedModel)
-summary(full.Reduced.cv_co)
+#summary(full.Reduced.cv_co)
 
+as.data.frame( (summary(full.Reduced.cv_co)$tTable))
+
+```
+
+gls model model above
+
+
+
+```{r var.contrast, echo=FALSE, eval=FALSE}
 #contrast models
 full2strain.CV <- anova(HetC.MixedModel.varco, just.strain.var_co)#0.9997
 
@@ -832,11 +877,19 @@ full2noRandom.CV <- anova(HetC.MixedModel.varco, full.Reduced.var_co) #0.3012
 
 strain2noRandom.CV <- anova(just.strain.var_co, full.Reduced.var_co)#0.1213
 #for var, p = 0.0219
-
 ```
 
 
+#### Summary variance
 
+The general pattern across all the models, is that sex is a significant effect for all models. The sex-subsp interaction effect pvalues were larger and only significant for one of the models.
+
+When Molossinus is coded as a seperate subspecies, then interaction terms are no longer significant.
+
+
+#### Pooled cells
+
+For later analysis.
 
 ```{r Mixed.models.pooled.cells, echo=FALSE, eval=FALSE, include=FALSE}
 
@@ -877,8 +930,6 @@ DF.HetC.MixedModel.pooled <- droplevels(DF.HetC.MixedModel.pooled)
 
 
 ```
-
-
 
 
 - The MSM strain effect is 0, but the sex*strain for molossinus is 7 (this seems very high). This means there is 0 variance added to mean_CO to mean due to being MSM. Does this mean the model is very good at predicting MSM mean_CO. The fixed strain - sex effects are for musc are large. 
