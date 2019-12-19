@@ -65,8 +65,6 @@ AP_mouse_table.HQ <- AP_mouse_table.HQ[(AP_mouse_table.HQ$mouse != "18nov17_WSB_
 
 #remove male only data
 
-
-
 #I need cell level data 
 uni.mice <- unique(AP_mouse_table.HQ$mouse)
 fig.data<- MLH1_data[ MLH1_data$mouse %in% uni.mice, ]
@@ -198,7 +196,7 @@ S.E. = sd( all cells) / n.cells
 
 
 
-## Option 2, strain averages, more strains, pooled cells
+## Option 2, mouse averages, more strains
 
 
 ```{r strain.table, echo=FALSE, warning=FALSE}
@@ -280,7 +278,7 @@ strain.table.HQ.backup <- strain.table.HQ.backup[(strain.table.HQ.backup$strain 
 
 #MOl
 #MSM, MOLF
-strain.table.HQ.backup$strain<- factor(strain.table.HQ.backup$strain, ordered = TRUE, levels =c( "WSB", "G", "LEW", "PERC",
+strain.table.from.mouse.HQ.backup$strain<- factor(strain.table.from.mouse.HQ.backup$strain, ordered = TRUE, levels =c( "WSB", "G", "LEW", "PERC",
                            "PWD", "SKIVE", "KAZ", "TOM", "AST","CZECH",
                                                     "MSM", "MOLF",
                                           "CAST", "HMI",
@@ -292,10 +290,15 @@ strain.table.HQ.backup$strain<- factor(strain.table.HQ.backup$strain, ordered = 
 #use the MLH1 / cell level data to calq the error bars
 #strain table ggplot
 
-Fig1_B_strain.male <- ggplot(strain.table.HQ.backup[strain.table.HQ.backup$sex == "male",], aes(y=mean_co, x=strain, color=strain))+facet_grid(~sex, scales = "free", space="free")+ 
-  ylab("")+
-  geom_point(size=3)+
-  geom_errorbar(aes(ymin=mean_co-se, ymax=mean_co+se), width=.3)+
+
+#REMOVING FACET ~SEX 
+Fig1_B_strain <- ggplot(strain.table.from.mouse.HQ.backup, aes(y=mean_co.of.mice, x=strain, color=strain, shape=sex))+ 
+  ylab("Average MLH1 Foci per Cell")+
+
+  geom_point(aes(shape = sex), size=3, position=position_dodge(.5))+
+  geom_errorbar(aes(ymin=mean_co.of.mice-(se.of.mice*2), ymax=mean_co.of.mice+(se.of.mice*2) ), width=.3, position = position_dodge(.5), size=1.001)+
+  
+  
   ylim(c(18, 35))+
  scale_color_manual(values=colors_of_strains)+ 
   theme(legend.position="none",
@@ -348,13 +351,16 @@ Fig1_B_strain.female <- ggplot(strain.table.HQ.backup[strain.table.HQ.backup$sex
 
 
 ```{r Strain.fig.merge, echo=FALSE}
-fig1_B_v1  <- ggdraw() +
-  draw_plot(Fig1_B_strain.female, x=0, y = 0, width=.45, height=.97) +
-  draw_plot(Fig1_B_strain.male, x=.5, y=0, width=.45, height=.97) +
+#fig1_B_v1  <- ggdraw() +
+#  draw_plot(Fig1_B_strain.female, x=0, y = 0, width=.45, height=.97) +
+#  draw_plot(Fig1_B_strain.male, x=.5, y=0, width=.45, height=.97) +
   
-  draw_plot_label(label = c("A", "B"), size = 15,
-                  x = c(0, .5), y = c(1, 1) )
-fig1_B_v1
+#  draw_plot_label(label = c("A", "B"), size = 15,
+#                  x = c(0, .5), y = c(1, 1) )
+
+
+Fig1_B_strain
+
 ```
 
 
