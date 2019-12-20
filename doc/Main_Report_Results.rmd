@@ -28,13 +28,13 @@ library(ggpubr)
 library(reshape2)
 
 #setwd("~./MLH1repo/doc/")
-setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/doc/")
 #setwd("C:/Users/April/Desktop/MLH1repo")
 #load(file="data/MLH1/MLH1_data_setup.RData")
 
 #load main data file
 
-load(file="~./data/MLH1/MLH1_data_setup_12.20.19.RData")#fixing bugs, formating
+load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#fixing bugs, formating
 #load(file="data/MLH1/MLH1_data_setup_12.3.19.RData")#removed exclude mice
 #load(file="data/MLH1/MLH1_data_setup_11.12.19.RData")#added batch17
 #load(file="data/MLH1/MLH1_data_setup_11.11.19.RData")#deleted DUP image
@@ -88,7 +88,8 @@ AP_category_table <-  ddply(.data=AP_mouse_table.HQ,
                                   
 )
 
-write.table(AP_category_table, "~./MLH1repo/strain_table_variances.csv", sep=",", row.names = FALSE)
+#there might be an error for changing wd
+#write.table(AP_category_table, "~./MLH1repo/strain_table_variances.csv", sep=",", row.names = FALSE)
 
 AP_mouse_table.HQ_target <- AP_mouse_table.HQ[!(is.na(AP_mouse_table.HQ$sex) | AP_mouse_table.HQ$sex==""), ]
 
@@ -175,7 +176,7 @@ cor.test(AP_mouse_table.HQ.10plus$mean_co[AP_mouse_table.HQ.10plus$sex == "femal
 
 
 
-# MLH1 means
+# Main Figures
 
 figure 1, change to all white, add the subspecies lines below.
 
@@ -251,7 +252,6 @@ AP_strain.table.HQ <- ddply(MLH1_data, c("strain", "sex"), summarise,
 ```
 
 
-
 ```{r Fig1, echo=FALSE, warning=FALSE}
 
 Fig1_v1_strain <- ggplot(AP_strain.table.HQ, aes(y=mean_co, x=strain, color=strain, shape=sex))+ 
@@ -291,9 +291,10 @@ Fig1_v1_strain
 
 *cast female data came from another publication
 
+add code for the table table. may have to deal with the excess mouse issue
 
 
-# Mixed Models
+# A. Models for mean and variance of MLH1 foci per cell 
 
 
 These are the basic Mixed Models we used as a frame work to analyze all the MLH1 data.
@@ -410,6 +411,7 @@ Currently I ran through 3 datasets: 1) base, 2) HQ and 3) Molf (from HQ)
 Above are the total number of mice in the data set  
 
 
+FOR FINAL ANALYSIS, MOL Will be coded as a seperate subsp (change all of the main model reports to)
 For mouse averages of MLH1 counts, only strain with observations for both sexes and are from Mus species. 
 
 subspecies levels: 2(3), Musc and Domesticus (Molossinus)
@@ -667,7 +669,7 @@ MM.2.Mol, the sex and interaction term (subsp*sex) are significant.
 MM.4 the strains which are significant are G, PWD and MSM. These 3 strains also have significant interaction (sex*strain) terms.
 
 
-# Variance in CO count
+## Variance in CO count
 
 The **biological significance** of within mouse variance in CO per cell is...
 
@@ -856,7 +858,7 @@ lme model above
 
 $$mouse .var CO ~=~ subsp * sex + \varepsilon$$
 
-```{r var.mod.3, echo=FALSE}
+```{r var.mod.3, echo=FALSE, eval=FALSE}
 
 full.Reduced.cv_co <- gls(cV ~ subsp * sex, data=DF.HetC.MixedModel)
 #summary(full.Reduced.cv_co)
@@ -965,7 +967,212 @@ more variation in domesticus females.
 Females have more nuanced patterns, there is strain specific differences.
 
 
-# DMC1 Results
+
+# Rapid male specific evolution
+
+## Proportion of chrm classes
+
+These results are meant to compare the proportions of bivalents with 0,1,2 or 3 chromosomes.
+Most of the variation in gwRR across strains in is due to more 2COs at the 'expense' / trade off of 1COs. (the gwRR for most mice is low/close to the minimum)
+
+
+This is also another way to score heterochiasmy (that gets around the sex chrms, i think)
+
+The data below are from hand measured cells (not from bivalent data)
+generate smaller data set of chrm proportions (0CO, 1CO,2CO etc)
+10 cells from each musc category. **Add Molf male**
+
+ToDo -- add more hand curated data for the bivalent proportions
+
+
+```{r chrm_prop_data, echo=FALSE, eval=FALSE}
+#shut off eval for now because of wd / path error
+#chrm.class.DF = read.csv("~./MLH1repo/data/ChrmClassProportions.csv", header = TRUE)
+
+chrm.class.DF$fileName <- (chrm.class.DF$Original.Name)
+chrm.class.DF <- add_mouse(chrm.class.DF)
+chrm.class.DF <- add_strain(chrm.class.DF)
+chrm.class.DF <- add_sex(chrm.class.DF)
+chrm.class.DF <- add_category(chrm.class.DF)
+#chrm.class.DF <- add_euth_date(meta.data.file2)
+#chrm.class.DF <- add_age(meta.data.file2)
+
+#table(chrm.class.DF$category)
+#str(chrm.class.DF)
+
+#summarize by category
+proportion_stats_category  <- ddply(.data=chrm.class.DF[chrm.class.DF$sex == "male",], 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(Original.Name)),
+                 nmice = length(unique(mouse)),
+                  tot_biv  = sum(biv.sum.check),
+
+                 n0CO = sum(n0CO),
+                  n1CO = sum(n1CO),
+                  n2CO = sum(n2CO),
+                  n3CO = sum(n3CO),
+                  n4CO = sum(n4CO),
+                 
+                 per0CO = sum(n0CO) / tot_biv,                 
+                 per1CO= sum(n1CO)/ tot_biv,
+                 per2CO= sum(n2CO)/ tot_biv,
+                 per3CO= sum(n3CO)/ tot_biv,
+                 per4CO= sum(n4CO)/ tot_biv,
+                 
+                 mean.MLH1.foci = mean(MLH1.sum.check),
+                 mean.MLH1.foci2 = mean(nMLH1.foci),
+                 meanQ = mean(quality)
+
+)
+#str(this_thing2)
+
+#this first one is the 'first' MLH1 count
+oopp2 <- lm( mean.MLH1.foci2 ~ per0CO+ per1CO +per2CO +per3CO, data = proportion_stats_category)
+#summary(oopp2)
+#none of the classes are significant
+
+
+#mean is the new calculated-- mean 0CO is significant and intercept
+oopp <-  lm( mean.MLH1.foci ~ per0CO+ per1CO +per2CO +per3CO, data = proportion_stats_category)
+#summary(oopp)
+#not sure if these are inter-correlated
+#I don't know why 0COs and the intercept are significant..
+#0CO and 1CO are significant when only chrm classes are included (and intercept)
+
+
+#no longer significant when used
+#lm regression indicates that the proportions aren't significant contributers to meanMLH1 -- but this could be due to error
+#after added more MSM data, tot_biv is not significant
+#0CO is now more significant, and 2CO is sightly significant
+
+
+#2CO proportion is the most significant, 1CO is second most significat, 3CO doesn't have enough power - total bivalents is also significant, there might be a bias
+
+#MSM needs more bialent observations
+#use melt to put all propotions 
+#display / visualize / compare proportions
+#the table needs to be melted, because it's split by category
+
+#melt.table = read.csv("~./MLH1repo/data/ChrmClassProportions_melt.csv", header = TRUE)
+melt.table$fileName <- (melt.table$Original.Name)
+
+#melt.table <- add_mouse(melt.table)
+#melt.table <- add_strain(melt.table)
+#melt.table <- add_sex(melt.table)
+#melt.table <- add_category(melt.table)
+
+melt.table$strain<- factor(melt.table$strain,levels =c("LEW",
+                      "WSB","G", "TOM","AST","KAZ", "SKIVE","PWD","MSM"), order=T )
+
+melt.table <- with(melt.table, melt.table[order(strain),])
+
+other_thing <- ggplot(data = melt.table, aes(y = value, x = strain, fill=as.factor(type)) ) + geom_col(position = "dodge")+facet_grid(sex~subsp, scales = "free")+ggtitle("Chrm Proportions from Hand Measured")+ylim(c(0,1))
+
+other_thing
+
+
+chrm.class.DF$perBiv0 <-chrm.class.DF$n0CO/chrm.class.DF$biv.sum.check
+chrm.class.DF$perBiv1<-chrm.class.DF$n1CO/chrm.class.DF$biv.sum.check
+chrm.class.DF$perBiv2<-chrm.class.DF$n2CO/chrm.class.DF$biv.sum.check
+chrm.class.DF$perBiv3<-chrm.class.DF$n3CO/chrm.class.DF$biv.sum.check
+chrm.class.DF$perBiv4<-chrm.class.DF$n4CO/chrm.class.DF$biv.sum.check
+
+#chrm.class.DF$biv.sum.check
+```
+
+High musc males have half 1CO and 2CO bivalents.
+For following up on the biv stuff, find ways to compare the 1CO to 2COs in Dom and Musc. (sis-coten, length, distance from centromere).
+
+```{r chrm.pro.Curated.BivData, echo=FALSE, eval=FALSE}
+
+#bivalent data might be too big..
+#load(file="~./MLH1repo/data/CleanBivData.RData")
+#Curates_BivData -- hand.foci.count!
+
+#For each mouse I need to count up
+#the number of bivalent classes are not counted up
+
+chrm.propotion.category <- ddply(.data=Curated_BivData, 
+                 .(category),
+                 summarize, 
+                 ncells = length(unique(fileName)),
+                 nmice = length(unique(mouse)),
+                  tot_biv  = length(Obj.ID),
+
+                 n0CO = length(which(hand.foci.count == 0)),
+                  n1CO = length(which(hand.foci.count == 1)),
+                  n2CO = length(which(hand.foci.count == 2)),
+                  n3CO = length(which(hand.foci.count == 3)),
+                  #n4CO = sum(n4CO),
+                 
+                 per0CO = sum(n0CO) / tot_biv,                 
+                 per1CO= sum(n1CO)/ tot_biv,
+                 per2CO= sum(n2CO)/ tot_biv,
+                 per3CO= sum(n3CO)/ tot_biv )
+                # per4CO= sum(n4CO)/ tot_biv  )
+
+
+
+Chrm.proportions_Biv.Data <- melt(chrm.propotion.category, c(
+  "per0CO", "per1CO", "per2CO", "per3CO"), 
+  id=c("category", "tot_biv") )
+colnames(Chrm.proportions_Biv.Data) <- c("category","total_biv","Chrm.Type","value") 
+
+# I think I need to make 2 melt tables -- for count and proportions
+Chrm.numbers_Biv.Data <- melt(chrm.propotion.category, c("n0CO", "n1CO", "n2CO", "n3CO" ), 
+  id=c("category", "tot_biv") )
+colnames(Chrm.numbers_Biv.Data) <- c("category","total_biv", "Chrm.Type", "biv_count") 
+
+Chrm.prop_Biv.Data <- cbind(Chrm.proportions_Biv.Data, Chrm.numbers_Biv.Data[,4])
+colnames(Chrm.prop_Biv.Data) <- c("category","total_biv", "Chrm.Type","value", "biv_count") 
+
+Chrm.prop_Biv.Data <-Chrm.prop_Biv.Data[(!is.na(Chrm.prop_Biv.Data$value)),]
+
+Chrm.prop_Biv.Data$sex <- ifelse(grepl("female", Chrm.prop_Biv.Data$category), "female", ifelse(grepl("male", Chrm.prop_Biv.Data$category), "male", "" ))
+
+Chrm.prop_Biv.Data$strain <- ifelse(grepl("WSB", Chrm.prop_Biv.Data$category), "WSB", ifelse(grepl("G", Chrm.prop_Biv.Data$category), "G",
+ifelse(grepl("LEW", Chrm.prop_Biv.Data$category), "LEW",                                                                                                           
+      ifelse(grepl("KAZ", Chrm.prop_Biv.Data$category), "KAZ",           
+        ifelse(grepl("CZECH", Chrm.prop_Biv.Data$category), "CZECH", 
+        ifelse(grepl("SKIVE", Chrm.prop_Biv.Data$category), "SKIVE",
+        ifelse(grepl("PWD", Chrm.prop_Biv.Data$category), "PWD",  
+        ifelse(grepl("MSM", Chrm.prop_Biv.Data$category), "MSM", "" ))))))))
+
+Chrm.prop_Biv.Data$strain<- factor(Chrm.prop_Biv.Data$strain,levels =c("WSB","G","LEW",
+                       "KAZ","CZECH", "SKIVE","PWD","MSM"), order=T )
+#no mol yet
+
+Chrm.prop_Biv.Data <- with(Chrm.prop_Biv.Data, Chrm.prop_Biv.Data[order(strain),])
+
+#need to make list of positions
+
+chrm_prop.BivData_plot <- ggplot(data = Chrm.prop_Biv.Data, aes(y = value, x = strain, fill=as.factor(Chrm.Type)) ) + geom_col(position = "dodge")+ggtitle("Chrm Proportions from BivData")+ facet_wrap(~sex, scales = "free", ncol = 1 )+ylim(c(0,1)) + labs(x="", y='Proportions') +   geom_text(aes(label = biv_count), position = position_dodge(0.99))
+  
+chrm_prop.BivData_plot
+
+```
+
+number above bars are the raw counts for bivalent classes.
+
+Potential figure 2 (eventually). Try to make the figure taller.
+-- add more data to make sample sizes more equal.
+-- add space to indicate where female data is missing
+
+SKIVE male has lower proportion of 2CO compared to the hand measured, but it still looks like it's more than other strains.
+What's up with Lew females? there's lots of 2COs, also WSB female.
+
+This type of plot is another way to score heterochiasmy that gets around the sex chromosomes, because the data come from samples of bivalents and not averages of cells. If these data are random samples of bivalents, the X 
+
+
+ToDo: chisq tests for difference in proportions, 
+- within strain across sex,
+- males, across high and low groups
+- look at mouse level proportions
+
+
+
+## DMC1 Results
 
 These data are meant to test if CO precursors, double strand breaks (DSBs), are significant predictors for MLH1 count variation. Simply, do mice with more DSBs also have more COs?
 
@@ -1073,6 +1280,25 @@ Foci of DMC1 were scored from Leptotene and Zygotene spermatocytes of juvenile m
 ToDo think of ways to add in the compared means for the high and low groups (across cell stage)
 how similar are G-WSB or PWD-MSM to each other?
 
+
+## Total SC Results
+
+
+# Female patterns
+
+there is strain specific evolution for females ... 
+
+
+# Sexual dimorphism and heterochiasmy things
+
+total sc length / SC compaction and telomere bias in positioning are conserved / consistantly sexually dimorphism (in these mice?)  for most species
+
+
+# Predictions / tests for selection on Bivalent structure
+
+
+
+# ""
 
 ## Testing Normality Assumptions
 
@@ -1805,205 +2031,6 @@ The mouse specific scatter plots aren't show here because there are too bulky. T
 
 Making all of these scatter plots, allows us to look at the whole distributions of the data for each mouse. The distance of the red line from the black could be a indicator of slides or mice with slide specific technical noise.
 
-
-# Proportion of chrm classes
-
-These results are meant to compare the proportions of bivalents with 0,1,2 or 3 chromosomes.
-Most of the variation in gwRR across strains in is due to more 2COs at the 'expense' / trade off of 1COs. (the gwRR for most mice is low/close to the minimum)
-
-
-This is also another way to score heterochiasmy (that gets around the sex chrms, i think)
-
-The data below are from hand measured cells (not from bivalent data)
-generate smaller data set of chrm proportions (0CO, 1CO,2CO etc)
-10 cells from each musc category. **Add Molf male**
-
-ToDo -- add more hand curated data for the bivalent proportions
-
-
-```{r chrm_prop_data, echo=FALSE}
-chrm.class.DF = read.csv("~./MLH1repo/data/ChrmClassProportions.csv", header = TRUE)
-
-chrm.class.DF$fileName <- (chrm.class.DF$Original.Name)
-chrm.class.DF <- add_mouse(chrm.class.DF)
-chrm.class.DF <- add_strain(chrm.class.DF)
-chrm.class.DF <- add_sex(chrm.class.DF)
-chrm.class.DF <- add_category(chrm.class.DF)
-#chrm.class.DF <- add_euth_date(meta.data.file2)
-#chrm.class.DF <- add_age(meta.data.file2)
-
-#table(chrm.class.DF$category)
-#str(chrm.class.DF)
-
-#summarize by category
-proportion_stats_category  <- ddply(.data=chrm.class.DF[chrm.class.DF$sex == "male",], 
-                 .(category),
-                 summarize, 
-                 ncells = length(unique(Original.Name)),
-                 nmice = length(unique(mouse)),
-                  tot_biv  = sum(biv.sum.check),
-
-                 n0CO = sum(n0CO),
-                  n1CO = sum(n1CO),
-                  n2CO = sum(n2CO),
-                  n3CO = sum(n3CO),
-                  n4CO = sum(n4CO),
-                 
-                 per0CO = sum(n0CO) / tot_biv,                 
-                 per1CO= sum(n1CO)/ tot_biv,
-                 per2CO= sum(n2CO)/ tot_biv,
-                 per3CO= sum(n3CO)/ tot_biv,
-                 per4CO= sum(n4CO)/ tot_biv,
-                 
-                 mean.MLH1.foci = mean(MLH1.sum.check),
-                 mean.MLH1.foci2 = mean(nMLH1.foci),
-                 meanQ = mean(quality)
-
-)
-#str(this_thing2)
-
-#this first one is the 'first' MLH1 count
-oopp2 <- lm( mean.MLH1.foci2 ~ per0CO+ per1CO +per2CO +per3CO, data = proportion_stats_category)
-#summary(oopp2)
-#none of the classes are significant
-
-
-#mean is the new calculated-- mean 0CO is significant and intercept
-oopp <-  lm( mean.MLH1.foci ~ per0CO+ per1CO +per2CO +per3CO, data = proportion_stats_category)
-#summary(oopp)
-#not sure if these are inter-correlated
-#I don't know why 0COs and the intercept are significant..
-#0CO and 1CO are significant when only chrm classes are included (and intercept)
-
-
-#no longer significant when used
-#lm regression indicates that the proportions aren't significant contributers to meanMLH1 -- but this could be due to error
-#after added more MSM data, tot_biv is not significant
-#0CO is now more significant, and 2CO is sightly significant
-
-
-#2CO proportion is the most significant, 1CO is second most significat, 3CO doesn't have enough power - total bivalents is also significant, there might be a bias
-
-#MSM needs more bialent observations
-#use melt to put all propotions 
-#display / visualize / compare proportions
-#the table needs to be melted, because it's split by category
-
-melt.table = read.csv("~./MLH1repo/data/ChrmClassProportions_melt.csv", header = TRUE)
-melt.table$fileName <- (melt.table$Original.Name)
-
-#melt.table <- add_mouse(melt.table)
-#melt.table <- add_strain(melt.table)
-#melt.table <- add_sex(melt.table)
-#melt.table <- add_category(melt.table)
-
-melt.table$strain<- factor(melt.table$strain,levels =c("LEW",
-                      "WSB","G", "TOM","AST","KAZ", "SKIVE","PWD","MSM"), order=T )
-
-melt.table <- with(melt.table, melt.table[order(strain),])
-
-other_thing <- ggplot(data = melt.table, aes(y = value, x = strain, fill=as.factor(type)) ) + geom_col(position = "dodge")+facet_grid(sex~subsp, scales = "free")+ggtitle("Chrm Proportions from Hand Measured")+ylim(c(0,1))
-
-other_thing
-
-
-chrm.class.DF$perBiv0 <-chrm.class.DF$n0CO/chrm.class.DF$biv.sum.check
-chrm.class.DF$perBiv1<-chrm.class.DF$n1CO/chrm.class.DF$biv.sum.check
-chrm.class.DF$perBiv2<-chrm.class.DF$n2CO/chrm.class.DF$biv.sum.check
-chrm.class.DF$perBiv3<-chrm.class.DF$n3CO/chrm.class.DF$biv.sum.check
-chrm.class.DF$perBiv4<-chrm.class.DF$n4CO/chrm.class.DF$biv.sum.check
-
-#chrm.class.DF$biv.sum.check
-```
-
-High musc males have half 1CO and 2CO bivalents.
-For following up on the biv stuff, find ways to compare the 1CO to 2COs in Dom and Musc. (sis-coten, length, distance from centromere).
-
-```{r chrm.pro.Curated.BivData, echo=FALSE}
-
-#bivalent data might be too big..
-load(file="~./MLH1repo/data/CleanBivData.RData")
-#Curates_BivData -- hand.foci.count!
-
-#For each mouse I need to count up
-#the number of bivalent classes are not counted up
-
-chrm.propotion.category <- ddply(.data=Curated_BivData, 
-                 .(category),
-                 summarize, 
-                 ncells = length(unique(fileName)),
-                 nmice = length(unique(mouse)),
-                  tot_biv  = length(Obj.ID),
-
-                 n0CO = length(which(hand.foci.count == 0)),
-                  n1CO = length(which(hand.foci.count == 1)),
-                  n2CO = length(which(hand.foci.count == 2)),
-                  n3CO = length(which(hand.foci.count == 3)),
-                  #n4CO = sum(n4CO),
-                 
-                 per0CO = sum(n0CO) / tot_biv,                 
-                 per1CO= sum(n1CO)/ tot_biv,
-                 per2CO= sum(n2CO)/ tot_biv,
-                 per3CO= sum(n3CO)/ tot_biv )
-                # per4CO= sum(n4CO)/ tot_biv  )
-
-
-
-Chrm.proportions_Biv.Data <- melt(chrm.propotion.category, c(
-  "per0CO", "per1CO", "per2CO", "per3CO"), 
-  id=c("category", "tot_biv") )
-colnames(Chrm.proportions_Biv.Data) <- c("category","total_biv","Chrm.Type","value") 
-
-# I think I need to make 2 melt tables -- for count and proportions
-Chrm.numbers_Biv.Data <- melt(chrm.propotion.category, c("n0CO", "n1CO", "n2CO", "n3CO" ), 
-  id=c("category", "tot_biv") )
-colnames(Chrm.numbers_Biv.Data) <- c("category","total_biv", "Chrm.Type", "biv_count") 
-
-Chrm.prop_Biv.Data <- cbind(Chrm.proportions_Biv.Data, Chrm.numbers_Biv.Data[,4])
-colnames(Chrm.prop_Biv.Data) <- c("category","total_biv", "Chrm.Type","value", "biv_count") 
-
-Chrm.prop_Biv.Data <-Chrm.prop_Biv.Data[(!is.na(Chrm.prop_Biv.Data$value)),]
-
-Chrm.prop_Biv.Data$sex <- ifelse(grepl("female", Chrm.prop_Biv.Data$category), "female", ifelse(grepl("male", Chrm.prop_Biv.Data$category), "male", "" ))
-
-Chrm.prop_Biv.Data$strain <- ifelse(grepl("WSB", Chrm.prop_Biv.Data$category), "WSB", ifelse(grepl("G", Chrm.prop_Biv.Data$category), "G",
-ifelse(grepl("LEW", Chrm.prop_Biv.Data$category), "LEW",                                                                                                           
-      ifelse(grepl("KAZ", Chrm.prop_Biv.Data$category), "KAZ",           
-        ifelse(grepl("CZECH", Chrm.prop_Biv.Data$category), "CZECH", 
-        ifelse(grepl("SKIVE", Chrm.prop_Biv.Data$category), "SKIVE",
-        ifelse(grepl("PWD", Chrm.prop_Biv.Data$category), "PWD",  
-        ifelse(grepl("MSM", Chrm.prop_Biv.Data$category), "MSM", "" ))))))))
-
-Chrm.prop_Biv.Data$strain<- factor(Chrm.prop_Biv.Data$strain,levels =c("WSB","G","LEW",
-                       "KAZ","CZECH", "SKIVE","PWD","MSM"), order=T )
-#no mol yet
-
-Chrm.prop_Biv.Data <- with(Chrm.prop_Biv.Data, Chrm.prop_Biv.Data[order(strain),])
-
-#need to make list of positions
-
-chrm_prop.BivData_plot <- ggplot(data = Chrm.prop_Biv.Data, aes(y = value, x = strain, fill=as.factor(Chrm.Type)) ) + geom_col(position = "dodge")+ggtitle("Chrm Proportions from BivData")+ facet_wrap(~sex, scales = "free", ncol = 1 )+ylim(c(0,1)) + labs(x="", y='Proportions') +   geom_text(aes(label = biv_count), position = position_dodge(0.99))
-  
-chrm_prop.BivData_plot
-
-```
-
-number above bars are the raw counts for bivalent classes.
-
-Potential figure 2 (eventually). Try to make the figure taller.
--- add more data to make sample sizes more equal.
--- add space to indicate where female data is missing
-
-SKIVE male has lower proportion of 2CO compared to the hand measured, but it still looks like it's more than other strains.
-What's up with Lew females? there's lots of 2COs, also WSB female.
-
-This type of plot is another way to score heterochiasmy that gets around the sex chromosomes, because the data come from samples of bivalents and not averages of cells. If these data are random samples of bivalents, the X 
-
-
-ToDo: chisq tests for difference in proportions, 
-- within strain across sex,
-- males, across high and low groups
-- look at mouse level proportions
 
 
 
