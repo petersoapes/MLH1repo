@@ -953,24 +953,9 @@ Character assigned variables.  The values are now quite different. Male, sex coe
 
 
 
-
-#### outgroups
-
-The outgroups (SPIC and SPRET) don't show strong evidence of evolution in gwRR.
-
-#### Male Patterns
-
-Rapid evolution in musculus and molossinus; high and low CO count males (two instances of rapid gwRR evo, PWD and MSM)
-
-#### Female Patterns
-
-seems like female specific evolution in molossinus and musculus.
-more variation in domesticus females.
-Females have more nuanced patterns, there is strain specific differences.
-
-
-
 # Rapid male specific evolution
+
+list out the points whic hsuport rapid male specific evolution for MLH1 rates.
 
 ## Proportion of chrm classes
 
@@ -1213,7 +1198,7 @@ ToDo: chisq tests for difference in proportions,
 
 
 
-## DMC1 Results
+## DMC1 Results Spermatocytes
 
 These data are meant to test if CO precursors, double strand breaks (DSBs), are significant predictors for MLH1 count variation. Simply, do mice with more DSBs also have more COs?
 
@@ -1250,6 +1235,22 @@ DMC1.mean.obs.Z$stage <- "Z"
 
 ```
 
+### Testing Normality Assumptions
+
+```{r normality, echo=FALSE, warning=FALSE}
+#histograms for each
+
+#- check that distributions are close to normal
+#- check for equal variance.
+
+DMC1.histogram <- ggplot(DMC1.DF, aes(total.count, fill = stage)) + geom_histogram(alpha = 0.4)+facet_wrap(~strain)+ ggtitle("DMC1 histogram")
+
+DMC1.histogram
+#checking equal variance, https://www.statmethods.net/stats/anovaAssumptions.html
+#bartlet's test, Levine's test
+```
+
+The counts look close to normal.
 
 Potentially figure 2. Using a function to display the p-vales for mean comparison
 
@@ -1322,11 +1323,123 @@ ToDo think of ways to add in the compared means for the high and low groups (acr
 how similar are G-WSB or PWD-MSM to each other?
 
 
+
+## DMC1 Permutations with equal sampling
+
+The number of observations are not quite equal across strains and cell stages, so I ran permutations sampling 25 cells from the high and low recombining groups of cells. Below are the distributions of p values for permuted t-tests from sampling 25 cells from the pooled high and low recombining groups. Permutations were done for both cell stages. The actual p value is in red. 
+
+The observed p value does not fall outside of the permuted distribution with assumes equal cell sampling.
+
+```{r DMC1.subsampling, echo=FALSE}
+
+#recreate the DMC1 data by subsampling ~9 or lowest cell number from 
+# the 2 groups
+
+#make the 2 pools
+High.L.pool <- DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ]
+High.Z.pool <- DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ]
+
+Low.L.pool <- DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]
+Low.Z.pool <- DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]
+
+
+#permute drawing / subsampling and performing the t-test
+#put the p.value results into a DF!
+
+
+#permut.SC.cv.diff  <- as.data.frame(
+#sample(THE.DF, SAMPLE.SIZE, REPLACE?)
+
+#permuting samples -- and re-licating t-tests
+
+#nrep <- 1000
+
+#permuting samples to replicate the t.test across cell stages from high and low with equal sample sizes.
+bunchOpvals.L <- replicate(1000, 
+    # t.test
+    t.test( sample(High.L.pool, 25, replace = FALSE),
+            sample(Low.L.pool, 25, replace = FALSE), var.equal = FALSE )$p.value
+          )
+bunchOpvals.L <- as.data.frame(bunchOpvals.L)
+bunchOpvals.L$stage <- "L"
+
+bunchOpvals.Z <- replicate(1000, 
+    # t.test
+    t.test( sample(High.Z.pool, 25, replace = FALSE),
+            sample(Low.Z.pool, 25, replace = FALSE), var.equal = FALSE)$p.value
+          )
+
+bunchOpvals.Z <- as.data.frame(bunchOpvals.Z)
+bunchOpvals.Z$stage <- "Z"
+
+#could merge the lists of p-values
+replicated.Ttests <- cbind(bunchOpvals.L, bunchOpvals.Z)
+#have to melt, the rbinded dataframe to get the cols 'stage' and 'pvale'
+
+
+#ASSUMPTIONS; normality, equal variance
+
+#plot the lists of pvals in histogram? compare to the observed pvalue to get a sense as of how much sample size shifts the pvalues.
+
+plot.pvals.L <- ggplot(bunchOpvals.L, aes(bunchOpvals.L) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Leptotene")+geom_vline(xintercept=ttest.HighLow.L$p.value, linetype="dotted", color="red")
+
+
+plot.pvals.Z <- ggplot(bunchOpvals.Z, aes(bunchOpvals.Z) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Zygotene")+geom_vline(xintercept=ttest.HighLow.Z$p.value, linetype="dotted", color="red")
+plot.pvals.L
+plot.pvals.Z
+
+
+#The t.test( ) function produces a variety of t-tests. Unlike most statistical packages, the default assumes #unequal variance and applies the Welsh df modification.
+#n use the var.equal = TRUE
+#https://www.statmethods.net/stats/ttest.html
+```
+
+
+```{r DMC1_MLH1.cor, echo=FALSE}
+#make category averages from AP_mouse_table.HQ
+mean.MLH1.obs <- ddply(.data=AP_mouse_table.HQ,
+                 .(category),
+                 summarize, 
+                 mean.MLH1 = mean(mean_co),
+                 var.MLH1 = var(mean_co)
+)
+
+DMC1.target.strains <- subset(mean.MLH1.obs, category == "G male" |
+                   category == "WSB male" |
+                     category == "KAZ male" |
+                  category == "MSM male" |
+                    category == "PWD male")
+#attach this mini DF to the DMC1 data
+
+DMC1.mean.obs.L$mean.count.L <- DMC1.mean.obs.L$mean.count
+DMC1.mean.obs.Z$mean.count.Z <- DMC1.mean.obs.Z$mean.count
+
+
+DMC1table <- merge(DMC1.mean.obs.L, DMC1.mean.obs.Z, by="category")
+
+DMC1table.main <- merge(DMC1.target.strains, DMC1table, by="category")
+
+MLH1.DMC1.L_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.L, method = c("pearson"))#MLH1.DMC1.Z_cor
+
+MLH1.DMC1.Z_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.Z, method = c("pearson"))#0.2793237
+
+```
+
+> At what stage are DMC1 foci numbers most correlated with MLH1?
+
+The correlation with MLH1 and leptotene cells is `r MLH1.DMC1.L_cor`.
+
+The correlation with MLH1 and zygotene cells is `r MLH1.DMC1.Z_cor`.
+
+
 ## Total SC Results
+
+insert male total sc results here
 
 
 # Female patterns
 
+Nuanced
 there is strain specific evolution for females ... 
 
 
@@ -1346,22 +1459,7 @@ how does this compare to variance of mid 5, bottom 5?
 
 # ""
 
-## Testing Normality Assumptions
 
-```{r normality, echo=FALSE, warning=FALSE}
-#histograms for each
-
-#- check that distributions are close to normal
-#- check for equal variance.
-
-DMC1.histogram <- ggplot(DMC1.DF, aes(total.count, fill = stage)) + geom_histogram(alpha = 0.4)+facet_wrap(~strain)+ ggtitle("DMC1 histogram")
-
-DMC1.histogram
-#checking equal variance, https://www.statmethods.net/stats/anovaAssumptions.html
-#bartlet's test, Levine's test
-```
-
-The counts look close to normal.
 
 
 ```{r barlett.test, echo=FALSE}
@@ -1433,115 +1531,6 @@ ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.D
 
 Divide the Musculus strains into high and low recombining groups to characterize the difference in distributions. The p-values from the t.tests of the high vs low groups, indicate that the high recombining are significantly higher for the L cells (p value = `r ttest.HighLow.L$p.value`) while the Z cells, there is not a significant difference across the high and low groups (value = `r ttest.HighLow.Z$p.value`).
 
-
-## Permutations with equal sampling
-
-The number of observations are not quite equal across strains and cell stages, so I ran permutations sampling 25 cells from the high and low recombining groups of cells. Below are the distributions of p values for permuted t-tests from sampling 25 cells from the pooled high and low recombining groups. Permutations were done for both cell stages. The actual p value is in red. 
-
-The observed p value does not fall outside of the permuted distribution with assumes equal cell sampling.
-
-```{r DMC1.subsampling, echo=FALSE}
-
-#recreate the DMC1 data by subsampling ~9 or lowest cell number from 
-# the 2 groups
-
-#make the 2 pools
-High.L.pool <- DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ]
-High.Z.pool <- DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ]
-
-Low.L.pool <- DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]
-Low.Z.pool <- DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]
-
-
-#permute drawing / subsampling and performing the t-test
-#put the p.value results into a DF!
-
-
-#permut.SC.cv.diff  <- as.data.frame(
-#sample(THE.DF, SAMPLE.SIZE, REPLACE?)
-
-#permuting samples -- and re-licating t-tests
-
-#nrep <- 1000
-
-#permuting samples to replicate the t.test across cell stages from high and low with equal sample sizes.
-bunchOpvals.L <- replicate(1000, 
-    # t.test
-    t.test( sample(High.L.pool, 25, replace = FALSE),
-            sample(Low.L.pool, 25, replace = FALSE), var.equal = FALSE )$p.value
-          )
-bunchOpvals.L <- as.data.frame(bunchOpvals.L)
-bunchOpvals.L$stage <- "L"
-
-bunchOpvals.Z <- replicate(1000, 
-    # t.test
-    t.test( sample(High.Z.pool, 25, replace = FALSE),
-            sample(Low.Z.pool, 25, replace = FALSE), var.equal = FALSE)$p.value
-          )
-
-bunchOpvals.Z <- as.data.frame(bunchOpvals.Z)
-bunchOpvals.Z$stage <- "Z"
-
-#could merge the lists of p-values
-replicated.Ttests <- cbind(bunchOpvals.L, bunchOpvals.Z)
-#have to melt, the rbinded dataframe to get the cols 'stage' and 'pvale'
-
-
-#ASSUMPTIONS; normality, equal variance
-
-#plot the lists of pvals in histogram? compare to the observed pvalue to get a sense as of how much sample size shifts the pvalues.
-
-plot.pvals.L <- ggplot(bunchOpvals.L, aes(bunchOpvals.L) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Leptotene")+geom_vline(xintercept=ttest.HighLow.L$p.value, linetype="dotted", color="red")
-
-
-plot.pvals.Z <- ggplot(bunchOpvals.Z, aes(bunchOpvals.Z) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Zygotene")+geom_vline(xintercept=ttest.HighLow.Z$p.value, linetype="dotted", color="red")
-plot.pvals.L
-plot.pvals.Z
-
-
-#The t.test( ) function produces a variety of t-tests. Unlike most statistical packages, the default assumes #unequal variance and applies the Welsh df modification.
-#n use the var.equal = TRUE
-#https://www.statmethods.net/stats/ttest.html
-```
-
-
-
-```{r DMC1_MLH1.cor, echo=FALSE}
-#make category averages from AP_mouse_table.HQ
-mean.MLH1.obs <- ddply(.data=AP_mouse_table.HQ,
-                 .(category),
-                 summarize, 
-                 mean.MLH1 = mean(mean_co),
-                 var.MLH1 = var(mean_co)
-)
-
-DMC1.target.strains <- subset(mean.MLH1.obs, category == "G male" |
-                   category == "WSB male" |
-                     category == "KAZ male" |
-                  category == "MSM male" |
-                    category == "PWD male")
-#attach this mini DF to the DMC1 data
-
-DMC1.mean.obs.L$mean.count.L <- DMC1.mean.obs.L$mean.count
-DMC1.mean.obs.Z$mean.count.Z <- DMC1.mean.obs.Z$mean.count
-
-
-DMC1table <- merge(DMC1.mean.obs.L, DMC1.mean.obs.Z, by="category")
-
-DMC1table.main <- merge(DMC1.target.strains, DMC1table, by="category")
-
-MLH1.DMC1.L_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.L, method = c("pearson"))#MLH1.DMC1.Z_cor
-
-MLH1.DMC1.Z_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.Z, method = c("pearson"))#0.2793237
-
-```
-
-
-> At what stage are DMC1 foci numbers most correlated with MLH1?
-
-The correlation with MLH1 and leptotene cells is `r MLH1.DMC1.L_cor`.
-
-The correlation with MLH1 and zygotene cells is `r MLH1.DMC1.Z_cor`.
 
 
 
@@ -2084,9 +2073,9 @@ Making all of these scatter plots, allows us to look at the whole distributions 
 
 
 
-### Another Heterochiasmy Plot
 
-```{r HetC.plot22, echo=FALSE,  fig.width=10, fig.height=5, fig.caption="Sex-Specific MLH1 average"}
+
+```{r HetC.plot22, echo=FALSE,  fig.width=10, fig.height=5, fig.caption="Sex-Specific MLH1 average", eval=FALSE}
 
 
 no_female <- c("HMI", "SKIVE", "CZECH", "MOLF", "CAROLI", "TOM","AST")
