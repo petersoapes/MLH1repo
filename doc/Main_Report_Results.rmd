@@ -671,19 +671,13 @@ MM.2.Mol, the sex and interaction term (subsp*sex) are significant.
 MM.4 the strains which are significant are G, PWD and MSM. These 3 strains also have significant interaction (sex*strain) terms.
 
 
-## Variance in CO count
+# Variance in CO count
 
 in addition to the mean gwRR, the variance is also an important metric to dicribe 
 
 Within animal variance in CO count / genome wide RR is important because it could shape constraints (and determine how effective stabilizing selection can act (ref))
 
 
-
-I can show the variance boxplots?  Not sure if it's very helpful.
-Use the same Datasets HQ and mol for the mean CO counts. Use both var and cV as dependant variables
-
-DF.HetC.MixedModel.HQ.mol
-DF.HetC.MixedModel.HQ
 
 RW's main qtl paper used the within animal variance, 
 "We mapped QTL for
@@ -763,6 +757,53 @@ cV.male <- cV.male   + facet_wrap( ~ strain, scales="free")
 
 
 ```{r variance.hist, echo=FALSE}
+
+#make series for total dataset?
+Var.Hist.total.mice <- ggplot(DF.HetC.MixedModel, aes(x = var, fill=sex)) + 
+  geom_histogram(binwidth = 1, alpha=.6)  +
+  ggtitle("Histograms of within mouse variance, all mice")
+Var.Hist.total.mice <- Var.Hist.total.mice   + facet_wrap(~ strain, scales="free")
+Var.Hist.total.mice
+
+#DF.HetC.MixedModel.HQ
+Var.Hist <- ggplot(DF.HetC.MixedModel.HQ, aes(x = var, fill=sex)) + 
+  geom_histogram(binwidth = 1, alpha=.6)  + 
+  ggtitle("Histograms of within mouse variance, 10 cell min")
+Var.Hist <- Var.Hist   + facet_wrap(~ strain, scales="free")
+Var.Hist
+
+
+Var.Hist.15cells <- ggplot(DF.HetC.MixedModel.HQ[DF.HetC.MixedModel.HQ$Ncells >14,], aes(x = var, fill=sex)) + 
+  geom_histogram(binwidth = 1, alpha=.6)  +   ggtitle("Histograms of within mouse variance, 15 cell min")
+Var.Hist.15cells <- Var.Hist.15cells   + facet_wrap(~ strain, scales="free")
+Var.Hist.15cells
+
+
+
+```
+
+
+A general pattern is that the female data has higher within mouse variance (both var and cV). I think the dissection date needs to be tested as a predictor factor.  It might be tricky to add the dissection date metric. 
+Test if dissection date is more significant predictor than strain (for females)
+
+(LEW females with top 3 variance are all from different dissection dates)
+
+
+```{r cv.plots, echo=FALSE}
+
+cV.Hist.total.mice <- ggplot(DF.HetC.MixedModel, aes(x =cV , fill=sex)) + 
+  geom_histogram(binwidth = 1, alpha=.6)  +
+  ggtitle("cV of within mouse variance, all mice")
+cV.Hist.total.mice <- cV.Hist.total.mice   + facet_wrap(~ strain, scales="free")
+cV.Hist.total.mice
+
+#DF.HetC.MixedModel.HQ
+cV.Hist <- ggplot(DF.HetC.MixedModel.HQ, aes(x = cV, fill=sex)) + 
+  geom_histogram(binwidth = 1, alpha=.6)  + 
+  ggtitle("cV of within mouse variance, 10 cell min")
+cV.Hist <- cV.Hist   + facet_wrap(~ strain, scales="free")
+cV.Hist
+
 
 ```
 
@@ -1375,7 +1416,7 @@ The number of observations are not quite equal across strains and cell stages, s
 
 The observed p value does not fall outside of the permuted distribution with assumes equal cell sampling.
 
-```{r DMC1.subsampling, echo=FALSE}
+```{r DMC1.subsampling, echo=FALSE, eval=FALSE}
 
 #recreate the DMC1 data by subsampling ~9 or lowest cell number from 
 # the 2 groups

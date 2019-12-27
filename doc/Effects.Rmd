@@ -1,0 +1,356 @@
+---
+title: "Effects"
+author: "April Peterson"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+#setwd("C:/Users/April/Desktop/MLH1repo")
+#load(file="data/MLH1/MLH1_data_setup.RData")
+
+library(knitr)
+library(ggplot2)
+library(plyr)
+library(lattice)
+library(dplyr)
+library(raster)
+library(lme4)
+library(nlme)
+library(RLRsim)
+library(ggpubr)
+library(reshape2)
+
+#load main data file
+
+load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#fixing bugs, formating
+#load(file="data/MLH1/MLH1_data_setup_11.12.19.RData")
+#save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_12.3.19.RData")
+
+```
+
+
+```{r Effects.on.the.dataset, eval=FALSE, echo=FALSE}
+
+#*age effects* (male, maternal age)
+
+#*litter effect*
+
+#*mouse room effect* (Charmony, MSC)
+
+#*quantification repeatability*
+
+#*spread batch and staining effects*
+
+#*power analysis on number of cells*
+
+#*time of year effect (on spread)*
+
+#*dominant effect* (F1s)
+
+```
+
+
+
+## Quality Effects
+
+below is a chunk to looking at histogram/distribution and means for the MLH1 data across quality bins
+
+```{r MLH1.histogram.2, echo=FALSE}
+#remake the pooled MLH1 histgoram plot from above but facet by quality
+
+#PWD male, MSM male
+#LEW female, WSB female
+mean.MLH1.obs_qual <- ddply(.data=MLH1_data, 
+                 .(category, quality),
+                 summarize, 
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+#what's the point of the above table? -- add vlines?
+
+#I think I should do some t-tests across the groups of quality bins to better asess the amount of quality effect
+
+histM_qual.KAZ_male <- ggplot(data=MLH1_data[MLH1_data$category == "KAZ male",],(aes(x=adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ quality, ncol = 5)+ggtitle("KAZ male Pooled Cell Histograms by quality")+ geom_vline(xintercept=mean.MLH1.obs_qual$mean.MLH1[mean.MLH1.obs_qual$category == "KAZ male"],color="red")
+histM_qual.KAZ_male
+
+
+histM_qual.PWD_male <- ggplot(data=MLH1_data[MLH1_data$category == "PWD male",],(aes(x=adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ quality, ncol = 5)+ggtitle("PWD male Pooled Cell Histograms by quality")+ geom_vline(xintercept=mean.MLH1.obs_qual$mean.MLH1[mean.MLH1.obs_qual$category == "PWD male"],color="red")
+histM_qual.PWD_male
+
+histM_qual.MSM_male <- ggplot(data=MLH1_data[MLH1_data$category == "MSM male",],(aes(x=adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ quality, ncol = 5)+ggtitle("MSM male Pooled Cell Histograms by quality")+geom_vline(xintercept=mean.MLH1.obs_qual$mean.MLH1[mean.MLH1.obs_qual$category == "MSM male"], color="red")
+histM_qual.MSM_male
+
+histM_qual.WSB_female <- ggplot(data=MLH1_data[MLH1_data$category == "WSB female",],(aes(x=adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ quality, ncol = 5)+ggtitle("WSB female Pooled Cell Histograms by quality")+ geom_vline(xintercept=mean.MLH1.obs_qual$mean.MLH1[mean.MLH1.obs_qual$category == "WSB female"],color="red")
+histM_qual.WSB_female
+
+histM_qual.LEW_female <- ggplot(data=MLH1_data[MLH1_data$category == "LEW female",],(aes(x=adj_nMLH1.foci))) + xlim(c(16, 38)) + geom_histogram(stat = "bin", binwidth = 1) + facet_wrap(~ quality, ncol = 5)+ggtitle("LEW female Pooled Cell Histograms by quality")+ geom_vline(xintercept=mean.MLH1.obs_qual$mean.MLH1[mean.MLH1.obs_qual$category == "LEW female"],color="red")
+histM_qual.LEW_female
+
+
+#plot.pvals.L <- ggplot(bunchOpvals.L, aes(bunchOpvals.L) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Leptotene")+geom_vline(xintercept=ttest.HighLow.L$p.value, linetype="dotted", color="red")
+
+
+#when I try to add the mean lines, error returned that it can't find the adj_MLH1 ....?
+#histM <- histM +  geom_line(data=mean.MLH1.obs, aes(y=mean.MLH1.obs$mean.MLH1))
+  
+#ad
+#  geom_smooth(method = lm, se = FALSE
+ # geom_smooth(method = lm, formula = mean.MLH1.obs$mean.MLH1 ~ mean.MLH1.obs$category, se = FALSE)
+  
+
+```
+
+
+I'm not sure sure how effective the above plots are.
+
+
+### Age Effect (male)
+
+Some papers have documented age effects for male genome-wide recombination rate [@zelazowski2017age].
+
+The initial analysis uses plots. This should be double checked with a general linear model as well.
+
+
+```{r age.hists, echo=FALSE, eval=FALSE,  warning=FALSE}
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+meta.data$DOB <- as.Date(meta.data$DOB, format= "%m/%d/%Y")#%Y 2000, %y '18,
+
+#make Mouse meta data work .. rename these
+MouseMetaData.wrkin <- meta.data[,c(1,4)]
+colnames(MouseMetaData.wrkin) <- c("mouse", "DOB")
+MouseMetaData.wrkin <- MouseMetaData.wrkin[!(is.na(MouseMetaData.wrkin$mouse)|MouseMetaData.wrkin$mouse==""),]
+#do this for the mouse table instead of the MLH1 table
+MLH1.imprv <- merge(MLH1_data, MouseMetaData.wrkin)#don't apply the all parameters
+#DOB is date
+MLH1.imprv <- add_euth_date(MLH1.imprv)
+#good euth date..
+
+#make backup date col #add euth date for calculating age
+MLH1.imprv$euth.date2 <- MLH1.imprv$euth.date
+MLH1.imprv <- add_age(MLH1.imprv)
+#age works
+
+#remove mice that are older than 20 weeks
+MLH1.imprv.male <- MLH1.imprv[MLH1.imprv$sex == "male", ]
+MLH1.imprv.male <- MLH1.imprv.male[MLH1.imprv.male$age.weeks < 20, ]
+
+age.hist <- ggplot(MLH1.imprv[MLH1.imprv$sex == "male", ], aes(age.weeks))+geom_histogram()+facet_wrap(~category)+ggtitle("Male Age and MLH1 counts by subspecies")
+age.hist
+
+```
+
+
+I like this plot and find it effective. Can I do a similar set up for other factors (quality, ncells?)
+
+
+```{r age.effect.model, include=FALSE}
+#run a age effect linear regression!
+
+male.data <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$sex.y == "male",]
+
+male.data.dom <- male.data[male.data$subsp.y == "Dom",]
+
+male.data.musc.low <- male.data[(male.data$strain.x == "KAZ" | male.data$strain.x == "TOM" | male.data$strain.x == "AST"),]
+
+male.data.musc.high <- male.data[(male.data$strain.x == "PWD" | male.data$strain.x == "MSM" | male.data$strain.x == "MOLF" | male.data$strain.x == "SKIVE"),]
+
+male.data.outgroup <- male.data[(male.data$subsp.y == "Spretus" | male.data$subsp.y == "Spic" | male.data$subsp.y == "Caroli"),]
+
+lm.me.dom  <- lm(mean_co ~ age.weeks+strain.x, data = male.data.dom)
+
+lm.me.musc.low  <- lm(mean_co ~ age.weeks+strain.x, data = male.data.musc.low)
+
+lm.me.musc.high  <- lm(mean_co ~ age.weeks+strain.x, data = male.data.musc.high)
+#significant differences across strains in musc high
+
+lm.me.OG  <- lm(mean_co ~ age.weeks+strain.x, data = male.data.outgroup)
+
+summary(lm.me.OG)
+#for all models, mostly it was that the intercept was significant, and mot much else
+
+#good knitting output
+#as.data.frame( round(  summary(HetC.MixedModel.HQ)$tTable, 6 ) )
+
+
+```
+
+
+
+
+
+
+
+
+
+```{r age.effect.plot, warning=FALSE, echo=FALSE}
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+
+AP_mouse_table_w.Ages <- add_category(AP_mouse_table_w.Ages)
+#remove NAs
+AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[!(is.na(AP_mouse_table_w.Ages$Nmice) | AP_mouse_table_w.Ages$Nmice==""), ]
+
+#make sure the right dataset 
+male.data <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$sex.y == "male") & (AP_mouse_table_w.Ages$category.y != "other"),]
+#lots of NA rows... ugh .. remove them
+male.data <- male.data[!(is.na(male.data$Nmice) | male.data$Nmice==""), ]
+
+#other removed, no points,
+male.data <- male.data[male.data$Ncells > 10,]
+
+age.effect.plot <- ggplot(male.data, aes(y=mean_co, x=age.weeks, color=(strain.y) ))+geom_point()+ ylim(c(19,34))+
+  #trying this
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Male Age and mean CO")+facet_wrap(~subsp.y)
+age.effect.plot
+#no longer has 'other', #yay I added purtty standard colors
+#there is an NA
+#todo add line to strain.y
+
+```
+
+
+While many slopes are different than 0, I am not convinced there is a clear age effect. Most strains don't have more than 2 ages. I will double check some of these mice and check a general linear model.
+
+
+### Age Effect (female)
+
+Compare embryonic to neonate (logistic regression). I don't think my embyonic stage estimates are very accurate, so I'll bin all embryos into 1.
+
+```{r female.age, eval=FALSE}
+#compile this dataset
+```
+
+
+
+### Maternal Age effect
+
+Check if there is a maternal age effect for females and males.
+
+```{r mat.age.effect, echo=FALSE, eval=FALSE}
+#pause evaluation -- needs debugging
+meta.data.file = read.csv("~./MLH1repo/data/DandM_8.30.19.csv", header = TRUE)
+
+meta.data.file <- meta.data.file[!(is.na(meta.data.file$mouse)|meta.data.file$mouse==""),]
+#445? -- probably extras at bottom not good
+
+#how many mice have maternal DOB
+meta.data.file.w.mat.DOB <- meta.data.file[!(is.na(meta.data.file$maternal_DOB)|meta.data.file$maternal_DOB==""),]
+#151
+
+#format this meta.data.file
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+
+meta.data.file.w.mat.DOB <- add_mouse(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_category(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_strain(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_sex(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_subsp(meta.data.file.w.mat.DOB)
+
+#check if date format's been applied before tryung the age functions
+#str(meta.data.file.w.mat.DOB)
+
+#DOB and Mat.DOB need to be date formated, make sure that the dates are consistant in the original file
+#the dates in my file are not all standardized... year is somethimes 2 - sometimes 4
+meta.data.file.w.mat.DOB$DOB <- as.Date(meta.data.file.w.mat.DOB$DOB, format= "%m/%d/%Y")#%Y 2000, %y '18,
+meta.data.file.w.mat.DOB$maternal_DOB <-as.Date(meta.data.file.w.mat.DOB$maternal_DOB, format= "%m/%d/%Y")
+
+#str(meta.data.file.w.mat.DOB)
+
+meta.data.file.w.mat.DOB <- add_euth_date(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_age(meta.data.file.w.mat.DOB)
+meta.data.file.w.mat.DOB <- add_mat_age(meta.data.file.w.mat.DOB)
+
+#merge meta data with MLH1 -- rename this
+see.whatcha.do <- merge(AP_mouse_table_w.Ages, meta.data.file.w.mat.DOB, by.x = 'mouse', by.y = 'mouse',all = FALSE )
+#remove anything without mean_CO
+see.whatcha.do <- see.whatcha.do[!(is.na(see.whatcha.do$mean_co)|see.whatcha.do$mean_co==""),]
+see.whatcha.do <- see.whatcha.do[!(is.na(see.whatcha.do$mat.age.days)|see.whatcha.do$mat.age.days==""),]
+#what did I do with this DF...?
+
+#visualize the data
+meta.data.file.w.mat.DOB.female <- meta.data.file.w.mat.DOB[meta.data.file.w.mat.DOB$sex == "female",]
+meta.data.file.w.mat.DOB.male <- meta.data.file.w.mat.DOB[meta.data.file.w.mat.DOB$sex == "male",]
+
+
+#hist of data
+mat.age.hist.female <- ggplot(meta.data.file.w.mat.DOB.female, aes(mat.age.days))+geom_histogram()+facet_wrap(~category)+ggtitle("Maternal ages of females")
+mat.age.hist.female
+
+mat.age.hist.male <- ggplot(meta.data.file.w.mat.DOB.male, aes(mat.age.days))+geom_histogram()+facet_wrap(~category)+ggtitle("Maternal ages of males")
+mat.age.hist.male
+
+
+#remove mice that might have low quality
+see.whatcha.do.HQ <- see.whatcha.do[see.whatcha.do$Ncells > 14,]
+
+#age by mean_co (these aren't working)
+mat.age.effect.plot.female <- ggplot(see.whatcha.do[see.whatcha.do$sex == "female",], aes(y=mean_co, x=mat.age.days, color=(strain.y) ))+geom_point()+ ylim(c(19,34))+
+  #trying this
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Female Materinal Age and Mean CO (offsping)")+facet_wrap(~subsp.y)
+mat.age.effect.plot.female
+
+mat.age.effect.plot.male <- ggplot(see.whatcha.do.HQ[see.whatcha.do.HQ$sex == "male",], aes(y=mean_co, x=mat.age.days, color=(strain.y) ))+geom_point()+ ylim(c(19,34))+
+  #trying this
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Maternal Age and mean CO, male offspring")+facet_wrap(~subsp.y)
+
+#
+ALLmat.age.effect.plot.male <- ggplot(see.whatcha.do[see.whatcha.do$sex == "male",], aes(y=mean_co, x=mat.age.days, color=(strain.y) ))+geom_point()+ ylim(c(19,34))+
+  #trying this
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Maternal Age and mean CO, male offspring")
++facet_wrap(~subsp.y)
+
+#is there a correlation with proband age and maternal age?
+#there is a big lack of maternal age data...
+#some of the values reference the original breeding pair..
+#from notes on original BPs(males), assigning maternal ages
+
+```
+
+
+
+
+### Litter effect
+
+Compare female spreads made on the same day, but from different mothers/litters.
+```{r litter.effect, eval=FALSE}
+#compile this data set
+
+```
+
+
+# Dissection Effect
+
+
+# Spread and Stain Effects
+
+
+> *month dissected*
+
+For mice strains that have a similar MLH1 level (control for strain MLH1 effect), check if a month effect for MLH1 count (as seen in Peromyscus).
+
+> *staining batches*
+
+Compare observations from the same mouse, but different MLH1 stains.
+
+```{r stain.effects, eval=FALSE}
+
+#compile this dataset
+
+```
+
+
+# Room effect
+
+```{r ROOM.effect, eval=FALSE}
+
+#COMPILE THIS datasets
+#3 different rooms used to house mice. I should have some data on when the switch was. This would be limited to, WSB, LEW and PWD
+
+
+```
+
