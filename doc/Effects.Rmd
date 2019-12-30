@@ -52,12 +52,20 @@ load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.
 ```
 
 
+```{r setupdata, echo=FALSE}
+AP_mouse_table_w.Ages <- add_category(AP_mouse_table_w.Ages)
+#remove NAs
+AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[!(is.na(AP_mouse_table_w.Ages$Nmice) | AP_mouse_table_w.Ages$Nmice==""), ]
+
+```
+
+
 
 ## Quality Effects
 
 below is a chunk to looking at histogram/distribution and means for the MLH1 data across quality bins
 
-```{r MLH1.histogram.2, echo=FALSE}
+```{r MLH1.histogram.2, echo=FALSE, include=FALSE}
 #remake the pooled MLH1 histgoram plot from above but facet by quality
 
 #PWD male, MSM male
@@ -142,21 +150,43 @@ age.hist
 ```
 
 
-I like this plot and find it effective. Can I do a similar set up for other factors (quality, ncells?)
 
 
-```{r age.effect.model, include=FALSE}
+I made 3 models for 3 groupings of mice, dom, musc.high and musc.low 
+
+$$mouse .mean CO ~=~ age + strain + \varepsilon$$
+
+```{r age.effect.model.setupdata, echo=FALSE}
 #run a age effect linear regression!
-
 male.data <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$sex.y == "male",]
 
+#remove all nas
+
+#unorder the factors
+class(male.data$strain.x) <- "factor"
+class(male.data$subsp.x) <- "factor"
+
 male.data.dom <- male.data[male.data$subsp.y == "Dom",]
+male.data.dom <- male.data.dom[!(is.na(male.data.dom$Nmice) | male.data.dom$Nmice==""), ]
 
-male.data.musc.low <- male.data[(male.data$strain.x == "KAZ" | male.data$strain.x == "TOM" | male.data$strain.x == "AST"),]
 
-male.data.musc.high <- male.data[(male.data$strain.x == "PWD" | male.data$strain.x == "MSM" | male.data$strain.x == "MOLF" | male.data$strain.x == "SKIVE"),]
+#MOLF is a low strain
+male.data.musc.low <- male.data[(male.data$strain.x == "KAZ" | male.data$strain.x == "TOM" | male.data$strain.x == "AST" | male.data$strain.x == "MOLF"),]
+male.data.musc.low <- male.data.musc.low[!(is.na(male.data.musc.low$Nmice) | male.data.musc.low$Nmice==""), ]
+
+
+male.data.musc.high <- male.data[(male.data$strain.x == "PWD" | male.data$strain.x == "MSM" | male.data$strain.x == "SKIVE"),]
+male.data.musc.high <- male.data.musc.high[!(is.na(male.data.musc.high$Nmice) | male.data.musc.high$Nmice==""), ]
+
 
 male.data.outgroup <- male.data[(male.data$subsp.y == "Spretus" | male.data$subsp.y == "Spic" | male.data$subsp.y == "Caroli"),]
+male.data.outgroup <- male.data.outgroup[!(is.na(male.data.outgroup$Nmice) | male.data.outgroup$Nmice==""), ]
+
+```
+
+
+
+```{r age.models, echo=FALSE}
 
 lm.me.dom  <- lm(mean_co ~ age.weeks+strain.x, data = male.data.dom)
 
@@ -167,29 +197,31 @@ lm.me.musc.high  <- lm(mean_co ~ age.weeks+strain.x, data = male.data.musc.high)
 
 lm.me.OG  <- lm(mean_co ~ age.weeks+strain.x, data = male.data.outgroup)
 
-summary(lm.me.OG)
-#for all models, mostly it was that the intercept was significant, and mot much else
+#summary(lm.me.OG)
+as.data.frame( round(  summary(lm.me.dom)$coefficients, 6 ) )
 
-#good knitting output
-#as.data.frame( round(  summary(HetC.MixedModel.HQ)$tTable, 6 ) )
+as.data.frame( round(  summary(lm.me.musc.low)$coefficients, 6 ) )
 
-
+as.data.frame( round(  summary(lm.me.musc.high)$coefficients, 6 ) )
 ```
 
 
+Dom, no significant effects for age.  
 
+Musc low, no significant effect for strain or age.  
 
+Musc high, MSM and SKIVE have significant age effects on mean CO count
 
-
-
+SKIVE has the greatest spread in ages for single mice (7,16,41 weeks)
+There are more SKIVE males which I haven't quantified (at least 3, which are in a good age range)
 
 
 ```{r age.effect.plot, warning=FALSE, echo=FALSE}
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
-AP_mouse_table_w.Ages <- add_category(AP_mouse_table_w.Ages)
+#AP_mouse_table_w.Ages <- add_category(AP_mouse_table_w.Ages)
 #remove NAs
-AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[!(is.na(AP_mouse_table_w.Ages$Nmice) | AP_mouse_table_w.Ages$Nmice==""), ]
+#AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[!(is.na(AP_mouse_table_w.Ages$Nmice) | #AP_mouse_table_w.Ages$Nmice==""), ]
 
 #make sure the right dataset 
 male.data <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$sex.y == "male") & (AP_mouse_table_w.Ages$category.y != "other"),]
@@ -209,6 +241,11 @@ age.effect.plot
 #todo add line to strain.y
 
 ```
+
+
+
+I like this plot and find it effective. Can I do a similar set up for other factors (quality, ncells?)
+
 
 
 While many slopes are different than 0, I am not convinced there is a clear age effect. Most strains don't have more than 2 ages. I will double check some of these mice and check a general linear model.
@@ -324,6 +361,13 @@ Compare female spreads made on the same day, but from different mothers/litters.
 
 
 # Dissection Effect
+
+
+```{r dissection.effect.data.setup, echo=FALSE}
+
+#AP_mouse_table_w.Ages$euth.date
+
+```
 
 
 # Spread and Stain Effects
