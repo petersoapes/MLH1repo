@@ -25,8 +25,11 @@ library(reshape2)
 #load main data file
 
 load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#fixing bugs, formating
+load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/total_SC_30.12.19.RData")
+
 #load(file="data/MLH1/MLH1_data_setup_11.12.19.RData")
 #save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_12.3.19.RData")
+
 
 ```
 
@@ -61,7 +64,7 @@ AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[!(is.na(AP_mouse_table_w.Ages$Nmi
 
 
 
-## Quality Effects
+# Quality Effects
 
 below is a chunk to looking at histogram/distribution and means for the MLH1 data across quality bins
 
@@ -106,15 +109,179 @@ histM_qual.LEW_female
 #ad
 #  geom_smooth(method = lm, se = FALSE
  # geom_smooth(method = lm, formula = mean.MLH1.obs$mean.MLH1 ~ mean.MLH1.obs$category, se = FALSE)
-  
+```
+
+
+
+```{r qual.tables, echo=FALSE}
+
+#make a similart plot as the ages
+#for each mouse and quality, calq the mean MLH1
+mouse.table.mean.MLH1.obs_qual <- ddply(.data=MLH1_data, 
+                 .(mouse, quality),
+                 summarize, 
+                 ncells =  length(unique(Original.Name)),
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+
+
+mouse.table.mean.MLH1.obs_qual <- add_category(mouse.table.mean.MLH1.obs_qual)
+mouse.table.mean.MLH1.obs_qual <- add_strain(mouse.table.mean.MLH1.obs_qual)
+mouse.table.mean.MLH1.obs_qual <- add_sex(mouse.table.mean.MLH1.obs_qual)
+mouse.table.mean.MLH1.obs_qual <- add_subsp(mouse.table.mean.MLH1.obs_qual)
 
 ```
 
 
-I'm not sure sure how effective the above plots are.
+```{r qual.plot, echo=FALSE}
+
+mm <- mouse.table.mean.MLH1.obs_qual[mouse.table.mean.MLH1.obs_qual$sex == "male",]
+age.effect.plot.mm <- ggplot(mm, aes(y=mean.MLH1, x=quality, color=(strain) ))+geom_point()+ 
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Male quality and mean CO")+facet_wrap(~subsp)
+age.effect.plot.mm
 
 
-### Age Effect (male)
+ff <- mouse.table.mean.MLH1.obs_qual[mouse.table.mean.MLH1.obs_qual$sex == "female",]
+age.effect.plot.ff <- ggplot(ff, aes(y=mean.MLH1, x=quality, color=(strain) ))+geom_point()+ 
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Female quality and mean CO")+facet_wrap(~subsp)
+
+age.effect.plot.ff
+
+```
+
+
+The original plots weren't very effective, so I removed them. I made 
+
+## Quality effect on SC
+
+
+```{r SC.qual, echo=FALSE}
+#use the SC table
+
+#all of skel and bin are not num
+MLH1.merge.Skel$skel_size <- as.character(MLH1.merge.Skel$skel_size)
+MLH1.merge.Skel$skel_size <- as.numeric(MLH1.merge.Skel$skel_size)
+
+MLH1.merge.Skel$bin_size <- as.character(MLH1.merge.Skel$bin_size)
+MLH1.merge.Skel$bin_size <- as.numeric(MLH1.merge.Skel$bin_size)
+
+#mouse.level.skel
+
+#MLH1.merge.Skel, hist of all skel values
+
+
+#test with removing crop == 'no', MLH1.merge.Skel[MLH1.merge.Skel$REDO.crop == "no",]
+mouse.table.mean.skel.obs_qual <- ddply(.data=MLH1.merge.Skel, 
+                 .(mouse, quality),
+                 summarize, 
+                 ncells =  length(unique(Original.Name)),
+                 mean.skel = mean(skel_size, na.rm = TRUE),
+                 mean.bin = mean(bin_size)
+                # var.skel = var(skel_size, na.rm = TRUE) #var not useful, many NA/1 obs
+)
+
+
+mouse.table.mean.skel.obs_qual <- add_category(mouse.table.mean.skel.obs_qual)
+mouse.table.mean.skel.obs_qual <- add_strain(mouse.table.mean.skel.obs_qual)
+mouse.table.mean.skel.obs_qual <- add_sex(mouse.table.mean.skel.obs_qual)
+mouse.table.mean.skel.obs_qual <- add_subsp(mouse.table.mean.skel.obs_qual)
+
+```
+
+
+
+
+```{r SC.hitograms, echo=FALSE}
+
+skel.histgram <- ggplot(MLH1.merge.Skel, aes(x=skel_size)) +  geom_histogram(bins=50)
+skel.histgram
+
+length(MLH1.merge.Skel$Random.Name[MLH1.merge.Skel$skel_size > 30000])#67 large SC cells
+
+MLH1.merge.Skel <- add_category(MLH1.merge.Skel)
+MLH1.merge.Skel <- add_strain(MLH1.merge.Skel)
+MLH1.merge.Skel <- add_sex(MLH1.merge.Skel)
+MLH1.merge.Skel <- add_subsp(MLH1.merge.Skel)
+
+MLH1.merge.Skel <- MLH1.merge.Skel[MLH1.merge.Skel$skel_size < 30000,]
+
+skel.histgrams.2.DOM <- ggplot(MLH1.merge.Skel[MLH1.merge.Skel$subsp == "Dom",], aes(x=skel_size)) +  geom_histogram(bins=50)+facet_grid(sex~strain)
+skel.histgrams.2.DOM
+
+
+skel.histgrams.2.MUSC <- ggplot(MLH1.merge.Skel[MLH1.merge.Skel$subsp == "Musc",], aes(x=skel_size)) +  geom_histogram(bins=50)+facet_grid(sex~strain)
+skel.histgrams.2.MUSC
+
+```
+
+
+
+
+```{r sc.qual.plots, echo=FALSE}
+skel.mm <- mouse.table.mean.skel.obs_qual[mouse.table.mean.skel.obs_qual$sex == "male",]
+skel.mm <- skel.mm[skel.mm$mean.skel < 50000,]
+
+skel.qual.effect.plot.mm <- ggplot(skel.mm, aes(y=mean.bin, x=quality, color=(strain) ))+geom_point()+ 
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Male quality and mean CO")+facet_wrap(~subsp)
+skel.qual.effect.plot.mm
+```
+
+Each point is a single mouse
+
+```{r G.plot, echo=FALSE}
+Bin.qual.effect.plot.mm.G <- ggplot(skel.mm[skel.mm$strain == "G",],
+                           aes(y=mean.bin, x=quality, size= ncells, color=strain))+geom_point()+ 
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Quality and mean SC (bin) ")+facet_wrap(~mouse)
+
+Bin.qual.effect.plot.mm.G
+
+
+skel.qual.effect.plot.mm.G <- ggplot(skel.mm[skel.mm$strain == "G",],
+                           aes(y=mean.skel, x=quality, size= ncells, color=strain))+geom_point()+ 
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Quality and mean SC (bin) ")+facet_wrap(~mouse)
+
+```
+
+The mouse 22jun15_G_m2 has strange pattern, investigate these outputs
+
+Some of the pattern goes away when redo.crop is set to equal 'no'.
+
+```{r female.skel.plot, echo=FALSE}
+
+skel.ff <- mouse.table.mean.skel.obs_qual[mouse.table.mean.skel.obs_qual$sex == "female",]
+
+skel.qual.effect.plot.ff <- ggplot(skel.ff, aes(y=mean.bin, x=quality, color=(strain) ))+geom_point()+ 
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Male quality and mean CO")+facet_wrap(~subsp)
+
+skel.qual.effect.plot.ff
+
+
+skel.qual.effect.plot.ff.MSM <- ggplot(skel.ff[skel.ff$strain == "MSM",], aes(y=mean.bin, x=quality, color=(strain), size=ncells ))+geom_point()+ 
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Male quality and mean CO")+facet_wrap(~mouse)
+
+
+skel.qual.effect.plot.ff.G <- ggplot(skel.ff[skel.ff$strain == "G",], aes(y=mean.bin, x=quality, color=(strain), size=ncells ))+geom_point()+ 
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Male quality and mean CO")+facet_wrap(~mouse)
+
+skel.qual.effect.plot.ff.PWD <- ggplot(skel.ff[skel.ff$strain == "PWD",], aes(y=mean.skel, x=quality, color=(strain), size=ncells ))+geom_point()+ 
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Male quality and mean CO")+facet_wrap(~mouse)
+
+```
+
+The above plots are good for detecting outliers
+
+
+# Age Effect (male)
 
 Some papers have documented age effects for male genome-wide recombination rate [@zelazowski2017age].
 
@@ -148,8 +315,6 @@ age.hist <- ggplot(MLH1.imprv[MLH1.imprv$sex == "male", ], aes(age.weeks))+geom_
 age.hist
 
 ```
-
-
 
 
 I made 3 models for 3 groupings of mice, dom, musc.high and musc.low 
@@ -206,6 +371,8 @@ as.data.frame( round(  summary(lm.me.musc.high)$coefficients, 6 ) )
 ```
 
 
+ADD euthdate?
+
 Dom, no significant effects for age.  
 
 Musc low, no significant effect for strain or age.  
@@ -251,7 +418,7 @@ I like this plot and find it effective. Can I do a similar set up for other fact
 While many slopes are different than 0, I am not convinced there is a clear age effect. Most strains don't have more than 2 ages. I will double check some of these mice and check a general linear model.
 
 
-### Age Effect (female)
+# Age Effect (female)
 
 Compare embryonic to neonate (logistic regression). I don't think my embyonic stage estimates are very accurate, so I'll bin all embryos into 1.
 
@@ -261,7 +428,7 @@ Compare embryonic to neonate (logistic regression). I don't think my embyonic st
 
 
 
-### Maternal Age effect
+# Maternal Age effect
 
 Check if there is a maternal age effect for females and males.
 
@@ -363,26 +530,157 @@ Compare female spreads made on the same day, but from different mothers/litters.
 # Dissection Effect
 
 
+
+
 ```{r dissection.effect.data.setup, echo=FALSE}
 
 #AP_mouse_table_w.Ages$euth.date
 
+mouse.table.female <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$sex.x == "female",]
+
+mouse.table.female <- mouse.table.female[!(is.na(mouse.table.female$mouse) | mouse.table.female$mouse==""), ]
+
+mouse.table.female <- mouse.table.female[!(is.na(mouse.table.female$euth.date) | mouse.table.female$euth.date==""), ]
+
+
+#add euth dates to MLH1_data
+test.this <- MLH1_data[ MLH1_data$mouse %in% mouse.table.female$mouse, ]
+
+mlh1.euth.date.female <- merge(mouse.table.female, MLH1_data, by = "mouse")
+
 ```
 
 
-# Spread and Stain Effects
+```{r plot.dissection, echo=FALSE}
 
+male.data$euth.date <- as.Date(male.data$euth.date, "%m/%d/%Y")
+
+male.euth.date <- ggplot(male.data, aes(y=mean_co, x=euth.date, color=(strain.y) ))+geom_point()+ ylim(c(19,34))+
+  #trying this
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Male Age and mean CO")+facet_wrap(~subsp.y)
+male.euth.date
+
+
+#look at musc
+musc.male.euth.date <- ggplot(male.data[male.data$subsp.x == "Musc",], aes(y=mean_co, x=euth.date, color=(age.weeks) ))+geom_point()+ ylim(c(19,34))+
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Musc Male Age and mean CO")+facet_wrap(~strain.x)
+musc.male.euth.date
+
+```
+
+
+
+```{r dissection.female, echo=FALSE}
+
+female.data <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$sex.y == "female") & (AP_mouse_table_w.Ages$category.y != "other"),]
+female.data$euth.date <- as.Date(female.data$euth.date, "%m/%d/%Y")
+
+female.euth.date.plot <- ggplot(female.data[female.data$subsp.x == "Musc",], aes(y=mean_co, x=euth.date, color=(strain.y) ))+geom_point()+
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Male Age and mean CO")+facet_wrap(~subsp.y)
+
+female.euth.date.plot
+
+
+DOM.female.euth.date.plot <- ggplot(female.data[female.data$subsp.x == "Dom",], aes(y=mean_co, x=euth.date, color=(strain.y) ))+geom_point()+
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Female Age and mean CO")+facet_wrap(~subsp.y)
+
+DOM.female.euth.date.plot
+
+
+#female / male, sex.x
+#mouse.table.male <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$sex.x == "male",]
+
+test.this <- MLH1_data[ MLH1_data$mouse %in% mouse.table.female$mouse, ]
+
+mlh1.euth.date.female <- merge(mouse.table.female, MLH1_data, by = "mouse")
+
+```
+
+
+## Total SC
+
+follow up to peromyscus findings, Where summer caught mice had lower SC area per cell, compared to winter and fall caught. But there were few data points.
+
+```{r total.sc, echo=FALSE}
+#check out effects of month dissected on SC
+
+#load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#fixing bugs, formating
+
+
+#from total SC
+
+#merge
+ll <- merge(mouse.level.skel, AP_mouse_table_w.Ages, by = "mouse")
+
+ll$euth.date.2 <- as.Date(ll$euth.date, "%m/%d/%Y")
+
+ll <- ll[!(is.na(ll$mean.skel) | ll$mean.skel==""), ]
+ll <- ll[!(is.na(ll$sex.y) | ll$sex.y==""), ]
+
+library(lubridate)
+
+#ADD month 
+ll$month.2 <- month(ll$euth.date.2)
+
+
+#mouse level table
+
+ll.plot <- ggplot(ll, aes(y=mean.skel, x=euth.date.2, color=(strain.y) ))+geom_point()+
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("")+facet_wrap(~sex.y)
+
+
+ll.month.plot <- ggplot(ll, aes(y=mean.skel, x=month.2, color=(strain.y) ))+geom_point()+
+  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("")+facet_wrap(~sex.y)
+
+ll.month.plot
+
+```
+
+
+
+```{r total.sc.all.cells, echo=FALSE, include=FALSE}
+#try ploting all cells
+
+#uu <- merge(MLH1.merge.Skel,AP_mouse_table_w.Ages,by="mouse"  )
+
+#uu$euth.date.2 <- as.Date(uu$euth.date, "%m/%d/%Y")
+#uu$month.2 <- month(uu$euth.date.2)
+
+#uu <- uu[!(is.na(uu$skel_size) | uu$skel_size==""), ]
+#uu <- uu[!(is.na(uu$sex.x) | uu$sex.x==""), ]
+
+#uu.month.plot.DOM <- ggplot(uu[uu$subsp.x == "Dom",], aes(y=skel_size, x=month.2, color=(mouse) ))+
+#  geom_jitter()+  theme(legend.position="none")+
+#  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("")+
+#  facet_wrap(~sex.x)
+
+```
+
+
+So, there doesn't seem to be an effect of month dissected on SC area across mice. This might be the start of testing for 'technical effects / humidity effects'. BUT, I don't really have month by month dissections of mice of the same age, ect.
 
 > *month dissected*
 
 For mice strains that have a similar MLH1 level (control for strain MLH1 effect), check if a month effect for MLH1 count (as seen in Peromyscus).
 
+
+
+# Spread and Stain Effects
+
+
+
+
 > *staining batches*
 
-Compare observations from the same mouse, but different MLH1 stains.
+Compare observations from the same mouse, but different MLH1 stains.  First need to identify data that can be used.
 
-```{r stain.effects, eval=FALSE}
-
+```{r stain.effects.SC, eval=FALSE}
+#/src/TotalSC.R
 #compile this dataset
 
 ```
