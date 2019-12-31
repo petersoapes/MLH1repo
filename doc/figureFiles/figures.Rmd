@@ -139,85 +139,52 @@ strain.table.HQ$strain<- factor(strain.table.HQ$strain, ordered = TRUE, levels =
 ```
 
 
-# FINAL DRAFT
-
-put together 3 pieces; plot, cell1, cell2
-
- todo  
-
-   1. finish and import final ai edited polt,  
-
-   2. add cell images with cowplot to bottom
-
-
-```{r load.plot, echo=FALSE}
-
-```
-
-
-```{r load.cells, echo=FALSE}
-
-cell.output <- readPNG('C:/Users/alpeterson7/Documents/WildMiceMadison/Images/whole_cell_example.png')
-#make empty DF for ggplot object
-empty.DF <- data.frame(col1 = c(1,3), col2 = c(1,3) )
-#make an empty ggplot thing, then background ontop
-spermatocyte.auto <- ggplot(empty.DF, aes(x = col1, y = col2)) +
-  background_image(cell.output) + theme(axis.title.x=element_blank(),
-                                  axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
-                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
-
-
-
-```
-
-
-```{r cow.plot, echo=FALSE}
-
-library("cowplot")
-fig1  <- ggdraw() +
-  draw_plot(MLH1.fig1, x = 0, y = .42, width=1, height=.55) +
-  
-  draw_plot(Better_MAD_map, x=0, y=0, width=.4, height=.4) +
-  
-  draw_plot(spermatocyte, x=.38, y = 0, width=.31, height=.39) +
-  
-  draw_plot(spermatocyte.auto, x=.69, y = 0, width = .31, height = .39) +
-  
-  draw_plot_label(label = c("A", "B", "C"), size = 15,
-                  x = c(0, 0, .36), y = c(1, .43, 0.43) )
-
-fig1
-
-ggsave("~./WildMiceMadison/results/Figure1_32119.png")
-```
 
 
 # Option 1, strain averages, sexes matched, cells pooled
 
+learning that geom_point(position = position_doge(x))
+ will shift the two shaped points closer together.  But this isn't the same as the x axis categories being shifted closer together. 
+ 
+So trying to learn how to squish the x axis together
+ scale_x_discrete(expand=c(0, 2) ) squishes all the tick marks, but makes a bunch of big space at the boarders
+
+The parameters in expand() -- are connected with the data range. -- expand is used for making padding around the data.  So this might not be the exactly what I am looking for.
+It might be that the best way is to make a stand in continous x axis scale for nudging the point positions.
 
 
+Removing legends, selectively
 
-```{r strain.table.plot.v2, echo=FALSE, warning=FALSE}
+has to do with which variables are defined within aes(), not sure how to define shape but not color within aes
+
+the color will now be by sex... I could do this in Illustrator
+
+
+```{r main.plot.code, echo=FALSE, warning=FALSE}
 #use the MLH1 / cell level data to calq the error bars
 #strain table ggplot
-#remove facet by sex
 
-Fig1_Bv2_strain <- ggplot(strain.table.HQ, aes(y=mean_co, x=strain, color=strain, shape = sex))+
-  #facet_grid(~sex, scales = "free", space="free")+ 
-  ylab("Number of Crossovers per Cell")+
-  geom_point(aes(shape = sex), size=3.7, position=position_dodge(.5))+
- 
-   geom_errorbar(aes(ymin=mean_co-(se*2), ymax=mean_co+(se*2) ), width=.3, position = position_dodge(.5), size=1.001)+
+Fig1_Bv2_strain <- ggplot(strain.table.HQ, aes(y=mean_co, x=strain,shape = sex, color=strain),   show.legend = FALSE)+
+
+    geom_point(aes(shape = sex),  size=3.7, position=position_dodge(.29))+
   
-  ylim(c(19.5, 33))+
- scale_color_manual(values=colors_of_strains)+ 
+   geom_errorbar(aes(ymin=mean_co-(se*2), ymax=mean_co+(se*2) ), width=.3, position = position_dodge(.29), size=1.001)+
+   
+  scale_color_manual(values=colors_of_strains)+ 
+ 
+  ylab("Number of Crossovers per Cell")+
   scale_y_continuous(breaks=seq(20,32,2) )+
   
-  #legend.position="none",
-  theme(legend.position="bottom",legend.box = "horizontal",
-  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-  panel.background = element_blank(), axis.line=element_line(colour = "black"),
-  axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())+
+  scale_x_discrete(expand=c(.08, 0) )+  
+  #scale_x_continuous( breaks=c(1,2), limits=c(0,3), expand=c(0,0))+
+  
+  theme_classic()+
+  theme(legend.position="none",     #legend.position="bottom",legend.box = "horizontal",
+        axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank() )+
+ #remove all legend for now....
+   
+  #  panel.grid.major = element_blank(), panel.grid.minor = #element_blank(),  axis.line=element_line(colour = "black"),
+ # panel.background = element_blank()) +
   
 #remove y labfor male 
   #Dom
@@ -250,8 +217,109 @@ Error bars are 2 SE,
 S.E. = sd( all cells) / n.cells
 
 
+# FINAL DRAFT
+
+put together 3 pieces; plot, cell1, cell2
+
+ todo  
+
+   1. finish and import final ai edited polt,  
+
+   2. add cell images with cowplot to bottom
 
 
+```{r load.plots, echo=FALSE}
+library(png)
+library(ggpubr)
+
+F.first.png <- readPNG('C:/Users/alpeterson7/Documents/MLH1repo/doc/figureFiles/MLH1_F.first.plot_v4.png')
+M.first.png <- readPNG('C:/Users/alpeterson7/Documents/MLH1repo/doc/figureFiles/MLH1_M.first.plot_v4.png')
+
+empty.DF <- data.frame(col1 = c(1,3), col2 = c(1,3) )
+
+F.first <- ggplot(empty.DF, aes(x = col1, y = col2)) +
+  background_image(F.first.png) + theme(axis.title.x=element_blank(),
+                                  axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
+                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
+
+M.first <- ggplot(empty.DF, aes(x = col1, y = col2)) +
+  background_image(M.first.png) + theme(axis.title.x=element_blank(),
+                                  axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
+                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
+
+
+
+
+```
+
+
+```{r load.cells, echo=FALSE}
+
+best.oo <- readPNG('C:/Users/alpeterson7/Documents/MLH1repo/doc/figureFiles/cell.images/Best_female_4apr16_17mar16_G_f3_sp1_26_rev.png')
+best.spermato <- readPNG('C:/Users/alpeterson7/Documents/MLH1repo/doc/figureFiles/cell.images/Best_male_9mar16_22feb16_G_m1_sp1_15.2_rev.png')
+  
+#make empty DF for ggplot object
+empty.DF <- data.frame(col1 = c(1,3), col2 = c(1,3) )
+#make an empty ggplot thing, then background ontop
+spermatocyte.auto <- ggplot(empty.DF, aes(x = col1, y = col2)) +
+  background_image(best.spermato) + theme(axis.title.x=element_blank(),
+                                  axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
+                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
+
+
+oocyte.auto <- ggplot(empty.DF, aes(x = col1, y = col2)) +
+  background_image(best.oo) + theme(axis.title.x=element_blank(),
+                                  axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
+                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
+
+
+```
+
+
+# all png loaded in
+
+
+```{r cow.plot, echo=FALSE}
+library("cowplot")
+
+F.first.fig  <- ggdraw() +
+  draw_plot(F.first, x = 0, y = .42, width=1, height=.5) +
+  
+  draw_plot(spermatocyte.auto, x=.51, y = 0, width=.31, height=.39) +
+  
+  draw_plot(oocyte.auto, x=0.01, y = 0, width = .31, height = .39) +
+  
+  draw_plot_label(label = c("A", "B", "C"), size = 15,
+                  x = c(0, 0, .5), y = c(1, .43, 0.43) )
+
+F.first.fig
+
+#ggsave("~./WildMiceMadison/results/Figure1_32119.png")
+```
+
+Loaded slightly nudged points-plot as png. This looks bad, don't do this. Switch to Illustrator.
+
+
+# redo
+
+
+```{r redo.plot, echo=FALSE}
+redo  <- ggdraw() +
+  
+  draw_plot(Fig1_Bv2_strain, x = 0, y = .42, width=1, height=.49) +
+  
+  draw_plot(spermatocyte.auto, x=.55, y = 0, width=.4, height=.41) +
+  
+  draw_plot(oocyte.auto, x=0.05, y = 0, width = .4, height = .41) +
+  
+  draw_plot_label(label = c("A", "B", "C"), size = 15,
+                  x = c(0, 0, .5), y = c(1, .43, 0.43) )
+
+redo
+```
+
+
+All pieces are 'made' within R. But I can't figure out how to reduce the x axis white space between points (strains). The message boards seem to indicate that using a continous_x scale might be the only way to get the layout I want.
 
 # Option vertical facets
 
