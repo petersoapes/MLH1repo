@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+#setwd("C:/Users/alpeterson7/Documents/MLH1repo/") #this wd is different than where the file is ... this kinda causes errors
 #setwd("C:/Users/April/Desktop/MLH1repo")
 #load(file="data/MLH1/MLH1_data_setup.RData")
 
@@ -21,38 +21,19 @@ library(nlme)
 library(RLRsim)
 library(ggpubr)
 library(reshape2)
+library(lubridate)#for dates / months
 
 #load main data file
 
 load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#fixing bugs, formating
-load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/total_SC_30.12.19.RData")
+load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/total_SC_30.12.19.RData")#total SC data
 
 #load(file="data/MLH1/MLH1_data_setup_11.12.19.RData")
 #save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_12.3.19.RData")
-
-
 ```
 
 
-```{r Effects.on.the.dataset, eval=FALSE, echo=FALSE}
 
-#*age effects* (male, maternal age)
-
-#*litter effect*
-
-#*mouse room effect* (Charmony, MSC)
-
-#*quantification repeatability*
-
-#*spread batch and staining effects*
-
-#*power analysis on number of cells*
-
-#*time of year effect (on spread)*
-
-#*dominant effect* (F1s)
-
-```
 
 
 ```{r setupdata, echo=FALSE}
@@ -64,11 +45,15 @@ AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[!(is.na(AP_mouse_table_w.Ages$Nmi
 
 
 
-# Quality Effects
+# Cell Quality Effects
 
-below is a chunk to looking at histogram/distribution and means for the MLH1 data across quality bins
+
+I am testing the quality effects, since it could be a source of error and potentially biased the predicted gwRR if some mice had bad technical noise.
+
+The the plots below, each point is a single mouse's mean MLH1 count per cell across each quality score bin. 
 
 ```{r MLH1.histogram.2, echo=FALSE, include=FALSE}
+#thse plots not shown
 #remake the pooled MLH1 histgoram plot from above but facet by quality
 
 #PWD male, MSM male
@@ -112,7 +97,6 @@ histM_qual.LEW_female
 ```
 
 
-
 ```{r qual.tables, echo=FALSE}
 
 #make a similart plot as the ages
@@ -139,23 +123,34 @@ mouse.table.mean.MLH1.obs_qual <- add_subsp(mouse.table.mean.MLH1.obs_qual)
 mm <- mouse.table.mean.MLH1.obs_qual[mouse.table.mean.MLH1.obs_qual$sex == "male",]
 age.effect.plot.mm <- ggplot(mm, aes(y=mean.MLH1, x=quality, color=(strain) ))+geom_point()+ 
   scale_color_manual(values=colors_of_strains)+ #this list in setupdata
-  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Male quality and mean CO")+facet_wrap(~subsp)
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Male quality and mean CO")+facet_wrap(~subsp)+
+  theme(legend.position="none")
+
 age.effect.plot.mm
 
 
-ff <- mouse.table.mean.MLH1.obs_qual[mouse.table.mean.MLH1.obs_qual$sex == "female",]
+ff <- mouse.table.mean.MLH1.obs_qual[(mouse.table.mean.MLH1.obs_qual$sex == "female"),]
+ff <- ff[ff$strain != "CAST",]
+
 age.effect.plot.ff <- ggplot(ff, aes(y=mean.MLH1, x=quality, color=(strain) ))+geom_point()+ 
   scale_color_manual(values=colors_of_strains)+ #this list in setupdata
-  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Female quality and mean CO")+facet_wrap(~subsp)
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+
+  #are the lines
+  ggtitle("Female quality and mean CO")+facet_wrap(~subsp)+theme(legend.position="none")
 
 age.effect.plot.ff
 
 ```
 
 
-The original plots weren't very effective, so I removed them. I made 
+These plots show that generally there is a positive relationship between good quality (1) and more MLH1 counts.
 
-## Quality effect on SC
+I should focus on addressing if there are differences in the relationship of quality-MLH1 counts across sexes.
+
+
+## Cell Quality effect on SC
+
+Examine image quality or other scores to test how well the python scripts segment the SC area for all the images. 
 
 
 ```{r SC.qual, echo=FALSE}
@@ -194,12 +189,13 @@ mouse.table.mean.skel.obs_qual <- add_subsp(mouse.table.mean.skel.obs_qual)
 
 
 
-```{r SC.hitograms, echo=FALSE}
+```{r SC.hitograms, echo=FALSE, fig.width = 4, fig.height=.1}
+#try adjusting the size for thi..
 
 skel.histgram <- ggplot(MLH1.merge.Skel, aes(x=skel_size)) +  geom_histogram(bins=50)
 skel.histgram
 
-length(MLH1.merge.Skel$Random.Name[MLH1.merge.Skel$skel_size > 30000])#67 large SC cells
+#length(MLH1.merge.Skel$Random.Name[MLH1.merge.Skel$skel_size > 30000])#67 large SC cells
 
 MLH1.merge.Skel <- add_category(MLH1.merge.Skel)
 MLH1.merge.Skel <- add_strain(MLH1.merge.Skel)
@@ -602,45 +598,42 @@ mlh1.euth.date.female <- merge(mouse.table.female, MLH1_data, by = "mouse")
 
 ## Total SC
 
+Testing the effects of mean total SC per mouse with when they were dissected.
+
 follow up to peromyscus findings, Where summer caught mice had lower SC area per cell, compared to winter and fall caught. But there were few data points.
+
 
 ```{r total.sc, echo=FALSE}
 #check out effects of month dissected on SC
-
 #load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#fixing bugs, formating
-
-
 #from total SC
 
 #merge
-ll <- merge(mouse.level.skel, AP_mouse_table_w.Ages, by = "mouse")
-
+ll <- merge(mouse.level.skel, AP_mouse_table_w.Ages, by = "mouse")  #no
 ll$euth.date.2 <- as.Date(ll$euth.date, "%m/%d/%Y")
+#ncells is from the full MLH1 DF
+#Ncells is from the cleaned, HQ DF
 
 ll <- ll[!(is.na(ll$mean.skel) | ll$mean.skel==""), ]
 ll <- ll[!(is.na(ll$sex.y) | ll$sex.y==""), ]
 
-library(lubridate)
+ll <- subset(ll, select = -c(strain.x,strain.y, category.x, category.y, sex.x, sex.y, subsp.x, subsp.y, mouse.1, nmice) )
 
-#ADD month 
+#ADD month number
 ll$month.2 <- month(ll$euth.date.2)
 
+ll.plot <- ggplot(ll, aes(y=mean.skel, x=euth.date.2, color=(strain) ))+geom_point()+
+ scale_color_manual(values=colors_of_strains)+
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("")+facet_wrap(~sex)
 
-#mouse level table
-
-ll.plot <- ggplot(ll, aes(y=mean.skel, x=euth.date.2, color=(strain.y) ))+geom_point()+
+ll.month.plot <- ggplot(ll, aes(y=mean.skel, x=month.2, color=(strain) ))+geom_point()+
   scale_color_manual(values=colors_of_strains)+ #this list in setupdata
-  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("")+facet_wrap(~sex.y)
-
-
-ll.month.plot <- ggplot(ll, aes(y=mean.skel, x=month.2, color=(strain.y) ))+geom_point()+
-  scale_color_manual(values=colors_of_strains)+ #this list in setupdata
-  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("")+facet_wrap(~sex.y)
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+
+  ggtitle("")+facet_wrap(~sex)
 
 ll.month.plot
 
 ```
-
 
 
 ```{r total.sc.all.cells, echo=FALSE, include=FALSE}
