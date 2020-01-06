@@ -6,10 +6,12 @@ library(plyr)
 library(lattice)
 library(dplyr)
 library(ggplot2)
+library(reshape2)
 
 #ToDo
 #add IFD
-#add the melted foci here
+#add the melted foci code
+
 
 setwd("~./MLH1repo/")
 fullBivData = read.csv("~./MLH1repo/data/BivData/CLEAN_MUS_FULL_BIVDATA_5.28.19.csv")
@@ -74,21 +76,10 @@ fullBivData <- fullBivData[!(fullBivData$fileName %in% MultiCells), ]
 #         "30dec14_WSB_m2","17mar16_G_f4","17mar16_G_f5","4jan17_LEW_f1","4jan17_LEW_f3","4jan17_LEW_f6",
 #         "4jan17_LEW_f7","4jan17_LEW_m1", "3jan16_G_m2")
 
-exclude_mice_list = c("18nov17_WSB_f1", "8oct14_WSB_f1", "8oct14_WSB_f3",
-                      "10mar15_WSB_m2",
-                      "8jun15_G_f3", "8jun15_G_f4",
-                      "4jan17_LEW_f2",
-                      "1apr15_PWD_f2", "8oct14_PWD_f5", "8oct14_PWD_f3", 
-                      "12sep16_MSM_f3",
-                      "27oct18_MOLF_m3",
-                      "26oct18_SKIVE_f1","26oct18_SKIVE_f2","26oct18_SKIVE_f3",
-                      "27aug18_CZECH_m1", "8jun18_CZECH_m1",
-                      "3sep18_AST_m1","3sep18_TOM_m1","31jul17_HMI_m1",
-                      "21aug17_SPI_f1", "30may18_SPIC_f1","8jun18_SPIC_m2")
+#bring back the bad mouse list
 
 
-
-bad_stain_mice_len <- length(BivData[BivData$mouse %in% bad_stain_mice, ])
+#bad_stain_mice_len <- length(BivData[BivData$mouse %in% bad_stain_mice, ])
 #remove bad mice
 #BivData <- BivData[BivData$mouse %in% good_stain_mice, ]
 #remove data without mouse
