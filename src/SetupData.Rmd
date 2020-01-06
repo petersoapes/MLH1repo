@@ -29,11 +29,6 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ```{r MLH1.DF.setup, warning=FALSE, echo=FALSE}
 
-#todo :
-#set the order to batches
-#2 fileNames from batch 0 appear 2x, (1 is missing random name, the other has the same random name)
-
-
 original_DF = MLH1_data
 original_DF$fileName <- (original_DF$Original.Name)
 original_DF <- add_mouse(original_DF)
@@ -114,12 +109,10 @@ exclude_mice_list = c("18nov17_WSB_f1", "8oct14_WSB_f1", "8oct14_WSB_f3",
 
 
 MLH1_data <- MLH1_data[ ! MLH1_data$mouse %in% exclude_mice_list, ]
-
 ```
 
 
 ```{r adj_nMLH1, echo=FALSE}
-
 #add a column with male adjusted MLH1 values (+1 to all males)
 MLH1_data$adj_nMLH1.foci <- ifelse(MLH1_data$sex=="male", MLH1_data$nMLH1.foci+1, MLH1_data$nMLH1.foci)
 MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
@@ -133,7 +126,6 @@ MLH1_data <- MLH1_data %>%
   mutate(Original.Name = factor(Original.Name) )
 
 #order the batches in MLH1 and original
-
 ```
 
 
@@ -148,7 +140,7 @@ final_batches <- as.data.frame(table(MLH1_data$Batch) ) #these look bad
 colnames(final_batches) <- c("BatchNum", "main")
 
 batch.stats <- merge(original_batches,final_batches, by="BatchNum")## mm is the table of batch stats
-
+##batch18 has the wrong number, ~390
 ```
 
 All images were manually quantified after the file name was anonimized. The original (full) dataset contains the quantification batches with the following number of images. Each batch csv file was merged into Anon.csv by hand.
@@ -216,6 +208,8 @@ mouse.table_w.Ages <- merge(batch.mouse.count.DF, meta.data, by.y = "mouse", by.
 AP_mouse_table_w.Ages <- merge(AP_mouse_table.HQ, meta.data, by.y = "mouse", by.x = "mouse", all = TRUE)
 #what are the differences between these two
 
+#remove the NAs
+AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[!(is.na(AP_mouse_table_w.Ages$category.x) | AP_mouse_table_w.Ages$category.x==""), ]
 ```
 
 
@@ -224,6 +218,8 @@ AP_mouse_table_w.Ages <- merge(AP_mouse_table.HQ, meta.data, by.y = "mouse", by.
 
 ```
 
+
+update the dissection document (that makes the meta.data DF)
 
 
 ## Number of mice per category
@@ -239,12 +235,12 @@ Testes were collected from mice at various ages. For some poor breeding mice, I 
 
 Is there a detectable age effect?
 
-```{r Age.Hists, echo=FALSE, warning=FALSE, eval=FALSE}
+```{r Age.Hists, echo=FALSE, warning=FALSE}
 #age.weeks col is missing
 
-male_mouse_table_w.Ages <- AP_mouse_table.HQ[(AP_mouse_table.HQ$sex == "male") &(mouse.table_w.Ages$category != "other"),]
+male_mouse_table_w.Ages <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$sex.x == "male") &(AP_mouse_table_w.Ages$category.x != "other"),]
 
-all.ages_plot <- ggplot(AP_mouse_table.HQ, aes(age.weeks))+geom_histogram(binwidth = 3)+facet_wrap(~category)+ggtitle("Male Age Distributions")
+all.ages_plot <- ggplot(AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$sex.x == "male",], aes(age.weeks))+geom_histogram(binwidth = 3)+facet_wrap(~category.x)+ggtitle("Male Age Distributions")
 all.ages_plot
 
 male_mouse_table_w.good.ages <- male_mouse_table_w.Ages[male_mouse_table_w.Ages$age.weeks < 20,]
@@ -293,7 +289,7 @@ work on cleaning up all other df with bad names
 
 ```{r save.RData, echo=FALSE}
 
-save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")
+save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_1.5.20.RData")
 
 #  OutPut: big large MLH1_data (AP's) df, big DF of BD with just the mice I want.
 #  MLH1_data_table, means and variance of AP and BD MLH1 values. made from seperate tables from AP and BD data.
