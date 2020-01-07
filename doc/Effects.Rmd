@@ -427,27 +427,147 @@ While many slopes are different than 0, I am not convinced there is a clear age 
 # Age Effect (female)
 
 Compare embryonic to neonate (logistic regression). I don't think my embyonic stage estimates are very accurate, so I'll bin all embryos into 1.
+Note all strains have both embryo and neonate samples. Subset for just, WSB, G, LEW, and PWD.
 
-```{r female.age, eval=FALSE}
+
+```{r female.age.setup, echo=FALSE}
 #compile this dataset
+#all female -- meta.dissections has emb or neonate?
+#which sheet has this informaiton?
+
+#clean.Meta.Data.txt
+clean.meta.data <- read.csv("~./MLH1repo/data/clean.Meta.Data.txt", header = TRUE, sep='\t')
+female.age.DF <- clean.meta.data[clean.meta.data$sex == "female",]#166
+
+mergeFULL_F.mlh1 <- merge(female.age.DF, MLH1_data, by = 'mouse')
+
+merge_F.mlh1_cell <- mergeFULL_F.mlh1[ ( (mergeFULL_F.mlh1$strain.x == 'WSB') |
+                                       (mergeFULL_F.mlh1$strain.x == 'G') |
+                                       (mergeFULL_F.mlh1$strain.x == 'LEW') |
+                                  (mergeFULL_F.mlh1$strain.x == 'PWD') ), ]#901
+
+#mouse level
+mergeFULL_F.mlh1_mouse <- merge(female.age.DF, AP_mouse_table.HQ, by = 'mouse')#69 mice
+
+merge_F.mlh1_mouse <- mergeFULL_F.mlh1_mouse[ ( (mergeFULL_F.mlh1_mouse$strain.x == 'WSB') |
+                                       (mergeFULL_F.mlh1_mouse$strain.x == 'G') |
+                                       (mergeFULL_F.mlh1_mouse$strain.x == 'LEW') |
+                                  (mergeFULL_F.mlh1_mouse$strain.x == 'PWD') ), ]#42
+
 ```
 
+
+
+```{r female.age.test_cells, echo=FALSE}
+#logistic regression for MLH1 ~ emb | neonate 
+
+#code emb and neonate to 0,1
+merge_F.mlh1_cell$age.stage <- ifelse(grepl("emb", merge_F.mlh1_cell$female.stage), 0, 
+                       ifelse(grepl("neonate",merge_F.mlh1_cell$female.stage), 1, "other"))
+merge_F.mlh1_cell$age.stage <- as.numeric(merge_F.mlh1_cell$age.stage)
+
+logr_age.stage.CELLS <- glm(age.stage ~ nMLH1.foci, data=merge_F.mlh1_cell[merge_F.mlh1_cell$strain.x == "WSB",], family=binomial(link="logit"))
+summary(logr_age.stage.CELLS)$coefficients
+
+#
+plot.blah.Cells <- ggplot(merge_F.mlh1_cell, aes(x=nMLH1.foci, y=age.stage)) + geom_point() +   stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("Cell counts Female age logistic regression \nemb=0, neonate =1")+facet_wrap(~strain.x)
+plot.blah.Cells
+
+```
+
+
+
+For the cell level curves  (all strains pooled) the p value is not significant. When I isolate the WSB observations, the p value is 0.0778.
+
+
+```{r female.age.test_mouse, echo=FALSE}
+
+merge_F.mlh1_mouse$age.stage <- ifelse(grepl("emb", merge_F.mlh1_mouse$female.stage), 0, 
+                       ifelse(grepl("neonate",merge_F.mlh1_mouse$female.stage), 1, "other"))
+merge_F.mlh1_mouse$age.stage <- as.numeric(merge_F.mlh1_mouse$age.stage)
+
+#model fomula
+logr_age.stage.MOUSE <- glm(age.stage ~ mean_co, data=merge_F.mlh1_mouse, family=binomial(link="logit"))
+#logr_age.stage.MOUSE <- glm(age.stage ~ mean_co, data=merge_F.mlh1_mouse[merge_F.mlh1_mouse$strain.x == "WSB",], family=binomial(link="logit"))
+summary(logr_age.stage.MOUSE)$coefficients
+
+plot.blah.MOUSE <- ggplot(merge_F.mlh1_mouse, aes(x=mean_co, y=age.stage)) + geom_point() +   stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("Mouse Female age logistic regression \nemb=0, neonate = 1")+facet_wrap(~strain.x)
+plot.blah.MOUSE
+```
+
+The mouse curves are more slanted, but the logistic regressions are not significant. The lg for WSB mouse averages isn't significant.
 
 
 # Maternal Age effect
 
 Check if there is a maternal age effect for females and males.
+clea.Meta.Data doesn't have maternal age data.
 
-```{r mat.age.effect, echo=FALSE, eval=FALSE}
+Collect data, get a decent set / large set of mice with maternal ages (mostly want to look at females).
+
+```{r mat.age.effect, echo=FALSE}
 #pause evaluation -- needs debugging
-meta.data.file = read.csv("~./MLH1repo/data/DandM_8.30.19.csv", header = TRUE)
 
-meta.data.file <- meta.data.file[!(is.na(meta.data.file$mouse)|meta.data.file$mouse==""),]
-#445? -- probably extras at bottom not good
+#this would be the best one so far
+meta.data.file_FULL = read.csv("C:/Users/alpeterson7/Documents/MLH1repo/data/DandM_8.30.19.csv", header = TRUE)#updated with a couple more
 
-#how many mice have maternal DOB
-meta.data.file.w.mat.DOB <- meta.data.file[!(is.na(meta.data.file$maternal_DOB)|meta.data.file$maternal_DOB==""),]
-#151
+#are there duplicate mice names?
+mat.age_dupies <- meta.data.file_FULL[duplicated(meta.data.file_FULL$mouse),]
+#these are blank mouse things 
+
+#try updating the D and M document, #clean up the data
+#only those with mat age
+meta.data.file_mat.age <- meta.data.file_FULL[!(is.na(meta.data.file_FULL$maternal_DOB)|meta.data.file_FULL$maternal_DOB==""),]
+#meta.data.file <- droplevels(meta.data.file)
+
+#needs mouse DOB
+meta.data.file_mat.age <- meta.data.file_mat.age[!(is.na(meta.data.file_mat.age$DOB)|meta.data.file_mat.age$DOB==""),]#140
+
+#check the date formats 
+meta.data.file_mat.age$mat_DOB.for <- as.Date(meta.data.file_mat.age$maternal_DOB, format= "%m/%d/%Y")
+#length(meta.data.file_mat.age$mouse)#152
+
+meta.data.file_mat.age$maternal_DOB <- as.Date(meta.data.file_mat.age$maternal_DOB, format= "%m/%d/%Y")
+meta.data.file_mat.age$DOB <- as.Date(meta.data.file_mat.age$DOB, format= "%m/%d/%Y")
+
+#mat.age = euth date - mat.DOB
+meta.data.file_mat.age <- add_mat_age(meta.data.file_mat.age)
+#DOB, maternal_DOB .. got the 
+
+#merge this mat age file with mlh1 and mouse means!!
+mergeFULL_mat.age_cells <- merge(meta.data.file_mat.age, MLH1_data, by = 'mouse')#952 (fewer than last time)
+
+mergeFULL_mat.age_mouse <- merge(meta.data.file_mat.age, AP_mouse_table.HQ, by = 'mouse')#41
+
+
+#now look at signal / pattern / #hist of data
+mat.age.hist.plot <- ggplot(mergeFULL_mat.age_mouse, aes(mat.age.days))+geom_histogram()+facet_wrap(~category)+ggtitle("Maternal ages of females")
+
+mat.age.hist.plot_cells <- ggplot(mergeFULL_mat.age_cells, aes(mat.age.days))+geom_histogram()+facet_wrap(~category)+ggtitle("Maternal ages of females cells")
+
+#plot with MLH1 data
+mat.age_MLH1_cells <- ggplot(mergeFULL_mat.age_cells, aes(x = mat.age.days, y=nMLH1.foci, color = mouse))+geom_jitter(alpha=.3, width = 2)+facet_wrap(sex~subsp)+ggtitle("Maternal ages and MLH1")+theme(legend.position = 'none')
+
+mat.age_MLH1_cells
+
+
+
+mat.age_MLH1_mouse <- ggplot(mergeFULL_mat.age_mouse, aes(x = mat.age.days, y=mean_co, color = mouse))+geom_jitter(alpha=.3, width = 2)+facet_wrap(sex~subsp)+ggtitle("Maternal ages and MLH1")+theme(legend.position = 'none')
+
+mat.age_MLH1_mouse
+
+#mat.age_MLH1_cells.KAZ <- ggplot(mergeFULL_mat.age_cells[mergeFULL_mat.age_cells$category == "KAZ male",], aes(x = mat.age.days, y=nMLH1.foci, color = mouse))+geom_jitter()+facet_wrap(~category)+ggtitle("subset mice for maternal ages")+theme(legend.position = 'none')
+#mat.age_MLH1_cells.KAZ
+```
+
+
+there should be plots above this
+Based on the histograms of ages and the range across categories isn't very wide -- so not sure what the best test is.
+
+
+
+
+```{r mat.format.rand, echo=FALSE, eval=FALSE}
 
 #format this meta.data.file
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
@@ -463,30 +583,19 @@ meta.data.file.w.mat.DOB <- add_subsp(meta.data.file.w.mat.DOB)
 
 #DOB and Mat.DOB need to be date formated, make sure that the dates are consistant in the original file
 #the dates in my file are not all standardized... year is somethimes 2 - sometimes 4
-meta.data.file.w.mat.DOB$DOB <- as.Date(meta.data.file.w.mat.DOB$DOB, format= "%m/%d/%Y")#%Y 2000, %y '18,
-meta.data.file.w.mat.DOB$maternal_DOB <-as.Date(meta.data.file.w.mat.DOB$maternal_DOB, format= "%m/%d/%Y")
 
-#str(meta.data.file.w.mat.DOB)
 
 meta.data.file.w.mat.DOB <- add_euth_date(meta.data.file.w.mat.DOB)
 meta.data.file.w.mat.DOB <- add_age(meta.data.file.w.mat.DOB)
 meta.data.file.w.mat.DOB <- add_mat_age(meta.data.file.w.mat.DOB)
 
-#merge meta data with MLH1 -- rename this
-see.whatcha.do <- merge(AP_mouse_table_w.Ages, meta.data.file.w.mat.DOB, by.x = 'mouse', by.y = 'mouse',all = FALSE )
-#remove anything without mean_CO
-see.whatcha.do <- see.whatcha.do[!(is.na(see.whatcha.do$mean_co)|see.whatcha.do$mean_co==""),]
-see.whatcha.do <- see.whatcha.do[!(is.na(see.whatcha.do$mat.age.days)|see.whatcha.do$mat.age.days==""),]
-#what did I do with this DF...?
 
 #visualize the data
 meta.data.file.w.mat.DOB.female <- meta.data.file.w.mat.DOB[meta.data.file.w.mat.DOB$sex == "female",]
 meta.data.file.w.mat.DOB.male <- meta.data.file.w.mat.DOB[meta.data.file.w.mat.DOB$sex == "male",]
 
 
-#hist of data
-mat.age.hist.female <- ggplot(meta.data.file.w.mat.DOB.female, aes(mat.age.days))+geom_histogram()+facet_wrap(~category)+ggtitle("Maternal ages of females")
-mat.age.hist.female
+
 
 mat.age.hist.male <- ggplot(meta.data.file.w.mat.DOB.male, aes(mat.age.days))+geom_histogram()+facet_wrap(~category)+ggtitle("Maternal ages of males")
 mat.age.hist.male
