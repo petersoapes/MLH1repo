@@ -2,7 +2,13 @@
 title: "Effects"
 author: "April Peterson"
 date: "`r format(Sys.time(), '%d %B %Y')`"
-output: html_document
+output: 
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '5'
+    toc_float: yes
+    
 ---
 
 ```{r setup, include=FALSE}
@@ -518,7 +524,106 @@ ALLmat.age.effect.plot.male <- ggplot(see.whatcha.do[see.whatcha.do$sex == "male
 
 
 
-### Litter effect
+# Room effect
+
+When this project was started the main mouse room for vendor purchased mice was Biotech. The mouse room changed in summer 2017. The Gough mice were always housed in Charmony. Of the final dataset there are three strains had mice housed in different rooms; WSB, LEW, and MSM.  
+
+The main questions to address in this section: is there a significant GxE effect due to room?  do the different rooms added noise / bias the estimates per strain
+
+A room effect might cause all of the strains to be biased in the same direction.
+
+
+```{r ROOM.effect.setup, echo=FALSE}
+#pull data from the 3 strains
+room.effect.DF <- MLH1_data[(MLH1_data$strain == "WSB") | (MLH1_data$strain == "LEW") | (MLH1_data$strain == "MSM"), ]
+
+original_DF <- add_mouse(original_DF)
+original_DF <- add_strain(original_DF)
+
+OG.room.effect.DF <- original_DF[(original_DF$strain == "WSB") | (original_DF$strain == "LEW") | (original_DF$strain == "MSM"), ]
+
+#mark / notch which room
+#Charmony, MSC3040, Biotech B2420, 
+
+#load in file, merge with the DFs from above
+OG.RoomData = read.csv("~./MLH1repo/data/RoomData.csv", header = TRUE)
+RoomData = subset(OG.RoomData, select = c(mouse,room)) 
+
+#merge with the DFs from above for cell level data
+FULL.room.data = merge(RoomData, room.effect.DF, by= "mouse")
+FULL.room.data.OG = merge(RoomData, OG.room.effect.DF, by= "mouse")
+
+#make mouse.level tables
+mouse.level.MLH1 <- ddply(.data=FULL.room.data, 
+                 .(mouse),
+                 summarize, 
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+
+mouse.level.room.data <- merge(RoomData, mouse.level.MLH1, by="mouse")
+mouse.level.room.data <- add_category(mouse.level.room.data)
+
+```
+
+Looking at my records, there are limited comparisons (not all strains were raised in all 3 rooms).
+
+WSB female - Biotech vs Charmony  
+
+LEW female and male, MSM female and male - Biotech and MSC  
+
+look at boxplots first
+
+```{r room.effect.tests, echo=FALSE}
+library(ggsignif)
+
+#boxplots, facet by 
+geom.sig_df.cells = compare_means(nMLH1.foci ~ room, group.by = "category", data = FULL.room.data) %>% mutate(y_pos = 40)
+
+room.boxplots.cell <- ggplot(data=FULL.room.data, aes(x = room, y = nMLH1.foci))+geom_jitter()+geom_boxplot(alpha=.5)+facet_wrap(~category)+
+   #test bars
+  ggsignif::geom_signif(
+    data=geom.sig_df.cells, 
+    aes(xmin=group1, xmax=group2, annotations=p.adj, y_position=y_pos),
+    manual=TRUE)+
+  ggtitle("Boxplots of room effects,\nsingle cell level, adj p value")
+room.boxplots.cell
+
+#needed for comparing means ect.
+geom.sig_df.mouse = compare_means(mean.MLH1 ~ room, group.by = "category", data = mouse.level.room.data) %>% mutate(y_pos = 31)
+
+#  ggsignif::
+
+room.boxplots.mouse <- ggplot(mouse.level.room.data, aes(x=room, y=mean.MLH1))+geom_boxplot(alpha=.5)+facet_wrap(~category)+geom_jitter()+
+  #test bars
+geom_signif(
+    data=geom.sig_df.mouse, 
+    aes(xmin=group1, xmax=group2, annotations= p.adj, y_position= y_pos ), manual=TRUE) +  ggtitle("Boxplots of room effects,\nmouse level, adj p value")
+room.boxplots.mouse
+
+#look up the warning about cols, beccause of %>%?
+
+#remake the boxplots with compare means in the ggplot, to see if that changes the values.
+#geom.sig_df.mouse = compare_means(mean.MLH1 ~ room, group.by = "category", data = mouse.level.room.data) %>% mutate(y_pos = 31)
+
+
+
+#MORE TESTS TO consider
+#the boxplots show different ranges
+#room.boxplots.OG <- ggplot(mergy.room.data.OG)
+#tukey / post hoc paired comparison
+```
+the brackets in the plots above reflect the output of 'compare_means()' The default is wilcox.test, I've been swtiching back between showin raw and adjusted p values. (look up the warning about the cols parameter.)  
+
+The values look a little strange to me, I don't understand the p.adj values yet, (pvalues muliutpplied by the number of comparisons). To me it seems like there are 5 t.tests, . I don't know why there are only 3 values of adjusted p-values)
+
+
+There are significant room effects in the cell level data set. This effect decreases when comparing the mouse level means.  
+
+I think these results indicate that there is not a strong room effect. Also considering that 
+
+
+# Litter effect
 
 Compare female spreads made on the same day, but from different mothers/litters.
 ```{r litter.effect, eval=FALSE}
@@ -527,9 +632,10 @@ Compare female spreads made on the same day, but from different mothers/litters.
 ```
 
 
-# Dissection Effect
+# Dissection spread Effect
 
-
+intro for why I care about dissection.
+right nnow the only independant variable is month dissected. Should I enter infor about PFA? time in humid chamber? 
 
 
 ```{r dissection.effect.data.setup, echo=FALSE}
@@ -667,10 +773,11 @@ For mice strains that have a similar MLH1 level (control for strain MLH1 effect)
 
 
 
-# Spread and Stain Effects
+# Stain Effects
 
+Intro for staining effects. at least 3 slides were made per mouse, giving a potential of 3 different stains. The staining batch might have effects on the background noise and brightness of the MLH1 foci.
 
-
+collect data on mice with mulitple spreads (sp1, sp2 -- make ddply table that counts a gerp for 'sp1', sp2, ect)
 
 > *staining batches*
 
@@ -679,17 +786,6 @@ Compare observations from the same mouse, but different MLH1 stains.  First need
 ```{r stain.effects.SC, eval=FALSE}
 #/src/TotalSC.R
 #compile this dataset
-
-```
-
-
-# Room effect
-
-```{r ROOM.effect, eval=FALSE}
-
-#COMPILE THIS datasets
-#3 different rooms used to house mice. I should have some data on when the switch was. This would be limited to, WSB, LEW and PWD
-
 
 ```
 
