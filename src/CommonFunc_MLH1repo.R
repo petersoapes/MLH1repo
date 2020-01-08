@@ -8,6 +8,15 @@
 
 
 
+#ADD THE RANK to chrm measures 
+#fixed it with rank
+#for(musy in as.character(unique(whole.cell.data$fileName))){
+#  #print(musy)
+#  #order the chrm lengths -- this is order
+#  chrm.order = rank(whole.cell.data$SC.length[whole.cell.data$fileName == musy])
+#  whole.cell.data$rank[whole.cell.data$fileName == musy] <- chrm.order   #this is just a string of numbers--
+#}
+
 #make fileName
 #paste together file name
 add_fullFileName <- function(dat){

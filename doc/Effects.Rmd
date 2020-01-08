@@ -58,12 +58,25 @@ AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[!(is.na(AP_mouse_table_w.Ages$Nmi
 
 # Cell Quality Effects
 
+> Main points
 
-I am testing the quality effects, since it could be a source of error and potentially biased the predicted gwRR if some mice had bad technical noise.
+1. There is a positive relationship with quality and MLH1 count (better cells have more MLH1)  
+
+2. The effect of Quality on mean MLH1 count is larger in males
+
+> Open quesitons
+
+ - Are quality score less accurate/consistant for females? 
+
+ - Should I weight mouse COs averages by the quality ratio? 
+
+ - Exclude lowest quality cells in males, but keep them in female dataset?
+
+ - Does the effect for males still hold when Q5 cells are removed? 
 
 The the plots below, each point is a single mouse's mean MLH1 count per cell across each quality score bin. 
 
-```{r MLH1.histogram.2, echo=FALSE, include=FALSE}
+```{r MLH1.histogram.2, echo=FALSE, eval=FALSE,include=FALSE}
 #thse plots not shown
 #remake the pooled MLH1 histgoram plot from above but facet by quality
 
@@ -154,17 +167,50 @@ age.effect.plot.ff
 ```
 
 
-These plots show that generally there is a positive relationship between good quality (1) and more MLH1 counts.
+These plots show that generally there is a positive relationship between good quality and more MLH1 counts.
 
-I should focus on addressing if there are differences in the relationship of quality-MLH1 counts across sexes.
+
+```{r qual.effect.sex, echo=FALSE}
+#compare the quality effect by sex
+#an issue with comparing sexes is they have different ranges of MLH1 means
+#do other analysis 
+
+#plots show lm for observations from mouse.table.mean.MLH1.obs_qual
+#glm
+
+blah.lm.ff <- lm( mean.MLH1 ~ quality + ncells + subsp + strain, data=ff)
+#quality bin is significant to predict count in ff (remeber these are binned averages)
+# -0.85303,  3.61e-14 ***
+
+
+blah.lm.mm <- lm( mean.MLH1 ~ quality + ncells + subsp + strain, data=mm)
+#quality co Eff,   -8.863e-01, < 2e-16 ***
+
+
+mm.low <- mm[!( (mm$strain == "MSM") | (mm$strain == "PWD") ), ]
+
+blah.lm.mm.low <- lm( mean.MLH1 ~ quality + ncells + subsp + strain, data=mm.low)
+#quality sig, so strain (unlike female (probably bc greater range))
+
+# -8.881e-01,  < 2e-16 ***
+
+
+#the coefficient is 10x higher in males, p value max-out low 
+#females the quality co-E is much smaller and p.value larger  
+#quality effect on mean co's is larger in males
+
+```
+
+I ran lm of the data from the plots above and found that the coefficient is 10x higher in males, p value max-out low and in females the quality co-efficicent is much smaller and p.value larger.
+
 
 
 ## Cell Quality effect on SC
 
-Examine image quality or other scores to test how well the python scripts segment the SC area for all the images. 
+In progress. Examine image quality or other scores to test how well the python scripts segment the SC area for all the images. 
 
 
-```{r SC.qual, echo=FALSE}
+```{r SC.qual, echo=FALSE, eval=FALSE}
 #use the SC table
 
 #all of skel and bin are not num
@@ -198,16 +244,14 @@ mouse.table.mean.skel.obs_qual <- add_subsp(mouse.table.mean.skel.obs_qual)
 ```
 
 
-
-
-```{r SC.hitograms, echo=FALSE, fig.width = 4, fig.height=1}
+```{r SC.hitograms, echo=FALSE, eval=FALSE, fig.width = 4, fig.height=1}
 #try adjusting the size for thi..
 
 skel.histgram <- ggplot(MLH1.merge.Skel, aes(x=skel_size)) +  geom_histogram(bins=50)+ggtitle("width 4, height 1")
 skel.histgram
 ```
 
-```{r more.SC.hist, echo=FALSE}
+```{r more.SC.hist, echo=FALSE, eval=FALSE}
 
 #length(MLH1.merge.Skel$Random.Name[MLH1.merge.Skel$skel_size > 30000])#67 large SC cells
 
@@ -228,9 +272,7 @@ skel.histgrams.2.MUSC
 ```
 
 
-
-
-```{r sc.qual.plots, echo=FALSE}
+```{r sc.qual.plots, echo=FALSE, eval=FALSE}
 skel.mm <- mouse.table.mean.skel.obs_qual[mouse.table.mean.skel.obs_qual$sex == "male",]
 skel.mm <- skel.mm[skel.mm$mean.skel < 50000,]
 
@@ -242,7 +284,7 @@ skel.qual.effect.plot.mm
 
 Each point is a single mouse
 
-```{r G.plot, echo=FALSE}
+```{r G.plot, echo=FALSE, eval=FALSE}
 Bin.qual.effect.plot.mm.G <- ggplot(skel.mm[skel.mm$strain == "G",],
                            aes(y=mean.bin, x=quality, size= ncells, color=strain))+geom_point()+ 
   scale_color_manual(values=colors_of_strains)+ #this list in setupdata
@@ -258,44 +300,56 @@ skel.qual.effect.plot.mm.G <- ggplot(skel.mm[skel.mm$strain == "G",],
 
 ```
 
-The mouse 22jun15_G_m2 has strange pattern, investigate these outputs
+The mouse 22jun15_G_m2 has strange pattern, investigate the Python SC outputs.  
 
 Some of the pattern goes away when redo.crop is set to equal 'no'.
 
-```{r female.skel.plot, echo=FALSE}
+```{r female.skel.plot, echo=FALSE, eval=FALSE}
 
 skel.ff <- mouse.table.mean.skel.obs_qual[mouse.table.mean.skel.obs_qual$sex == "female",]
 
 skel.qual.effect.plot.ff <- ggplot(skel.ff, aes(y=mean.bin, x=quality, color=(strain) ))+geom_point()+ 
   scale_color_manual(values=colors_of_strains)+ #this list in setupdata
-  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Male quality and mean CO")+facet_wrap(~subsp)
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Female quality and mean CO")+facet_wrap(~subsp)
 
 skel.qual.effect.plot.ff
 
 
 skel.qual.effect.plot.ff.MSM <- ggplot(skel.ff[skel.ff$strain == "MSM",], aes(y=mean.bin, x=quality, color=(strain), size=ncells ))+geom_point()+ 
   scale_color_manual(values=colors_of_strains)+ #this list in setupdata
-  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Male quality and mean CO")+facet_wrap(~mouse)
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Female quality and mean CO")+facet_wrap(~mouse)
 
 
 skel.qual.effect.plot.ff.G <- ggplot(skel.ff[skel.ff$strain == "G",], aes(y=mean.bin, x=quality, color=(strain), size=ncells ))+geom_point()+ 
   scale_color_manual(values=colors_of_strains)+ #this list in setupdata
-  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Male quality and mean CO")+facet_wrap(~mouse)
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Female quality and mean CO")+facet_wrap(~mouse)
 
 skel.qual.effect.plot.ff.PWD <- ggplot(skel.ff[skel.ff$strain == "PWD",], aes(y=mean.skel, x=quality, color=(strain), size=ncells ))+geom_point()+ 
   scale_color_manual(values=colors_of_strains)+ #this list in setupdata
-  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Male quality and mean CO")+facet_wrap(~mouse)
+  geom_smooth(method='lm',alpha=0.1, size=0, span=0.5 )+ggtitle("Female quality and mean CO")+facet_wrap(~mouse)
 
 ```
 
-The above plots are good for detecting outliers
 
 
 # Age Effect (male)
 
-Some papers have documented age effects for male genome-wide recombination rate [@zelazowski2017age].
+Some papers have documented age effects for male genome-wide recombination rate [@zelazowski2017age] (after maturity, there's a negative correlation with age and recombination).
 
-The initial analysis uses plots. This should be double checked with a general linear model as well.
+> Main Points
+
+ 1. Weak evidence for age effect on MLH1 counts for male mice.
+ 
+ - Dom, no significant effects for age.  
+
+ - Musc low, no significant effect for strain or age.  
+
+ - Musc high, no significant age effects on mean CO count
+
+
+My previous dataset showed age effect for SKIVE males due to unbalanced data. There were only 3 mice of 7,16, and 41 weeks. The models using this dataset had signifcant age effects. The updated data set now has ~4 mice of 7 weeks and no significant age effect.
+
+I tested the age effects with 3 sets of models,  for 3 groupings of mice: dom, musc.high and musc.low 
 
 
 ```{r age.hists, echo=FALSE, eval=FALSE,  warning=FALSE}
@@ -327,9 +381,7 @@ age.hist
 ```
 
 
-I made 3 models for 3 groupings of mice, dom, musc.high and musc.low 
-
-$$mouse .mean CO ~=~ age + strain + \varepsilon$$
+$$mouse .mean CO \sim age + strain + \varepsilon$$
 
 ```{r age.effect.model.setupdata, echo=FALSE}
 #run a age effect linear regression!
@@ -380,17 +432,7 @@ as.data.frame( round(  summary(lm.me.musc.low)$coefficients, 6 ) )
 as.data.frame( round(  summary(lm.me.musc.high)$coefficients, 6 ) )
 ```
 
-
-ADD euthdate?
-
-Dom, no significant effects for age.  
-
-Musc low, no significant effect for strain or age.  
-
-Musc high, MSM and SKIVE have significant age effects on mean CO count
-
-SKIVE has the greatest spread in ages for single mice (7,16,41 weeks)
-There are more SKIVE males which I haven't quantified (at least 3, which are in a good age range)
+The plot below shows mouse averages as single points, showing the mean MLH1 and age in weeks. The lines and shading show the smoothed lm for each strain.
 
 
 ```{r age.effect.plot, warning=FALSE, echo=FALSE}
@@ -419,16 +461,24 @@ age.effect.plot
 
 ```
 
-I like this plot and find it effective. Can I do a similar set up for other factors (quality, ncells?)
+
+The models and mostly flat slopes indecate that there isn't a strong age effect on MLH1 for these mice. (there might be a KAZ male outlier (10jul19_KAZ_m3), double check this). Change the colors for KAZ, TOM, AST, and CZECH they're too similar.
 
 While many slopes are different than 0, I am not convinced there is a clear age effect. Most strains don't have more than 2 ages. I will double check some of these mice and check a general linear model.
 
 
 # Age Effect (female)
 
-Compare embryonic to neonate (logistic regression). I don't think my embyonic stage estimates are very accurate, so I'll bin all embryos into 1.
-Note all strains have both embryo and neonate samples. Subset for just, WSB, G, LEW, and PWD.
+Female ages most logically group into neonate or embryo, so I choose to apply a logistic regression to test for age effects. Not all strains have both embryo and neonate female samples, so just, WSB, G, LEW, and PWD are examined.
 
+> Main Point
+
+ - MLH1 counts don't differ between neonates and embryos
+
+
+Below are the tests for the model (can CO number predict the age stage). I ran these comparisons for cell count and mouse averages. The plots show the points and smoothed curves with age on the y axis, 0 = embryo and 1 = neonate.
+
+$$ Age .Stage \sim CO .number$$
 
 ```{r female.age.setup, echo=FALSE}
 #compile this dataset
@@ -495,15 +545,137 @@ plot.blah.MOUSE <- ggplot(merge_F.mlh1_mouse, aes(x=mean_co, y=age.stage)) + geo
 plot.blah.MOUSE
 ```
 
-The mouse curves are more slanted, but the logistic regressions are not significant. The lg for WSB mouse averages isn't significant.
+The mouse curves are more slanted, but the logistic regressions are not significant. None of the indiviual strains had significant p values when compared by themselves.
+
+
+# Room effect
+
+When this project was started the main mouse room for vendor purchased mice was Biotech. The mouse room changed in summer 2017. The Gough mice were always housed in Charmony. Of the final data set there are three strains had mice housed in different rooms; WSB, LEW, and MSM. (not balanced/ limited comparisons / )  
+
+
+The main questions to address in this section: is there a significant GxE effect due to room?
+
+> Main Points
+
+ - There is some evidence for room effect on MLH1 counts per cell for WSB and LEW female and LEW and MSM male. 
+
+ - No support of room effect for mouse means.
+
+
+For the cell counts of MLH1, Two of three are in the same direction. Sample size might be having an effect.
+
+There might be more mice/data that can be added to these tests, need to comfirm the move date and verify with lab note book.
+
+```{r ROOM.effect.setup, echo=FALSE, warning=FALSE}
+#pull data from the 3 strains
+room.effect.DF <- MLH1_data[(MLH1_data$strain == "WSB") | (MLH1_data$strain == "LEW") | (MLH1_data$strain == "MSM"), ]
+
+original_DF <- add_mouse(original_DF)
+original_DF <- add_strain(original_DF)
+
+OG.room.effect.DF <- original_DF[(original_DF$strain == "WSB") | (original_DF$strain == "LEW") | (original_DF$strain == "MSM"), ]
+
+#mark / notch which room
+#Charmony, MSC3040, Biotech B2420, 
+
+#load in file, merge with the DFs from above
+OG.RoomData = read.csv("~./MLH1repo/data/RoomData.csv", header = TRUE)
+RoomData = subset(OG.RoomData, select = c(mouse,room)) 
+
+#merge with the DFs from above for cell level data
+FULL.room.data = merge(RoomData, room.effect.DF, by= "mouse")
+FULL.room.data.OG = merge(RoomData, OG.room.effect.DF, by= "mouse")
+
+#make mouse.level tables
+mouse.level.MLH1 <- ddply(.data=FULL.room.data, 
+                 .(mouse),
+                 summarize, 
+                 mean.MLH1 = mean(adj_nMLH1.foci),
+                 var.MLH1 = var(adj_nMLH1.foci)
+)
+
+mouse.level.room.data <- merge(RoomData, mouse.level.MLH1, by="mouse")
+mouse.level.room.data <- add_category(mouse.level.room.data)
+
+```
+
+
+```{r room.effect.tests, echo=FALSE, warning=FALSE}
+library(ggsignif)
+
+mouse.level.room.data <- mouse.level.room.data[!(is.na(mouse.level.room.data$mean.MLH1)|mouse.level.room.data$mean.MLH1==""),]
+
+#note the mouse level tests are all throwing errors because not enough samples
+
+#Wlcx.ROOM_WSB.female  <- wilcox.test(FULL.room.data$mean.MLH1[ ( (FULL.room.data$category == "WSB female") & (FULL.room.data$room == "B2420") ) ], 
+#            FULL.room.data$mean.MLH1[ ( (FULL.room.data$category == "WSB female") & (FULL.room.data$room == "Charmony") ) ]  ) #raws for compare means match
+
+
+Wlcx.ROOM_LEW.male  <- wilcox.test(FULL.room.data$nMLH1.foci[ ( (FULL.room.data$category == "LEW male") & (FULL.room.data$room == "B2420") ) ], 
+           FULL.room.data$nMLH1.foci[ ( (FULL.room.data$category == "LEW male") & (FULL.room.data$room == "MSC 3040") ) ]  )
+
+
+
+#boxplots, facet by 
+geom.sig_df.cells = compare_means(nMLH1.foci ~ room, group.by = "category", data = FULL.room.data) %>% mutate(y_pos = 40)
+
+room.boxplots.cell <- ggplot(data=FULL.room.data, aes(x = room, y = nMLH1.foci))+geom_jitter()+geom_boxplot(alpha=.5)+facet_wrap(~category)+
+   #test bars
+  ggsignif::geom_signif(
+    data=geom.sig_df.cells, 
+    aes(xmin=group1, xmax=group2, annotations=p, y_position=y_pos),
+    manual=TRUE)+
+  ggtitle("Boxplots of room effects,\nsingle cell counts, raw p value")
+room.boxplots.cell
+
+#needed for comparing means ect.
+geom.sig_df.mouse = compare_means(mean.MLH1 ~ room, group.by = "category", data = mouse.level.room.data) %>% mutate(y_pos = 31)
+
+#  ggsignif::
+
+room.boxplots.mouse <- ggplot(mouse.level.room.data, aes(x=room, y=mean.MLH1))+geom_boxplot(alpha=.5)+facet_wrap(~category)+geom_jitter()+
+  #test bars
+geom_signif(
+    data=geom.sig_df.mouse, 
+    aes(xmin=group1, xmax=group2, annotations= p, y_position= y_pos ), manual=TRUE) +  ggtitle("Boxplots of room effects,\nmouse means, raw p values")
+room.boxplots.mouse
+
+#look up the warning about cols, beccause of %>%?
+
+#remake the boxplots with compare means in the ggplot, to see if that changes the values.
+#geom.sig_df.mouse = compare_means(mean.MLH1 ~ room, group.by = "category", data = mouse.level.room.data) %>% mutate(y_pos = 31)
+
+
+
+#MORE TESTS TO consider
+#the boxplots show different ranges
+#room.boxplots.OG <- ggplot(mergy.room.data.OG)
+#tukey / post hoc paired comparison
+```
+
+
+The brackets in the plots above reflect the output of 'compare_means()' which uses a wilcox.test.
+
+I double checked the wilcox p values for wilcox.test and compare_means, they're similar.
+
+WSB single wilcox test pvalue is  Wlcx.ROOM_WSB.female$p.value` which is the same as the raw from compare_means(). The compare_means table shows that WSB is multiplied by 2.
+
+
+The values look a little strange to me, I don't understand the p.adj values yet, (p values multiplied by the number of comparisons). To me it seems like there are 5 t.tests, . I don't know why there are only 3 values of adjusted p-values)
+
+
+There are significant room effects in the cell level data set. This effect decreases when comparing the mouse level means.  
+
+I think these results indicate that there is not a strong room effect. Also considering that 
+
 
 
 # Maternal Age effect
 
-Check if there is a maternal age effect for females and males.
-clea.Meta.Data doesn't have maternal age data.
 
-Collect data, get a decent set / large set of mice with maternal ages (mostly want to look at females).
+> Main Point
+
+ - Qualitatively, there is unlikely to be a maternal age effect, but these data are underpowered.
 
 ```{r mat.age.effect, echo=FALSE}
 #pause evaluation -- needs debugging
@@ -550,21 +722,11 @@ mat.age_MLH1_cells <- ggplot(mergeFULL_mat.age_cells, aes(x = mat.age.days, y=nM
 
 mat.age_MLH1_cells
 
-
-
 mat.age_MLH1_mouse <- ggplot(mergeFULL_mat.age_mouse, aes(x = mat.age.days, y=mean_co, color = mouse))+geom_jitter(alpha=.3, width = 2)+facet_wrap(sex~subsp)+ggtitle("Maternal ages and MLH1")+theme(legend.position = 'none')
-
-mat.age_MLH1_mouse
 
 #mat.age_MLH1_cells.KAZ <- ggplot(mergeFULL_mat.age_cells[mergeFULL_mat.age_cells$category == "KAZ male",], aes(x = mat.age.days, y=nMLH1.foci, color = mouse))+geom_jitter()+facet_wrap(~category)+ggtitle("subset mice for maternal ages")+theme(legend.position = 'none')
 #mat.age_MLH1_cells.KAZ
 ```
-
-
-there should be plots above this
-Based on the histograms of ages and the range across categories isn't very wide -- so not sure what the best test is.
-
-
 
 
 ```{r mat.format.rand, echo=FALSE, eval=FALSE}
@@ -631,108 +793,9 @@ ALLmat.age.effect.plot.male <- ggplot(see.whatcha.do[see.whatcha.do$sex == "male
 ```
 
 
+For the topics below, Maternal age, litter and dissection effect are all related, I need to outline/distinguish how and decide if these are worth further investigation.
 
-
-# Room effect
-
-When this project was started the main mouse room for vendor purchased mice was Biotech. The mouse room changed in summer 2017. The Gough mice were always housed in Charmony. Of the final dataset there are three strains had mice housed in different rooms; WSB, LEW, and MSM.  
-
-The main questions to address in this section: is there a significant GxE effect due to room?  do the different rooms added noise / bias the estimates per strain
-
-A room effect might cause all of the strains to be biased in the same direction.
-
-
-```{r ROOM.effect.setup, echo=FALSE}
-#pull data from the 3 strains
-room.effect.DF <- MLH1_data[(MLH1_data$strain == "WSB") | (MLH1_data$strain == "LEW") | (MLH1_data$strain == "MSM"), ]
-
-original_DF <- add_mouse(original_DF)
-original_DF <- add_strain(original_DF)
-
-OG.room.effect.DF <- original_DF[(original_DF$strain == "WSB") | (original_DF$strain == "LEW") | (original_DF$strain == "MSM"), ]
-
-#mark / notch which room
-#Charmony, MSC3040, Biotech B2420, 
-
-#load in file, merge with the DFs from above
-OG.RoomData = read.csv("~./MLH1repo/data/RoomData.csv", header = TRUE)
-RoomData = subset(OG.RoomData, select = c(mouse,room)) 
-
-#merge with the DFs from above for cell level data
-FULL.room.data = merge(RoomData, room.effect.DF, by= "mouse")
-FULL.room.data.OG = merge(RoomData, OG.room.effect.DF, by= "mouse")
-
-#make mouse.level tables
-mouse.level.MLH1 <- ddply(.data=FULL.room.data, 
-                 .(mouse),
-                 summarize, 
-                 mean.MLH1 = mean(adj_nMLH1.foci),
-                 var.MLH1 = var(adj_nMLH1.foci)
-)
-
-mouse.level.room.data <- merge(RoomData, mouse.level.MLH1, by="mouse")
-mouse.level.room.data <- add_category(mouse.level.room.data)
-
-```
-
-Looking at my records, there are limited comparisons (not all strains were raised in all 3 rooms).
-
-WSB female - Biotech vs Charmony  
-
-LEW female and male, MSM female and male - Biotech and MSC  
-
-look at boxplots first
-
-```{r room.effect.tests, echo=FALSE}
-library(ggsignif)
-
-#boxplots, facet by 
-geom.sig_df.cells = compare_means(nMLH1.foci ~ room, group.by = "category", data = FULL.room.data) %>% mutate(y_pos = 40)
-
-room.boxplots.cell <- ggplot(data=FULL.room.data, aes(x = room, y = nMLH1.foci))+geom_jitter()+geom_boxplot(alpha=.5)+facet_wrap(~category)+
-   #test bars
-  ggsignif::geom_signif(
-    data=geom.sig_df.cells, 
-    aes(xmin=group1, xmax=group2, annotations=p.adj, y_position=y_pos),
-    manual=TRUE)+
-  ggtitle("Boxplots of room effects,\nsingle cell level, adj p value")
-room.boxplots.cell
-
-#needed for comparing means ect.
-geom.sig_df.mouse = compare_means(mean.MLH1 ~ room, group.by = "category", data = mouse.level.room.data) %>% mutate(y_pos = 31)
-
-#  ggsignif::
-
-room.boxplots.mouse <- ggplot(mouse.level.room.data, aes(x=room, y=mean.MLH1))+geom_boxplot(alpha=.5)+facet_wrap(~category)+geom_jitter()+
-  #test bars
-geom_signif(
-    data=geom.sig_df.mouse, 
-    aes(xmin=group1, xmax=group2, annotations= p.adj, y_position= y_pos ), manual=TRUE) +  ggtitle("Boxplots of room effects,\nmouse level, adj p value")
-room.boxplots.mouse
-
-#look up the warning about cols, beccause of %>%?
-
-#remake the boxplots with compare means in the ggplot, to see if that changes the values.
-#geom.sig_df.mouse = compare_means(mean.MLH1 ~ room, group.by = "category", data = mouse.level.room.data) %>% mutate(y_pos = 31)
-
-
-
-#MORE TESTS TO consider
-#the boxplots show different ranges
-#room.boxplots.OG <- ggplot(mergy.room.data.OG)
-#tukey / post hoc paired comparison
-```
-the brackets in the plots above reflect the output of 'compare_means()' The default is wilcox.test, I've been swtiching back between showin raw and adjusted p values. (look up the warning about the cols parameter.)  
-
-The values look a little strange to me, I don't understand the p.adj values yet, (pvalues muliutpplied by the number of comparisons). To me it seems like there are 5 t.tests, . I don't know why there are only 3 values of adjusted p-values)
-
-
-There are significant room effects in the cell level data set. This effect decreases when comparing the mouse level means.  
-
-I think these results indicate that there is not a strong room effect. Also considering that 
-
-
-# Litter effect
+## Litter effect
 
 Compare female spreads made on the same day, but from different mothers/litters.
 ```{r litter.effect, eval=FALSE}
@@ -741,13 +804,12 @@ Compare female spreads made on the same day, but from different mothers/litters.
 ```
 
 
-# Dissection spread Effect
+## Dissection spread Effect
 
-intro for why I care about dissection.
-right nnow the only independant variable is month dissected. Should I enter infor about PFA? time in humid chamber? 
+right now the only independent variable is month dissected. Should I enter info about PFA? time in humid chamber? 
 
 
-```{r dissection.effect.data.setup, echo=FALSE}
+```{r dissection.effect.data.setup, echo=FALSE, warning=FALSE}
 
 #AP_mouse_table_w.Ages$euth.date
 
@@ -766,7 +828,7 @@ mlh1.euth.date.female <- merge(mouse.table.female, MLH1_data, by = "mouse")
 ```
 
 
-```{r plot.dissection, echo=FALSE}
+```{r plot.dissection, echo=FALSE, warning=FALSE}
 
 male.data$euth.date <- as.Date(male.data$euth.date, "%m/%d/%Y")
 
@@ -785,8 +847,7 @@ musc.male.euth.date
 ```
 
 
-
-```{r dissection.female, echo=FALSE}
+```{r dissection.female, echo=FALSE, warning=FALSE}
 
 female.data <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$sex.y == "female") & (AP_mouse_table_w.Ages$category.y != "other"),]
 female.data$euth.date <- as.Date(female.data$euth.date, "%m/%d/%Y")
@@ -815,14 +876,12 @@ mlh1.euth.date.female <- merge(mouse.table.female, MLH1_data, by = "mouse")
 ```
 
 
-## Total SC
+### Total SC
 
-Testing the effects of mean total SC per mouse with when they were dissected.
-
-follow up to peromyscus findings, Where summer caught mice had lower SC area per cell, compared to winter and fall caught. But there were few data points.
+Testing the effects of mean total SC per mouse with when they were dissected. This is mean to be a follow up to peromyscus findings, Where summer caught mice had lower SC area per cell, compared to winter and fall caught. But there were few data points.
 
 
-```{r total.sc, echo=FALSE}
+```{r total.sc, echo=FALSE, warning=FALSE}
 #check out effects of month dissected on SC
 #load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#fixing bugs, formating
 #from total SC
@@ -874,26 +933,22 @@ ll.month.plot
 ```
 
 
-So, there doesn't seem to be an effect of month dissected on SC area across mice. This might be the start of testing for 'technical effects / humidity effects'. BUT, I don't really have month by month dissections of mice of the same age, ect.
-
-> *month dissected*
+So, there doesn't seem to be an effect of month dissected on SC area across mice. This might be the start of testing for 'technical effects / humidity effects'. BUT, I don't really have month by month dissections of mice of the same age, etc.
 
 For mice strains that have a similar MLH1 level (control for strain MLH1 effect), check if a month effect for MLH1 count (as seen in Peromyscus).
 
 
+# Stain Effect
 
-# Stain Effects
+At least 3 slides were made per mouse and I rarely included slides from the same mouse when running the statining protocol. Different staining batch might have effects on the background noise and brightness of the MLH1 foci (these could also be affected by post processing of images to a lesser extent). A siginificant stain effect would indecate technical error / I wasn't consistant in running the staining protocol).
 
-Intro for staining effects. at least 3 slides were made per mouse, giving a potential of 3 different stains. The staining batch might have effects on the background noise and brightness of the MLH1 foci.
+**collect data set for mice with multiple spreads (sp1, sp2 make ddply table that counts a gerp for 'sp1', sp2, ect)**
 
-collect data on mice with mulitple spreads (sp1, sp2 -- make ddply table that counts a gerp for 'sp1', sp2, ect)
-
-> *staining batches*
-
+These data might also be underpowered, since I mostly used 1 spread and it was rare for me to collect over ~20 cells from multiple spreads from the same mouse.
 Compare observations from the same mouse, but different MLH1 stains.  First need to identify data that can be used.
 
 ```{r stain.effects.SC, eval=FALSE}
-#/src/TotalSC.R
+
 #compile this dataset
 
 ```
