@@ -1,5 +1,5 @@
 ---
-title: "MLH1 Data Report"
+title: "MLH1 Results Outline"
 date: "`r format(Sys.time(), '%d %B %Y')`"
 output:
   html_document:
@@ -33,14 +33,18 @@ setwd("C:/Users/alpeterson7/Documents/MLH1repo/doc/")
 #load(file="data/MLH1/MLH1_data_setup.RData")
 
 #load main data file
+load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.5.20.RData")#added batch18
 
-load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#batch18
+
+#this MLH1 only goes up to batch16!
+#load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#batch18
 #load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#fixing bugs, formating
 #load(file="data/MLH1/MLH1_data_setup_12.3.19.RData")#removed exclude mice
 #load(file="data/MLH1/MLH1_data_setup_11.12.19.RData")#added batch17
 #load(file="data/MLH1/MLH1_data_setup_11.11.19.RData")#deleted DUP image
 #load(file="data/MLH1/MLH1_data_setup_9.26.19.RData")#added batch16
 #load(file="data/MLH1/MLH1_data_setup_8.29.19.RData") #
+
 #load(file="data/MetaData.RData") #this was replacing most updated data file
 
 #load functions
@@ -48,15 +52,13 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 ```
 
 
-load in more Data, chrm proportions, total SC,
-write / standardize the data set up for those
-
-Terminology Note, leptonema, zygonema, and pachynema diplonema diakinesis, are the stage names.
--ene endings refer to the cells/units within the cell stage? (I think)
-
 
 ```{r organizing.data, echo=FALSE }
 #set the order of another column, based on another variable. consistant order for ploting
+
+#Terminology Note, leptonema, zygonema, and pachynema diplonema diakinesis, are the stage names.
+#-ene endings refer to the cells/units within the cell stage? (I think)
+
 
 MLH1_data <- MLH1_data %>%
   arrange(strain, sex, category, mouse) %>%
@@ -107,7 +109,7 @@ var.plot <- ggplot(AP_mouse_table.HQ_target, aes(y=var, x = sex, color=sex))+geo
 ```
 
 
-Details of dataset cleaning ect is in SetupData.rmd
+Details of data set cleaning ect is in SetupData.rmd
 Effects from different factors are reviewed in Effects.Rmd
 
 
@@ -171,9 +173,6 @@ cor(AP_mouse_table.HQ.10plus$mean_co[AP_mouse_table.HQ.10plus$sex == "female"], 
 
 cor.test(AP_mouse_table.HQ.10plus$mean_co[AP_mouse_table.HQ.10plus$sex == "female"], 
     AP_mouse_table.HQ.10plus$var[AP_mouse_table.HQ.10plus$sex == "female"] )
-
-
-
 ```
 
 
@@ -181,9 +180,9 @@ cor.test(AP_mouse_table.HQ.10plus$mean_co[AP_mouse_table.HQ.10plus$sex == "femal
 
 # Main Figures
 
-figure 1, change to all white, add the subspecies lines below.
 
-```{r first.boxplots, echo=FALSE, fig.align='center'}
+
+```{r first.boxplots, echo=FALSE, fig.align='center', warning=FALSE}
 
 #the below ordering works!! keep it
 MLH1_data$strain<- factor(MLH1_data$strain, levels =c("G", "LEW","WSB",
@@ -234,8 +233,6 @@ ss <- ggplot(MLH1_data, aes(x = as.factor(strain), y = adj_nMLH1.foci, fill= str
 ss <- ss   + facet_wrap(~ sex, scales="free")
 
 #these plot currently look bad
-ss
-justMuscu
 ```
 
 
@@ -292,15 +289,16 @@ Fig1_v1_strain
 ```
 
 
-*cast female data came from another publication
+*cast female data came from another publication, add this ref (Kohler?)
 
-add code for the table table. may have to deal with the excess mouse issue
+The bottom lines and subspecies points don't exactly match up.
 
+**add in cell images like the other draft figures.**
 
 # A. Models for mean and variance of MLH1 foci per cell 
 
 
-These are the basic Mixed Models we used as a frame work to analyze all the MLH1 data.
+These are the basic Mixed Models we used as a frame work to analyze all the MLH1 count data.
 
 $$mouse .mean CO ~=~ subsp * sex + rand(strain* sex)  + \varepsilon$$
 
@@ -399,27 +397,24 @@ DF.HetC.MixedModel.HQ.mol <- DF.HetC.MixedModel.HQ.mol[!(is.na(DF.HetC.MixedMode
 ```
 
 
-Seting up the data set for using the mixed model (base data set, HQ dataset)
+Setting up the data set for using the mixed model (base data set, HQ data set)
 
 - only Mus musculus strains with sex matched observations  
 
 - Unorder factors  
 
-- male ages within range
+- male ages within good range (5 - 12? weeks)
 
-Currently I ran through 3 datasets: 1) base, 2) HQ and 3) Molf (from HQ)
+Currently I ran through 3 data sets: 1) base, 2) HQ and 3) Molf (from HQ)
 
 `r kable(table(DF.HetC.MixedModel$sex, DF.HetC.MixedModel$strain))`
 
-Above are the total number of mice in the data set  
 
+FOR FINAL ANALYSIS, make sure that MOL is coded as a separate subsp (change all of the main model reports to). For mouse averages of MLH1 counts, only strain with observations for both sexes and are from Mus species. 
 
-FOR FINAL ANALYSIS, MOL Will be coded as a seperate subsp (change all of the main model reports to)
-For mouse averages of MLH1 counts, only strain with observations for both sexes and are from Mus species. 
+subspecies levels: 2(3), Musc and Domestics (Mousiness)
 
-subspecies levels: 2(3), Musc and Domesticus (Molossinus)
-
-strain levels: Dom: 3, Musc: 4  (Mol: 2)
+strain levels: Don: 3, Musc: 4  (Mol: 2)
 
 sex: 2 female male  
 
@@ -443,7 +438,7 @@ as.data.frame( round(  summary(HetC.MixedModel.HQ)$tTable, 6 ) )
 ```
 
 
-Above is the table of coefficients for MM.1, HQ dataset, lme(), random effects strain and strain specific sex effect.  
+Above is the table of coefficients for MM.1, HQ data set, lme(), random effects strain and strain specific sex effect.  
 
 
 $$mouse .mean CO ~=~ subsp * sex  + rand(strain*sex) + \varepsilon$$
@@ -457,7 +452,7 @@ as.data.frame( round(   summary(HetC.MixedModel.HQ.mol)$tTable, 6) )
 ```
 
 
-Above is the table of coefficients for MM.1.mol, molssinus coded as seperate subspecies, lme(), random effects strain and strain specific sex effect.  
+Above is the table of coefficients for MM.1.mol, molssinus coded as separate subspecies, lme(), random effects strain and strain specific sex effect.  
 
 
 $$mouse .mean CO ~=~ subsp * sex  + rand(1|strain) + \varepsilon$$
@@ -473,7 +468,7 @@ as.data.frame(round(summary(Reduced.strain.HQ)$tTable, 6))
 
 ```
 
-Above is the table of coefficients for MM.2, HQ dataset, lme(), random effects coded without sex specific effect.
+Above is the table of coefficients for MM.2, HQ data set, lme(), random effects coded without sex specific effect.
 This is model has sex and interaction coefficient is significant.
 
 > MM.2.Mol
@@ -505,7 +500,7 @@ as.data.frame( round(summary(Reduced.all.HQ)$tTable, 6))
 #ranef(Reduced.all.HQ)
 ```
 
-Above is the table of coefficients for MM.2.2, HQ dataset, gls(), No random effects.  
+Above is the table of coefficients for MM.2.2, HQ data set, gls(), No random effects.  
 I think this gls has sex and interaction term as significant.
 
 
@@ -528,7 +523,7 @@ as.data.frame(round( summary(strain.fixed.full)$coefficients, 6))
 #non of the 3-way interactions are significant, very puzzeled that WSB is significant and non of ht ehigh Musc are 
 ```
 
-Above is the table of coefficients for MM.3, HQ dataset, lm function, sex, strain and subsp are interacting fixed effects.  
+Above is the table of coefficients for MM.3, HQ data set, lm function, sex, strain and subsp are interacting fixed effects.  
 
 Strain G is significant (p=0.0005), 
 
@@ -552,10 +547,10 @@ as.data.frame( round( summary(strain.fixed)$coefficients, 6))
 #maybe this WSB effec is just in the HQ data set?
 ```
 
-Above is the table of coefficients for **MM.4**, HQ dataset, lm function, just sex and strain, no subspecies.
+Above is the table of coefficients for **MM.4**, HQ data set, lm function, just sex and strain, no subspecies.
 
 Significant factors are 
-strainG (p=0.0005), strainMSM and strainPWD (very slight),
+strain G (p=0.0005), strainMSM and strainPWD (very slight),
 sex:G (p=0.001),
 sex:MSM, Sex:PWD (very slight p=.05, p=0.3), 
 
@@ -663,7 +658,7 @@ HetC.MM.strain.fixed2 <- lm(mean_co ~ (subsp/strain)*sex, data= DF.HetC.MixedMod
 ```
 
 
-#### Summary of mean COs
+ Summary of mean COs
 
 MM.2 has significant coefficients, sex and sex*subsp interaction.
 
@@ -672,9 +667,9 @@ MM.2.Mol, the sex and interaction term (subsp*sex) are significant.
 MM.4 the strains which are significant are G, PWD and MSM. These 3 strains also have significant interaction (sex*strain) terms.
 
 
-# Variance in CO count
+## Variance in CO count
 
-in addition to the mean gwRR, the variance is also an important metric to dicribe 
+in addition to the mean gwRR, the variance is also an important metric to describe 
 
 Within animal variance in CO count / genome wide RR is important because it could shape constraints (and determine how effective stabilizing selection can act (ref))
 
@@ -713,6 +708,7 @@ Previous vQTLs (Shen etal 2012, Hulse and Cai 2013, Mulder et al 2016)
 
 meiotic Checkpoints for ensuring consistancy (Hochwagen and Amon 2006, Li and Schimenti 2007, Jaramillo-Lambert 2010 and Kauppi 2013)
 
+### Figures
 
 ```{r variance.boxplots, echo=FALSE, eval=FALSE}
 #how did I make this 
@@ -976,9 +972,9 @@ strain2noRandom.CV <- anova(just.strain.var_co, full.Reduced.var_co)#0.1213
 
 #### Summary variance
 
-The general pattern across all the models, is that sex is a significant effect for all models. The sex-subsp interaction effect pvalues were larger and only significant for one of the models.
+The general pattern across all the models, is that sex is a significant effect for all models. The sex-subsp interaction effect p values were larger and only significant for one of the models.
 
-When Molossinus is coded as a seperate subspecies, then interaction terms are no longer significant.
+When Molossinus is coded as a separate subspecies, then interaction terms are no longer significant.
 
 
 #### Pooled cells
@@ -1045,7 +1041,7 @@ Character assigned variables.  The values are now quite different. Male, sex coe
 
 # Rapid male specific evolution
 
-list out the points whic hsuport rapid male specific evolution for MLH1 rates.
+list out the points which support rapid male specific evolution for MLH1 rates.
 
 ## Proportion of chrm classes
 
@@ -1128,7 +1124,7 @@ melt.Chrm.Prop.table$strain<- factor(melt.Chrm.Prop.table$strain, levels =c("LEW
 
 melt.Chrm.Prop.table <- with(melt.Chrm.Prop.table, melt.Chrm.Prop.table[order(strain),])
 
-chrm.class.barplot <- ggplot(data = melt.Chrm.Prop.table, aes(y = value, x = strain, fill=as.factor(type)) ) + geom_col(position = "dodge")+facet_grid(sex~strain, scales = "free")+ggtitle("Chrm Proportions from Hand Measured")+ylim(c(0,1))
+chrm.class.barplot <- ggplot(data = melt.Chrm.Prop.table, aes(y = value, x = strain, fill=as.factor(type)) ) + geom_col(position = "dodge")+facet_grid(sex~strain, scales = "free")+ggtitle("Chrm Proportions from Hand Measured Data")+ylim(c(0,1))
 
 #need a second DF / the first df
 #+ annotate() text 
@@ -1533,9 +1529,9 @@ Nuanced
 there is strain specific evolution for females ... 
 
 
-# Sexual dimorphism and heterochiasmy things
+# Sexual dimorphism and heterochiasmy
 
-total sc length / SC compaction and telomere bias in positioning are conserved / consistantly sexually dimorphism (in these mice?)  for most species
+total SC length / SC compaction and telomere bias in positioning are conserved / consistently sexually dimorphism (in these mice?)  for most species
 
 make the heterochiasmy plot, with female strain averages adjusted for X
 (measure variance in CO counts for the top 5 female whole cell bivalents)
@@ -1547,8 +1543,7 @@ how does this compare to variance of mid 5, bottom 5?
 
 
 
-# ""
-
+# Blank
 
 
 
