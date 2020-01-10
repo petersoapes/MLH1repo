@@ -21,7 +21,9 @@ setwd("~./MLH1repo/")
 #load(file="data/MLH1/MLH1_data_setup.RData")
 
 #load main data file
-load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.5.20.RData")#added batch18
+
+load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.10.20.RData")#edits to OG.original.DF
+#load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.5.20.RData")#added batch18
 #load(file="data/MLH1/MLH1_data_setup_11.12.19.RData")#added batch17
 #load(file="data/MLH1/MLH1_data_setup_9.26.19.RData")#added batch16
 #load(file="data/MLH1/MLH1_data_setup_8.29.19.RData")#batch15 isn't showing up
@@ -32,18 +34,55 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
 knitr::opts_chunk$set(echo = TRUE)
 
-#remove other!
-MLH1_data <- MLH1_data[MLH1_data$strain != "other",]
+#main data frame should be original_DF then changes made to MLH1_data
 
-MLH1_data <- droplevels(MLH1_data)
+#remove other!
+original_DF <- original_DF[original_DF$strain != "other",]
+
+original_DF <- droplevels(original_DF)
+```
+
+
+```{r clean.OG.DF, echo=FALSE}
+#because I want to display the MLH1 means from the OG list
+#Have have to do a bit of clean up
+
+#for this doc / report, remove 'X's (these changes to the DF won't be passed on)
+original_DF <- original_DF[ !grepl("X", original_DF$X) , ]
+original_DF <- original_DF[!(is.na(original_DF$nMLH1.foci) | original_DF$nMLH1.foci==""), ]
+
+original_DF <- original_DF[!(is.na(original_DF$n) | original_DF$n != 20), ]
+
+original_DF <- original_DF[original_DF$nMLH1.foci != "X",]
+original_DF <- original_DF[original_DF$nMLH1.foci != "x",]
+
+#
+original_DF$n <- as.character(original_DF$n)
+original_DF$nMLH1.foci<- as.character(original_DF$nMLH1.foci)
+original_DF$quality<- as.character(original_DF$quality)
+
+#remove non-number chrs
+original_DF$n <- as.numeric(original_DF$n)
+original_DF$nMLH1.foci<- as.numeric(original_DF$nMLH1.foci)
+original_DF$quality<- as.numeric(original_DF$quality)
+
+#when first ran there were alot of empty mouse -squares
+
+original_DF <- droplevels(original_DF)
+
+#num are nums, there are still Q5 cells
 ```
 
 
 This rmd file shows the cell counts for mouse level for MLH1 count and quality. The black lines are the strain means and the red lines are the mouse level means. Points are colored by the quantification batch.
 
-These plots are meant to asses which mice can be removed from the final dataset for too few or low quality count data.
+These plots are meant to asses which mice can be removed from the final dataset for too few or low quality count data.  
 
-Yellow colored boxes are mice that will be exclude from the final (HQ) dataset for low quality cells (5). Consider re-runing this with the final data frame to see how the strain and mouse means change.
+The main data frame for these results is original_Df, which is a step removed from the final analysis DF. All of the mice of the data set are shown, to give a better idea of what is take out for the analysis dataset. ('X' labeled cells have been removed, Q5 cells remain).  
+
+Yellow colored boxes are mice that will be exclude from the final (HQ) dataset for low quality cells (5).
+
+
 
 
 ### Updating plots
@@ -95,14 +134,17 @@ exclude_mice_list <- c("10mar15_WSB_m2", "8oct14_WSB_f1", "8oct14_WSB_f3", "18no
 
 #this loop makes a quant_status col for a list of mice (THERE'S AN ARGUMENT FOR Drawing a box around the mouse blocks )
 #switch this loop to ex
-for(i in 1:length(MLH1_data$mouse)){
-  MLH1_data$quant_status[i] <- ifelse( is.element(MLH1_data$mouse[i], exclude_mice), "exclude", NA)
+
+#shouldn't the DF be the OG DF?
+
+for(i in 1:length(original_DF$mouse)){
+  original_DF$quant_status[i] <- ifelse( is.element(original_DF$mouse[i], exclude_mice_list), "exclude", NA)
 }
 
 
 #CZECH is not in this list!!!
 
-df_list <- split(MLH1_data, (MLH1_data$category))
+df_list <- split(original_DF, (original_DF$category))
 #remove sections which are in category but have no data
 #this is where you remove the non-data data!
 df_list <- df_list[ -c(24, 29) ]
@@ -122,7 +164,7 @@ for(i in 1:(length(df_list))){
  # only include data with quality values, then create a ddply for specific sub-df that calqs mean by each mouse
   df_list[[i]] <- df_list[[i]][!(is.na(df_list[[i]]$quality) | df_list[[i]]$quality==""), ]
   sub_mouse_means <- ddply(df_list[[i]], .(mouse), summarise,
-                      mouse_nMLH1 = mean(adj_nMLH1.foci)
+                      mouse_nMLH1 = mean(nMLH1.foci)
   )
 # this loop is going though each row of dataframes within the df.list and assigning the mouse mean
   for(o in 1:length(df_list[[i]]$Original.Name)){
@@ -134,7 +176,7 @@ for(i in 1:(length(df_list))){
 plot_list = list()
 for (h in 1:length(df_list)) {
   pf <- ggplot(data = df_list[[h]], aes(colour = factor(Batch)), width = 0.25)+ 
-    geom_jitter(aes(y= adj_nMLH1.foci, x= quality)) + xlim(c(0.5,5.5))+
+    geom_jitter(aes(y= nMLH1.foci, x= quality)) + xlim(c(0.5,5.5))+
   
     #put a box over strain plots based on the col, 'quant_status'
       geom_rect(data = df_list[[h]], aes(fill= quant_status), alpha= 0.045, xmin=-100, xmax=100, ymin=-100, ymax=100)+
@@ -146,7 +188,7 @@ for (h in 1:length(df_list)) {
   
 
   
-      geom_hline(yintercept = c( mean(df_list[[h]]$adj_nMLH1.foci) ), color="black" )
+      geom_hline(yintercept = c( mean(df_list[[h]]$nMLH1.foci) ), color="black" )
   #theme(plot.background = element_rect(fill = "green")) #theme for indiviual mice, 
   #make an empty ggplot? for missing data
   

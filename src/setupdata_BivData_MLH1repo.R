@@ -98,9 +98,6 @@ RawDataTable <- as.data.frame(colSums(!is.na(BivData)) )
 
 #print out list of mice that have Image folder, but are missing from the BivData
 
-
-
-
 ##############
 # CLEAN DATA #
 ##############

@@ -1,103 +1,435 @@
-# set up data file for ML data output
-# input: BivData from all the runs
-# output: RData file, Table of counts, cleaned up BivData.csv
+# set up data file for algorithm data output
+# input: Currated BivDataFile
+# output: cleanBivData.csv (write out the )
 
 library(plyr)
 library(lattice)
 library(dplyr)
 library(ggplot2)
 
+
 #ToDo
-#add IFD
-#add the melted foci here
+#need to remake the large full DF -- since the makefile was leaving out rows
 
-#make a master csv file for copying measurements into
+#1. check for dups and make a list for human reference
+#2. pull all the bivalents that have good SC segmentation
+#3. make a master csv file for copying measurements into
 
-#make folder for copying the tif files (move all image output into data/BiVdata/image_output/)
-#(seperate for mat files?)
 setwd("~./MLH1repo/")
 
-#load the master curated list for cross referencing!
-master_curated_BivDatalist.csv = read.csv("data/BivData/FULL_Merged_Curated_BivData.csv")
-#already has Obj.ID and SC/foci pass cols
-#need to clean up all the random numbers in pass.sc column
-
-master_fullBivData = read.csv("data/BivData/MUS_FULL_BIVDATA_10.11.19.csv")
-#33286 obs
-#+PWD and KAZ females 
-#+PWD (male)
-#+KAZ (male)
-#+LEW (female-male)
-
-#add obj.ID
-master_fullBivData$Obj.ID <- paste(master_fullBivData$fileName, master_fullBivData$boxNumber, sep = "_")
-
-#some of the images have bad fileNames, -- so those should be removed, or Idk, checked
-#removed, PWD_f1_sp1  and 8oct14_PWDf2_sp1
-#not sure where these files/images are
-
-anyDuplicated(master_fullBivData$Obj.ID) #23393 duplicated values
-#9893 unique obj.id
-#
-
-#re-write the excel sheet for unique observations
-#mark which have been curated and which havent
-
-#making full bivData --> then requires a curate list (filtered from) Bivdata
-#that requires manual curation
-
-#merge the kaz-pwd datasets
-#MERGE THE msm and lew
-
 source("src/CommonFunc_MLH1repo.R")
-master_fullBivData <- add_mouse(master_fullBivData)
-master_fullBivData <- add_category(master_fullBivData)
-master_fullBivData <- add_strain(master_fullBivData)
-master_fullBivData <- add_sex(master_fullBivData)
-master_fullBivData <- add_subsp(master_fullBivData)
+#load main data file ... for other files
+#load(file="data/MLH1/MLH1_data_setup_11.12.19.RData")
 
-#tables of things
-table(master_fullBivData$mouse)
-#WSB, no G, no CZECH, SPIC, SKIVE, CAST (limited KAZ male), no PERC, CAROLI, AST,TOM,F1
-#update the data.files
+#master_curated_BivData.org = read.csv("data/BivData/FULL_Merged_Curated_BivData.csv")#6859
+#merge / find what's missing in old a new curate versions
 
 
-#check duplicates
-n_occur <- data.frame(table(master_fullBivData$Obj.ID))
-n_occur[n_occur$Freq > 1,]
-joined_full_bivData_curated_DF <- master_fullBivData[master_fullBivData$Obj.ID %in% master_curated_BivDatalist.csv$Obj.ID,]
+#BIVDATA
+new.Curate.FULL <- read.csv("data/BivData/curation/FULL_Curated_BivData.csv")
+#60241
+#60830
+#57548
+#this file is made with a make pipeline. cat all .csv files
 
-joined_curated_bivData_DF <- master_curated_BivDatalist.csv[master_curated_BivDatalist.csv$Obj.ID %in% master_fullBivData$Obj.ID,]
-#764 -- (these include pass and fail)
 
-table(joined_curated_bivData_DF$SC.pass)#1437 passing SC
-#need to clean up all the random numbers in pass.sc
+#Currently / best way is to compile this by hand -- currently have make file for compiling 
 
-anyDuplicated(joined_curated_bivData_DF$Obj.ID)#0 duplicates
+#str(new.Curate.FULL) #start 27,764
+new.Curate.FULL.org <- new.Curate.FULL
+new.Curate.FULL <- new.Curate.FULL[!(is.na(new.Curate.FULL$fileName) | new.Curate.FULL$fileName==""), ]
 
-table(joined_curated_bivData_DF$foci.pass)
-#629 foci passing 
+#need to fill in Obj.ID for Gough
+new.Curate.FULL$Obj.ID <- paste(new.Curate.FULL$fileName, new.Curate.FULL$boxNumber, sep = "_")
 
-table(joined_curated_bivData_DF$hand.foci.count[joined_curated_bivData_DF$foci.pass == 1])
 
-joined_curated_bivData_DF <- add_mouse(joined_curated_bivData_DF)
-joined_curated_bivData_DF <- add_category(joined_curated_bivData_DF)
-joined_curated_bivData_DF <- add_strain(joined_curated_bivData_DF)
-joined_curated_bivData_DF <- add_sex(joined_curated_bivData_DF)
-joined_curated_bivData_DF <- add_subsp(joined_curated_bivData_DF)
+#bc there are a bunch of dumb chrs, all the useful cols will be factors
+anyDuplicated(new.Curate.FULL$Obj.ID)#360 duplicated
+#31186
+#13981 -- 320 rows
 
-#only PWD and KAZ biv's for the curation sheet (no )
+dupies <- new.Curate.FULL[duplicated(new.Curate.FULL$Obj.ID),]#800 rows duplicated
 
-#cleaned up file
-#re-write out cleaned up file
+#large number of dupies for blank Obj.ID
+#23938
+
+#remove rows and lines with NA
+dupies <- add_mouse(dupies)
+table(dupies$mouse)
+#2 MSM mice! 13nov16_MSM_m2, 13nov16_MSM_m1, KAZ mouse
+
+
+#most of the mice with duplicates: # 21may18_KAZ_m2, 13nov16_MSM_m1, 13nov16_MSM_m2
+# remove the duplicate KAZ
+# others are pretty random, just a few
+
+#remove 1 copy of duplicates
+new.Curate.FULL <- new.Curate.FULL %>% distinct()
+
+
+#remove rows I haven't finalized
+new.Curate.FULL <- new.Curate.FULL[ !grepl("[?]", new.Curate.FULL$SC.pass) , ]
+new.Curate.FULL <- new.Curate.FULL[ !grepl("[?]", new.Curate.FULL$hand.foci.count) , ]
+
+new.Curate.FULL <- new.Curate.FULL.org[(new.Curate.FULL.org$SC.pass == 1 | new.Curate.FULL.org$SC.pass == 0),]
+new.Curate.FULL <- droplevels(new.Curate.FULL)
+
+new.Curate.FULL <- add_mouse(new.Curate.FULL)
+new.Curate.FULL <- add_category(new.Curate.FULL)
+
+pass.fail.table <- table(new.Curate.FULL$SC.pass, new.Curate.FULL$category)
+#this outsput shows the relative ratios of pass to fail biv segmentation
+
+#DF to use, sc pass
+Curated_BivData <- new.Curate.FULL[new.Curate.FULL$SC.pass == 1,] #26,847 to 3,602
+Curated_BivData <- droplevels(Curated_BivData)
+#5680
+
+#write the curated file
+write.table(Curated_BivData, "~./MLH1repo/data/clean_BivData_10.1.20.csv", sep=",", row.names = FALSE)
+
+Curated_BivData <- add_mouse(Curated_BivData)
+Curated_BivData <- add_category(Curated_BivData)
+Curated_BivData <- add_strain(Curated_BivData)
+Curated_BivData <- add_sex(Curated_BivData)
+Curated_BivData <- add_subsp(Curated_BivData)
+
+#current remake, SKIVE male, MSM female, (3MSM male), PWD female
+#made this new one by hand 
+#merging old curated lists with the new ones might be more inclusive
+
+#change everything to Curated_BivData (adjust all the factor-numbers)
+
+##change factor cols to numbers (factor -> chr -> number)
+Curated_BivData$centromere_ABS_Position <- as.character(Curated_BivData$centromere_ABS_Position)
+Curated_BivData$centromere_PER_Position <- as.character(Curated_BivData$centromere_PER_Position)
+Curated_BivData$chromosomeLength <- as.character(Curated_BivData$chromosomeLength)
+
+Curated_BivData$hand.foci.count <- as.character(Curated_BivData$hand.foci.count)
+
+Curated_BivData$Foci1 <- as.character(Curated_BivData$Foci1)
+Curated_BivData$Foci2 <- as.character(Curated_BivData$Foci2)
+Curated_BivData$Foci3 <- as.character(Curated_BivData$Foci3)
+
+##
+Curated_BivData$centromere_ABS_Position <- as.numeric(Curated_BivData$centromere_ABS_Position)
+Curated_BivData$centromere_PER_Position <- as.numeric(Curated_BivData$centromere_PER_Position)
+Curated_BivData$chromosomeLength <- as.numeric(Curated_BivData$chromosomeLength)
+
+Curated_BivData$hand.foci.count <- as.numeric(Curated_BivData$hand.foci.count)
+
+Curated_BivData$Foci1 <- as.numeric(Curated_BivData$Foci1)
+Curated_BivData$Foci2 <- as.numeric(Curated_BivData$Foci2)
+Curated_BivData$Foci3 <- as.numeric(Curated_BivData$Foci3)
+#I think the number of sig figs and rounding changes slightly from the blocks above
+
+#adding more feature calculations (IFD, ect)
+Curated_BivData <- add_IFD(Curated_BivData)
+Curated_BivData$IFD1_PER = Curated_BivData$IFD1_ABS / Curated_BivData$chromosomeLength
+#IFD.2 does mulitple IFDs (just absolute)
+Curated_BivData <- add_IFD.2(Curated_BivData)
+
+Curated_BivData$PER_Foci_1 <- Curated_BivData$Foci1 / Curated_BivData$chromosomeLength
+Curated_BivData$PER_Foci_2 <- Curated_BivData$Foci2 / Curated_BivData$chromosomeLength
+Curated_BivData$PER_Foci_3 <- Curated_BivData$Foci3 / Curated_BivData$chromosomeLength
+
+Curated_BivData$IFD1 <- as.numeric(Curated_BivData$IFD1)
+Curated_BivData$IFD2 <- as.numeric(Curated_BivData$IFD2)
+Curated_BivData$IFD3 <- as.numeric(Curated_BivData$IFD3)
+
+#rbar (this function isn't working) (doesn't code for 4 foci, but removing this didn't fix it)
+#master_curated_BivData <- master_curated_BivData[!master_curated_BivData$hand.foci.count == 4,]
+#master_curated_BivData <- calq.intra.rbar(master_curated_BivData)
+
+#siscoten 
+#Curated_BivData <- add_SisCoTen(Curated_BivData)
+
+#distance to cent  foci1 - centromere_ABS_Position
+Curated_BivData$dis.cent <- Curated_BivData$Foci1 - Curated_BivData$centromere_ABS_Position
+Curated_BivData$dis.cent.PER  <- Curated_BivData$dis.cent / Curated_BivData$chromosomeLength
+
+#this metric is harder, since I need to define the max foci number
+#Curated_BivData$dis.telo <- 
+
+#remove the few odd rows with incorrect hand.foci
+#for some reason this makes a bunch of NAs
+#Curated_BivData <- Curated_BivData[Curated_BivData$hand.foci.count < 5, ]
+
+#some of the obj.ID are missing
+Curated_BivData$Obj.ID <- paste(Curated_BivData$fileName, Curated_BivData$boxNumber, sep = "_")
+
+
+cells.BivData_table <- ddply(.data=Curated_BivData, 
+                            .(fileName),
+                            summarize, 
+                            ncells = length(unique(fileName)),
+                            nbivs = length(unique(Obj.ID))
+)
+
+cells.BivData_table <- add_mouse(cells.BivData_table)
+cells.BivData_table <- add_category(cells.BivData_table)
+
+#hist(cells.BivData_table$nbivs)#shows the number of distribution of bivalents for all cells
+
+
+#save Rdata
+save.image("data/CleanBivData.RData")
+#save.image("data/BivData_4_PCA.RData")
+
+
+
+#CLEAN UP the STUFF below
+
+
+
+#a couple graphs
+#hist(master_curated_BivData$dis.cent)
+
+#g.dist.to.cent <- ggplot(master_curated_BivData, aes(dis.cent)) + geom_histogram() +facet_wrap(~ category)
+#LEW male and KAZ male have much broader distribution for distance from centr
+#PWD, -- and most females have left biased distribution
+
+#g.dist.to.cent.poin <- ggplot(master_curated_BivData, aes(x=dis.cent, y=chromosomeLength, color= as.factor(hand.foci.count)  ))+
+#  geom_point(aes(alpha=.5)) +facet_wrap(~ category)
+
+
+
+
+full.cells <- cell.BivData_table[cell.BivData_table$nbivs > 15,]
+#I would need to go and varify these cells...
+master_curated_BivData$IFD1 <- as.numeric(master_curated_BivData$IFD1)
+
+master_curated_BivData <- add_mouse(master_curated_BivData)
+master_curated_BivData <- add_strain(master_curated_BivData)
+master_curated_BivData <- add_category(master_curated_BivData)
+
+master_curated_BivData <- add_category(master_curated_BivData)
+
+master_curated_BivData <- master_curated_BivData[!(is.na(master_curated_BivData$hand.foci.count) | master_curated_BivData$hand.foci.count==0), ]
+
+
+
+
+
+
+model <- glm(dis.cent ~ mouse+hand.foci.count+chromosomeLength+centromere_ABS_Position+centromere_PER_Position+strain, data=bivs.male)
+#for simple model, CO number, chrm length and cent position are good predictors
+
+model99 <- glm(hand.foci.count ~ mouse+dis.cent+chromosomeLength+centromere_ABS_Position+centromere_PER_Position+strain, data=bivs.male)
+
+
+mean.cent.dis.KAZ <- ddply(.data=bivs.KAZ.male, 
+                                  .(hand.foci.count),
+                                  summarize, 
+                           Nbiv = length(Obj.ID), 
+                           mean.dist_cent = mean(dis.cent, na.rm=TRUE),
+                           var.dist_cent = var(dis.cent, na.rm=TRUE),
+                           sd.dist_cent   = round(sd(dis.cent, na.rm=TRUE), 3),
+                           se.dist_cent   = round(sd.dist_cent / sqrt(Nbiv), 3)
+)
+#mean.cent.dis.PWD
+
+
+
+
+#think of summarizing the image level first -- nboxes per image
+#I need to seperate out the 0,12, and 4CO
+
+cell.level.BivData_table <- ddply(.data=master_curated_BivData, 
+                       .(fileName),
+                       summarize, 
+                       boxs.IDd = max(boxNumber),
+                       nboxes_passed = length(boxNumber),
+                       
+                       Nbiv = length(Obj.ID), #if there are na's below -- it breaks
+                       CO0 =  sum(hand.foci.count == 0, na.rm=TRUE), 
+                       CO1 =  sum(hand.foci.count == 1, na.rm=TRUE), 
+                       CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                       CO3 = sum(hand.foci.count == 3, na.rm=TRUE),
+                       
+                       ncells = length(unique(fileName)),
+                       nbivs = length(unique(Obj.ID)),
+                       
+                       mean.SC_length = mean(chromosomeLength),
+                       var.SC_length = var(chromosomeLength),
+                       sd.SC_length   = round(sd(chromosomeLength), 3),
+                       se.SC_length   = round(sd.SC_length / sqrt(nbivs), 3),
+                       
+                       #add the centromere and ifd here?
+                       mean.dist_cent = mean(dis.cent, na.rm=TRUE),
+                       var.dist_cent = var(dis.cent, na.rm=TRUE),
+                       sd.dist_cent   = round(sd(dis.cent, na.rm=TRUE), 3),
+                       se.dist_cent   = round(sd.dist_cent / sqrt(nbivs), 3),
+                       
+                       mean.siscoten = mean(SisCoTen, na.rm=TRUE),
+                       var.siscoten = var(SisCoTen, na.rm=TRUE),
+                       sd.siscoten   = round(sd(SisCoTen, na.rm=TRUE), 3),
+                       se.siscoten   = round(sd.siscoten / sqrt(nbivs), 3),
+                       
+                       mean.IFD = mean(IFD1, na.rm=TRUE),#IFD1 is chr
+                       var.IFD = var(IFD1, na.rm=TRUE),
+                       sd.IFD   = round(sd(IFD1, na.rm=TRUE), 3),
+                       se.IFD   = round(sd.IFD / sqrt(nbivs), 3),
+                       
+                       mean.IFDper = mean(IFD1_PER, na.rm=TRUE),#IFD1 is chr
+                       var.IFDper = var(IFD1_PER, na.rm=TRUE),
+                       sd.IFDper   = round(sd(IFD1_PER, na.rm=TRUE), 3),
+                       se.IFDper   = round(sd.IFDper / sqrt(nbivs), 3)
+                       
+)
+cell.level.BivData_table <- add_mouse(cell.level.BivData_table)
+cell.level.BivData_table <- add_strain(cell.level.BivData_table)
+cell.level.BivData_table <- add_category(cell.level.BivData_table)
+
+lw.male <- cell.level.BivData_table[cell.level.BivData_table$category == "LEW male",]
+
+#--what should I draw from the cell.level. table
+#Isolated specific category for these plots
+SC.length.points.cells <- ggplot(lw.male, aes(x=mean.dist_cent, y=mean.SC_length, color= as.factor(mouse) ))+
+  geom_jitter()+ 
+  geom_errorbar(aes(ymin=mean.SC_length-se.SC_length, ymax=mean.SC_length+se.SC_length), width=.2,position=position_dodge(0.05))+
+  facet_wrap(~ mouse) + ggtitle("")
+
+
+SC.length.points.cells <- ggplot(lw.male, aes(x=mean.dist_cent, y=mean.SC_length, color= as.factor(mouse) ))+
+  geom_jitter()+ 
+  geom_errorbar(aes(ymin=mean.SC_length-se.SC_length, ymax=mean.SC_length+se.SC_length), width=.2,position=position_dodge(0.05))+
+  facet_wrap(~ mouse) + ggtitle("")
+
+
+#within mouse variance, 
+BivData_table <- ddply(.data=master_curated_BivData, 
+                          .(mouse),
+                          summarize, 
+                       ncells = length(unique(fileName)),
+                       nbivs = length(unique(Obj.ID)),
+                          
+                       mean.SC_length = mean(chromosomeLength),
+                       var.Sc_length = var(chromosomeLength),
+                       sd.SC_length   = round(sd(chromosomeLength), 3),
+                       se.SC_length   = round(sd.SC_length / sqrt(nbivs), 3),
+                          
+                       mean.dist_cent = mean(dis.cent, na.rm=TRUE),
+                       var.dist_cent = var(dis.cent, na.rm=TRUE),
+                       sd.dist_cent   = round(sd(dis.cent, na.rm=TRUE), 3),
+                       se.dist_cent   = round(sd.dist_cent / sqrt(nbivs), 3),
+                       
+                       mean.siscoten = mean(SisCoTen, na.rm=TRUE),
+                       var.siscoten = var(SisCoTen, na.rm=TRUE),
+                       sd.siscoten   = round(sd(SisCoTen, na.rm=TRUE), 3),
+                       se.siscoten   = round(sd.siscoten / sqrt(nbivs), 3),
+                       
+                       mean.IFD = mean(IFD1, na.rm=TRUE),#IFD1 is chr
+                       var.IFD = var(IFD1, na.rm=TRUE),
+                       sd.IFD   = round(sd(IFD1, na.rm=TRUE), 3),
+                       se.IFD   = round(sd.IFD / sqrt(nbivs), 3),
+                       
+                       mean.IFDper = mean(IFD1_PER, na.rm=TRUE),#IFD1 is chr
+                       var.IFDper = var(IFD1_PER, na.rm=TRUE),
+                       sd.IFDper   = round(sd(IFD1_PER, na.rm=TRUE), 3),
+                       se.IFDper   = round(sd.IFDper / sqrt(nbivs), 3)
+                       
+                       
+)
+#use this to remove mice with too few cells, remove all mice below 9 cells
+#var and mean SC length problematic
+#I need the low bin! function
+#males PWD, MSM have very low dist to cent, except kaz males
+
+#I need a way to get lowes 25
+BivData_table.clean = BivData_table[BivData_table$ncells > 9,]
+BivData_table.clean <- add_strain(BivData_table.clean)
+BivData_table.clean <- add_category(BivData_table.clean)
+BivData_table.clean <- add_sex(BivData_table.clean)
+
+SC.length.points <- ggplot(BivData_table.clean, aes(x=nbivs, y=mean.SC_length, color= as.factor(strain) ))+
+  geom_jitter()+ 
+  geom_errorbar(aes(ymin=mean.SC_length-se.SC_length, ymax=mean.SC_length+se.SC_length), width=.2,position=position_dodge(0.05))+
+  facet_wrap(~ sex) + ggtitle("")
+
+Dist_cent.points <- ggplot(BivData_table.clean, aes(x=sex, y=mean.dist_cent, color= as.factor(strain) ))+
+  geom_jitter()+ 
+  geom_errorbar(aes(ymin=mean.dist_cent-se.dist_cent, ymax=mean.dist_cent+se.dist_cent), width=.2,position=position_dodge(0.05))+
+  facet_wrap(~ strain)+ ggtitle("Mean distance to centromere by Mouse, +/- se")
+
+
+IFD.points <- ggplot(BivData_table.clean, aes(x=sex, y=mean.IFD, color= as.factor(strain) ))+
+  geom_jitter()+ 
+  geom_errorbar(aes(ymin=mean.IFD-se.IFD, ymax=mean.IFD+se.IFD), width=.2,position=position_dodge(0.05))+
+  facet_wrap(~ strain)+ ggtitle("Mean Sis-co-ten by Mouse, +/- se")
+
+
+IFDper.points <- ggplot(BivData_table.clean, aes(x=sex, y=mean.IFDper, color= as.factor(strain) ))+
+  geom_jitter()+ 
+  geom_errorbar(aes(ymin=mean.IFDper-se.IFDper, ymax=mean.IFDper+se.IFDper), width=.2,position=position_dodge(0.05))+
+  facet_wrap(~ strain)+ ggtitle("Mean norm IFD by Mouse, +/- se")
+
+
+
+siscoten.points <- ggplot(BivData_table.clean, aes(x=sex, y=mean.siscoten, color= as.factor(strain) ))+
+  geom_jitter()+ 
+  geom_errorbar(aes(ymin=mean.siscoten-se.siscoten, ymax=mean.siscoten+se.siscoten), width=.2,position=position_dodge(0.05))+
+  facet_wrap(~ strain)+ ggtitle("Mean Sis-co-ten by Mouse, +/- se")
+
+
+#geom_errorbar(aes(ymin=len-sd, ymax=len+sd), width=.2,
+#position=position_dodge(0.05))
+
+
+blah.blah <- ggplot(BivData_table.clean, aes(x=mean.dist_cent, y=nbivs, color= as.factor(strain) )) +geom_point()+facet_wrap(~ sex)
+#LEW male and KAZ male have much broader distribution for distance from centr
+#PWD, -- and most females have left biased distribution
+
+#KAZ have foci further from centromere (on average), but doesn't seem as far as LEW (what about SKIVE)
+
+blah.blah22 <- ggplot(BivData_table.clean, aes(x=mean.dist_cent, y=mean.siscoten, color= as.factor(strain) )) +
+  geom_point()+facet_wrap(~ sex)
+#plot the variance / se
+
+
+blah.blah22var <- ggplot(BivData_table.clean, aes(x=var.Sc_length, y=nbivs, color= as.factor(strain) )) +geom_point()+facet_wrap(~ sex)
+#male variance in SC length has pretty small range
+
+
+
+blah.blah99 <- ggplot(BivData_table.clean, aes(x=mean.siscoten, y=mean.SC_length, color= as.factor(strain) )) +geom_point()+facet_wrap(~ sex)
+#females have greater sis-co-ten
+#sis - co - ten is correlated with SC length
+#does the correlation change by hand foci number?
+
+
+g.dist.to.cent.poin <- ggplot(master_curated_BivData, aes(x=dis.cent, y=chromosomeLength, color= as.factor(hand.foci.count)  ))+
+  geom_point(aes(alpha=.5)) +facet_wrap(~ category)
+
+boxplots <- ggplot(BivData_table.clean, aes())
+
+
+
+
+cell_biv_table <- ddply(mstr_manual_data, c("strain", "sex", "image.title"), summarise,
+                        Nbiv = length(manual.blobject.name),
+                        CO0 =  sum(blobjectClass == "0CO"),
+                        CO1 =  sum(blobjectClass == "1CO"), 
+                        CO2 = sum(blobjectClass == "2CO"),
+                        CO3 = sum(blobjectClass == "3CO"),
+                        totalCO = (CO1+(CO2*2)+(CO3*3)),
+                        IFD.mean = mean(as.numeric(IFD), na.rm=TRUE),
+                        AutoSC = sum( SC.length[which(blobjectClass != "XY")] ),
+                        AutoSC.mean = mean(SC.length[which(blobjectClass != "XY")]),
+                        AutoSC.sd = sd(SC.length[which(blobjectClass != "XY")]),
+                        AutoSC.se = AutoSC.sd / Nbiv,
+                        XY = mean(sum( SC.length[which(blobjectClass == "XY")] ) ),
+                        SC.CO = AutoSC / totalCO ,
+                        Xguess = SC.length[(rank(SC.length)[3])],
+                        XovrAuto = (Xguess / AutoSC)*100
+                        
+)
+cell_biv_table
 
 #check dissection list agaisnt the BivData list
 Dissection_list = read.csv("data/mouseDissections.csv", sep = ",", header = TRUE)
 
 #check for complete data (which mice are missing)
-
-
-
 #add IFD -- add age?
 
 #####################
@@ -291,6 +623,64 @@ clean_FC_hist <- hist(BivData$numberCrossOvers, breaks = 7,
 abline(v=median(BivData$numberCrossOvers, na.rm = TRUE), col="blue")
 abline(v=mean(BivData$numberCrossOvers, na.rm = TRUE), col="red")
 dev.off()
+
+
+master_fullBivData = read.csv("data/BivData/MUS_FULL_BIVDATA_10.11.19.csv")
+#33286 obs
+#+PWD and KAZ females 
+#+PWD (male)
+#+KAZ (male)
+#+LEW (female-male)
+
+#add obj.ID
+master_fullBivData$Obj.ID <- paste(master_fullBivData$fileName, master_fullBivData$boxNumber, sep = "_")
+
+#some of the images have bad fileNames, -- so those should be removed, or Idk, checked
+#removed, PWD_f1_sp1  and 8oct14_PWDf2_sp1
+#not sure where these files/images are
+
+anyDuplicated(master_fullBivData$Obj.ID) #I think these are lines, no duplicated -- just the header line
+master.full.dup <- master_fullBivData[duplicated(master_fullBivData$Obj.ID),]
+
+anyDuplicated(master_curated_BivDatalist$Obj.ID)#2546 is line number duplicated in master curated
+dup.curated <- master_curated_BivDatalist[duplicated(master_curated_BivDatalist$Obj.ID),]
+
+orig_DF <- original_DF[duplicated(original_DF$fileName),]
+#re-write the excel sheet for unique observations
+#mark which have been curated and which havent
+
+#making full bivData --> then requires a curate list (filtered from) Bivdata
+#just use the curate dataset (if I get into predicting bivalent passing -- then merge the DFs)
+
+
+hand.measure.cells <- c("12jan17_4jan17_LEW_f1_sp1_22_rev",  "13jul15_12jun15_WSB_f1_sp1_13_rev",  "14oct16_30jun16_CAST_m3_sp1_3.2",  "15sep15_16jun15_WSB_f3_sp2_1_rev",
+  "18mar15_10mar15_WSB_m1_sp1_13_rev",  "1mar16_3jan16_G_m2_sp1_19.3_rev",  "1oct16_30jun16_CAST_m3_sp1_m3_5.1",
+  "20jul15_18may15_PWD_m1_sp1_2.2_rev",  "20jul15_18may15_PWD_m1_sp1_6.1_rev",  "2aug15_8jun15_G_f4_sp1_18_rev",  "2aug15_8jun15_G_f4_sp1_7_rev",
+  "30mar15_13oct14_G_f1_sp1_1.1_rev",  "27jul15_22jun15_G_m2_sp1_8_rev",  "28jul15_22jun15_G_m2_sp1_19_rev",
+  "28jul15_22jun15_G_m2_sp1_3_rev","13jul15_12jun15_WSB_f1_sp1_13_rev","14oct16_30jun16_CAST_m3_sp1_3.2","15sep15_16jun15_WSB_f3_sp2_1_rev",
+"18mar15_10mar15_WSB_m1_sp1_13_rev","1mar16_3jan16_G_m2_sp1_19.3_rev","1oct16_30jun16_CAST_m3_sp1_m3_5.1",
+"2aug15_8jun15_G_f4_sp1_18_rev","2aug15_8jun15_G_f4_sp1_7_rev","30mar15_13oct14_G_f1_sp1_1.1_rev","27jul15_22jun15_G_m2_sp1_8_rev","28jul15_22jun15_G_m2_sp1_19_rev",
+"28jul15_22jun15_G_m2_sp1_3_rev","12jan17_4jan17_LEW_f1_sp1_22_rev","3aug17_8may17_LEW_m2_sp1_3_rev","3aug17_8may17_LEW_m2_sp1_5_rev",
+"7feb17_20dec16_LEW_m2_sp1_20_rev","7feb17_20dec16_LEW_m2_sp1_25_rev",
+"13jul15_12jun15_WSB_f1_sp1_13_rev","15sep15_16jun15_WSB_f3_sp2_1_rev","2apr15_14sep14_WSB_f1_sp1_15_rev",
+"18mar15_10mar15_WSB_m1_sp1_13_rev","30jul15_12jun15_WSB_m2_sp1_3_rev","30jul15_12jun15_WSB_m2_sp1_7.2_rev",
+"4dec14_8oct14_PWD_f1_sp1_12_rev","4dec14_8oct14_PWD_f1_sp1_16_rev","8jun15_23apr15_PWD_f2_sp1_20_rev","20jul15_18may15_PWD_m1_sp1_2.2_rev",
+"20jul15_18may15_PWD_m1_sp1_6.1_rev","22mar15_10mar15_PWD_m2_sp1_15_rev","22nov16_13nov16_MSM_f2_sp1_18","22nov16_13nov16_MSM_f2_sp1_19",
+"22nov16_30sep16_MSM_f2_sp1_13.1_rev","22nov16_30sep16_MSM_f2_sp1_22_rev","29nov16_13nov16_MSM_f1_sp1_24.1_rev",
+"29nov16_13nov16_MSM_f1_sp1_5","27oct16_31aug16_MSM_m1_sp1_11","27oct16_31aug16_MSM_m1_sp1_18_rev","27oct16_31aug16_MSM_m1_sp1_26",
+"27oct16_31aug16_MSM_m1_sp1_9_rev","29nov16_13nov16_MSM_m2_sp1_13")
+
+#these won't perfectly match the MLH1 data ... (rev.tif)
+
+blahy <- data.frame(fileName = hand.measure.cells)
+
+#add the rev .tif 
+blahy <- add_fullFileName(blahy)
+#missing stain info 
+
+#write out the subseted MLH1 data for the hand measured ones
+fullBivData <- duplicated[!(duplicated$fileName %in% P_fileNames), ]
+
 
 
 ####################
