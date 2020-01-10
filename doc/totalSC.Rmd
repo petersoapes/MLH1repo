@@ -29,6 +29,11 @@ SC.skel = read.csv("~./SC_skeletonize/data/SCskel_output_nov19.csv", header = TR
 #load BivData
 load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/CleanBivData.RData")
 
+#Curated list
+
+#strain specific xlsx sheets
+
+
 # Total.SC
 # input: output from RW SC_skel run over Anon_Data images. The file names are random
 # output: DFs of merged MLH1 and Skel data, cell and mouse levels
@@ -107,7 +112,7 @@ OG.MLH1.merge.Skel <- MLH1.merge.Skel #raw version of DF
 The mixed models are mouse averages, get mouse names and ncells for each of the lists.
 
 
-```{r mixed.models.setup, echo=FALSE, warning=FALSE}
+```{r grab.nice.mice.setup, echo=FALSE, warning=FALSE}
 #https://rcompanion.org/handbook/G_03.html
 #testing random effects within lme
 #notes for testing random effects
@@ -142,7 +147,9 @@ DF.HetC.MixedModel <- droplevels(DF.HetC.MixedModel)#remove levels not used
 
 #mean_co.HQ  (this might remove some of the MOLF males)
 DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel[DF.HetC.MixedModel$Ncells > 9,]
-DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[DF.HetC.MixedModel.HQ$age.weeks < 25,]
+#DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[DF.HetC.MixedModel.HQ$age.weeks < 25,]
+#above should only apply to males
+
 DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[!(is.na(DF.HetC.MixedModel.HQ$mouse)|DF.HetC.MixedModel.HQ$mouse==""),]
 
 ```
@@ -150,9 +157,8 @@ DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[!(is.na(DF.HetC.MixedModel.HQ$mou
 
 
 ```{r check.lists, echo=FALSE}
-
-MLH1.merge.Skel
-OG.MLH1.merge.Skel
+#MLH1.merge.Skel
+#OG.MLH1.merge.Skel
 
 #checking / comparing the two lists
 
@@ -161,37 +167,86 @@ DF.HetC.MixedModel.HQ$mouse
 skel.mice_from.MM.DF <- OG.MLH1.merge.Skel[ OG.MLH1.merge.Skel$mouse %in% DF.HetC.MixedModel.HQ$mouse, ]
 #1630
 
+#some WSB females missing from DF.HETC.HQ
+
 #compare this list to cells in whole cell / curate (why?)
 #FOR COMPARISON ACROSS APPROACHES
 
-
-
-#curated Biv data doesn't have '.tif' -- remove .tif
+#OG.MLH1.merge.Skel doesn't have '.tif' -- remove .tif to make matching easier
 skel.mice_from.MM.DF$fileName <- as.character(skel.mice_from.MM.DF$fileName)
 
 for(j in 1:length(skel.mice_from.MM.DF$fileName)){
   print(j) 
   #MLH1_data$quant_status[i] <- ifelse( is.element(MLH1_data$mouse[i], pass_mice), "pass", NA)
-   templist2 = strsplit(skel.mice_from.MM.DF$fileName[j], split=".tif")#[[1]]
+   templist2 = strsplit(skel.mice_from.MM.DF$fileName[j], split='.tif')[[1]]
    #print(templist2)
-   skel.mice_from.MM.DF$fileName2[j] <- templist2 #should match file name
+   skel.mice_from.MM.DF$fileName2[j] = templist2
 }
+#this loop puts list in fileName2
 
 
-DF <- skel.mice_from.MM.DF[ skel.mice_from.MM.DF$fileName2 %in% Curated_BivData$fileName, ]#299
-#above is the DF which there are cell which have been curated
-#merge -- 
+library(tidyr)
 
-DF <- add_strain(DF)
-DF <- add_sex(DF)
-DF <- add_category(DF)
+skel.mice_from.MM.DF$og.fileName <- skel.mice_from.MM.DF$fileName
+skel.mice_from.MM.DF <- skel.mice_from.MM.DF %>% separate(fileName, c("fileName3","blah"),'.tif')
 
-table(DF$category) #missing MSM females
+
+#cell level data, MLH1 and skel
+DF <- skel.mice_from.MM.DF[ skel.mice_from.MM.DF$fileName3 %in% Curated_BivData$fileName, ]#415
+#above is the DF which there are cell which have been curated (and there is total.sc data)
+#how to merge the biv level data..?
+
+#number of bivs curated?
+
+SC.pass_table <- ddply(.data=Curated_BivData, 
+                 .(fileName),
+                 summarize, 
+                 n.SC.pacc.bivs = length(unique(Obj.ID))
+                 
+)
+#the PWD and KAZ duplicate mice will have more than 20 -- remove them
+
+SC.pass_table <- add_mouse(SC.pass_table)
+#SC.pass_table <- add_strain(SC.pass_table)
+#SC.pass_table <- add_sex(SC.pass_table)
+#SC.pass_table <- add_category(SC.pass_table)
+
+DF$fileName <- DF$fileName3
+
+#with mouse, merge to DF
+DF.2 <- merge(DF, SC.pass_table, by = "fileName", all.y = FALSE, no.dups = TRUE )
+#not merging because of silly / weird list thing
+
+DF.2 <- DF.2[ -c(14,15,20,23,21) ]
+DF.2$mouse <- DF.2$mouse.x
+
+DF.2 <- add_strain(DF.2)
+DF.2 <- add_sex(DF.2)
+DF.2 <- add_category(DF.2)
+
+table(DF.2$category)
+
+
+this.plot <- ggplot(DF.2, aes(n.SC.pacc.bivs)) + geom_histogram(bins = 40)+ facet_wrap(~category)+ggtitle("Number of curated bivs per image")
+
+this.plot_WSB.female <- ggplot(DF.2[DF.2$category == "WSB female",], aes(n.SC.pacc.bivs)) + geom_histogram(bins = 40)+ facet_wrap(~mouse)+ggtitle("Number of curated bivs per image")
+
+
+```
+
+
+
+
+```{r more.blahs, echo=FALSE}
+
+
+#WSB -- WSB_curation, WSB_female output on big External
+#not sure why Curated bivData catching more categories than this above
 
 #this table now has merged bin/skel, and have been curated (but it doesn't have data on the curated bivalents)
+#the curated list is the current bottle neck
 
-
-#skel.mice_from.MM.DF$fileName %in% Curated_BivData$fileName
+#I should start inventory  how many mice are in each curated category
 
 
 Skel.summary.table <- ddply(.data=skel.mice_from.MM.list, 

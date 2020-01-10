@@ -1,0 +1,13 @@
+#make file for merging curated results
+
+#merge header and main file
+FULL_Curated_BivData.csv : header.csv lines.csv
+	cat header.csv lines.csv > FULL_Curated_BivData.csv
+
+#make 
+lines.csv : *.csv header.csv
+	grep -v '^fileName' *curated.csv | cut -d ':' -f2 >> lines.csv
+
+#longest header is saved as file
+header.csv : *curated.csv
+	head -1 `ls *curated.csv -S | head -1` >> header.csv

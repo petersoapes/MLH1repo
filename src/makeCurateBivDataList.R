@@ -33,36 +33,51 @@ G_BivData$Obj.ID <- paste(G_BivData$fileName, G_BivData$boxNumber, sep = "_")
 CZECH_BivData = read.csv("data/BivData/algorithm\ output/SKIVE_CZECH_BBIIGG_11.15.19.csv", header=TRUE )
 CZECH_BivData$Obj.ID <- paste(CZECH_BivData$fileName, CZECH_BivData$boxNumber, sep = "_")
 
+#10.1.19
+BBIIGG_phytomorphor_4.9.19_moreFULL
 
+moreFULL_BivData = read.csv("data/BivData/curation/BBIIGG_phytomorphor_4.9.19_moreFULL.csv", header=TRUE )
+moreFULL_BivData$Obj.ID <- paste(moreFULL_BivData$fileName, moreFULL_BivData$boxNumber, sep = "_")
 
 #check for duplicate lines
-anyDuplicated(CZECH_BivData$Obj.ID)
-the.dups <- CZECH_BivData[duplicated(CZECH_BivData$Obj.ID),]
+anyDuplicated(moreFULL_BivData$Obj.ID)
+the.dups <- moreFULL_BivData[duplicated(moreFULL_BivData$Obj.ID),]
 #I think just the headers usually are duplicated
 
 #don't need to add these cols if taken from single batches
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
-CZECH_BivData <- add_mouse(CZECH_BivData)
-CZECH_BivData <- add_strain(CZECH_BivData)
-CZECH_BivData <- add_subsp(CZECH_BivData)
-CZECH_BivData <- add_sex(CZECH_BivData)
-CZECH_BivData <- add_category(CZECH_BivData)
+moreFULL_BivData <- add_mouse(moreFULL_BivData)
+moreFULL_BivData <- add_strain(moreFULL_BivData)
+moreFULL_BivData <- add_subsp(moreFULL_BivData)
+moreFULL_BivData <- add_sex(moreFULL_BivData)
+moreFULL_BivData <- add_category(moreFULL_BivData)
 
-table(CZECH_BivData$strain)#only 1 strain
+table(moreFULL_BivData$strain)#only 1 strain
+#more.FULL. WSB, LEW, PWD, MSM, KAZ, SPRET
 
 #SKIVE_bivData <- FULL_BivData_REDO[FULL_BivData_REDO$strain == "SKIVE",]
-CZECH_BivData <- CZECH_BivData[CZECH_BivData$strain == "CZECH",]
+moreFULL_BivData.WSB <- moreFULL_BivData[moreFULL_BivData$strain == "WSB",]
 #keep MSM male / since female seems to be complete
 #MSM_male_BivData <- FULL_BivData_REDO[FULL_BivData_REDO$category == "MSM male",]
 
-
 #filter by centromere
-CZECH_BivData$centromere_PER_Position <- as.character(CZECH_BivData$centromere_PER_Position)
-CZECH_BivData$centromere_PER_Position <- as.numeric(CZECH_BivData$centromere_PER_Position)
-CZECH_BivData <- CZECH_BivData[CZECH_BivData$centromere_PER_Position < 0.2,]
+moreFULL_BivData.WSB$centromere_PER_Position <- as.character(moreFULL_BivData.WSB$centromere_PER_Position)
+moreFULL_BivData.WSB$centromere_PER_Position <- as.numeric(moreFULL_BivData.WSB$centromere_PER_Position)
+moreFULL_BivData.WSB <- moreFULL_BivData.WSB[moreFULL_BivData.WSB$centromere_PER_Position < 0.2,]
 
 #remove extra cols  (conservative  9:80)
-CZECH_BivData <- CZECH_BivData[ -c(9:70) ]
+moreFULL_BivData.WSB <- moreFULL_BivData.WSB[ -c(9:70) ]
+
+#test is 14dec17_18nov17_WSB_f3_sp1_10_rev_11, old xcel file has 16, 
+#there are 17 .csv files in the main output folder
+#newest BBIIGG also has 16 after running through this script
+#i am likely forgetting the removal of bad bivs --- I might have been worried for nothing
+
+
+#integrate WSB female into the Master Curation
+
+#reminder -- makeing the masterCuration file is doen through makefile
+#compile a bunch of csv files grep 'curated'
 
 CZECH_BivData$SC.pass <- ""
 CZECH_BivData$foci.pass<- ""

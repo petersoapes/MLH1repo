@@ -15,6 +15,8 @@ library(ggplot2)
 #2. pull all the bivalents that have good SC segmentation
 #3. make a master csv file for copying measurements into
 
+#make OG.curatedBivData (see SC pass =0 | 1)
+
 setwd("~./MLH1repo/")
 
 source("src/CommonFunc_MLH1repo.R")
