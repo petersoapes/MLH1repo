@@ -25,28 +25,47 @@ source("src/CommonFunc_MLH1repo.R")
 
 #master_curated_BivData.org = read.csv("data/BivData/FULL_Merged_Curated_BivData.csv")#6859
 #merge / find what's missing in old a new curate versions
-
+#'curate.csv' is the grep string!
 
 #BIVDATA
 new.Curate.FULL <- read.csv("data/BivData/curation/FULL_Curated_BivData.csv")
+#80919
+#61084
 #60241
 #60830
 #57548
 #this file is made with a make pipeline. cat all .csv files
-
-
 #Currently / best way is to compile this by hand -- currently have make file for compiling 
 
 #str(new.Curate.FULL) #start 27,764
-new.Curate.FULL.org <- new.Curate.FULL
+
 new.Curate.FULL <- new.Curate.FULL[!(is.na(new.Curate.FULL$fileName) | new.Curate.FULL$fileName==""), ]
-
-#need to fill in Obj.ID for Gough
 new.Curate.FULL$Obj.ID <- paste(new.Curate.FULL$fileName, new.Curate.FULL$boxNumber, sep = "_")
+new.Curate.FULL <- add_mouse(new.Curate.FULL)
 
+
+#make OG copy
+new.Curate.FULL.org <- new.Curate.FULL
+
+new.Curate.FULL.org <- add_category(new.Curate.FULL.org)
+
+OG.cURATE.table.mouse <- table(new.Curate.FULL.org$mouse, new.Curate.FULL.org$SC.pass)
+OG.cURATE.table.category <- table(new.Curate.FULL.org$category, new.Curate.FULL.org$SC.pass)
+
+
+OG.cURATE.table.mouse <- add_strain(OG.cURATE.table.mouse)
+
+#write the curated file
+write.table(OG.cURATE.table.mouse, "~./MLH1repo/data/CurrentCuratedDataset_17.1.20.csv", sep=",",
+            row.names = TRUE)
+
+
+write.table(OG.cURATE.table.category, "~./MLH1repo/data/CurrentCuratedDataset_cat_17.1.20.csv", sep=",",
+            row.names = TRUE)
 
 #bc there are a bunch of dumb chrs, all the useful cols will be factors
 anyDuplicated(new.Curate.FULL$Obj.ID)#360 duplicated
+#16242
 #31186
 #13981 -- 320 rows
 
@@ -59,6 +78,8 @@ dupies <- new.Curate.FULL[duplicated(new.Curate.FULL$Obj.ID),]#800 rows duplicat
 dupies <- add_mouse(dupies)
 table(dupies$mouse)
 #2 MSM mice! 13nov16_MSM_m2, 13nov16_MSM_m1, KAZ mouse
+
+
 
 
 #most of the mice with duplicates: # 21may18_KAZ_m2, 13nov16_MSM_m1, 13nov16_MSM_m2

@@ -1,0 +1,96 @@
+---
+title: "BivData_Setup"
+author: "April Peterson"
+date: "January 17, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+setwd("~./MLH1repo/")
+source("src/CommonFunc_MLH1repo.R")
+
+
+#BIVDATA
+new.Curate.FULL <- read.csv("data/BivData/curation/FULL_Curated_BivData.csv")
+#80919
+#61084
+#60241
+#60830
+#57548
+
+
+new.Curate.FULL <- new.Curate.FULL[!(is.na(new.Curate.FULL$fileName) | new.Curate.FULL$fileName==""), ]
+new.Curate.FULL$Obj.ID <- paste(new.Curate.FULL$fileName, new.Curate.FULL$boxNumber, sep = "_")
+new.Curate.FULL <- add_mouse(new.Curate.FULL)
+
+
+#make OG copy
+new.Curate.FULL.org <- new.Curate.FULL
+
+new.Curate.FULL.org <- add_category(new.Curate.FULL.org)
+
+OG.cURATE.table.mouse <- table(new.Curate.FULL.org$mouse, new.Curate.FULL.org$SC.pass)
+OG.cURATE.table.category <- table(new.Curate.FULL.org$category, new.Curate.FULL.org$SC.pass)
+
+
+OG.cURATE.table.mouse <- add_strain(OG.cURATE.table.mouse)
+
+#write the curated file
+write.table(OG.cURATE.table.mouse, "~./MLH1repo/data/CurrentCuratedDataset_17.1.20.csv", sep=",",
+            row.names = TRUE)
+
+
+write.table(OG.cURATE.table.category, "~./MLH1repo/data/CurrentCuratedDataset_cat_17.1.20.csv", sep=",",
+            row.names = TRUE)
+
+
+```
+
+master curated bivdata file  
+
+
+master_curated_BivData.org = read.csv("data/BivData/FULL_Merged_Curated_BivData.csv")#6859
+merge / find what's missing in old a new curate versions
+'curate.csv' is the grep string!
+
+
+load the big one
+
+cleaning steps
+
+show tables for the number of mice with curated biv
+
+```{r CLEAN.UP, echo=FALSE, include=FALSE}
+
+```
+
+
+# basic stats
+
+
+
+# Assemble final BivData DF
+
+
+
+# melt position table
+
+needed to related positions
+
+
+# IFD data
+
+make sure IFDs are applied correctly to the right DFs.
+
+
+# analysis
+
+planned analyses for later docs, but this is the list for getting everything ready
+
+- chrom class proportions
+
+- SC 
+
+
+
