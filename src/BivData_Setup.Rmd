@@ -1,59 +1,79 @@
 ---
 title: "BivData_Setup"
 author: "April Peterson"
-date: "January 17, 2020"
+date: "`r format(Sys.time(), '%d %B %Y')`"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
+library(plyr)
+library(lattice)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+
 
 setwd("~./MLH1repo/")
-source("src/CommonFunc_MLH1repo.R")
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
-
-#BIVDATA
-new.Curate.FULL <- read.csv("data/BivData/curation/FULL_Curated_BivData.csv")
+#BIVDATA MASTER SHEET
+new.Curate.FULL <- read.csv("~./MLH1repo/data/BivData/curation/FULL_Curated_BivData.csv")
 #80919
 #61084
 #60241
 #60830
 #57548
 
-
+#Clean away all the empty rows
 new.Curate.FULL <- new.Curate.FULL[!(is.na(new.Curate.FULL$fileName) | new.Curate.FULL$fileName==""), ]
 new.Curate.FULL$Obj.ID <- paste(new.Curate.FULL$fileName, new.Curate.FULL$boxNumber, sep = "_")
+colnames(new.Curate.FULL)
 new.Curate.FULL <- add_mouse(new.Curate.FULL)
-
 
 #make OG copy
 new.Curate.FULL.org <- new.Curate.FULL
-
 new.Curate.FULL.org <- add_category(new.Curate.FULL.org)
 
+#write files for basic stats to csv files
 OG.cURATE.table.mouse <- table(new.Curate.FULL.org$mouse, new.Curate.FULL.org$SC.pass)
+#OG.cURATE.table.mouse <- add_strain(OG.cURATE.table.mouse)
+
 OG.cURATE.table.category <- table(new.Curate.FULL.org$category, new.Curate.FULL.org$SC.pass)
 
-
-OG.cURATE.table.mouse <- add_strain(OG.cURATE.table.mouse)
 
 #write the curated file
 write.table(OG.cURATE.table.mouse, "~./MLH1repo/data/CurrentCuratedDataset_17.1.20.csv", sep=",",
             row.names = TRUE)
-
-
+#
 write.table(OG.cURATE.table.category, "~./MLH1repo/data/CurrentCuratedDataset_cat_17.1.20.csv", sep=",",
             row.names = TRUE)
 
 
+#SC PASS
+new.Curate.FULL <- new.Curate.FULL[new.Curate.FULL$SC.pass == '1',]#8933
+
 ```
 
-master curated bivdata file  
 
+Goal of this doc is to make DFs that are ready for the analysis.
+
+
+Main files from this plot:  
+  
+  1. new.Curate.FULL: cleaned up version of the passing, curated Bivalent measures  
+  
+  2. OG.Curate_FULL: original version of the Bivalent data (before 'failed' SC wiped away)  
+  
+  3. MELT_ABS: make melt version of foci positions for abs measuers
+  
+  4. MELT_PER: USE of the general foci position plots
+
+
+master curated bivdata file  
 
 master_curated_BivData.org = read.csv("data/BivData/FULL_Merged_Curated_BivData.csv")#6859
 merge / find what's missing in old a new curate versions
 'curate.csv' is the grep string!
-
 
 load the big one
 
@@ -61,22 +81,345 @@ cleaning steps
 
 show tables for the number of mice with curated biv
 
-```{r CLEAN.UP, echo=FALSE, include=FALSE}
+```{r CLEAN.UP.1, echo=FALSE, include=FALSE}
+
+#check for duplicates
+anyDuplicated(new.Curate.FULL$Obj.ID)# 3467
+
+dup.curated <- new.Curate.FULL[duplicated(new.Curate.FULL$Obj.ID),] #784
+dup.curated <- add_mouse(dup.curated)
+
+table(dup.curated$mouse)
+
+#which lines are duplicated
+#lots of PWD_female duplicated -- probably how I put together the curated files
+
+
+#fix these duplicated ones
+
+
+#remove duplicated
+Curated_BivData <- new.Curate.FULL %>% distinct()#from 8933 to 8151
+
+#not surethe value of geting these lines
+#new.Curate.FULL <- new.Curate.FULL[ !grepl("[?]", new.Curate.FULL$SC.pass) , ]
+#new.Curate.FULL <- new.Curate.FULL[ !grepl("[?]", new.Curate.FULL$hand.foci.count) , ]
+
+#new.Curate.FULL <- new.Curate.FULL.org[(new.Curate.FULL.org$SC.pass == 1 | new.Curate.FULL.org$SC.pass == 0),]
+#new.Curate.FULL <- droplevels(new.Curate.FULL)
+
+#new.Curate.FULL <- add_mouse(new.Curate.FULL)
+#new.Curate.FULL <- add_category(new.Curate.FULL)
+
+#pass.fail.table <- table(new.Curate.FULL$SC.pass, new.Curate.FULL$category)
+#this outsput shows the relative ratios of pass to fail biv segmentation
+
+Curated_BivData <- add_mouse(Curated_BivData)
+Curated_BivData <- add_category(Curated_BivData)
+Curated_BivData <- add_strain(Curated_BivData)
+Curated_BivData <- add_sex(Curated_BivData)
+Curated_BivData <- add_subsp(Curated_BivData)
+```
+
+
+```{r set.type, echo=FALSE}
+
+##change factor cols to numbers (factor -> chr -> number)
+Curated_BivData$centromere_ABS_Position <- as.character(Curated_BivData$centromere_ABS_Position)
+Curated_BivData$centromere_PER_Position <- as.character(Curated_BivData$centromere_PER_Position)
+Curated_BivData$chromosomeLength <- as.character(Curated_BivData$chromosomeLength)
+
+Curated_BivData$hand.foci.count <- as.character(Curated_BivData$hand.foci.count)
+
+Curated_BivData$Foci1 <- as.character(Curated_BivData$Foci1)
+Curated_BivData$Foci2 <- as.character(Curated_BivData$Foci2)
+Curated_BivData$Foci3 <- as.character(Curated_BivData$Foci3)
+
+##
+Curated_BivData$centromere_ABS_Position <- as.numeric(Curated_BivData$centromere_ABS_Position)
+Curated_BivData$centromere_PER_Position <- as.numeric(Curated_BivData$centromere_PER_Position)
+Curated_BivData$chromosomeLength <- as.numeric(Curated_BivData$chromosomeLength)
+
+Curated_BivData$hand.foci.count <- as.numeric(Curated_BivData$hand.foci.count)
+
+Curated_BivData$Foci1 <- as.numeric(Curated_BivData$Foci1)
+Curated_BivData$Foci2 <- as.numeric(Curated_BivData$Foci2)
+Curated_BivData$Foci3 <- as.numeric(Curated_BivData$Foci3)
+#I think the number of sig figs and rounding changes slightly from the blocks above
+
+#adding more feature calculations (IFD, ect)
+Curated_BivData <- add_IFD(Curated_BivData)
+Curated_BivData$IFD1_PER = Curated_BivData$IFD1_ABS / Curated_BivData$chromosomeLength
+
+#IFD.2 does mulitple IFDs (just absolute)
+#Curated_BivData <- add_IFD.2(Curated_BivData)
+
+Curated_BivData$PER_Foci_1 <- Curated_BivData$Foci1 / Curated_BivData$chromosomeLength
+Curated_BivData$PER_Foci_2 <- Curated_BivData$Foci2 / Curated_BivData$chromosomeLength
+Curated_BivData$PER_Foci_3 <- Curated_BivData$Foci3 / Curated_BivData$chromosomeLength
+
+Curated_BivData$PER_Foci_1 <- as.numeric(Curated_BivData$PER_Foci_1)
+Curated_BivData$PER_Foci_2 <- as.numeric(Curated_BivData$PER_Foci_2)
+Curated_BivData$PER_Foci_3 <- as.numeric(Curated_BivData$PER_Foci_3)
+
+
+Curated_BivData$dis.cent <- Curated_BivData$Foci1 - Curated_BivData$centromere_ABS_Position
+Curated_BivData$dis.cent.PER  <- Curated_BivData$dis.cent / Curated_BivData$chromosomeLength
+
+str(Curated_BivData)
+```
+
+
+IFD functions
+
+  - IFD: currently I think just does 2CO bivalents  
+  
+  - IFD.2: for mulitple IFDs (3CO ect.)  
+  
+
+```{r CLEAN.3}
+
+#report some of these things in the text, for the report
+
+#remove data which has paint marks
+P_fileNames <- Curated_BivData$fileName[(grep('p_rev', Curated_BivData$fileName))]
+length(P_fileNames)
+
+#what is this 
+#prev_num = length(P_fileNames)
+#fullBivData <- fullBivData[!(fullBivData$fileName %in% P_fileNames), ]
+
+#remove anything with 'DUPLICATE'
+DUP_list <- Curated_BivData$fileName[(grep('DUP', Curated_BivData$fileName))]
+DUP_num = length(DUP_list)#0
+
+#fullBivData <- fullBivData[!(fullBivData$fileName %in% DUP_list), ]
+
+#remove images that would be doubles ... 12, 12.1, 12.2
+#this isn't completely effective
+
+dup_list= c()
+for(i in Curated_BivData$fileName){  #change the file name header,  
+  # print(i)
+  ifelse(grepl("\\.[0-9]_rev", i),
+         (dup_list = c(dup_list, i)), NA)
+}
+MultiCells = c()
+for(j in dup_list){
+  stringLIST = strsplit(j, split="\\.")[[1]]
+  new_string = paste(stringLIST[[1]][1], "rev", sep="_")
+  MultiCells = c(MultiCells, new_string)
+}
+
+MultiCells = unique(MultiCells)
+multi_cell_num = length(MultiCells)#118
+
+#test this part of the function
+#I think most of these cell lines have been left out of the final DF
+fullBivData <- fullBivData[!(fullBivData$fileName %in% MultiCells), ]
+#save these number measures to report
 
 ```
 
 
-# basic stats
+remove DUP, 'p', remove mulit cells (10, 10.1, 10.2)
 
+what colnames do all the OFD functions need?
+
+Discribe which images / Bivalents are removed
+
+- Add F4 column!
+
+
+# Basic stats
+
+- pass rate
+
+- number per mice?
+
+Plots  
+
+1. Histograms of N.bivs per cell, facet category  
+
+2. Number of images per mouse, number of biavlents per mouse (not sure what kinda of plot for this)
+
+3. 
+
+Is there a way to check my assumptions for these measues?  
+
+What are the sources of error fot these data?
+
+
+
+```{r cell.table1, echo=FALSE}
+
+cell.level.BivData_table <- ddply(.data=Curated_BivData, 
+                       .(fileName),
+                       summarize, 
+                       boxs.IDd = max(boxNumber),
+                       nboxes_passed = length(boxNumber),
+                       
+                       Nbiv = length(Obj.ID), #if there are na's below -- it breaks
+                       CO0 =  sum(hand.foci.count == 0, na.rm=TRUE), 
+                       CO1 =  sum(hand.foci.count == 1, na.rm=TRUE), 
+                       CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                       CO3 = sum(hand.foci.count == 3, na.rm=TRUE),
+                       
+                       ncells = length(unique(fileName)),
+                       nbivs = length(unique(Obj.ID)),
+
+
+#
+ #                      mean.SC_length = mean(chromosomeLength),
+                       var.SC_length = var(chromosomeLength),
+                       sd.SC_length   = round(sd(chromosomeLength), 3),
+                       se.SC_length   = round(sd.SC_length / sqrt(nbivs), 3)
+)   
+                       #add the centromere and ifd here?
+                       #mean.dist_cent = mean(dis.cent, na.rm=TRUE),
+#                       var.dist_cent = var(dis.cent, na.rm=TRUE),
+#                       sd.dist_cent   = round(sd(dis.cent, na.rm=TRUE), 3),
+#                       se.dist_cent   = round(sd.dist_cent / sqrt(nbivs), 3),
+                       
+#                       mean.siscoten = mean(SisCoTen, na.rm=TRUE),
+#                       var.siscoten = var(SisCoTen, na.rm=TRUE),
+#                       sd.siscoten   = round(sd(SisCoTen, na.rm=TRUE), 3),
+ #                      se.siscoten   = round(sd.siscoten / sqrt(nbivs), 3),
+                       
+#                       mean.IFD = mean(IFD1, na.rm=TRUE),#IFD1 is chr
+#                       var.IFD = var(IFD1, na.rm=TRUE),
+#                       sd.IFD   = round(sd(IFD1, na.rm=TRUE), 3),
+#                       se.IFD   = round(sd.IFD / sqrt(nbivs), 3),
+                       
+ #                      mean.IFDper = mean(IFD1_PER, na.rm=TRUE),#IFD1 is chr
+#                       var.IFDper = var(IFD1_PER, na.rm=TRUE),
+#                       sd.IFDper   = round(sd(IFD1_PER, na.rm=TRUE), 3),
+#                       se.IFDper   = round(sd.IFDper / sqrt(nbivs), 3)
+                       
+cell.level.BivData_table <- add_mouse(cell.level.BivData_table)
+cell.level.BivData_table <- add_strain(cell.level.BivData_table)
+cell.level.BivData_table <- add_category(cell.level.BivData_table)
+
+
+```
 
 
 # Assemble final BivData DF
 
 
+decide on the colnames that I want for the final DF
+
+fileName, Object_ID, box.number, centromere_ABS, centromere_PER
+chromosome length, SC.pass, Foci.pass, hand.foci.count, 
+F1, F2, F3, F4, F1_per, F2_per, F3_per, F4_per, IFD
+mouse, strain, category, subsp, 
+
+merge:
+cell.MLH1.count, cell.quality, mouse.age, 
+cell.total_skel, cell.total_binary
+
 
 # melt position table
 
 needed to related positions
+
+```{r melt.table}
+
+#paste in this code
+
+coco.names <- colnames(Curated_BivData)
+
+#"fileName" ,  "chromosomeLength",        "centromere_ABS_Position", "centromere_PER_Position",
+#"boxNumber",               "Obj.ID",                  "SC.pass",                 "foci.pass",              
+#"curated.1pass.0fail",     "curation.notes",          "hand.foci.count",        "Foci1",                  
+#"Foci2",       "Foci3",                "notes",                 "mouse",                  
+#"category",                "strain",                  "sex",                    "subsp",                  
+#"IFD1_ABS",                "IFD1_PER",               
+
+#all of the cols to use
+MELT_Curated_BivData <- melt(Curated_BivData[,c("fileName","chromosomeLength","centromere_ABS_Position","centromere_PER_Position",  "boxNumber", "Obj.ID", "SC.pass","foci.pass",              
+              "curated.1pass.0fail","curation.notes", "hand.foci.count","notes", "mouse",
+              #leave out the Foci
+                "Foci1","Foci2","Foci3")], 
+                 
+            id=c("fileName","chromosomeLength","centromere_ABS_Position","centromere_PER_Position",
+                    "boxNumber", "Obj.ID", "SC.pass","foci.pass",              
+              "curated.1pass.0fail","curation.notes", "hand.foci.count","notes", "mouse"))
+
+
+#dm1$value is the number for the foci position
+#clean up dm1 (there are a bunch of rows without useful information)
+
+MELT_Curated_BivData <- MELT_Curated_BivData[(!is.na(MELT_Curated_BivData$value)),]
+
+#MELT, -- 15
+colnames(MELT_Curated_BivData) <- c(coco.names[c(1:11, 15:16)], "Foci_Type", "Position") #too many foci
+#I'm missing a number of cols -- not 
+
+
+```
+
+```{r MELT.PER}
+
+#run the melting for the PER foci position
+
+colnames(Curated_BivData)
+
+MELT_Curated_BivData.PER <- melt(Curated_BivData[,c("fileName","chromosomeLength","centromere_ABS_Position","centromere_PER_Position",  "boxNumber", "Obj.ID", "SC.pass","foci.pass",              
+              "curated.1pass.0fail","curation.notes", "hand.foci.count","notes", "mouse",
+              #leave out the Foci
+                "PER_Foci_1","PER_Foci_2","PER_Foci_3")], 
+                 
+            id=c("fileName","chromosomeLength","centromere_ABS_Position","centromere_PER_Position",
+                    "boxNumber", "Obj.ID", "SC.pass","foci.pass",              
+              "curated.1pass.0fail","curation.notes", "hand.foci.count","notes", "mouse"))
+
+
+MELT_Curated_BivData.PER <- MELT_Curated_BivData.PER[(!is.na(MELT_Curated_BivData.PER$value)),]
+
+#MELT, -- 15
+colnames(MELT_Curated_BivData.PER) <- c(coco.names[c(1:11, 15:16)], "Foci_Type", "PER_Position")
+
+#figure out the different hand.foci.count
+
+```
+
+
+```{r merge.melt}
+#merge the 2 melted DF
+FULL_MELT_Curated_BivData  <- cbind( MELT_Curated_BivData, MELT_Curated_BivData.PER[15])
+
+colnames(FULL_MELT_Curated_BivData) <- c(FULL_MELT_Curated_BivData[1:14], "Pos_ABS", "Pos_PER")
+
+#
+MELT_Curated_BivData.PER <- add_strain(MELT_Curated_BivData.PER)
+MELT_Curated_BivData.PER <- add_sex(MELT_Curated_BivData.PER)
+
+```
+
+
+```{r general.foci.pos, echo=FALSE}
+
+#make the normalized foci density plots
+MELT_Curated_BivData.PER <- MELT_Curated_BivData.PER[MELT_Curated_BivData.PER$hand.foci.count < 5, ]
+MELT_Curated_BivData.PER <- MELT_Curated_BivData.PER[!MELT_Curated_BivData.PER$hand.foci.count == 0, ]
+
+MELT_Curated_BivData.PER <- MELT_Curated_BivData.PER[MELT_Curated_BivData.PER$PER_Position < 1.1, ]
+
+#remove 0 and NA
+#remove 4foci count?
+
+#check for values over 1
+
+density <- ggplot(MELT_Curated_BivData.PER, aes(x=PER_Position, fill=sex) ) + geom_density(alpha=.4) + facet_wrap(~hand.foci.count)+ggtitle("Normalized Foci Positions")
+
+density
+#table(the4$mouse)
+#something wrong with the 4 bivalents
+#many of the lines just have 3 lines
+
+```
+
 
 
 # IFD data
@@ -84,13 +427,33 @@ needed to related positions
 make sure IFDs are applied correctly to the right DFs.
 
 
-# analysis
+```{r save.file}
+
+#save Rdata
+save.image("~./MLH1repo/data/CleanBivData.RData")
+#save.image("data/BivData_4_PCA.RData")
+
+```
+
+
+
+# Number of whole cells
+
+- list the cells with all bivs measued or which are close to full.
+
+
+# Analysis
 
 planned analyses for later docs, but this is the list for getting everything ready
 
+Use the Bivalent_Analysis.Rmd for analysis pieces
+BivPattern.Rmd started to analyze this but, not a very clear setup
+
+
 - chrom class proportions
 
-- SC 
+- SC lengths, by CO number
 
+-ge
 
 
