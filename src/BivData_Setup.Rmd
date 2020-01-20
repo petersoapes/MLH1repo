@@ -55,6 +55,11 @@ new.Curate.FULL <- new.Curate.FULL[new.Curate.FULL$SC.pass == '1',]#8933
 ```
 
 
+ToDo:
+
+Add the new curated data.
+
+
 Goal of this doc is to make DFs that are ready for the analysis.
 
 
@@ -216,7 +221,7 @@ multi_cell_num = length(MultiCells)#118
 
 #test this part of the function
 #I think most of these cell lines have been left out of the final DF
-fullBivData <- fullBivData[!(fullBivData$fileName %in% MultiCells), ]
+#fullBivData <- fullBivData[!(fullBivData$fileName %in% MultiCells), ]
 #save these number measures to report
 
 ```
@@ -236,6 +241,10 @@ Discribe which images / Bivalents are removed
 - pass rate
 
 - number per mice?
+
+- number of pass.SC w/out foci position data
+
+- number of foci with 'faint' mentioned in the notes
 
 Plots  
 
@@ -312,6 +321,9 @@ decide on the colnames that I want for the final DF
 fileName, Object_ID, box.number, centromere_ABS, centromere_PER
 chromosome length, SC.pass, Foci.pass, hand.foci.count, 
 F1, F2, F3, F4, F1_per, F2_per, F3_per, F4_per, IFD
+
+telomere_dist, cent_dist, 
+
 mouse, strain, category, subsp, 
 
 merge:
@@ -319,11 +331,35 @@ cell.MLH1.count, cell.quality, mouse.age,
 cell.total_skel, cell.total_binary
 
 
+```{r telo.cent_dist, echo=FALSE}
+
+#code for cal1 the telomere distance
+#space between last foci and telomere end
+
+#telo_dist <- if(hand.foci = 1){
+          #SC.Length - F1
+#}
+#elseif(hand_foci == 2){ #SC.length - F2}
+
+
+#code for centromere
+#space between first foci and centromere/centromere-end
+
+#cent_end_dist
+#cent_dist
+```
+
+
+
 # melt position table
 
 needed to related positions
 
 ```{r melt.table}
+
+
+#make sure the this MELT_Curated_BivData.PER is made
+#
 
 #paste in this code
 
@@ -398,6 +434,7 @@ MELT_Curated_BivData.PER <- add_sex(MELT_Curated_BivData.PER)
 ```
 
 
+
 ```{r general.foci.pos, echo=FALSE}
 
 #make the normalized foci density plots
@@ -420,6 +457,9 @@ density
 
 ```
 
+This is proof that the plot codes work, but move the figures in the analysis doc. remeber this is just data-setup.
+
+think about weighing the density plots by the number of bivalents per category... 
 
 
 # IFD data
@@ -427,10 +467,13 @@ density
 make sure IFDs are applied correctly to the right DFs.
 
 
+# Save
+
+
 ```{r save.file}
 
 #save Rdata
-save.image("~./MLH1repo/data/CleanBivData.RData")
+save.image("~./MLH1repo/data/CleanBivData_1.20.20.RData")
 #save.image("data/BivData_4_PCA.RData")
 
 ```

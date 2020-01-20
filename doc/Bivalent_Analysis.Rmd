@@ -1,0 +1,1195 @@
+---
+title: "Single Bivalent Level Analysis"
+author: "April Peterson"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+library(knitr)
+library(ggplot2)
+#library(pwr)
+library(plyr)
+library(lattice)
+library(dplyr)
+library(raster)
+library(lme4)
+library(nlme)
+library(RLRsim)
+library(reshape2)
+
+setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+#setwd("C:/Users/April/Desktop/MLH1repo")
+#load(file="data/MLH1/MLH1_data_setup.RData")
+
+#load Clean BivData
+load(file="data/CleanBivData_1.20.20.RData")
+
+
+#load other data files, MLH1
+load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.5.20.RData")#added batch18
+
+load(file="data/MLH1/MLH1_data_setup_11.12.19.RData")#added batch17
+#fyi loading mulitple RData files doesn't earase ther files -- but it can overwrite files named the same thing
+
+#load functions
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+```
+
+# Setup and Discription of Dataset
+
+This plot illustrates how well the algorithm seperated indiviual bivalents per cell image. 
+Several MSM male spreads had tight cells with a high degree of overlap, so fewer bivalents were indiviudally segmented.
+
+
+```{r tech.ect, echo=FALSE, eval=FALSE}
+
+nBiv.per.cell <- ggplot(cells.BivData_table, aes(nbivs)) + ggtitle("Number of passing bivalents per cell") + geom_histogram(bins = 30) +facet_wrap( ~ category)
+nBiv.per.cell
+
+#for cells with close to 20 - they are almost complete
+#they should be used to 
+           
+           
+```
+
+
+
+consider making a table with predictions for bivalent patterns which are related to the mechanism
+
+
+# Chrm Class proportions
+
+
+
+
+
+Should I be thinking of making a MM or lm for predicting CO number (within a category)
+
+but there is so little variance in the CO number
+
+co ~ sc.length
+
+I ran this model before,  I remember that these models are better predictors (more significant for males than females)
+
+maybe -- female nuanced pattern -- falls along the lines of 
+
+simple predictions not met as strongly as in male patterns...
+
+this reasoning might be complicated by the fact that the range in CO averages is lower in females -- so there is less power
+
+
+# Applying Mix Model framework
+
+
+list out pros and cons for using mouse averages of bivalent traits instead of using the single bivalent traits them selves.  
+
+**Pro Bivalent level**  
+- The data are continous and closer to normal/gaussian expectations than the MLH1 counts.
+
+- There is within cell variance that is an issue.
+
+
+**Pro Mouse level averages**  
+- Mouse average is a conserved framework, it would summarize general patterns which fits with the paper.
+
+- Simple application of the same MM.
+
+- Limited work to add to the dataset if I can justify that the collection of single bivalents are random and equivilent across mice. 
+
+
+# Heterochiasmy Predictions
+
+Using the Mixed model framework which tests the effects (and interactions) of subspecies, sex and strain, I will test for evolution of the following traits.
+
+Two bivalent level traits are predicted to display heterochiasmy (ie significant effects of sex); 
+
+1) SC length (cite)  
+
+
+2) normalized CO positions (sedell and Kirkpatrick). 
+
+
+Interference, measured in the physical units, has been shown to lack sexual dimorphism (petkov).
+
+These 3 hypotheses will be tested with the mixed model framework, specifically focusing on the effect of sex.
+
+Mouse averages for the each metric will be used.
+
+
+
+# SC lengths
+
+
+```{r show.SC.length}
+#compile data
+#main figures, show both mouse and bivalent level
+
+#Curated_BivData
+
+#Mouse_average - BivTable?
+
+#for now remove the 
+Curated_BivData.99 <- Curated_BivData[Curated_BivData$hand.foci.count <5,]
+
+first.SC.plot <- ggplot(Curated_BivData, aes(y = chromosomeLength, x= strain, fill= hand.foci.count))+geom_jitter(aes(alpha=0.2))+geom_boxplot(aes(alpha=0.5))+  ggtitle("SC Length for Bivalents")+facet_wrap(sex~subsp, scales = "free")
+first.SC.plot
+#add boxplots for mouse level means
+#add second x axis, hand.foci.count
+
+other_thing22 <- ggplot(data = Curated_BivData.99, aes(y = chromosomeLength, x = hand.foci.count, fill=as.factor(mouse)) ) + geom_jitter() + facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")
+
+SC.lengths.1CO <- ggplot(Curated_BivData[Curated_BivData$hand.foci.count == 1,], aes(y = chromosomeLength, x=strain, fill=sex))+geom_boxplot(aes(alpha=0.5))+geom_jitter(aes(alpha=0.2))+  ggtitle("1COs male and females") +ylim(c(30,250))
+
+
+#sfsL <- ggplot(lowGEN, aes(variable, prop, fill=as.factor(Group.2))) + geom_col(position = "dodge") + #scale_fill_viridis(name="Migration Rate", discrete = TRUE) + theme(axis.text.x=element_blank()) + #xlab("Frequency in the sample") + ylab("Proportion of Total Junctions") + ggtitle("C. Generation = #2,000") + ylim(0,1)
+
+#geom_boxplot(alpha = .2, position = "dodge")+
+
+```
+
+
+First draft of the SC length plot. I'd like to add the hand foci count to the x axis.
+(also add the PWD - male data)
+
+```{r justify.mouse.level}
+
+#justify mouse averages
+#is sampling -- bivalent dataset 
+# random samples 
+#equivalent sample size
+
+```
+
+
+
+$$mouse \ average \ SC  \ length ~=~ subsp * sex + rand(strain* sex) + \varepsilon $$
+
+```{r MM.SC.Length}
+
+#use the merged DF to filter by age 
+AP_mouse_table_w.Ages$strain <- AP_mouse_table_w.Ages$strain.x
+AP_mouse_table_w.Ages$sex <- AP_mouse_table_w.Ages$sex.x
+AP_mouse_table_w.Ages$subsp <- AP_mouse_table_w.Ages$subsp.x
+#main file, make everything unordered factors
+AP_mouse_table_w.Ages <- add_species(AP_mouse_table_w.Ages)
+
+DF.HetC.MixedModel <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$species == "M.musculus",]
+
+#check all the strains and male ages, should be the same for MM
+
+DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel[DF.HetC.MixedModel$Ncells > 9,]
+DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[DF.HetC.MixedModel.HQ$age.weeks < 25,]
+DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[!(is.na(DF.HetC.MixedModel.HQ$mouse) | DF.HetC.MixedModel.HQ$mouse==""), ]
+
+#mouse.level.table
+#make this in datasetup
+mouse.avs <- ddply(Curated_BivData, c("mouse"), summarise,
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(Obj.ID),
+                        mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
+                        cV = cv(chromosomeLength),
+                        var = format(round(   var(chromosomeLength),3), nsmall=3),
+                        sd   = round(sd(chromosomeLength), 3),
+                        se   = round(sd / sqrt(Ncells), 3)
+)
+
+mouse.avs <- add_sex(mouse.avs)
+mouse.avs <- add_strain(mouse.avs)
+mouse.avs <- add_subsp(mouse.avs)
+
+#unorder the factors, but figure our
+mouse.avs$strain <- unclass(mouse.avs$strain)
+mouse.avs$strain <- as.factor(mouse.avs$strain)
+
+mouse.avs$subsp <- unclass(mouse.avs$subsp)
+mouse.avs$subsp <- as.factor(mouse.avs$subsp)
+
+mouse.avs$sex <- unclass(mouse.avs$sex)
+mouse.avs$sex <- as.factor(mouse.avs$sex)
+
+BivData.MixedModel.HQ <- lme(mean_SC ~ subsp * sex, data=mouse.avs, random=list(strain=pdDiag(~sex) ) )
+
+as.data.frame( round(  summary(BivData.MixedModel.HQ)$tTable, 6 ) )
+
+#sex is significant! with prediction
+
+```
+
+
+
+# IFD
+
+
+```{r show.IFD, echo=FALSE}
+
+#first draft of the IFD comparisons
+
+#for now remove the 
+Curated_BivData.22 <- Curated_BivData[Curated_BivData$hand.foci.count == 2,]
+Curated_BivData.22 <- Curated_BivData.22[(!is.na(Curated_BivData.22$hand.foci.count)),]
+
+
+first.IFD.plot_ABS <- ggplot(Curated_BivData.22, aes(y = IFD1_ABS, x= strain, color=mouse))+geom_jitter()+ggtitle("Interfocal Distances, ABS")+facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none")
+first.IFD.plot_ABS
+
+first.IFD.plot_PER <- ggplot(Curated_BivData.22, aes(y = IFD1_PER, x= strain, color=chromosomeLength))+geom_jitter()+ggtitle("Interfocal Distances, PER")+facet_wrap(sex~subsp, scales = "free")+ylim(c(0,1)) 
+
+#+theme(legend.position="none")
+first.IFD.plot_PER
+
+```
+
+Above is the first plots of IFDs. Each point is a IFD observation. colors are by mouse. 
+Maybe add mouse level lines for the means
+
+Maybe I should try binned the SC lengths.
+
+
+mixed model analysis for IFD (interference)
+
+
+$$mouse \ average \ IFD ~=~ subsp * sex + rand(strain* sex) + \varepsilon $$
+
+Double Check the dataset for the mixed models.
+
+```{r MM.IFD, echo=FALSE}
+
+#set up data set for the mixed model
+#Curated_BivData
+
+#use the merged DF to filter by age 
+AP_mouse_table_w.Ages$strain <- AP_mouse_table_w.Ages$strain.x
+AP_mouse_table_w.Ages$sex <- AP_mouse_table_w.Ages$sex.x
+AP_mouse_table_w.Ages$subsp <- AP_mouse_table_w.Ages$subsp.x
+#main file, make everything unordered factors
+AP_mouse_table_w.Ages <- add_species(AP_mouse_table_w.Ages)
+
+DF.HetC.MixedModel <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$species == "M.musculus",]
+
+#check all the strains and male ages, should be the same for MM
+
+DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel[DF.HetC.MixedModel$Ncells > 9,]
+DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[DF.HetC.MixedModel.HQ$age.weeks < 25,]
+DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[!(is.na(DF.HetC.MixedModel.HQ$mouse) | DF.HetC.MixedModel.HQ$mouse==""), ]
+
+#mouse.level.table
+#make this in datasetup
+mouse.avs.table1 <- ddply(Curated_BivData, c("mouse"), summarise,
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(Obj.ID),
+                        mean_SC = as.numeric(format(round(  mean(chromosomeLength, na.rm = TRUE), 3 ), nsmall=3) ),
+                   
+                   mean_IFD_ABS = as.numeric(format(round(  mean(IFD1_ABS, na.rm = TRUE), 3 ), nsmall=3) ),
+                   
+                   mean_IFD_PER = as.numeric(format(round(  mean(IFD1_PER, na.rm = TRUE), 3 ), nsmall=3) ),
+                   
+                        cV = cv(chromosomeLength),
+                        var = format(round(   var(chromosomeLength),3), nsmall=3),
+                        sd   = round(sd(chromosomeLength), 3),
+                        se   = round(sd / sqrt(Ncells), 3)
+)
+
+mouse.avs.table1 <- add_sex(mouse.avs.table1)
+mouse.avs.table1 <- add_strain(mouse.avs.table1)
+mouse.avs.table1 <- add_subsp(mouse.avs.table1)
+
+#unorder the factors, but figure our
+mouse.avs.table1$strain <- unclass(mouse.avs.table1$strain)
+mouse.avs.table1$strain <- as.factor(mouse.avs.table1$strain)
+
+mouse.avs.table1$subsp <- unclass(mouse.avs.table1$subsp)
+mouse.avs.table1$subsp <- as.factor(mouse.avs.table1$subsp)
+
+mouse.avs.table1$sex <- unclass(mouse.avs.table1$sex)
+mouse.avs.table1$sex <- as.factor(mouse.avs.table1$sex)
+
+mouse.avs.table1 <- mouse.avs.table1[(!is.na(mouse.avs.table1$mean_IFD_ABS)),]
+
+
+BivData_IFD_ABS.MixedModel.HQ <- lme(mean_IFD_ABS ~ subsp * sex, data=mouse.avs.table1, random=list(strain=pdDiag(~sex) ) )
+
+as.data.frame( round(  summary(BivData_IFD_ABS.MixedModel.HQ)$tTable, 6 ) )
+#ABD - IFD not sex specific effect
+
+
+BivData_IFD_PER.MixedModel.HQ <- lme(mean_IFD_PER ~ subsp * sex, data=mouse.avs.table1, random=list(strain=pdDiag(~sex) ) )
+as.data.frame( round(  summary(BivData_IFD_PER.MixedModel.HQ)$tTable, 6 ) )
+#sex is a little significat
+
+```
+
+
+
+Preliminary results from an independant dataset indecated that PWD had longer IFDs, which goes agaisnt the simple prediction of more COs ~ denser spacing of foci on the same bivalent. This also indecated that interference distance may evolved in the house mouse complex.
+
+```{r compare.IFD}
+
+```
+
+
+
+# General CO Positions
+
+
+```{r CO.positions}
+#main figure of density plots,
+#MELT_Curated_BivData.PER
+
+MELT_Curated_BivData.PER <- add_subsp(MELT_Curated_BivData.PER)
+
+Musc.female_MELT_curBivData <- MELT_Curated_BivData.PER[ ((MELT_Curated_BivData.PER$sex == "female") & (MELT_Curated_BivData.PER$subsp == "Musc") ), ]
+
+CO.Pos.density_Musc_female <- ggplot(Musc.female_MELT_curBivData, aes(x=PER_Position, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Musc female \nNormalized Foci Positions")
+CO.Pos.density_Musc_female
+
+
+#Dom female
+Dom.female_MELT_curBivData <- MELT_Curated_BivData.PER[ ((MELT_Curated_BivData.PER$sex == "female") & (MELT_Curated_BivData.PER$subsp == "Dom") ), ]
+
+CO.Pos.density_Dom_female <- ggplot(Dom.female_MELT_curBivData, aes(x=PER_Position, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Dom female \nNormalized Foci Positions")
+CO.Pos.density_Dom_female
+
+
+
+#Musc male
+Musc.male_MELT_curBivData <- MELT_Curated_BivData.PER[ ((MELT_Curated_BivData.PER$sex == "male") & (MELT_Curated_BivData.PER$subsp == "Musc") ), ]
+
+CO.Pos.density_Musc_male <- ggplot(Musc.male_MELT_curBivData, aes(x=PER_Position, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Musc male \nNormalized Foci Positions")
+CO.Pos.density_Musc_male
+
+
+
+#Dom male
+Dom.male_MELT_curBivData <- MELT_Curated_BivData.PER[ ((MELT_Curated_BivData.PER$sex == "male") & (MELT_Curated_BivData.PER$subsp == "Dom") ), ]
+
+CO.Pos.density_Dom_male <- ggplot(Dom.male_MELT_curBivData, aes(x=PER_Position, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Dom male \nNormalized Foci Positions")
+CO.Pos.density_Dom_male
+
+```
+
+Split up the plot data by subsp - sex. 
+Try adding in the numbers of observations?
+think about adding a vertical line for centromere, for the position means. Think about removing the extra Musc strains.
+
+
+
+$$mouse \ average \ F1 position ~=~ subsp * sex + rand(strain* sex) + \varepsilon $$
+
+```{r MM_CO_pos, echo=FALSE}
+
+#use the 1CO
+#Use MELT DF
+#MELT_Curated_BivData
+
+Pos.CO.avs <- ddply(MELT_Curated_BivData.PER, c("mouse", "Foci_Type"), summarise,
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(Obj.ID),
+                        
+                    mean_PER_pos = as.numeric(format(round(  mean(PER_Position), 3 ), nsmall=3) )
+)
+
+Pos.CO.avs <- add_sex(Pos.CO.avs)
+Pos.CO.avs <- add_strain(Pos.CO.avs)
+Pos.CO.avs <- add_subsp(Pos.CO.avs)
+
+
+
+#unorder the factors, but figure our
+Pos.CO.avs$strain <- unclass(Pos.CO.avs$strain)
+Pos.CO.avs$strain <- as.factor(Pos.CO.avs$strain)
+
+Pos.CO.avs$subsp <- unclass(Pos.CO.avs$subsp)
+Pos.CO.avs$subsp <- as.factor(Pos.CO.avs$subsp)
+
+Pos.CO.avs$sex <- unclass(Pos.CO.avs$sex)
+Pos.CO.avs$sex <- as.factor(Pos.CO.avs$sex)
+
+#isolate the 1COPos.CO.avs
+Pos.CO.avs_1CO <- Pos.CO.avs[Pos.CO.avs$Foci_Type == "PER_Foci_1",]
+
+Pos.CO.avs_1CO <- Pos.CO.avs_1CO[!(is.na(Pos.CO.avs_1CO$mouse) | Pos.CO.avs_1CO$mouse==""), ]
+
+
+BivData.CO.PER.POS.MixedModel.HQ <- lme(mean_PER_pos ~ subsp * sex, data=Pos.CO.avs_1CO, random=list(strain=pdDiag(~sex) ) )
+
+as.data.frame( round(  summary(BivData.MixedModel.HQ)$tTable, 6 ) )
+#sex is significant
+```
+
+
+
+```{r pos_t.test}
+#make point plots / boxplots which show differences in mean positions 
+
+#scatter + boxplot for t.tests
+
+
+```
+
+
+Dr. Broman suggested that the Smirnov K /(curve comparison) wasn't the best test to differences in general CO position. He sugggested doing simple t-test for the positions
+
+
+
+```{r F1.by.F2}
+
+#try remaking the plot Megan suggested
+# for 2CO positions, Foci1, Position  on x and Foci 2 position on y
+
+#isolate 2COs
+#facet by sex and subsp
+
+#F1.x.F2 <- ggplot(MELT_Curated_BivData.PER, aes(x=F1, fill=F2) ) + geom_density(alpha=.4) + facet_wrap(~hand.foci.count)+ggtitle("Normalized Foci Positions")
+
+
+```
+
+
+```{r CO.pos.ANOVA, eval=FALSE}
+#what is the pattern of variance
+#run analyses for each subsp*sex
+#use non-melt DF
+
+#how is the variance partioned across
+#cell, mouse, strain
+
+female.Dom <- Curated_BivData[Curated_BivData$sex == "female",]
+female.Dom <- female.Dom[female.Dom$subsp == "Dom",]
+
+female.Dom$Foc1.PER <- female.Dom$Foci1 / female.Dom$chromosomeLength
+
+#unorder strain and mouse
+
+female.Dom$mouse <- as.factor(female.Dom$mouse)
+
+
+female.Dom$strain <- unclass(female.Dom$strain)
+female.Dom$strain <- as.factor(female.Dom$strain)
+
+female.Dom_1CO <- female.Dom[female.Dom$hand.foci.count == 1,]
+female.Dom_1CO <- female.Dom_1CO[(!is.na(female.Dom_1CO$hand.foci.count)),]
+
+#1CO first
+modo <- lm(Foc1.PER ~ fileName + mouse + strain, data=female.Dom_1CO)
+
+#can't get mouse and strain to have sum of square
+#residual size decreases with per.F1
+#residuals much larger than fileName, mouse and strain no 
+
+#model <- lm(breaks ~ wool * tension, 
+#            data = warpbreaks, 
+#            contrasts = list(wool = "contr.sum", tension = "contr.poly"))
+
+male.Dom <- Curated_BivData[Curated_BivData$sex == "male",]
+male.Dom <- male.Dom[male.Dom$subsp == "Dom",]
+
+male.Dom$mouse <- as.factor(male.Dom$mouse)
+
+male.Dom$strain <- unclass(male.Dom$strain)
+male.Dom$strain <- as.factor(male.Dom$strain)
+
+male.Dom <- male.Dom[male.Dom$hand.foci.count == 1,]
+male.Dom <- male.Dom[(!is.na(male.Dom$hand.foci.count)),]
+
+male.Dom$Foc1.PER <- male.Dom$Foci1 / male.Dom$chromosomeLength
+
+
+
+male.modo <- lm(Foc1.PER ~  fileName | mouse | strain, data=male.Dom)
+summary(aov(male.modo))
+
+#only file name is registering as effect
+#Review ANOVA frameworks
+#http://www.biostathandbook.com/nestedanova.html
+
+```
+
+
+# old drafts
+
+
+I went on a kick thinking of the sis-coten metric, I'm not so sure this is a good metric anymore.
+
+
+```{r block1, echo=FALSE}
+#new.Curate.FULL
+
+#new.Curate.FULL <- add_strain(new.Curate.FULL)
+#new.Curate.FULL <- add_sex(new.Curate.FULL)
+#Curated_BivData
+
+Curated_BivData <- subset(Curated_BivData, hand.foci.count < 5)
+
+staggered <- ggplot(Curated_BivData, aes(y = chromosomeLength, x=hand.foci.count, color=mouse))+geom_jitter(aes(alpha=0.2))+ facet_wrap(strain~sex)+ ggtitle("SC lengths by foci count")+theme(legend.position="none") #+ ylim(c(30,250))
+
+
+fill.by.ifd <- ggplot(Curated_BivData, aes(y = chromosomeLength, x=hand.foci.count, color=IFD1_PER))+geom_jitter(aes(alpha=0.2))+ facet_wrap(strain~sex)+ ggtitle("SC length Fill by IFD")#+theme(legend.position="none") #+ ylim(c(30,250))
+```
+
+ Predictions for sis-coten stabilizing selection
+
+Because it enables tighter regulation of the spindle assembly checkpoint (SAC) the centrosomic metaphase spindle in male gametogenesis can impose selection on relative CO placement (broad scale REC landscape). (OR generally due to the stronger sensitivity of the SAC in sperm/males). Following certain assumptions, the axis length and relative positions of COs can change the amount sister-cohesin over which tension is generated on the metaphase I spindle. This can be thought of as the bivalent structure when they are in the process of bipolar orientation.
+
+under strong purifying selection, (the idea is that bivalent structures evolve to efficienctly pass the SAC) (there might be mulitple ways to do this)
+
+- similar amount of sister cohesion tension -related to the rate of sister cohesion degregation. So all bivalents seperate at a similar rate (enter anaphase and complete anaphase in a synchronized manner).
+
+- tension for SAC detection
+
+
+ 1. In MSM and PWD males (the high recombining strains), 1COs should have less of a telomere bias compared to the other low rec mice (IFD). 
+
+The MSM and PWD males have approximately 50% 1CO, 50% 2CO compared to lower recombining strains (Dom and musc) 75% 1CO, 25% 2CO.
+
+
+If the metaphase spindle / SAC evolved a new optimal amount of sister cohesion for the spindle tension to be spread over, the parameters of relative co placement and CO interference can evolve so that they are similar across .
+
+
+```{r rand.1CO.pos, echo=FALSE, warning=FALSE, eval=FALSE}
+
+PER.1CO.pos <- ggplot(Curated_BivData[(Curated_BivData$hand.foci.count == 1) & (Curated_BivData$sex == "male"),], aes(y = PER_Foci_1, x = strain, color=strain)) + geom_jitter()+ geom_boxplot(aes(alpha=.5))+ggtitle("Relative CO Position of 1CO across strains")
+
+LOG.PER.1CO.pos <- ggplot(Curated_BivData[(Curated_BivData$hand.foci.count == 1) & (Curated_BivData$sex == "male"),], aes(y = log(PER_Foci_1), x = strain, color=strain)) + geom_jitter()+ geom_boxplot(aes(alpha=.5))+ggtitle("Log of Relative CO Position of 1CO across strains")
+
+
+#log(foci position, makes a bigger range), means don't really change
+#but WSB, G, LEW seem to have stronger centromere supression
+PER.1CO.pos
+LOG.PER.1CO.pos
+```
+
+
+In terms of percent position, PWD, LEW and MSM have similar mean Foci1 pos. LEW is sort of the odd one out. Interestingly, LEW seems to have stronger centromere supression compared to PWD and MSM (the distribution of foci positions is larger in MSM, PWD and KAZ).
+
+
+ 2. Sister cohesin tension area for 1COs should trend more similar to 2COs in high recombining strains.
+
+what's the rational for this prediction?
+
+```{r siscoten.stabilizing, echo=FALSE, warning=FALSE, eval=FALSE}
+
+plot.1CO <- ggplot(Curated_BivData[(Curated_BivData$hand.foci.count == 1) & (Curated_BivData$sex == "male"),], aes(y = dis.cent, x = chromosomeLength, color=strain)) + geom_jitter()+facet_wrap(~strain)
+
+sis.coten <- ggplot(Curated_BivData[(Curated_BivData$sex == "male"),], aes(y = SisCoTen, x = chromosomeLength, color=strain)) + geom_jitter()+facet_wrap(~strain)
+
+sis.coten.boxplot <- ggplot(Curated_BivData[(Curated_BivData$sex == "male"),], aes(y = SisCoTen, x = strain,  color=hand.foci.count)) +geom_boxplot()+geom_jitter()
+
+#
+sfsL <- ggplot(Curated_BivData[(Curated_BivData$sex == "male"),], aes(strain, SisCoTen, fill=as.factor(hand.foci.count))) + geom_col(position = "dodge")
+
+sfsL <- ggplot(Curated_BivData[(Curated_BivData$sex == "male") & (Curated_BivData$hand.foci.count < 3),], aes(strain, SisCoTen, fill=as.factor(hand.foci.count))) + geom_boxplot(aes()) + geom_jitter(aes(color=hand.foci.count))
+
+
+Curated_BivData$PER.siscoten <- Curated_BivData$SisCoTen / Curated_BivData$chromosomeLength
+
+
+boxplot_per.siscoten <- ggplot(Curated_BivData[(Curated_BivData$sex == "male") & (Curated_BivData$hand.foci.count < 4),], aes(mouse, PER.siscoten, fill=as.factor(hand.foci.count))) + geom_boxplot(aes()) +  facet_wrap(~ strain, nrow = 3, scales="free")  + ggtitle("PERCENT SIS-COTEN by mouse")+theme(axis.title.x=element_blank(), axis.text.x=element_blank())
+
+
+boxplot_siscoten.mouse <- ggplot(Curated_BivData[(Curated_BivData$sex == "male") & (Curated_BivData$hand.foci.count < 4),], aes(mouse, SisCoTen, fill=as.factor(hand.foci.count))) + geom_boxplot(aes())+ facet_wrap(~ strain, nrow = 3, scales="free")  + ggtitle("SISCOTEN by mouse") + theme(axis.title.x=element_blank(), axis.text.x=element_blank())
+  
+boxplot_siscoten.mouse
+boxplot_per.siscoten
+
+#+ scale_fill_viridis(name="Migration Rate", discrete = TRUE) + theme(axis.text.x=element_blank()) + xlab("Frequency in the sample") + ylab("Proportion of Total Junctions") + ggtitle("C. Generation = 2,000") + ylim(0,1)
+```
+
+Mouse is shown on the x axis. It seems like PWD and MSM might have a higher variance in the range od siscoten values for 2COs, but overall the averages sis-co-tens across the strains for 2CO are very similar across all of the mice.
+
+
+
+### 3. Lack of strain specific patterns in females
+
+
+```{r female.siscoten,eval=FALSE,echo=FALSE, warning=FALSE}
+
+boxplot_siscoten.mouse.female <- ggplot(Curated_BivData[(Curated_BivData$sex == "female") & (Curated_BivData$hand.foci.count < 4),], aes(mouse, SisCoTen, fill=as.factor(hand.foci.count))) + geom_boxplot(aes())+ facet_wrap(~ strain, nrow = 3, scales="free")  + ggtitle("SISCOTEN by mouse, female") + theme(axis.title.x=element_blank(), axis.text.x=element_blank())+ylim(c(0,150))
+boxplot_siscoten.mouse.female
+
+
+boxplot_PERsiscoten.mouse.female <- ggplot(Curated_BivData[(Curated_BivData$sex == "female") & (Curated_BivData$hand.foci.count < 4),], aes(mouse, PER.siscoten, fill=as.factor(hand.foci.count))) + geom_boxplot(aes())+ facet_wrap(~ strain, nrow = 3, scales="free")  + ggtitle("PER SISCOTEN by mouse, female") + theme(axis.title.x=element_blank(), axis.text.x=element_blank())
+boxplot_PERsiscoten.mouse.female
+
+
+```
+
+
+the vls are much closer in females
+
+
+# SC length traits
+
+
+ Females have higher variance in more meiotic traits
+
+```{r female.SC.plots, echo=FALSE, warning=FALSE}
+
+SC.lengths.1CO <- ggplot(Curated_BivData[Curated_BivData$hand.foci.count == 1,], aes(y = chromosomeLength, x=strain, fill=sex))+geom_boxplot(aes(alpha=0.5))+geom_jitter(aes(alpha=0.2))+  ggtitle("1COs male and females") +ylim(c(30,250))
+
+SC.lengths.2CO <- ggplot(Curated_BivData[Curated_BivData$hand.foci.count == 2,], aes(y = chromosomeLength, x=strain, fill=sex))+geom_boxplot(aes(alpha=0.5))+geom_jitter(aes(alpha=0.2))+  ggtitle("2COs male and females") +ylim(c(30,250))
+
+SC.lengths.1CO
+SC.lengths.2CO
+```
+
+The above plots seperate bivalent classes. 
+(Make a table of pvalues for t.tests of male to female SC lengths across strains.)
+
+
+
+```{r anova, echo=FALSE}
+#try doing anova
+
+ano <- aov(lm(chromosomeLength ~ hand.foci.count+sex + strain,  Curated_BivData))
+summary(ano)
+```
+
+By ANOVA analysis, everything has a significant effect.
+
+
+## PERMUTATIONS Accounting for sample size differences 
+
+Currently the category with the fewest observations is G female (~30). I also have may more Kaz male bivalent measures (1000)
+
+`r kable(table(Curated_BivData$category))`
+
+Below is code where I implement a subsampling approach/permute dataset with randomly sampled bivalent observations. 25 random bivalents are sampled from each category, and this is permuted 1000 times. 
+
+The plots shown below are histograms of p values from t.tests for **SC length** across the labeled categories from the replicated/subsampled dataset. 
+
+
+
+```{r sub.sample, echo=FALSE, eval=FALSE}
+
+#the problem with sub-sampling is that there are so many groups I need to compare
+#Easist is probably to recreate the whole data set
+#G female have the lowest number of obs, 30
+
+
+#sample from all the categories, the samplings are mini DFs
+#-- then merge them together
+
+#outer loop is the permutations / replications
+BIG.DF.LIST <- replicate(1000, 
+  
+        #filling the permuted DF is inner loop                 
+         #add subsample to a list, this works!!!
+list( bind_rows(list(
+  
+  Curated_BivData[ sample( which(Curated_BivData$category=="WSB female"), Biv.sample.Number ), ],
+                                SubSample.WSB.male <-  Curated_BivData[ sample( which(Curated_BivData$category=="WSB male"), Biv.sample.Number ), ], 
+                                
+                                Curated_BivData[ sample( which(Curated_BivData$category=="G female"), Biv.sample.Number ), ],
+                                Curated_BivData[ sample( which(Curated_BivData$category=="G male"), Biv.sample.Number ), ],
+                                
+                       Curated_BivData[ sample( which(Curated_BivData$category=="LEW female"), Biv.sample.Number ), ], 
+                       Curated_BivData[ sample( which(Curated_BivData$category=="LEW male"), Biv.sample.Number ), ],
+                      
+                       Curated_BivData[ sample( which(Curated_BivData$category=="PWD female"), Biv.sample.Number ), ], 
+                       Curated_BivData[ sample( which(Curated_BivData$category=="PWD male"), Biv.sample.Number ), ], 
+                       
+                       Curated_BivData[ sample( which(Curated_BivData$category=="MSM female"), Biv.sample.Number ), ], 
+                       Curated_BivData[ sample( which(Curated_BivData$category=="MSM male"), Biv.sample.Number ), ],
+                      
+                        Curated_BivData[ sample( which(Curated_BivData$category=="KAZ male"), Biv.sample.Number ), ], 
+                       Curated_BivData[ sample( which(Curated_BivData$category=="KAZ female"), Biv.sample.Number ), ], 
+                       
+                       Curated_BivData[ sample( which(Curated_BivData$category=="SKIVE female"), Biv.sample.Number ), ], 
+                       Curated_BivData[ sample( which(Curated_BivData$category=="SKIVE male"), Biv.sample.Number ), ]))
+)
+      )
+#Accessing big list / matrix
+#the replicated DFs are now is a list of DFs
+#head(BIG.DF.LIST[[2]]) returns head of the 2nd replicated DF
+
+
+#Loop through the list of DFs and do the t.tests!
+#i is this index of the dataframes in the list?
+
+p.vals.DF <- data.frame(sex.test.pval = rep(0, length(BIG.DF.LIST) ) )
+for(i in 1:length(BIG.DF.LIST)){  #current data from
+  #print(i)
+  #test sex
+  p.vals.DF$sex.test.pval[i] <- t.test(BIG.DF.LIST[[i]]$chromosomeLength[BIG.DF.LIST[[i]]$sex == "female"],
+         BIG.DF.LIST[[i]]$chromosomeLength[BIG.DF.LIST[[i]]$sex == "male"], paired = FALSE)$p.value
+
+   #test female subsp
+   p.vals.DF$female.subsp[i] <- t.test(BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$subsp == "Dom") ],
+         BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$subsp == "Musc")], paired = FALSE )$p.value
+  
+   #test male subsp
+     p.vals.DF$male.subsp[i] <- t.test(BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$subsp == "Dom") ],
+         BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$subsp == "Musc")],paired = FALSE )$p.value
+     
+      p.vals.DF$male.PWD.MSM[i] <- t.test(BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "PWD") ],
+         BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "MSM")],paired = FALSE )$p.value
+     
+      p.vals.DF$male.PWD.KAZ[i] <- t.test(BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "PWD") ],
+         BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "KAZ")],paired = FALSE )$p.value
+      
+            p.vals.DF$male.PWD.SKIVE[i] <- t.test(BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "PWD") ],
+         BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "SKIVE")],paired = FALSE )$p.value
+      
+      #what about a null test?
+        
+      #female    
+      p.vals.DF$female.PWD.MSM[i] <- t.test(BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "PWD") ],
+         BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "MSM")],paired = FALSE )$p.value     
+            
+            #female    
+      p.vals.DF$female.PWD.KAZ[i] <- t.test(BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "PWD") ],
+         BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "KAZ")],paired = FALSE )$p.value    
+      
+            #female    
+      p.vals.DF$female.PWD.SKIVE[i] <- t.test(BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "PWD") ],
+         BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "SKIVE")],paired = FALSE )$p.value
+      
+      
+      
+      #test male strains (Dom)
+     p.vals.DF$male.WSB.G[i] <- t.test(BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "WSB") ],
+         BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "G")],paired = FALSE )$p.value
+     
+      p.vals.DF$male.WSB.LEW[i] <- t.test(BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "WSB") ],
+         BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "LEW")],paired = FALSE )$p.value
+     
+      p.vals.DF$male.WSB.KAZ[i] <- t.test(BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "WSB") ],
+         BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "KAZ")],paired = FALSE )$p.value
+      
+            p.vals.DF$male.WSB.PWD[i] <- t.test(BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "WSB") ],
+         BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "PWD")],paired = FALSE )$p.value
+      
+            
+            
+       #test female strains (Dom)
+     p.vals.DF$female.WSB.G[i] <- t.test(BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "WSB") ],
+         BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "G")],paired = FALSE )$p.value
+     
+      p.vals.DF$female.WSB.LEW[i] <- t.test(BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "WSB") ],
+         BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "LEW")],paired = FALSE )$p.value
+     
+      p.vals.DF$female.WSB.KAZ[i] <- t.test(BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "WSB") ],
+         BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "KAZ")],paired = FALSE )$p.value
+      
+            p.vals.DF$female.WSB.PWD[i] <- t.test(BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "WSB") ],
+         BIG.DF.LIST[[i]]$chromosomeLength[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "PWD")],paired = FALSE )$p.value
+}
+
+
+#these tests might be more appropriate for averages (mouse averages)?
+
+#melt the DF's within the BIG list for easier ggploting
+Melted.pval.DF <- melt(p.vals.DF, c("sex.test.pval",    "female.subsp",     "male.subsp",       "male.PWD.MSM",     "male.PWD.KAZ",     "male.PWD.SKIVE",   "female.PWD.MSM", "female.PWD.KAZ",   "female.PWD.SKIVE", "male.WSB.G", "male.WSB.LEW", "male.WSB.KAZ",  "male.WSB.PWD","female.WSB.G", "female.WSB.LEW", "female.WSB.KAZ", "female.WSB.PWD" ), 
+                         id=c() )
+
+#clean up dm1 (there are a bunch of rows without useful information)
+Melted.pval.DF <- Melted.pval.DF[(!is.na(Melted.pval.DF$value)),]
+colnames(Melted.pval.DF) <- c("Test.type", "pval") 
+
+#BIG ggplot collections (skip the first type?)
+biggie <- ggplot(Melted.pval.DF, aes(pval) )+geom_histogram(bins = 50)+facet_wrap(.~Test.type, scales = "free") + ggtitle("pvalues for 1000 replicated t.tests")
+#I could also add the observed t.test pvalue as verticle line...
+biggie
+#want to try spreading the data across mulitple plots
+#this is not saving mulitple pdfs
+#for (i in seq(1, length(unique(Melted.pval.DF$Test.type)), 6)) {
+#  pdf(paste0("tryplot_",i,".pdf"), 7, 5)
+# 
+#  print(ggplot(Melted.pval.DF, aes(pval) )+geom_histogram(bins = 50)+facet_wrap(.~Test.type, scales = "free") + ggtitle("pvalues for 1000 replicated t.tests"))
+#
+# dev.off()
+#
+# }
+
+
+#pvals.subsamp.DF.1 <- ggplot(p.vals.DF, aes(male.PWD.MSM ) )+geom_histogram(bins = 50)#PWD and MSM not sig different (with randomized subsample)
+#pvals.subsamp.DF.B <- ggplot(p.vals.DF, aes(male.PWD.KAZ ) #)+geom_histogram(bins = 50)
+#pvals.subsamp.DF.C <- ggplot(p.vals.DF, aes(male.PWD.SKIVE ) #)+geom_histogram(bins = 50)
+
+#Fpvals.subsamp.DF.A <- ggplot(p.vals.DF, aes(female.PWD.MSM ) #)+geom_histogram(bins = 50)
+#Fpvals.subsamp.DF.B <- ggplot(p.vals.DF, aes(female.PWD.KAZ ) #)+geom_histogram(bins = 50)
+#Fpvals.subsamp.DF.C <- ggplot(p.vals.DF, aes(female.PWD.SKIVE ) #)+geom_histogram(bins = 50)
+#these 3 female plots have close to uniform pvalus dist
+
+
+#summaries to compare / test
+#SC.by.sex.T.test <- t.test(subsampled.DF$chromosomeLength[subsampled.DF$sex == "female"],
+#                           subsampled.DF$chromosomeLength[subsampled.DF$sex == "male"], paired = #FALSE)$p.value
+
+
+
+#SubSample.WSB.female  <-  Curated_BivData[ sample( which(Curated_BivData$category=="WSB female"), Biv.sample.Number ), ]
+#SubSample.WSB.male <-  Curated_BivData[ sample( which(Curated_BivData$category=="WSB male"), Biv.sample.Number ), ]
+#SubSample.G.female <- Curated_BivData[ sample( which(Curated_BivData$category=="G female"), Biv.sample.Number ), ]
+#SubSample.G.male <- Curated_BivData[ sample( which(Curated_BivData$category=="G male"), Biv.sample.Number ), ]
+#SubSample.LEW.female <- Curated_BivData[ sample( which(Curated_BivData$category=="LEW female"), Biv.sample.Number ), ]
+#SubSample.LEW.male <- Curated_BivData[ sample( which(Curated_BivData$category=="LEW male"), Biv.sample.Number ), ]
+#SubSample.PWD.female <- Curated_BivData[ sample( which(Curated_BivData$category=="PWD female"), Biv.sample.Number ), ]
+#SubSample.PWD.male <- Curated_BivData[ sample( which(Curated_BivData$category=="PWD male"), Biv.sample.Number ), ]
+#SubSample.MSM.female <- Curated_BivData[ sample( which(Curated_BivData$category=="MSM female"), Biv.sample.Number ), ]
+#SubSample.MSM.male <- Curated_BivData[ sample( which(Curated_BivData$category=="MSM male"), Biv.sample.Number ), ]
+#SubSample.KAZ.female <- Curated_BivData[ sample( which(Curated_BivData$category=="KAZ female"), Biv.sample.Number ), ]
+#SubSample.KAZ.male <- Curated_BivData[ sample( which(Curated_BivData$category=="KAZ male"), Biv.sample.Number ), ]
+#SubSample.SKIVE.female <- Curated_BivData[ sample( which(Curated_BivData$category=="SKIVE female"), Biv.sample.Number ), ]
+#SubSample.SKIVE.male <- Curated_BivData[ sample( which(Curated_BivData$category=="SKIVE male"), Biv.sample.Number ), ]
+
+
+#how do I make this replicate loop so that is returns the T.test pvalue in a DF?
+# 1. make a big list of many subsampled DFs
+# 2. make a loop for applying t.test across all of the 
+
+
+
+#The t.test( ) function produces a variety of t-tests. Unlike most statistical packages, the default assumes #unequal variance and applies the Welsh df modification.
+#n use the var.equal = TRUE
+#https://www.statmethods.net/stats/ttest.html
+```
+
+
+
+
+
+```{r lm.sc, echo=FALSE}
+#should cell be random?
+#should I compare mouse means instead?
+sc.model.1CO <- lm(chromosomeLength ~ sex + strain +mouse, data = Curated_BivData[Curated_BivData$hand.foci.count == 1,])
+
+
+sc.model.2CO <- lm(chromosomeLength ~ sex + strain+fileName, data = Curated_BivData[Curated_BivData$hand.foci.count == 2,])
+
+```
+
+Modeling SC lengths at the bivalent level is noisey. There are many levels and unequal sampling.
+
+maybe I should compare the longest bivalent from a cell?  or the shortest 4?
+
+
+# Centromere supression
+
+Anecdotally I would say that males have stronger centromere supression. I will also add a metric for telomere distance.
+
+
+```{r cent.supression.plot, echo=FALSE, warning=FALSE, eval=FALSE}
+#I need to change the purple color
+
+#simple plots for centromere - dis
+cent.distance.all <- ggplot(Curated_BivData, aes(y = dis.cent, x=strain, color=sex))+geom_boxplot(aes(alpha=0.1))
+#+geom_jitter(aes(alpha=0.05))+  ggtitle("1COs male and females")
+
+cent.distance.1CO <- ggplot(Curated_BivData[Curated_BivData$hand.foci.count == 1,], aes(y = dis.cent, x=strain, fill=sex))+geom_boxplot(aes(alpha=0.5))+geom_jitter(aes(alpha=0.2))+  ggtitle("1COs male and females")
+
+cent.dist.2CO <- ggplot(Curated_BivData[Curated_BivData$hand.foci.count == 2,], aes(y = dis.cent, x=strain, fill=sex))+geom_boxplot(aes(alpha=0.5))+geom_jitter(aes(alpha=0.2))+  ggtitle("2COs male and females")
+
+cent.distance.all
+cent.distance.1CO
+cent.dist.2CO
+```
+
+
+Intesting that the distance from centromere is sexually dimorphic for 2CO bivalents but not 1CO bivalents. Females have a stronger centromere supression, strange. Did I calculate this wrong?
+This indecates that female has stronger centromere supression, but only for 2CO bivalents...
+
+
+
+
+
+```{r telomere.bias, echo=FALSE, eval=FALSE}
+
+#I have to change the t.tests
+#dis.cent
+
+
+#BIG.DF.LIST
+Cent.Dist.p.vals.DF <- data.frame(sex.cent.dist = rep(0, length(BIG.DF.LIST) ) )
+for(i in 1:length(BIG.DF.LIST)){  #current data from
+  #print(i)
+
+      #female vs male
+      Cent.Dist.p.vals.DF$sex.cent.dist[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" )],paired = FALSE )$p.value     
+            
+#subsp
+Cent.Dist.p.vals.DF$female.subsp[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$subsp == "Dom") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$subsp == "Musc")],paired = FALSE )$p.value
+         
+Cent.Dist.p.vals.DF$male.subsp[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$subsp == "Dom") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$subsp == "Musc")],paired = FALSE )$p.value
+
+
+Cent.Dist.p.vals.DF$male.PWD.MSM[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "PWD") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "MSM")],paired = FALSE )$p.value
+     
+      Cent.Dist.p.vals.DF$male.PWD.KAZ[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "PWD") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "KAZ")],paired = FALSE )$p.value
+      
+            Cent.Dist.p.vals.DF$male.PWD.SKIVE[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "PWD") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "SKIVE")],paired = FALSE )$p.value
+      
+      #what about a null test?
+        
+      #female    
+      Cent.Dist.p.vals.DF$female.PWD.MSM[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "PWD") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "MSM")],paired = FALSE )$p.value     
+            
+            #female    
+      Cent.Dist.p.vals.DF$female.PWD.KAZ[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "PWD") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "KAZ")],paired = FALSE )$p.value    
+      
+            #female    
+      Cent.Dist.p.vals.DF$female.PWD.SKIVE[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "PWD") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "SKIVE")],paired = FALSE )$p.value
+      
+      
+
+
+
+      Cent.Dist.p.vals.DF$female.PWD.KAZ[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "PWD") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "KAZ")],paired = FALSE )$p.value    
+   
+      Cent.Dist.p.vals.DF$female.PWD.SKIVE[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "PWD") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "SKIVE")],paired = FALSE )$p.value
+      
+      
+      #test male strains (Dom)
+     Cent.Dist.p.vals.DF$male.WSB.G[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "WSB") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "G")],paired = FALSE )$p.value
+     
+      Cent.Dist.p.vals.DF$male.WSB.LEW[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "WSB") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "LEW")],paired = FALSE )$p.value
+     
+      Cent.Dist.p.vals.DF$male.WSB.KAZ[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "WSB") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "KAZ")],paired = FALSE )$p.value
+      
+            Cent.Dist.p.vals.DF$male.WSB.PWD[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "WSB") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "PWD")],paired = FALSE )$p.value
+      
+            
+            
+       #test female strains (Dom)
+     Cent.Dist.p.vals.DF$female.WSB.G[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "WSB") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "G")],paired = FALSE )$p.value
+     
+      Cent.Dist.p.vals.DF$female.WSB.LEW[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "WSB") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "LEW")],paired = FALSE )$p.value
+     
+      Cent.Dist.p.vals.DF$female.WSB.KAZ[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "WSB") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "KAZ")],paired = FALSE )$p.value
+      
+            Cent.Dist.p.vals.DF$female.WSB.PWD[i] <- t.test(BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "WSB") ],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain == "PWD")],paired = FALSE )$p.value
+}
+
+
+
+#melt the DF's within the BIG list for easier ggploting
+Cent.Melted.pval.DF <- melt(Cent.Dist.p.vals.DF, c("sex.cent.dist",  "female.subsp","male.subsp","male.PWD.MSM",     "male.PWD.KAZ","male.PWD.SKIVE", "female.PWD.MSM", 
+                              "female.PWD.KAZ",   "female.PWD.SKIVE", "male.WSB.G", "male.WSB.LEW", "male.WSB.KAZ",  "male.WSB.PWD","female.WSB.G", "female.WSB.LEW", "female.WSB.KAZ", "female.WSB.PWD" ), 
+                         id=c() )
+
+#clean up dm1 (there are a bunch of rows without useful information)
+Cent.Melted.pval.DF <- Cent.Melted.pval.DF[(!is.na(Cent.Melted.pval.DF$value)),]
+colnames(Cent.Melted.pval.DF) <- c("Test.type", "pval") 
+
+
+biggie2 <- ggplot(Cent.Melted.pval.DF, aes(pval) )+geom_histogram(bins = 50)+ ggtitle("Cent Distance pvalues for 1000 replicated t.tests")+facet_wrap(.~Test.type) 
+#sex difference is skewed
+biggie2
+
+```
+
+
+Verbalizing the inference from all the p values. 
+
+
+Using the same permuted / subsampled data frame -- I'll look at centromere and telomere distance
+
+How would these distributions change normalized distances?
+
+t.tests for centromere dis and telomere distance
+This result and the IFD could be the same mechanism.
+
+
+
+## Higher recombining males have stronger interference
+
+
+Do the same figure things for IFD
+
+There might be too little 2CO observations for many dom chrm to get the IFDs
+
+`r kable(table(Curated_BivData$category[Curated_BivData$hand.foci.count == 2]))`
+
+
+```{r interference, echo=FALSE, eval=FALSE}
+#for interference I might have to subsample only from 2COs
+
+#have to seperate the hand foci number
+
+IFD.p.vals.DF <- data.frame(sex.IFD.test = rep(0, length(BIG.DF.LIST) ) )
+for(i in 1:length(BIG.DF.LIST)){  #current data from
+  #print(i)
+
+      #female vs male
+      IFD.p.vals.DF$sex.IFD.test[i] <- t.test(BIG.DF.LIST[[i]]$IFD1[ ( BIG.DF.LIST[[i]]$sex == "female" ) & (BIG.DF.LIST[[i]]$hand.foci.count == 2) ],
+         BIG.DF.LIST[[i]]$IFD1[ ( BIG.DF.LIST[[i]]$sex == "male" ) & (BIG.DF.LIST[[i]]$hand.foci.count == 2)], na.action=na.omit, paired = FALSE )$p.value     
+
+  #subsp
+  IFD.p.vals.DF$female.subsp[i] <- t.test(BIG.DF.LIST[[i]]$IFD1[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$subsp == "Dom") & (BIG.DF.LIST[[i]]$hand.foci.count == 2)],
+         BIG.DF.LIST[[i]]$IFD1[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$subsp == "Musc")& (BIG.DF.LIST[[i]]$hand.foci.count == 2)],paired = FALSE )$p.value
+           
+IFD.p.vals.DF$male.subsp[i] <- t.test(BIG.DF.LIST[[i]]$IFD1[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$subsp == "Dom") & (BIG.DF.LIST[[i]]$hand.foci.count == 2)],
+         BIG.DF.LIST[[i]]$IFD1[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$subsp == "Musc")& (BIG.DF.LIST[[i]]$hand.foci.count == 2)],na.action=na.omit, paired = FALSE, na.action=na.omit)$p.value
+
+#strain comarisons
+IFD.p.vals.DF$male.PWD.MSM[i] <- t.test(BIG.DF.LIST[[i]]$IFD1[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "PWD") & (BIG.DF.LIST[[i]]$hand.foci.count == 2)],
+         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "MSM")& (BIG.DF.LIST[[i]]$hand.foci.count == 2)],na.action=na.omit, paired = FALSE )$p.value
+
+
+#IFD.p.vals.DF$male.PWD.SKIVE[i] <- t.test(BIG.DF.LIST[[i]]$IFD1[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "PWD") & (BIG.DF.LIST[[i]]$hand.foci.count == 2)],
+#         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain == "SKIVE")& (BIG.DF.LIST[[i]]$hand.foci.count == 2)],na.action=na.omit, paired = FALSE )$p.value
+
+
+#IFD.p.vals.DF$male.WSB.G[i] <- t.test(BIG.DF.LIST[[i]]$IFD1[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( #BIG.DF.LIST[[i]]$strain == "WSB") & (BIG.DF.LIST[[i]]$hand.foci.count == 2)],
+#         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "male" ) & ( BIG.DF.LIST[[i]]$strain #== "G")& (BIG.DF.LIST[[i]]$hand.foci.count == 2)],na.action=na.omit, paired = FALSE )$p.value
+
+
+#females  (not enough PWD-MSM)
+#IFD.p.vals.DF$female.PWD.SKIVE[i] <- t.test(BIG.DF.LIST[[i]]$IFD1[ ( BIG.DF.LIST[[i]]$sex == #"female" ) & ( BIG.DF.LIST[[i]]$strain == "PWD") & (BIG.DF.LIST[[i]]$hand.foci.count == 2)],
+#         BIG.DF.LIST[[i]]$dis.cent[ ( BIG.DF.LIST[[i]]$sex == "female" ) & ( BIG.DF.LIST[[i]]$strain #== "SKIVE")& (BIG.DF.LIST[[i]]$hand.foci.count == 2)],na.action=na.omit, paired = FALSE )$p.value
+
+}
+
+
+
+#melt the DF's within the BIG list for easier ggploting
+IFD.Melted.pval.DF <- melt(IFD.p.vals.DF, c( "sex.IFD.test","female.subsp", "male.subsp", "male.PWD.MSM"), 
+  id=c() )
+  
+#  "sex.cent.dist",  "female.subsp","male.subsp","male.PWD.MSM",     "male.PWD.KAZ","male.PWD.SKIVE", "female.PWD.MSM", 
+#                              "female.PWD.KAZ",   "female.PWD.SKIVE", "male.WSB.G", "male.WSB.LEW", "male.WSB.KAZ",  #"male.WSB.PWD","female.WSB.G", "female.WSB.LEW", "female.WSB.KAZ", "female.WSB.PWD" ), 
+                         
+
+#clean up dm1 (there are a bunch of rows without useful information)
+IFD.Melted.pval.DF <- IFD.Melted.pval.DF[(!is.na(IFD.Melted.pval.DF$value)),]
+colnames(IFD.Melted.pval.DF) <- c("Test.type", "pval") 
+
+
+biggie3 <- ggplot(IFD.Melted.pval.DF, aes(pval) )+geom_histogram(bins = 50)+ ggtitle("ABS IFD pvalues for 1000 replicated t.tests")+facet_wrap(.~Test.type) 
+#sex difference is skewed
+biggie3
+
+```
+
+
+The 
+
+
+## more variation across traits for females than males
+
+
+
+
+## High recombining male mice have more total SC?
+
+I think with total SC, this is true, but it doesn't seem true for the single bivalent data. This could also be due to sampling issues.
+
+
+```{r total.sc, echo=FALSE}
+#FIND TOTAL sc code
+```
+
+
+
+```{r block2, echo=FALSE, eval=FALSE}
+#Curated_BivData
+# mmore SC based plots
+
+#Curated_BivData99 <- Curated_BivData[Curated_BivData$hand.foci.count <= 3,]
+#Curated_BivData99 <- droplevels(Curated_BivData99)
+#why does this making so many Fing NAs?
+
+#use subset instead!!
+
+Curated_BivData99 <- subset(Curated_BivData, hand.foci.count <= 3)
+
+Curated_BivData <- subset(Curated_BivData, hand.foci.count <= 3)
+
+Curated_BivData <- Curated_BivData[!(is.na(Curated_BivData$sex) ), ]
+
+#this plot is too busy for all the data 
+SC.length.points.bivs_Musc <- ggplot(Curated_BivData[Curated_BivData$subsp == "Musc",], aes(x=dis.cent, y=chromosomeLength, color= as.factor(mouse) ))+
+  geom_jitter()+ xlim(c(0,120)) + ylim(c(40,120))+
+  facet_grid(sex ~ hand.foci.count) + ggtitle("")+theme(legend.position="none")
+
+
+SC.length.points.bivs_Dom <- ggplot(Curated_BivData[Curated_BivData$subsp == "Dom",], aes(x=dis.cent, y=chromosomeLength, color= as.factor(mouse) ))+
+  geom_jitter()+ xlim(c(0,120)) + ylim(c(40,120))+
+  facet_grid(sex ~ hand.foci.count) + ggtitle("")
+
+
+
+
+#Making centromere rect
+  #geom_vline(aes(xintercept = mean.cent.dis.PWD$mean.dist_cent ) ) +
+  #annotate("rect", 
+ # xmin =  ( mean.cent.dis.PWD$mean.dist_cent - (mean.cent.dis.PWD$dis.cent)*2), 
+#  xmax = ( mean.cent.dis.PWD$mean.dist_cent + (mean.cent.dis.PWD$dis.cent)*2),
+#              ymin=0,  ymax=Inf, alpha=0.2, fill="purple" ) +
+#  labs(x="", y='Density') 
+
+
+```
+
+
+# Interfocal comparisons
+
+
+```{r IFD, echo=FALSE, eval=FALSE}
+
+IFD.ABS.comp <- ggplot(Curated_BivData, aes(y = IFD1, x=hand.foci.count, color=mouse))+geom_jitter(aes(alpha=0.2))+ facet_wrap(strain~sex)+ ggtitle("IFD1 raw distributions")+theme(legend.position="none")
+
+IFD.PER.comp <- ggplot(Curated_BivData, aes(y = IFD1_PER, x=hand.foci.count, color=mouse))+geom_jitter(aes(alpha=0.2))+ facet_wrap(strain~sex)+ ggtitle("IFD1 normalized distributions")+theme(legend.position="none")+ylim(c(0,1.05))
+
+
+IFD.ABS.comp
+IFD.PER.comp
+```
+
+The above plots shows the distribution the raw and normalized distribution of the first Inter Focal Distance.
+
+
+# Sis Co ten Metric
+
+
+```{r sis.co.ten, echo=FALSE, eval=FALSE}
+
+sis.co.ten.hist.full <- ggplot(Curated_BivData, aes(SisCoTen)) + geom_histogram(bins = 50) +facet_wrap( ~ category)+ggtitle("Distribution of Sis-co-ten per bivalent")
+
+sis.co.ten.hist <- ggplot(Curated_BivData[Curated_BivData$hand.foci.count == 2,], aes(SisCoTen)) + geom_histogram(bins = 50) +facet_wrap(hand.foci.count ~ category)+ggtitle("")
+#the male histograms look almost bimodal, and the female data looks more uniform
+#the telomere bias skews the distribution to lower sis-co-ten measures
+#PWD has sig larger 
+
+sis.co.ten.hist.full
+sis.co.ten.hist
+
+#ARE THE SIS_CO_TEN distributions different across foci.number for males and females
+#males; yes?
+#females
+
+
+
+
+#sis.co.ten.hist.poin <- ggplot(master_curated_BivData, aes(x=SisCoTen, y=chromosomeLength, color= as.factor(hand.foci.count)  ))+
+#  geom_point(aes(alpha=.5)) +facet_wrap(~ category)
+
+#sis.co.ten.hist.poin99 <- ggplot((master_curated_BivData[1:50,]), aes(x=SisCoTen, y=chromosomeLength, color= #as.factor(hand.foci.count)  ))+
+#  geom_point(aes(alpha=.5)) +facet_wrap(~ mouse)
+```
+
+
+The metric Sis-co-ten measures the amount of sister cohesion connected to the other pole. Alternating IFDs. Assuming chromatid interference and no sister seperation, this should reflect the amount of sister cohesion that is pulled across the opposite pole.
+
+need more MSM male curated measures!
