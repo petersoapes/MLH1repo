@@ -19,6 +19,9 @@ library(raster)
 setwd("~./MLH1repo/")
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
+whole.cell.data_manual.OG <- read.csv("~./MLH1repo/whole_cell_measures.csv")
+
+
 #BIVDATA MASTER SHEET
 new.Curate.FULL <- read.csv("~./MLH1repo/data/BivData/curation/FULL_Curated_BivData.csv")
 #83976
@@ -83,6 +86,9 @@ OG.cURATE.table.category <- table(new.Curate.FULL.org$category, new.Curate.FULL.
 #
 #write.table(OG.cURATE.table.category, "~./MLH1repo/data/CurrentCuratedDataset_cat_21.1.20.csv", sep=",",
 #            row.names = TRUE)
+```
+
+```{r split.up.DF, echo=FALSE}
 
 #SC PASS
 new.Curate.FULL <- new.Curate.FULL[new.Curate.FULL$SC.pass == '1',]#10480 #9819, #9769
@@ -102,6 +108,78 @@ Foci_TRUE_Curate_BivData <-   Curated_BivData[(!is.na(Curated_BivData$hand.foci.
 #there are 2 lines with 0 hand.foci, but with a foci position
 
 ```
+
+
+# Manual Whole Cell
+
+
+```{r whole.cell.manual.clean, echo=FALSE}
+#compare and clean up whole cell measures
+
+whole.cell.data_manual <- whole.cell.data_manual.OG[whole.cell.data_manual.OG$chrm.class != "XY",]
+
+colnames(whole.cell.data_manual.OG)
+#"return5"         "fileName"        "boxNumber"       "centromere"      "SC.length"  #    
+ #[6] "rank"            "chrm.class"      "hand.foci.count" "F1"              "F2"    #         
+#[11] "F3"              "notes"           "X"               "X.1"            
+#remove, X, X.1
+whole.cell.data_manual <- whole.cell.data_manual[-c(1, 13:14)]
+whole.cell.data_manual$Foci4 <- ""
+
+#rename foci positions
+whole.cell.data_manual$Foci1 <- whole.cell.data_manual$F1
+whole.cell.data_manual$Foci2 <- whole.cell.data_manual$F2
+whole.cell.data_manual$Foci3 <- whole.cell.data_manual$F3
+
+#mouse, strain, sex, category
+whole.cell.data_manual <- add_mouse(whole.cell.data_manual)
+whole.cell.data_manual <- add_category(whole.cell.data_manual)
+whole.cell.data_manual <- add_strain(whole.cell.data_manual)
+whole.cell.data_manual <- add_sex(whole.cell.data_manual)
+whole.cell.data_manual <- add_subsp(whole.cell.data_manual)
+
+
+#whole.cell.data_manual <-   whole.cell.data_manual[(!is.na(whole.cell.data_manual$fileName)),]
+whole.cell.data_manual <- whole.cell.data_manual[!(is.na(whole.cell.data_manual$fileName) | whole.cell.data_manual$fileName==""), ]
+
+
+#obj.id
+whole.cell.data_manual$Obj.ID <- paste(whole.cell.data_manual$fileName, whole.cell.data_manual$boxNumber, sep = "_")
+
+
+#add all the extra columns, blah
+
+
+#percent Foci position
+
+
+#ADD RANK
+for(cellys in as.character(unique(whole.cell.data_manual$fileName))){
+  
+ # print(cellys)
+  chrm.order = rank(whole.cell.data_manual$SC.length[whole.cell.data_manual$fileName == cellys])
+  whole.cell.data_manual$rank[whole.cell.data_manual$fileName == cellys] <- chrm.order  
+  }
+
+#IFD 
+whole.cell.data_manual <- add_IFD(whole.cell.data_manual)
+
+
+
+
+```
+
+
+
+
+ToDo  
+
+- Go back and clean up the original excel data  
+
+- clean the bottom, fill in missing data  
+
+- check the order of foci positions for 5aug17_14jul17_LEW_f1_sp1_11_rev_blob4.
+
 
 edit / clean up the lines with bad hand.foci.count (61)
 
@@ -237,8 +315,6 @@ IFD functions
 - number of foci with 'faint' mentioned in the notes
 
 
-
-
 ```{r cell.level.table, echo=FALSE}
 
 cell.level.BivData_table <- ddply(.data=Curated_BivData, 
@@ -304,11 +380,44 @@ cell.level.BivData_table <- add_mouse(cell.level.BivData_table)
 cell.level.BivData_table <- add_strain(cell.level.BivData_table)
 cell.level.BivData_table <- add_category(cell.level.BivData_table)
 
+as.data.frame( head(cell.level.BivData_table) )
 
 ```
 
 
-`r head(cell.level.BivData_table)`
+
+```{r whole.cell_merging, echo=FALSE}
+
+#check if there are fileNames
+double.filename <- whole.cell.data_manual[ whole.cell.data_manual$fileName %in% Curated_BivData$fileName, ]
+
+#which cell-levels fileNames have close to 15-17 chrms?
+
+almost_whole_cell <- cell.level.BivData_table[(cell.level.BivData_table$Nbiv < 21),]
+almost_whole_cell <- almost_whole_cell[almost_whole_cell$Nbiv > 15,]
+
+#there is some discrpancy with the Nbiv and nbivs columns! ugh why, some have 20 and 10
+
+#get the Biv data 
+almost_whole_cell_BivData <- Curated_BivData[ Curated_BivData$fileName %in% almost_whole_cell$fileName, ]
+
+as.data.frame(  table( droplevels( almost_whole_cell_BivData$fileName) ) )
+length(unique(almost_whole_cell_BivData$fileName))
+
+
+#what next?
+
+
+```
+
+
+3 cells have manual measures and BivData measures. test error, need to match them up. There are 145 cells from the BivData set which are close to whole cells.  
+
+
+8jun15_23apr15_PWD_f2_sp1_20_rev, 29nov16_13nov16_MSM_m2_sp1_13_rev, 27oct16_31aug16_MSM_m1_sp1_9_rev
+
+
+
 
 
 # Mouse leve table
@@ -343,10 +452,12 @@ mouse.level.BivData_table <- ddply(.data=Curated_BivData,
                        se.SC_length   = round(sd.SC_length / sqrt(nbivs), 3)
 )   
 
+as.data.frame( head(mouse.level.BivData_table) )
+#kable didn't work
+
 ```
 
 
-`r head(mouse.level.BivData_table)`
 
 
 analysis using the mouse level table -- to justify that using mouse averages is a good idea.
@@ -502,11 +613,6 @@ save.image("~./MLH1repo/data/CleanBivData_1.21.20.RData")
 
 ```
 
-
-
-# Number of whole cells
-
-- list the cells with all bivs measued or which are close to full.
 
 
 # Analysis

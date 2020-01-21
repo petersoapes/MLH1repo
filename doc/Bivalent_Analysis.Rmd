@@ -24,7 +24,7 @@ setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 #load(file="data/MLH1/MLH1_data_setup.RData")
 
 #load Clean BivData
-load(file="data/CleanBivData_1.20.20.RData")
+load(file="data/CleanBivData_1.21.20.RData")
 
 
 #load other data files, MLH1
@@ -43,14 +43,15 @@ This plot illustrates how well the algorithm seperated indiviual bivalents per c
 Several MSM male spreads had tight cells with a high degree of overlap, so fewer bivalents were indiviudally segmented.
 
 
-```{r tech.ect, echo=FALSE, eval=FALSE}
+```{r tech.ect, echo=FALSE, eval=TRUE}
 
-nBiv.per.cell <- ggplot(cells.BivData_table, aes(nbivs)) + ggtitle("Number of passing bivalents per cell") + geom_histogram(bins = 30) +facet_wrap( ~ category)
+nBiv.per.cell <- ggplot(cell.level.BivData_table, aes(nbivs)) + ggtitle("Number of passing bivalents per cell") + geom_histogram(bins = 30) +facet_wrap( ~ category)
 nBiv.per.cell
 
 #for cells with close to 20 - they are almost complete
 #they should be used to 
-           
+
+#This isn't the same as curated/passing bivalents           
            
 ```
 
@@ -60,9 +61,6 @@ consider making a table with predictions for bivalent patterns which are related
 
 
 # Chrm Class proportions
-
-
-
 
 
 Should I be thinking of making a MM or lm for predicting CO number (within a category)
@@ -80,18 +78,79 @@ simple predictions not met as strongly as in male patterns...
 this reasoning might be complicated by the fact that the range in CO averages is lower in females -- so there is less power
 
 
+```{r Chrm.props, echo=FALSE}
+
+#barplots for proportions of chrm classes
+
+#consider adding this the the setup block (could have done this to category level table)
+mouse.level.BivData_table$per.0CO <- mouse.level.BivData_table$CO0 / mouse.level.BivData_table$nboxes_passed
+
+mouse.level.BivData_table$per.1CO <- mouse.level.BivData_table$CO1 / mouse.level.BivData_table$nboxes_passed
+
+mouse.level.BivData_table$per.2CO <- mouse.level.BivData_table$CO2 / mouse.level.BivData_table$nboxes_passed
+
+mouse.level.BivData_table$per.3CO <- mouse.level.BivData_table$CO3 / mouse.level.BivData_table$nboxes_passed
+
+mouse.level.BivData_table$per.4CO <- mouse.level.BivData_table$CO4 / mouse.level.BivData_table$nboxes_passed
+
+
+#DF needs to be melted -- so they all in 1 col
+#per code, I've done this by hand
+
+#subset DF for ease
+skinny.mouse.level <- mouse.level.BivData_table[-c(11:15 ) ]
+col.names.list.99 <- colnames(skinny.mouse.level)
+           
+#"mouse"         "ncells"        "boxs.IDd"      "nboxes_passed" "Nbiv"          "CO0"           "CO1"       #[8] "CO2"           "CO3"           "CO4"           "per.0CO"       "per.1CO"       "per.2CO"       "per.3CO"      [15] "per.4CO"                
+
+#all of the cols to use
+MELT_Chrm.Proportion <- melt(skinny.mouse.level[,c(  "mouse", "ncells","boxs.IDd",    "nboxes_passed","Nbiv","CO0","CO1","CO2", "CO3","CO4",
+             
+               #leave out the Foci
+                "per.0CO", "per.1CO", "per.2CO", "per.3CO", "per.4CO")], 
+  id=c("mouse", "ncells","boxs.IDd",    "nboxes_passed","Nbiv","CO0","CO1","CO2", "CO3","CO4"))
+
+#MELT_Chrm.Proportion <- MELT_Chrm.Proportion[(!is.na(MELT_Chrm.Proportion$value)),]
+
+#MELT_Chrm.Proportion <- MELT_Chrm.Proportion[!(is.na(MELT_Chrm.Proportion$value) | MELT_Chrm.Proportion$value==0), ]
+
+MELT_Chrm.Proportion <- add_category(MELT_Chrm.Proportion)
+MELT_Chrm.Proportion <- add_sex(MELT_Chrm.Proportion)
+MELT_Chrm.Proportion <- add_strain(MELT_Chrm.Proportion)
+
+#then this DF has to be summarized into categories
+chrm.class.category <- ddply(MELT_Chrm.Proportion, c("strain","sex", "variable"), summarise,
+                             mean.percent.type = mean(value)
+                             #sum is the wrong!
+                             #used average percentage, might consider a different summary
+)
+
+
+#ggplot
+
+chrm.class.barplot <- ggplot(data = chrm.class.category, aes(y = mean.percent.type, x = strain, fill=as.factor(variable)) ) + geom_col(position = "dodge")+ggtitle("Chrm Proportions from BivData Data")+ylim(c(0,1)) + facet_wrap(~sex, scales = "free")
+chrm.class.barplot
+
+```
+
+the above plot displays the average proportion of each type of chromosome class across mice. The results mostly align with the hand measured results.
+
+Look into ordering the mouse strains to highlight the MSM and PWD differences, renameing the chrm type labels, spacing out the x axis labels or removing some of the other mice.
+
 # Applying Mix Model framework
 
 
 list out pros and cons for using mouse averages of bivalent traits instead of using the single bivalent traits them selves.  
 
 **Pro Bivalent level**  
+
 - The data are continous and closer to normal/gaussian expectations than the MLH1 counts.
 
 - There is within cell variance that is an issue.
 
 
 **Pro Mouse level averages**  
+
 - Mouse average is a conserved framework, it would summarize general patterns which fits with the paper.
 
 - Simple application of the same MM.
@@ -99,13 +158,13 @@ list out pros and cons for using mouse averages of bivalent traits instead of us
 - Limited work to add to the dataset if I can justify that the collection of single bivalents are random and equivilent across mice. 
 
 
-# Heterochiasmy Predictions
+## Predictions, Heterochiasmy
 
 Using the Mixed model framework which tests the effects (and interactions) of subspecies, sex and strain, I will test for evolution of the following traits.
 
 Two bivalent level traits are predicted to display heterochiasmy (ie significant effects of sex); 
 
-1) SC length (cite)  
+1) SC length (cite Lynn)  
 
 
 2) normalized CO positions (sedell and Kirkpatrick). 
@@ -119,10 +178,10 @@ Mouse averages for the each metric will be used.
 
 
 
-# SC lengths
+# SC Lengths
 
 
-```{r show.SC.length}
+```{r show.SC.length, echo=FALSE}
 #compile data
 #main figures, show both mouse and bivalent level
 
@@ -153,20 +212,15 @@ SC.lengths.1CO <- ggplot(Curated_BivData[Curated_BivData$hand.foci.count == 1,],
 First draft of the SC length plot. I'd like to add the hand foci count to the x axis.
 (also add the PWD - male data)
 
-```{r justify.mouse.level}
-
-#justify mouse averages
-#is sampling -- bivalent dataset 
-# random samples 
-#equivalent sample size
-
-```
+TRY ADDING NESTED boxplots for hand.foci.count
 
 
 
 $$mouse \ average \ SC  \ length ~=~ subsp * sex + rand(strain* sex) + \varepsilon $$
 
-```{r MM.SC.Length}
+Above is the model we are testing evolution of SC lengths.
+
+```{r MM.SC.Length, echo=FALSE}
 
 #use the merged DF to filter by age 
 AP_mouse_table_w.Ages$strain <- AP_mouse_table_w.Ages$strain.x
@@ -218,11 +272,41 @@ as.data.frame( round(  summary(BivData.MixedModel.HQ)$tTable, 6 ) )
 ```
 
 
+The results seem to indicate that sex is a significant factor. Consider writing a subsampling approach (randomize / permute a data set of BivData)
+
+```{r justify.mouse.level, echo=FALSE}
+
+#start the permutation code here
+#make a randomized BivData DF
+
+#30 cells worth of bivs? 
+#30 cells * ( 19 or 20 bivs ) * 70% segment rate = decent sample size for comparing Biv-based patterns?
+# I think this would address if the sample sizes are affecting the pattern
+
+
+#
+
+#justify mouse averages
+#is sampling -- bivalent dataset 
+# random samples 
+#equivalent sample size
+
+```
+
+
 
 # IFD
 
+**I**nter**f**ocal **D**istance, a indication of CO interference.
 
-```{r show.IFD, echo=FALSE}
+DO I have anything to say....
+
+How can I highlight the result (I need to verify this first) for greater IFD in high rec male mice?
+
+The raw measures are pretty nosy, this might not be the best way to display these results.
+
+
+```{r show.IFD, echo=FALSE, warning=FALSE}
 
 #first draft of the IFD comparisons
 
@@ -252,7 +336,10 @@ mixed model analysis for IFD (interference)
 
 $$mouse \ average \ IFD ~=~ subsp * sex + rand(strain* sex) + \varepsilon $$
 
-Double Check the dataset for the mixed models.
+$$mouse \ average \ normalized IFD ~=~ subsp * sex + rand(strain* sex) + \varepsilon $$
+
+I tested 2 versions of the mixed model for this flavor of trait, raw IFD and normalized IFD measure
+
 
 ```{r MM.IFD, echo=FALSE}
 
@@ -320,6 +407,7 @@ as.data.frame( round(  summary(BivData_IFD_PER.MixedModel.HQ)$tTable, 6 ) )
 
 ```
 
+sex may be a significant effect for the percent (normalized IFD). Is there a way to measure / account for the SC.length effect?
 
 
 Preliminary results from an independant dataset indecated that PWD had longer IFDs, which goes agaisnt the simple prediction of more COs ~ denser spacing of foci on the same bivalent. This also indecated that interference distance may evolved in the house mouse complex.
@@ -335,36 +423,37 @@ Preliminary results from an independant dataset indecated that PWD had longer IF
 
 ```{r CO.positions}
 #main figure of density plots,
-#MELT_Curated_BivData.PER
 
-MELT_Curated_BivData.PER <- add_subsp(MELT_Curated_BivData.PER)
+MELT_Curated_BivData <- add_sex(MELT_Curated_BivData)
+MELT_Curated_BivData <- add_strain(MELT_Curated_BivData)
+MELT_Curated_BivData <- add_subsp(MELT_Curated_BivData)#subsp, needs strain
 
-Musc.female_MELT_curBivData <- MELT_Curated_BivData.PER[ ((MELT_Curated_BivData.PER$sex == "female") & (MELT_Curated_BivData.PER$subsp == "Musc") ), ]
+Musc.female_MELT_curBivData <- MELT_Curated_BivData[ ((MELT_Curated_BivData$sex == "female") & (MELT_Curated_BivData$subsp == "Musc") ), ]
 
-CO.Pos.density_Musc_female <- ggplot(Musc.female_MELT_curBivData, aes(x=PER_Position, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Musc female \nNormalized Foci Positions")
+CO.Pos.density_Musc_female <- ggplot(Musc.female_MELT_curBivData, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Musc female \nNormalized Foci Positions")
 CO.Pos.density_Musc_female
 
 
 #Dom female
-Dom.female_MELT_curBivData <- MELT_Curated_BivData.PER[ ((MELT_Curated_BivData.PER$sex == "female") & (MELT_Curated_BivData.PER$subsp == "Dom") ), ]
+Dom.female_MELT_curBivData <- MELT_Curated_BivData[ ((MELT_Curated_BivData$sex == "female") & (MELT_Curated_BivData$subsp == "Dom") ), ]
 
-CO.Pos.density_Dom_female <- ggplot(Dom.female_MELT_curBivData, aes(x=PER_Position, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Dom female \nNormalized Foci Positions")
+CO.Pos.density_Dom_female <- ggplot(Dom.female_MELT_curBivData, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Dom female \nNormalized Foci Positions")
 CO.Pos.density_Dom_female
 
 
 
 #Musc male
-Musc.male_MELT_curBivData <- MELT_Curated_BivData.PER[ ((MELT_Curated_BivData.PER$sex == "male") & (MELT_Curated_BivData.PER$subsp == "Musc") ), ]
+Musc.male_MELT_curBivData <- MELT_Curated_BivData[ ((MELT_Curated_BivData$sex == "male") & (MELT_Curated_BivData$subsp == "Musc") ), ]
 
-CO.Pos.density_Musc_male <- ggplot(Musc.male_MELT_curBivData, aes(x=PER_Position, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Musc male \nNormalized Foci Positions")
+CO.Pos.density_Musc_male <- ggplot(Musc.male_MELT_curBivData, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Musc male \nNormalized Foci Positions")
 CO.Pos.density_Musc_male
 
 
 
 #Dom male
-Dom.male_MELT_curBivData <- MELT_Curated_BivData.PER[ ((MELT_Curated_BivData.PER$sex == "male") & (MELT_Curated_BivData.PER$subsp == "Dom") ), ]
+Dom.male_MELT_curBivData <- MELT_Curated_BivData[ ((MELT_Curated_BivData$sex == "male") & (MELT_Curated_BivData$subsp == "Dom") ), ]
 
-CO.Pos.density_Dom_male <- ggplot(Dom.male_MELT_curBivData, aes(x=PER_Position, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Dom male \nNormalized Foci Positions")
+CO.Pos.density_Dom_male <- ggplot(Dom.male_MELT_curBivData, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Dom male \nNormalized Foci Positions")
 CO.Pos.density_Dom_male
 
 ```
@@ -378,23 +467,20 @@ think about adding a vertical line for centromere, for the position means. Think
 $$mouse \ average \ F1 position ~=~ subsp * sex + rand(strain* sex) + \varepsilon $$
 
 ```{r MM_CO_pos, echo=FALSE}
-
 #use the 1CO
 #Use MELT DF
 #MELT_Curated_BivData
 
-Pos.CO.avs <- ddply(MELT_Curated_BivData.PER, c("mouse", "Foci_Type"), summarise,
+Pos.CO.avs <- ddply(MELT_Curated_BivData, c("mouse", "Foci_Type"), summarise,
                         Nmice = length(unique(mouse)),
                         Ncells  = length(Obj.ID),
                         
-                    mean_PER_pos = as.numeric(format(round(  mean(PER_Position), 3 ), nsmall=3) )
+                    mean_PER_pos = as.numeric(format(round(  mean(PER.Foci.Pos), 3 ), nsmall=3) )
 )
 
 Pos.CO.avs <- add_sex(Pos.CO.avs)
 Pos.CO.avs <- add_strain(Pos.CO.avs)
 Pos.CO.avs <- add_subsp(Pos.CO.avs)
-
-
 
 #unorder the factors, but figure our
 Pos.CO.avs$strain <- unclass(Pos.CO.avs$strain)
@@ -407,14 +493,14 @@ Pos.CO.avs$sex <- unclass(Pos.CO.avs$sex)
 Pos.CO.avs$sex <- as.factor(Pos.CO.avs$sex)
 
 #isolate the 1COPos.CO.avs
-Pos.CO.avs_1CO <- Pos.CO.avs[Pos.CO.avs$Foci_Type == "PER_Foci_1",]
+Pos.CO.avs_1CO <- Pos.CO.avs[Pos.CO.avs$Foci_Type == "Foci1",]
 
 Pos.CO.avs_1CO <- Pos.CO.avs_1CO[!(is.na(Pos.CO.avs_1CO$mouse) | Pos.CO.avs_1CO$mouse==""), ]
 
 
-BivData.CO.PER.POS.MixedModel.HQ <- lme(mean_PER_pos ~ subsp * sex, data=Pos.CO.avs_1CO, random=list(strain=pdDiag(~sex) ) )
+BivData.CO.PER.POS.lme <- lme(mean_PER_pos ~ subsp * sex, data=Pos.CO.avs_1CO, random=list(strain=pdDiag(~sex) ) )
 
-as.data.frame( round(  summary(BivData.MixedModel.HQ)$tTable, 6 ) )
+as.data.frame( round(  summary(BivData.CO.PER.POS.lme)$tTable, 6 ) )
 #sex is significant
 ```
 
@@ -438,11 +524,15 @@ Dr. Broman suggested that the Smirnov K /(curve comparison) wasn't the best test
 #try remaking the plot Megan suggested
 # for 2CO positions, Foci1, Position  on x and Foci 2 position on y
 
+CurBivData_2CO <- Curated_BivData[Curated_BivData$hand.foci.count == 2,]
+
+CurBivData_2CO <- CurBivData_2CO[!(is.na(CurBivData_2CO$Foci2) | CurBivData_2CO$Foci2==""), ]
+
 #isolate 2COs
 #facet by sex and subsp
 
-#F1.x.F2 <- ggplot(MELT_Curated_BivData.PER, aes(x=F1, fill=F2) ) + geom_density(alpha=.4) + facet_wrap(~hand.foci.count)+ggtitle("Normalized Foci Positions")
-
+F1.x.F2 <- ggplot(CurBivData_2CO, aes(x=Foci1,y=Foci2, color=strain) ) + geom_point()+ facet_wrap(~sex)+ggtitle("test plot")
+F1.x.F2
 
 ```
 
