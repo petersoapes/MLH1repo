@@ -19,16 +19,19 @@ library(nlme)
 library(RLRsim)
 library(reshape2)
 
-setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
+#setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 #setwd("C:/Users/April/Desktop/MLH1repo")
 #load(file="data/MLH1/MLH1_data_setup.RData")
 
+setwd("~./MLH1repo/")
 #load Clean BivData
 load(file="data/CleanBivData_1.21.20.RData")
 
 
 #load other data files, MLH1
-load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.5.20.RData")#added batch18
+load(file="~./MLH1repo/data/MLH1_data_setup_1.5.20.RData")#added batch18
+
+#load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.5.20.RData")#added batch18
 
 load(file="data/MLH1/MLH1_data_setup_11.12.19.RData")#added batch17
 #fyi loading mulitple RData files doesn't earase ther files -- but it can overwrite files named the same thing
@@ -136,6 +139,47 @@ chrm.class.barplot
 the above plot displays the average proportion of each type of chromosome class across mice. The results mostly align with the hand measured results.
 
 Look into ordering the mouse strains to highlight the MSM and PWD differences, renameing the chrm type labels, spacing out the x axis labels or removing some of the other mice.
+
+
+#chromosome Size effect
+
+
+because of chromosome size effect on CO position and rate, I'd like to try seperate bins of the 'loss' bivalents
+how does within cell variance in SC length compare across cells?
+
+
+```{r chrm.size.effect, echo=FALSE}
+
+show.the.cells_females <- ggplot(whole.cell.data_manual[whole.cell.data_manual$sex == "female",], aes(x=fileName, y= SC.length, color=strain))+geom_point()+ facet_wrap(~strain, scales="free")+ylim(c(30,200))+ggtitle("Female whole cell manual measures")
+show.the.cells_females
+#PWD seems to have the biggest variance across cells
+
+#the min is pretty stable
+
+show.the.cells_male <- ggplot(whole.cell.data_manual[whole.cell.data_manual$sex == "male",], aes(x=fileName, y= SC.length, color=strain))+geom_point()+ facet_wrap(~strain, scales="free")+ylim(c(30,150))+ggtitle("Male whole cell manual measures")
+show.the.cells_male
+
+#WSB has more min
+
+
+#almost_whole_cell
+
+#almost_whole_cell_BivData
+almost_whole_cell_wsb <- almost_whole_cell_BivData[almost_whole_cell_BivData$strain == "WSB",]
+
+almost_whole_cell_DOM <- almost_whole_cell_BivData[almost_whole_cell_BivData$subsp == "Dom",]
+almost_whole_cell_MUSC <- almost_whole_cell_BivData[almost_whole_cell_BivData$subsp == "Musc",]
+
+show.the.almost_cells_DOM_m <- ggplot(almost_whole_cell_DOM[almost_whole_cell_DOM$sex == "male",], aes(x=fileName, y= chromosomeLength, color=strain))+
+  geom_point()+ facet_wrap(~strain, scales="free")+ylim(c(30,150))+ggtitle("Male whole cell BivData measures")
+
+show.the.almost_cells_DOM_m
+```
+
+
+given the distributions of sc lengths within cells -- do I think I can predict a random SC's length (rank)
+
+
 
 # Applying Mix Model framework
 
