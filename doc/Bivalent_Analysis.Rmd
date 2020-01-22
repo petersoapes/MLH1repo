@@ -2,11 +2,16 @@
 title: "Single Bivalent Level Analysis"
 author: "April Peterson"
 date: "`r format(Sys.time(), '%d %B %Y')`"
-output: html_document
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '5'
+    toc_float: yes
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
-
 library(knitr)
 library(ggplot2)
 #library(pwr)
@@ -18,6 +23,7 @@ library(lme4)
 library(nlme)
 library(RLRsim)
 library(reshape2)
+
 
 #setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
 #setwd("C:/Users/April/Desktop/MLH1repo")
@@ -141,47 +147,233 @@ the above plot displays the average proportion of each type of chromosome class 
 Look into ordering the mouse strains to highlight the MSM and PWD differences, renameing the chrm type labels, spacing out the x axis labels or removing some of the other mice.
 
 
-#chromosome Size effect
+# Chromosome Size effect
+
+In an attempt to deal with the chromosome effect size that is know to effect total rate and CO position, we try to make a dataset of the longest 25% SC from a cell.
+
+The majority of cells from the BivData set do not have the complete completement of bivalents, (ie they are missing up to 5) -- which makes it hard to use a absolute length threshold since some cells have shorter or longer bivalents compared to the while. So an absolute measure might catch the lower 25% of some cells. 
+
+I'd like to figure out how to best seperate out the true 4th quartille bivalents (longest 25%), even with this missing data. double check that 4th quartille is top 5/4
 
 
-because of chromosome size effect on CO position and rate, I'd like to try seperate bins of the 'loss' bivalents
-how does within cell variance in SC length compare across cells?
+Could I use the total SC? (I would be warry: can't ensure that they apply the same skeletonize algorithm/parameters and the XY is also included in that count and will mess everything up.)
+
+outline logic for filtering / choosing BivData set of almost whole cells  
+
+- 16 to 20 bivalents in the cells
 
 
 ```{r chrm.size.effect, echo=FALSE}
 
-show.the.cells_females <- ggplot(whole.cell.data_manual[whole.cell.data_manual$sex == "female",], aes(x=fileName, y= SC.length, color=strain))+geom_point()+ facet_wrap(~strain, scales="free")+ylim(c(30,200))+ggtitle("Female whole cell manual measures")
-show.the.cells_females
+#calq the mouse means
+manual_summary_stats <- ddply(whole.cell.data_manual, c("fileName"), summarise,
+
+                        mean_SC = as.numeric(format(round(  mean(SC.length, na.rm = TRUE), 3 ), nsmall=3) ),
+                        median_SC = median(SC.length, na.rm = TRUE),
+                        Qar.4 = quantile(SC.length, na.rm = TRUE)[[4]]
+#                        var_SC = format(round(   as.numeric(var(SC.length)),3), nsmall=3)
+                   
+)
+
+
+manual_summary_stats <- add_mouse(manual_summary_stats)
+manual_summary_stats <- add_strain(manual_summary_stats)
+manual_summary_stats <- add_sex(manual_summary_stats)
+manual_summary_stats <- add_subsp(manual_summary_stats)
+
+###
+#calq the mouse means
+Biv_Data_mean_table <- ddply(almost_whole_cell_BivData, c("fileName"), summarise,
+
+                        mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
+                        median_SC = median(chromosomeLength),
+                        Qar.4 = quantile(chromosomeLength)[[4]],
+                        
+                        var_SC = format(round(   as.numeric(var(chromosomeLength)),3), nsmall=3)
+        #add Q4                
+                        
+                        
+)
+Biv_Data_mean_table <- add_mouse(Biv_Data_mean_table)
+Biv_Data_mean_table <- add_strain(Biv_Data_mean_table)
+Biv_Data_mean_table <- add_sex(Biv_Data_mean_table)
+Biv_Data_mean_table <- add_subsp(Biv_Data_mean_table)
+
+
+show.the.cells_females_dom <- ggplot(whole.cell.data_manual[(whole.cell.data_manual$sex == "female") & (whole.cell.data_manual$subsp == "Dom"),], aes(x=fileName, y= SC.length, color=strain))+geom_point()+
+  
+   geom_point(data=manual_summary_stats[(manual_summary_stats$sex == "female") &(manual_summary_stats$subsp == "Dom"),],aes(y=mean_SC, x=fileName, col="red", size=2))+
+  geom_point(data=manual_summary_stats[(manual_summary_stats$sex == "female") & (manual_summary_stats$subsp == "Dom"),],aes(y=median_SC, x=fileName, col="black", size=1.5))+
+  
+   geom_point(data=manual_summary_stats[(manual_summary_stats$sex == "female") & (manual_summary_stats$subsp == "Dom"),],aes(y=Qar.4, x=fileName, col="black", size=2.6), shape=4)+
+  
+  facet_wrap(~strain, scales="free")+ylim(c(30,200))+ggtitle("Female whole cell manual measures")
+show.the.cells_females_dom
 #PWD seems to have the biggest variance across cells
+
+
+almost_cells_DOM_f <- ggplot(almost_whole_cell_BivData[(almost_whole_cell_BivData$sex == "female") & (almost_whole_cell_BivData$subsp == "Dom"),], aes(x=fileName, y= chromosomeLength, color=strain))+
+  geom_point()+ 
+  geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "female") & (Biv_Data_mean_table$subsp == "Dom"),],aes(y=mean_SC, x=fileName, col="red", size=2))+
+  geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "female") & (Biv_Data_mean_table$subsp == "Dom"),],aes(y=median_SC, x=fileName, col="black", size=1.5))+
+   geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "female") & (Biv_Data_mean_table$subsp == "Dom"),],aes(y=Qar.4, x=fileName, col="black", size=2.6), shape=4)+
+  
+  facet_wrap(~strain, scales="free")+ylim(c(30,200))+ggtitle("Dom female, almost whole cell \nMean, median, 4th Quartille ploted")
+almost_cells_DOM_f
+
+
+#### Musc female
+
+show.the.cells_females_musc <- ggplot(whole.cell.data_manual[(whole.cell.data_manual$sex == "female") & (whole.cell.data_manual$subsp == "Musc"),], aes(x=fileName, y= SC.length, color=strain))+geom_point()+
+  
+   geom_point(data=manual_summary_stats[(manual_summary_stats$sex == "female") &(manual_summary_stats$subsp == "Musc"),],aes(y=mean_SC, x=fileName, col="red", size=2))+
+  geom_point(data=manual_summary_stats[(manual_summary_stats$sex == "female") & (manual_summary_stats$subsp == "Musc"),],aes(y=median_SC, x=fileName, col="black", size=1.5))+
+  
+   geom_point(data=manual_summary_stats[(manual_summary_stats$sex == "female") & (manual_summary_stats$subsp == "Musc"),],aes(y=Qar.4, x=fileName, col="black", size=2.6), shape=4)+
+  
+  facet_wrap(~strain, scales="free")+ylim(c(30,200))+ggtitle("Female Musc whole cell manual measures")
+show.the.cells_females_musc
+
+
+almost_cells_Musc_f <- ggplot(almost_whole_cell_BivData[(almost_whole_cell_BivData$sex == "female") & (almost_whole_cell_BivData$subsp == "Musc"),], aes(x=fileName, y= chromosomeLength, color=strain))+
+  
+  geom_point()+ 
+  geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "female") & (Biv_Data_mean_table$subsp == "Musc"),],aes(y=mean_SC, x=fileName, col="red", size=2))+
+  geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "female") & (Biv_Data_mean_table$subsp == "Musc"),],aes(y=median_SC, x=fileName, col="black", size=1.5))+
+   geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "female") & (Biv_Data_mean_table$subsp == "Musc"),],aes(y=Qar.4, x=fileName, col="black", size=2.6), shape=4)+
+  
+  facet_wrap(~strain, scales="free")+ylim(c(30,200))+ggtitle("Musc female, almost whole cell \nMean, median, 4th Quartille ploted")
+almost_cells_Musc_f
+
+
+### Dom Male
+show.the.cells_male_dom <- ggplot(whole.cell.data_manual[(whole.cell.data_manual$sex == "male") & (whole.cell.data_manual$subsp == "Dom"),], aes(x=fileName, y= SC.length, color=strain))+geom_point()+
+  
+   geom_point(data=manual_summary_stats[(manual_summary_stats$sex == "male") &(manual_summary_stats$subsp == "Dom"),],aes(y=mean_SC, x=fileName, col="red", size=2))+
+  geom_point(data=manual_summary_stats[(manual_summary_stats$sex == "male") & (manual_summary_stats$subsp == "Dom"),],aes(y=median_SC, x=fileName, col="black", size=1.5))+
+  
+   geom_point(data=manual_summary_stats[(manual_summary_stats$sex == "male") & (manual_summary_stats$subsp == "Dom"),],aes(y=Qar.4, x=fileName, col="black", size=2.6), shape=4)+
+  
+  facet_wrap(~strain, scales="free")+ylim(c(30,150))+ggtitle("Male Dom whole cell manual measures")
+show.the.cells_male_dom
+
+
+almost_cells_Dom_m <- ggplot(almost_whole_cell_BivData[(almost_whole_cell_BivData$sex == "male") & (almost_whole_cell_BivData$subsp == "Dom"),], aes(x=fileName, y= chromosomeLength, color=strain))+
+  
+  geom_point()+ 
+  geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "male") & (Biv_Data_mean_table$subsp == "Dom"),],aes(y=mean_SC, x=fileName, col="red", size=2))+
+  geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "male") & (Biv_Data_mean_table$subsp == "Dom"),],aes(y=median_SC, x=fileName, col="black", size=1.5))+
+   geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "male") & (Biv_Data_mean_table$subsp == "Dom"),],aes(y=Qar.4, x=fileName, col="black", size=2.6), shape=4)+
+  
+  facet_wrap(~strain, scales="free")+ylim(c(30,150))+ggtitle("Dom male, almost whole cell \nMean, median, 4th Quartille ploted")
+almost_cells_Dom_m
+
+
+#MUSC male
+show.the.cells_male_musc <- ggplot(whole.cell.data_manual[(whole.cell.data_manual$sex == "male") & (whole.cell.data_manual$subsp == "Musc"),], aes(x=fileName, y= SC.length, color=strain))+geom_point()+
+  
+   geom_point(data=manual_summary_stats[(manual_summary_stats$sex == "male") &(manual_summary_stats$subsp == "Musc"),],aes(y=mean_SC, x=fileName, col="red", size=2))+
+  geom_point(data=manual_summary_stats[(manual_summary_stats$sex == "male") & (manual_summary_stats$subsp == "Musc"),],aes(y=median_SC, x=fileName, col="black", size=1.5))+
+  
+   geom_point(data=manual_summary_stats[(manual_summary_stats$sex == "male") & (manual_summary_stats$subsp == "Musc"),],aes(y=Qar.4, x=fileName, col="black", size=2.6), shape=4)+
+  
+  facet_wrap(~strain, scales="free")+ylim(c(30,150))+ggtitle("Musc Dom whole cell manual measures")
+show.the.cells_male_musc
+
+
+almost_cells_Musc_m <- ggplot(almost_whole_cell_BivData[(almost_whole_cell_BivData$sex == "male") & (almost_whole_cell_BivData$subsp == "Musc"),], aes(x=fileName, y= chromosomeLength, color=strain))+
+  
+  geom_point()+ 
+  geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "male") & (Biv_Data_mean_table$subsp == "Musc"),],aes(y=mean_SC, x=fileName, col="red", size=2))+
+  geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "male") & (Biv_Data_mean_table$subsp == "Musc"),],aes(y=median_SC, x=fileName, col="black", size=1.5))+
+   geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "male") & (Biv_Data_mean_table$subsp == "Musc"),],aes(y=Qar.4, x=fileName, col="black", size=2.6), shape=4)+
+  
+  facet_wrap(~strain, scales="free")+ylim(c(30,150))+ggtitle("Musc male, almost whole cell \nMean, median, 4th Quartille ploted")
+almost_cells_Musc_m
+
+
+
 
 #the min is pretty stable
 
-show.the.cells_male <- ggplot(whole.cell.data_manual[whole.cell.data_manual$sex == "male",], aes(x=fileName, y= SC.length, color=strain))+geom_point()+ facet_wrap(~strain, scales="free")+ylim(c(30,150))+ggtitle("Male whole cell manual measures")
-show.the.cells_male
-
-#WSB has more min
-
-
-#almost_whole_cell
+#show.the.cells_male <- ggplot(whole.cell.data_manual[whole.cell.data_manual$sex == "male",], aes(x=fileName, y= SC.length, color=strain))+geom_point()+
+  
+#   geom_point(data=manual_summary_stats[manual_summary_stats$sex == "male",],aes(y=mean_SC, x=fileName, col="red", size=2))+
+  
+#  geom_point(data=manual_summary_stats[manual_summary_stats$sex == "male",],aes(y=median_SC, x=fileName, col="black", size=1.5))+
+  
+#   geom_point(data=manual_summary_stats[manual_summary_stats$sex == "male",],aes(y=Qar.4, x=fileName, col="black", size=2.6), shape=4)+
+  
+ # facet_wrap(~strain, scales="free")+ylim(c(30,150))+ggtitle("Male whole cell manual measures")
+#show.the.cells_male
 
 #almost_whole_cell_BivData
-almost_whole_cell_wsb <- almost_whole_cell_BivData[almost_whole_cell_BivData$strain == "WSB",]
+#almost_whole_cell_wsb <- almost_whole_cell_BivData[almost_whole_cell_BivData$strain == "WSB",]
+#almost_whole_cell_DOM <- almost_whole_cell_BivData[almost_whole_cell_BivData$subsp == "Dom",]
+#almost_whole_cell_MUSC <- almost_whole_cell_BivData[almost_whole_cell_BivData$subsp == "Musc",]
 
-almost_whole_cell_DOM <- almost_whole_cell_BivData[almost_whole_cell_BivData$subsp == "Dom",]
-almost_whole_cell_MUSC <- almost_whole_cell_BivData[almost_whole_cell_BivData$subsp == "Musc",]
-
-show.the.almost_cells_DOM_m <- ggplot(almost_whole_cell_DOM[almost_whole_cell_DOM$sex == "male",], aes(x=fileName, y= chromosomeLength, color=strain))+
-  geom_point()+ facet_wrap(~strain, scales="free")+ylim(c(30,150))+ggtitle("Male whole cell BivData measures")
-
-show.the.almost_cells_DOM_m
 ```
 
 
-given the distributions of sc lengths within cells -- do I think I can predict a random SC's length (rank)
+All the plots above show the distrtributions of manually whole cell measured SC lengths compared to the SC length distributions from the automated bivalent data. It shows the amount of within cell variance across strains. There is a bit of variance across the SC length distributions in the PWD females.   
 
+I'm purposing to take all the automated biv measures above the cell's 4th quartille as a dataset for 'longestest' bivalents which we would predict to exclude the shortest chromsomes which would have stronger chromsome size effects.  
+
+
+But this dataset might be noisy, given the amount of variance in the SC length distributions across cells (PWD females, WSB females). But it's easier to just run another set of analysis.
+
+
+
+```{r long.chrm.dataset, echo=FALSE, eval=FALSE}
+
+#how many biv's are from cells with >15 bivalents
+
+al.15_bivs <- cell.level.BivData_table[cell.level.BivData_table$Nbiv >15, ]#150 cells have al 15
+
+long_BivData_set <- Curated_BivData[ Curated_BivData$fileName %in% al.15_bivs$fileName, ] #across those 150 cells are 2654 biv measures
+
+#table(potential.data.set$category)
+long_BivData_set$fileName <- as.character(long_BivData_set$fileName)
+Biv_Data_mean_table$fileName <- as.character(Biv_Data_mean_table$fileName)
+
+
+#pull out the biv's which exceed the cell's Q4
+#for each line of long_BivData_set
+# check if it's SC length is greater than the Q4 for the given cell
+
+long_BivData_set99 <- long_BivData_set
+
+for(  i in 1:length( long_BivData_set99$fileName)  ){
+  long_BivData_set99$cell.Q4[i] <- Biv_Data_mean_table[ which(Biv_Data_mean_table$fileName == long_BivData_set99$fileName[i]), ]
+}
+
+
+for(  k in 1:length( long_BivData_set99$fileName)  ){
+long_BivData_set99$above.Q4[k] <- ifelse( (long_BivData_set99$cell.Q4 < long_BivData_set99$chromosomeLength), "yes", "no")
+}
+#This isn't working either
+
+
+
+#for(i in 1:length( long_BivData_set$fileName)  ){ 
+  # print(i)
+#  current_obj_fileName <- long_BivData_set$fileName[i]
+#  current_obj_SC_length <- long_BivData_set$chromosomeLength[i]  
+#  current.Q4 <- Biv_Data_mean_table$Qar.4[which(Biv_Data_mean_table$fileName == current_obj_fileName) ]
+# current.Q4 <- Biv_Data_mean_table$Qar.4[which(Biv_Data_mean_table$fileName == long_BivData_set$fileName[i]) ]
+#  long_BivData_set$above.Q4 <-ifelse( (current.Q4 < current_obj_SC_length), 1, 0)
+#  print( paste( c(current.Q4, current_obj_fileName, current_obj_SC_length), sep = "_" ) )
+#}
+#this loop isn't working
+
+```
+
+The dataset is unbalanced in some ways -- integrating manual measures might fix. MSM under rep, since most cell had high overlap.
 
 
 # Applying Mix Model framework
+
+I will use two different mixed models using lme() and lmer(), because the different models have limitations for reporting p values ect.
 
 
 list out pros and cons for using mouse averages of bivalent traits instead of using the single bivalent traits them selves.  
@@ -202,6 +394,63 @@ list out pros and cons for using mouse averages of bivalent traits instead of us
 - Limited work to add to the dataset if I can justify that the collection of single bivalents are random and equivilent across mice. 
 
 
+```{r clean.biv.data4.MM, echo=FALSE}
+
+#remove all the non-used strains!!
+Curated_BivData <- Curated_BivData[Curated_BivData$strain != "AST",]
+Curated_BivData <- Curated_BivData[Curated_BivData$strain != "TOM",]
+Curated_BivData <- Curated_BivData[Curated_BivData$strain != "CZECH",]
+Curated_BivData$strain <- droplevels(Curated_BivData$strain)
+#MOLF
+
+#non-ordered factors, 
+Curated_BivData$subsp <- factor(Curated_BivData$subsp, ordered = FALSE)
+Curated_BivData$sex <- factor(Curated_BivData$sex, ordered = FALSE)
+Curated_BivData$strain <- factor(Curated_BivData$strain, ordered = FALSE)
+
+#all numbers, numbers
+#all relavent factors unordered
+
+#the mouse averages will be used
+
+mouse.avs_4MM <- ddply(Curated_BivData, c("mouse"), summarise,
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(Obj.ID),
+                        mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
+                        cV = cv(chromosomeLength),
+                        var = as.numeric(format(round(   var(chromosomeLength),3), nsmall=3) ),
+                        sd   = round(sd(chromosomeLength), 3),
+                        se   = round(sd / sqrt(Ncells), 3),
+                       #IFD things
+                #  mean_IFD_ABS = as.numeric(format(round(  mean(IFD1_ABS, na.rm = TRUE), 3 ), nsmall=3) ),
+                # mean_IFD_PER = as.numeric(format(round(  mean(IFD1_PER, na.rm = TRUE), 3 ), nsmall=3) ),
+                 
+                 mean_IFD.2CO_ABS = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                 mean_IFD.2CO_PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
+                  
+                       #CO position things, requires the melt?
+              norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)])
+                  
+)
+
+#vari
+mouse.avs_4MM <- add_sex(mouse.avs_4MM)
+mouse.avs_4MM <- add_strain(mouse.avs_4MM)
+mouse.avs_4MM <- add_subsp(mouse.avs_4MM)
+#unordered
+mouse.avs_4MM$subsp <- factor(mouse.avs_4MM$subsp, ordered = FALSE)
+mouse.avs_4MM$sex <- factor(mouse.avs_4MM$sex, ordered = FALSE)
+mouse.avs_4MM$strain <- factor(mouse.avs_4MM$strain, ordered = FALSE)
+
+#MAKE the same version of the TABLE but for the longest_biv_Dataset (when I get around to making it)
+
+#code if males are high or low?
+
+
+```
+
+In the chunk above the mouse averages table is made -- may need to add all the extra metrics (IFD, .
+
 ## Predictions, Heterochiasmy
 
 Using the Mixed model framework which tests the effects (and interactions) of subspecies, sex and strain, I will test for evolution of the following traits.
@@ -214,12 +463,53 @@ Two bivalent level traits are predicted to display heterochiasmy (ie significant
 2) normalized CO positions (sedell and Kirkpatrick). 
 
 
-Interference, measured in the physical units, has been shown to lack sexual dimorphism (petkov).
+3) Interference, measured in the physical units, has been shown to lack sexual dimorphism (petkov).
 
 These 3 hypotheses will be tested with the mixed model framework, specifically focusing on the effect of sex.
 
 Mouse averages for the each metric will be used.
 
+
+
+## Predictions, male polymorphism
+
+What predictions do I have for how traits will differ between the low and high Musc mouse strains?
+
+
+A) **SC lengths** will be longer for high Rec  
+
+B.1) **Interfernce/IFD** will be shorter in high Rec
+
+or
+
+B.2) **Interference/IFD** will be longer in high Rec males, sis-co-ten metric will be maximized. (given prelim results from Beth's data)  
+
+
+C) It's unknown if **1CO normalized positions** between high and low musc strains, will differ. (no good predictions come to mind)
+
+
+Using the same MM framework we would expect the random strain effect would be significant for these predictions.
+
+Use just the male (Musc male data)
+
+$$mouse \ average \ SC  \ length ~=~ rand(strain) + \varepsilon $$
+
+$$mouse \ average \ IFD \ trait  ~=~ rand(strain) + \varepsilon $$
+The IFD traits are:  
+
+- IFD_ABS  
+
+- IFD_PER  
+
+$$mouse \ average \ CO \ position \ trait  ~=~ rand(strain) + \varepsilon $$
+
+The CO position traits are:  
+
+- 1CO position  
+
+- centromere and telomere distance  
+
+- sis-co-ten
 
 
 # SC Lengths
@@ -260,63 +550,49 @@ TRY ADDING NESTED boxplots for hand.foci.count
 
 
 
-$$mouse \ average \ SC  \ length ~=~ subsp * sex + rand(strain* sex) + \varepsilon $$
+$$mouse \ average \ SC  \ length ~=~ subsp * sex + rand(strain*sex) + \varepsilon $$
 
-Above is the model we are testing evolution of SC lengths.
+To estimate random effects, I'm using lmer (not lme where I could do the rand(strain*sex)). So now it's just random(strain).
 
-```{r MM.SC.Length, echo=FALSE}
 
-#use the merged DF to filter by age 
-AP_mouse_table_w.Ages$strain <- AP_mouse_table_w.Ages$strain.x
-AP_mouse_table_w.Ages$sex <- AP_mouse_table_w.Ages$sex.x
-AP_mouse_table_w.Ages$subsp <- AP_mouse_table_w.Ages$subsp.x
-#main file, make everything unordered factors
-AP_mouse_table_w.Ages <- add_species(AP_mouse_table_w.Ages)
+Above is the model we are testing evolution of SC lengths.  remember for the MM use the table **mouse.avs_4MM**
 
-DF.HetC.MixedModel <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$species == "M.musculus",]
 
-#check all the strains and male ages, should be the same for MM
-
-DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel[DF.HetC.MixedModel$Ncells > 9,]
-DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[DF.HetC.MixedModel.HQ$age.weeks < 25,]
-DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[!(is.na(DF.HetC.MixedModel.HQ$mouse) | DF.HetC.MixedModel.HQ$mouse==""), ]
-
-#mouse.level.table
-#make this in datasetup
-mouse.avs <- ddply(Curated_BivData, c("mouse"), summarise,
-                        Nmice = length(unique(mouse)),
-                        Ncells  = length(Obj.ID),
-                        mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
-                        cV = cv(chromosomeLength),
-                        var = format(round(   var(chromosomeLength),3), nsmall=3),
-                        sd   = round(sd(chromosomeLength), 3),
-                        se   = round(sd / sqrt(Ncells), 3)
-)
-
-mouse.avs <- add_sex(mouse.avs)
-mouse.avs <- add_strain(mouse.avs)
-mouse.avs <- add_subsp(mouse.avs)
-
-#unorder the factors, but figure our
-mouse.avs$strain <- unclass(mouse.avs$strain)
-mouse.avs$strain <- as.factor(mouse.avs$strain)
-
-mouse.avs$subsp <- unclass(mouse.avs$subsp)
-mouse.avs$subsp <- as.factor(mouse.avs$subsp)
-
-mouse.avs$sex <- unclass(mouse.avs$sex)
-mouse.avs$sex <- as.factor(mouse.avs$sex)
-
-BivData.MixedModel.HQ <- lme(mean_SC ~ subsp * sex, data=mouse.avs, random=list(strain=pdDiag(~sex) ) )
-
-as.data.frame( round(  summary(BivData.MixedModel.HQ)$tTable, 6 ) )
-
-#sex is significant! with prediction
+```{r MM_2.SC.Length, echo=FALSE}
+#get a list of the old mice to double check
+#old.mice <- DF.HetC.MixedModel.HQ$mouse[DF.HetC.MixedModel.HQ$age.weeks < 25,]
+#MIXED MODEL
+lme_MM_SC.length <- lme(mean_SC ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
+as.data.frame( round(  summary(lme_MM_SC.length)$tTable, 6 ) )
+#p
 
 ```
 
+I used the mixed model with the lme()
 
-The results seem to indicate that sex is a significant factor. Consider writing a subsampling approach (randomize / permute a data set of BivData)
+
+
+$$mouse \ average \ SC  \ length ~=~ subsp * sex + rand(strain) + \varepsilon $$
+
+```{r MM_2_SC.length, echo=FALSE}
+
+#as.data.frame( round(  summary(BivData.MixedModel.HQ)$tTable, 6 ) )
+
+#can't make the 
+SC_length.MM <- lmer(mean_SC ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
+
+anova(SC_length.MM) 
+
+thing1  <- summary(SC_length.MM)
+thing2 <- drop1(SC_length.MM, test="Chisq") 
+
+rand_SC.Length_MM <- exactRLRT(SC_length.MM)
+rand_SC.Length_MM
+
+#this pvalue for ran is 0.0027 -- the strain effect 
+```
+
+
 
 ```{r justify.mouse.level, echo=FALSE}
 
@@ -338,12 +614,87 @@ The results seem to indicate that sex is a significant factor. Consider writing 
 ```
 
 
+### Heterochiasmy Prediction
+
+> Is sex a significant effect for SC length? (as predicted)
+
+Sex is a significant effect for SC length
+The results seem to indicate that sex is a significant factor. Consider writing a subsampling approach (randomize / permute a data set of BivData)
+
+> Is the random Effect of strain an effect on SC length?
+
+The exactRLRT() test indicates that the random strain effect might be significant, p= `r rand_SC.Length_MM$p.value`.
+
+
+### Male polymorphism Predcition
+
+Preidction, High rec males have longer SC.
+
+
+```{r male.poly.test.MM, echo=FALSE, eval=FALSE}
+#t.test comparisons of PWD_SC vs (KAZ, SKIVE, )
+#MSM_SC vs MOLF_SC
+
+#2. logistic regression for sc length and chrm class?
+#if the prediction / significance 
+
+#isolate data
+mouse.avs_4MM_male <- mouse.avs_4MM[mouse.avs_4MM$sex == "male",]
+mouse.avs_4MM_M.male <- mouse.avs_4MM_male[mouse.avs_4MM_male$subsp == "Musc",]
+
+mouse.avs_4MM_M.male$mouse <- factor(mouse.avs_4MM_M.male$mouse, ordered = FALSE)
+
+#build and test MM
+lme_MM_SC_length_male.poly <- lme(mean_SC ~ mouse + 1|strain, data= mouse.avs_4MM_M.male)#this syntax not working
+as.data.frame( round(  summary(lme_MM_SC.length)$tTable, 6 ) )
+
+
+
+lmer_MM_SC_length_male.poly <- lmer(mean_SC ~ (1|strain), data=mouse.avs_4MM_M.male, REML = TRUE)
+
+anova(lmer_MM_SC_length_male.poly)
+
+rand_SC.Length_MM.male.poly <- exactRLRT(lmer_MM_SC_length_male.poly)#this won't work either...hmm
+
+```
+
+I can't get the above mixed models to work for testing high vs low rec groups
+
+
+```{r logreg, echo=FALSE}
+
+mouse.avs_4MM_male <- mouse.avs_4MM[mouse.avs_4MM$sex == "male",]
+mouse.avs_4MM_M.male <- mouse.avs_4MM_male[mouse.avs_4MM_male$subsp == "Musc",]
+
+#divide musc males into groups
+mouse.avs_4MM_male$Rec.group <- ifelse(grepl("PWD", mouse.avs_4MM_male$strain), 1, 
+                                    ifelse(grepl("MSM", mouse.avs_4MM_male$strain), 1, 0))
+
+
+log.reg_SC.length <- glm(Rec.group ~ mean_SC, 
+                            data=mouse.avs_4MM_male, family=binomial(link="logit"))
+
+log.reg_SC.length_Musc <- glm(Rec.group ~ mean_SC, 
+                            data=mouse.avs_4MM_male[mouse.avs_4MM_male$subsp == "Musc",], family=binomial(link="logit"))
+
+#the summary for both these models is the same ... should I be worried?
+
+#mean SC slightly sig-- these are all mean SC--should I try distinguishing by chrm classes?
+```
+
+When all male mice are used, the predictive power is greater, than when just the Musc strains are used. When, just the Musc strain are used, The mouse mean SC is slightly significant in predicting if a mouse is in the high or low (should I consider running on female too?)
+
+
+> Is the prediction, high rec musc male strains have long SC met?  
+
+
+In a logistic regression, mouse average SC length is slightly predictive telling if a mouse is in a high or low Rec strain.  I counldn't get the Mixed models working for the male polymorphism predictions...
+
 
 # IFD
 
 **I**nter**f**ocal **D**istance, a indication of CO interference.
 
-DO I have anything to say....
 
 How can I highlight the result (I need to verify this first) for greater IFD in high rec male mice?
 
@@ -351,21 +702,51 @@ The raw measures are pretty nosy, this might not be the best way to display thes
 
 
 ```{r show.IFD, echo=FALSE, warning=FALSE}
-
+colors_of_strains <- c('WSB'= "#56B4E9",'G' ='cadetblue','LEW'= 'lightblue','PERC'= 'blue',
+                       #blues
+                       
+                       'PWD'= 'red2',
+                       'SKIVE'= 'coral1','KAZ'= 'coral4', 'TOM'= 'indianred1','AST' = 'red4',
+                       'CZECH'= 'indianred4',
+                       
+                       'MSM'= 'deeppink', 'MOLF'= 'hotpink', #mol are pinks, bc they are fancy mice
+                       
+                    'CAST'='green','HMI'= 'forestgreen', #greens
+                    
+                    'SPRET'='gold','SPIC'= 'goldenrod1', #browns? color of mounds?
+                    'CAROLI'='gold3',
+                    
+                    "F1"='grey', "other" = 'grey'
+                    )
 #first draft of the IFD comparisons
+#make the mouse boxplots -- instead of geom_points
 
-#for now remove the 
+#Only use 2CO bivalents
 Curated_BivData.22 <- Curated_BivData[Curated_BivData$hand.foci.count == 2,]
 Curated_BivData.22 <- Curated_BivData.22[(!is.na(Curated_BivData.22$hand.foci.count)),]
 
+#boxplots
+boxplots_first.IFD.plot_ABS <- ggplot(Curated_BivData.22, aes(y = IFD1_ABS, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
+  geom_jitter(alpha=.2)+
+  ggtitle("Interfocal Distances, ABS")+
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none")
+boxplots_first.IFD.plot_ABS
+#order is out of wack, but -- good for now
+
+
+boxplots_first.IFD.plot_PER <- ggplot(Curated_BivData.22, aes(y = IFD1_PER, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
+  geom_jitter(alpha=.2)+
+  ggtitle("Interfocal Distances, ABS")+
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")+ylim(c(0,1))
+boxplots_first.IFD.plot_PER
+
 
 first.IFD.plot_ABS <- ggplot(Curated_BivData.22, aes(y = IFD1_ABS, x= strain, color=mouse))+geom_jitter()+ggtitle("Interfocal Distances, ABS")+facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none")
-first.IFD.plot_ABS
 
 first.IFD.plot_PER <- ggplot(Curated_BivData.22, aes(y = IFD1_PER, x= strain, color=chromosomeLength))+geom_jitter()+ggtitle("Interfocal Distances, PER")+facet_wrap(sex~subsp, scales = "free")+ylim(c(0,1)) 
 
 #+theme(legend.position="none")
-first.IFD.plot_PER
+
 
 ```
 
@@ -374,89 +755,144 @@ Maybe add mouse level lines for the means
 
 Maybe I should try binned the SC lengths.
 
+mixed model analysis for IFD (interference), the first set of models are made with the lme() functions.
 
-mixed model analysis for IFD (interference)
+$$mouse \ average \ IFD ~=~ subsp * sex + rand(strain*sex) + \varepsilon $$
+
+```{r MM_1.SC.Length, echo=FALSE}
+#get a list of the old mice to double check
+#old.mice <- DF.HetC.MixedModel.HQ$mouse[DF.HetC.MixedModel.HQ$age.weeks < 25,]
+#MIXED MODEL
+
+#remove the SKIVE male line
+mouse.avs_4MM <- mouse.avs_4MM[!(is.na(mouse.avs_4MM$mean_IFD.2CO_ABS) | mouse.avs_4MM$mean_IFD.2CO_ABS==""), ]
+
+lme_MM_IFD_ABS <- lme(mean_IFD.2CO_ABS ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
+as.data.frame( round(  summary(lme_MM_IFD_ABS)$tTable, 6 ) )
+#p
+
+lme_MM_IFD_PER <- lme(mean_IFD.2CO_PER ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
+as.data.frame( round(  summary(lme_MM_IFD_PER)$tTable, 6 ) )
+```
 
 
-$$mouse \ average \ IFD ~=~ subsp * sex + rand(strain* sex) + \varepsilon $$
+### second set of Mixed Models
 
-$$mouse \ average \ normalized IFD ~=~ subsp * sex + rand(strain* sex) + \varepsilon $$
+These seond set of models are made using the lmer()
 
-I tested 2 versions of the mixed model for this flavor of trait, raw IFD and normalized IFD measure
+$$mouse \ average \ IFD ~=~ subsp * sex + rand(strain) + \varepsilon $$
+
+$$mouse \ average \ normalized IFD ~=~ subsp * sex + rand(strain) + \varepsilon $$
+
+I tested 2 versions of the mixed model for this flavor of trait, raw IFD and normalized IFD measure. The tables below are from anova( for the lmer model )
 
 
 ```{r MM.IFD, echo=FALSE}
 
-#set up data set for the mixed model
-#Curated_BivData
+IFD_ABS.MM <- lmer(mean_IFD.2CO_ABS ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
 
-#use the merged DF to filter by age 
-AP_mouse_table_w.Ages$strain <- AP_mouse_table_w.Ages$strain.x
-AP_mouse_table_w.Ages$sex <- AP_mouse_table_w.Ages$sex.x
-AP_mouse_table_w.Ages$subsp <- AP_mouse_table_w.Ages$subsp.x
-#main file, make everything unordered factors
-AP_mouse_table_w.Ages <- add_species(AP_mouse_table_w.Ages)
+anova(IFD_ABS.MM) 
 
-DF.HetC.MixedModel <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$species == "M.musculus",]
+#thing1  <- summary(IFD_ABS.MM)
+IFD.ABS_chi <- drop1(IFD_ABS.MM, test="Chisq") 
+IFD.ABS_chi
 
-#check all the strains and male ages, should be the same for MM
-
-DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel[DF.HetC.MixedModel$Ncells > 9,]
-DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[DF.HetC.MixedModel.HQ$age.weeks < 25,]
-DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[!(is.na(DF.HetC.MixedModel.HQ$mouse) | DF.HetC.MixedModel.HQ$mouse==""), ]
-
-#mouse.level.table
-#make this in datasetup
-mouse.avs.table1 <- ddply(Curated_BivData, c("mouse"), summarise,
-                        Nmice = length(unique(mouse)),
-                        Ncells  = length(Obj.ID),
-                        mean_SC = as.numeric(format(round(  mean(chromosomeLength, na.rm = TRUE), 3 ), nsmall=3) ),
-                   
-                   mean_IFD_ABS = as.numeric(format(round(  mean(IFD1_ABS, na.rm = TRUE), 3 ), nsmall=3) ),
-                   
-                   mean_IFD_PER = as.numeric(format(round(  mean(IFD1_PER, na.rm = TRUE), 3 ), nsmall=3) ),
-                   
-                        cV = cv(chromosomeLength),
-                        var = format(round(   var(chromosomeLength),3), nsmall=3),
-                        sd   = round(sd(chromosomeLength), 3),
-                        se   = round(sd / sqrt(Ncells), 3)
-)
-
-mouse.avs.table1 <- add_sex(mouse.avs.table1)
-mouse.avs.table1 <- add_strain(mouse.avs.table1)
-mouse.avs.table1 <- add_subsp(mouse.avs.table1)
-
-#unorder the factors, but figure our
-mouse.avs.table1$strain <- unclass(mouse.avs.table1$strain)
-mouse.avs.table1$strain <- as.factor(mouse.avs.table1$strain)
-
-mouse.avs.table1$subsp <- unclass(mouse.avs.table1$subsp)
-mouse.avs.table1$subsp <- as.factor(mouse.avs.table1$subsp)
-
-mouse.avs.table1$sex <- unclass(mouse.avs.table1$sex)
-mouse.avs.table1$sex <- as.factor(mouse.avs.table1$sex)
-
-mouse.avs.table1 <- mouse.avs.table1[(!is.na(mouse.avs.table1$mean_IFD_ABS)),]
+rand_test_IFD.ABS.MM <- exactRLRT(IFD_ABS.MM)
+rand_test_IFD.ABS.MM
 
 
-BivData_IFD_ABS.MixedModel.HQ <- lme(mean_IFD_ABS ~ subsp * sex, data=mouse.avs.table1, random=list(strain=pdDiag(~sex) ) )
+IFD_PER.MM <- lmer(mean_IFD.2CO_PER ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
 
-as.data.frame( round(  summary(BivData_IFD_ABS.MixedModel.HQ)$tTable, 6 ) )
-#ABD - IFD not sex specific effect
+anova(IFD_PER.MM)
 
+Chis.sp_IFD.PER.MM <- drop1(IFD_PER.MM, test="Chisq") 
+Chis.sp_IFD.PER.MM
 
-BivData_IFD_PER.MixedModel.HQ <- lme(mean_IFD_PER ~ subsp * sex, data=mouse.avs.table1, random=list(strain=pdDiag(~sex) ) )
-as.data.frame( round(  summary(BivData_IFD_PER.MixedModel.HQ)$tTable, 6 ) )
-#sex is a little significat
+rand_test_IFD.PER.MM <- exactRLRT(IFD_PER.MM)
+rand_test_IFD.PER.MM
 
 ```
 
-sex may be a significant effect for the percent (normalized IFD). Is there a way to measure / account for the SC.length effect?
 
+
+```{r compare.IFD}
+
+#make 
+
+```
+
+
+### Heterochiasmy Prediction
+
+> Do the IFD measures lack significant sex effect? (as predicted)
+
+There are sex effects for the lme() models for both the ABS and PER IFD measures. There isn't evidence of Random effects from the lmer() models.
+
+
+> Are there signiticant strain effects?
+
+The random strain effect was tested for raw and normalized IFD, neither are signifcant.
+
+
+### Male Polymorphism Prediction
+
+> Is the Male polymorphism Prediction met? High rec strains have shorter IFDs?
+
+
+```{r IFD.t.test, echo=FALSE, eval=FALSE}
+
+#pool the whole groups
+
+ABS.t.test <- t.test( mouse.avs_4MM_M.male$mean_IFD.2CO_ABS[mouse.avs_4MM_M.male$Rec.group == 1],
+  mouse.avs_4MM_M.male$mean_IFD.2CO_ABS[mouse.avs_4MM_M.male$Rec.group == 0])
+
+PER.t.test <- t.test( mouse.avs_4MM_M.male$mean_IFD.2CO_PER[mouse.avs_4MM_M.male$Rec.group == 1],
+  mouse.avs_4MM_M.male$mean_IFD.2CO_PER[mouse.avs_4MM_M.male$Rec.group == 0])
+
+#compare strain by strain
+# p = `r ABS.t.test$p.value`  and p = `r PER.t.test$p.value`.
+```
+
+
+Neither t.test are sig for both the ABS and PER when I test just the Musc strains.
+The above t.tests are breaking the knitr
+
+```{r IFD.poly_log.reg, echo=FALSE}
+
+#test. for the high vs low strains and IFD
+#mouse.avs_4MM_male
+
+mouse.avs_4MM_M.male <- mouse.avs_4MM_male[mouse.avs_4MM_male$subsp == "Musc", ]
+
+log.reg_IFD.ASB <- glm(Rec.group ~ mean_IFD.2CO_ABS, 
+                            data=mouse.avs_4MM_M.male, family=binomial(link="logit"))
+#slightly sig
+
+summary(log.reg_IFD.ASB)
+
+log.reg_IFD.PER <- glm(Rec.group ~ mean_IFD.2CO_PER, 
+                            data=mouse.avs_4MM_M.male, family=binomial(link="logit"))
+summary(log.reg_IFD.PER)
+
+#not significant
+```
+
+
+None of the logistic regression models for ABS or PER IFD lengths are sigificant, even when just the Musc strains are used.
+
+
+
+Post-hoc comparisons ideas?
 
 Preliminary results from an independant dataset indecated that PWD had longer IFDs, which goes agaisnt the simple prediction of more COs ~ denser spacing of foci on the same bivalent. This also indecated that interference distance may evolved in the house mouse complex.
 
-```{r compare.IFD}
+
+> Is there evidence for the alternative IFD meansure
+
+
+INSERT THE SISCOTEN ESTIMATES!!
+
+```{r siscoten.test, echo=FALSE}
 
 ```
 
@@ -464,13 +900,29 @@ Preliminary results from an independant dataset indecated that PWD had longer IF
 
 # General CO Positions
 
+There are a few traits that fall within the CO positions  
 
-```{r CO.positions}
+- 1CO normalized position  
+
+
+- sis.co.ten (sorta interference)  
+
+
+- centromere and telomere distance  
+
+
+
+```{r CO.positions.figs, echo=FALSE}
 #main figure of density plots,
 
 MELT_Curated_BivData <- add_sex(MELT_Curated_BivData)
 MELT_Curated_BivData <- add_strain(MELT_Curated_BivData)
 MELT_Curated_BivData <- add_subsp(MELT_Curated_BivData)#subsp, needs strain
+
+#clean up all the non 1 to 4 hand.foci counts
+MELT_Curated_BivData <- MELT_Curated_BivData[MELT_Curated_BivData$hand.foci.count <5, ]
+# remove the na's
+MELT_Curated_BivData <- MELT_Curated_BivData[!(is.na(MELT_Curated_BivData$hand.foci.count) | MELT_Curated_BivData$hand.foci.count==""), ]
 
 Musc.female_MELT_curBivData <- MELT_Curated_BivData[ ((MELT_Curated_BivData$sex == "female") & (MELT_Curated_BivData$subsp == "Musc") ), ]
 
@@ -508,45 +960,57 @@ think about adding a vertical line for centromere, for the position means. Think
 
 
 
-$$mouse \ average \ F1 position ~=~ subsp * sex + rand(strain* sex) + \varepsilon $$
+$$mouse \ average \ F1 position ~=~ subsp * sex + rand(strain) + \varepsilon $$
+
+The mixed model data should only come from 1CO bivalent data.
+
 
 ```{r MM_CO_pos, echo=FALSE}
 #use the 1CO
 #Use MELT DF
 #MELT_Curated_BivData
 
-Pos.CO.avs <- ddply(MELT_Curated_BivData, c("mouse", "Foci_Type"), summarise,
-                        Nmice = length(unique(mouse)),
-                        Ncells  = length(Obj.ID),
-                        
-                    mean_PER_pos = as.numeric(format(round(  mean(PER.Foci.Pos), 3 ), nsmall=3) )
-)
-
-Pos.CO.avs <- add_sex(Pos.CO.avs)
-Pos.CO.avs <- add_strain(Pos.CO.avs)
-Pos.CO.avs <- add_subsp(Pos.CO.avs)
-
-#unorder the factors, but figure our
-Pos.CO.avs$strain <- unclass(Pos.CO.avs$strain)
-Pos.CO.avs$strain <- as.factor(Pos.CO.avs$strain)
-
-Pos.CO.avs$subsp <- unclass(Pos.CO.avs$subsp)
-Pos.CO.avs$subsp <- as.factor(Pos.CO.avs$subsp)
-
-Pos.CO.avs$sex <- unclass(Pos.CO.avs$sex)
-Pos.CO.avs$sex <- as.factor(Pos.CO.avs$sex)
-
 #isolate the 1COPos.CO.avs
-Pos.CO.avs_1CO <- Pos.CO.avs[Pos.CO.avs$Foci_Type == "Foci1",]
+#Pos.CO.avs_1CO <- Pos.CO.avs[Pos.CO.avs$Foci_Type == "Foci1",]
+#Pos.CO.avs_1CO <- Pos.CO.avs_1CO[!(is.na(Pos.CO.avs_1CO$mouse) | Pos.CO.avs_1CO$mouse==""), ]
+#BivData.CO.PER.POS.lme <- lme(mean_PER_pos ~ subsp * sex, data=Pos.CO.avs_1CO, random=list(strain=pdDiag(~sex) ) )
+#as.data.frame( round(  summary(BivData.CO.PER.POS.lme)$tTable, 6 ) )
 
-Pos.CO.avs_1CO <- Pos.CO.avs_1CO[!(is.na(Pos.CO.avs_1CO$mouse) | Pos.CO.avs_1CO$mouse==""), ]
+#can't make the 
+CO_position.MM <- lmer(norm.first.foci.pos ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
 
+library(lmerTest)
+#anova(CO_position.MM)
+anova(CO_position.MM, verbose = TRUE)
 
-BivData.CO.PER.POS.lme <- lme(mean_PER_pos ~ subsp * sex, data=Pos.CO.avs_1CO, random=list(strain=pdDiag(~sex) ) )
+summary(CO_position.MM) #no p values,,
+#these just give t and F stats, no pvalue
 
-as.data.frame( round(  summary(BivData.CO.PER.POS.lme)$tTable, 6 ) )
-#sex is significant
+#CO_pos_fix.est <- drop1(CO_position.MM, test="Chisq")
+#CO_pos_fix.est
+#this test, the full model is more predictive than an empty model?
+
+#as.data.frame( round(  summary(CO_position.MM)$tTable, 6 ) )  #lme() needed for this
+
+#thing2 <- drop1(SC_length.MM, test="Chisq") 
+
+CO_pos_rand <- exactRLRT(CO_position.MM)
+CO_pos_rand
+
 ```
+
+
+### Heterochiasmy Prediction
+
+> Is sex a significant effect for the 1CO normalized CO position? (as predicted)
+
+
+
+> is random strtain effect significant?
+
+The random strain effect seems very significant.
+
+remember to use the mouse average table **mouse.avs_4MM**  (I don't think I need the MELT data frame)
 
 
 
@@ -641,11 +1105,27 @@ summary(aov(male.modo))
 ```
 
 
+### Male Polymorphism Prediction
+
+I didn't have a good prediction for the male polymorphism... So I'll just do post-hoc comparisons for the groups to test if they are different.
+
+
+```{r CO.pos.poly}
+#I
+#CO_pos
+
+```
+
+
+
 # old drafts
 
 
-I went on a kick thinking of the sis-coten metric, I'm not so sure this is a good metric anymore.
+I went on a kick thinking of the sis-coten metric, I'm not so sure this is a good metric anymore.  Do paired t-tests for all the male strains; test is foci position distributions are different.
 
+1CO(F1)  1CO(F1)
+
+2CO(F1) vs 2CO(F1)   2CO(F2) vs 2CO(F2)
 
 ```{r block1, echo=FALSE}
 #new.Curate.FULL
@@ -734,7 +1214,7 @@ Mouse is shown on the x axis. It seems like PWD and MSM might have a higher vari
 
 
 
-### 3. Lack of strain specific patterns in females
+# 3. Lack of strain specific patterns in females
 
 
 ```{r female.siscoten,eval=FALSE,echo=FALSE, warning=FALSE}
@@ -783,7 +1263,7 @@ summary(ano)
 By ANOVA analysis, everything has a significant effect.
 
 
-## PERMUTATIONS Accounting for sample size differences 
+# PERMUTATIONS Accounting for sample size differences 
 
 Currently the category with the fewest observations is G female (~30). I also have may more Kaz male bivalent measures (1000)
 

@@ -422,6 +422,8 @@ sex: 2 female male
 ## Mean CO Count
 
 
+todo, add the random effect tests, consider changing all to lmer() (those have better random effects)
+
 $$mouse .mean CO ~=~ subsp * sex  + rand(strain*sex) + \varepsilon$$
 
 ```{r HQ.MixedModel.1, echo=FALSE, digits = 2}
@@ -1011,7 +1013,7 @@ model.pooled$coefficients
 DF.HetC.MixedModel.pooled <- droplevels(DF.HetC.MixedModel.pooled)
 DF.HetC.MixedModel.pooled <- DF.HetC.MixedModel.pooled[!(is.na(DF.HetC.MixedModel.pooled$mouse) | DF.HetC.MixedModel.pooled$mouse==""), ]
 
-
+#consider changing to ordered = FALSE, for the DFs used for MM
 DF.HetC.MixedModel.pooled$sex <- factor(DF.HetC.MixedModel.pooled$sex, ordered = TRUE, levels =c("male", "female") )
 
 DF.HetC.MixedModel.pooled$strain<- factor(DF.HetC.MixedModel.pooled$strain, ordered = TRUE, levels =c( "WSB", "G", "LEW", "PWD", "MSM", "SKIVE", "KAZ") )
@@ -1544,6 +1546,75 @@ how does this compare to variance of mid 5, bottom 5?
 
 
 # Blank
+
+
+```{r trackcurBivData, echo=FALSE}
+#list / tally of current curated Bivdata
+Cur_biv = read.csv("~./MLH1repo/data/CurrentCuratedDataset_13.1.20.csv", header = TRUE)
+
+colnames(Cur_biv) <- c('mouse', 'blank','0','1')
+
+
+AP_mouse_table_w.Ages_HQ <- AP_mouse_table_w.Ages[ -c(9:12, 14, 18, 22:24) ]
+
+AP_mouse_table_w.Ages_HQ <- add_sex(AP_mouse_table_w.Ages_HQ)
+AP_mouse_table_w.Ages_HQ <- add_strain(AP_mouse_table_w.Ages_HQ)
+AP_mouse_table_w.Ages_HQ <- add_category(AP_mouse_table_w.Ages_HQ)
+AP_mouse_table_w.Ages_HQ <- add_subsp(AP_mouse_table_w.Ages_HQ)
+AP_mouse_table_w.Ages_HQ <- add_species(AP_mouse_table_w.Ages_HQ)
+
+#only M.musculus
+AP_mouse_table_w.Ages_HQ <- AP_mouse_table_w.Ages_HQ[AP_mouse_table_w.Ages_HQ$species == "M.musculus",]
+#REMOVE EXTRA STRAINS
+AP_mouse_table_w.Ages_HQ <- AP_mouse_table_w.Ages_HQ[AP_mouse_table_w.Ages_HQ$subsp != "Cast",]
+#remove musc strains
+AP_mouse_table_w.Ages_HQ <- AP_mouse_table_w.Ages_HQ[AP_mouse_table_w.Ages_HQ$strain != "AST",]
+AP_mouse_table_w.Ages_HQ <- AP_mouse_table_w.Ages_HQ[AP_mouse_table_w.Ages_HQ$strain != "TOM",]
+#remove PERC, MOLF, CZECH, (no females)
+AP_mouse_table_w.Ages_HQ <- AP_mouse_table_w.Ages_HQ[AP_mouse_table_w.Ages_HQ$strain != "CZECH",]
+AP_mouse_table_w.Ages_HQ <- AP_mouse_table_w.Ages_HQ[AP_mouse_table_w.Ages_HQ$strain != "PERC",]
+#156 mice (from 193)
+
+#some mice are missing 13oct14
+
+#match the MM dataset
+AP_mouse_table_w.Ages_HQ <- AP_mouse_table_w.Ages_HQ[AP_mouse_table_w.Ages_HQ$Ncells > 9,]
+AP_mouse_table_w.Ages_HQ <- AP_mouse_table_w.Ages_HQ[AP_mouse_table_w.Ages_HQ$age.weeks < 26,]
+#126 mice
+
+#AP_mouse_table_w.Ages_HQ <- AP_mouse_table_w.Ages_HQ[!(is.na(AP_mouse_table_w.Ages_HQ$mouse) | DF.HetC.MixedModel.HQ$mouse==""), ]
+
+#mice missing from curated list
+mice.within.BivData <- AP_mouse_table_w.Ages_HQ[ AP_mouse_table_w.Ages_HQ$mouse %in% Cur_biv$mouse, ]#54 mice in (14 mice have enteries but 0 curated biv)
+
+#(14 mice need at least some curation
+
+cur.data.mice <- Cur_biv[ Cur_biv$mouse %in% AP_mouse_table_w.Ages_HQ$mouse, ]
+
+mice.missing.bivData <- AP_mouse_table_w.Ages_HQ[ ! AP_mouse_table_w.Ages_HQ$mouse %in% Cur_biv$mouse, ]#72 (includes mice not in MM)
+#72 mice that I need to upload/run the algorithm on their images
+
+#mice missing SC pass == '1'
+colnames(Cur_biv) <- c("mouse","blank","SC.fail", "SC.pass")
+NeedsCur <- Cur_biv[Cur_biv$SC.fail == 0,]
+
+NeedsCur <- add_strain(NeedsCur)
+write.table(NeedsCur, "~./MLH1repo/data/needs_cur.csv", sep=",",
+            row.names = TRUE)
+
+
+#44% of mice are missing curation
+
+#write this table
+write.table(OG.cURATE.table.mouse, "~./MLH1repo/data/CurrentCuratedDataset_13.1.20.csv", sep=",",
+            row.names = TRUE)
+
+mice.missing.bivData <- mice.missing.bivData[!(is.na(mice.missing.bivData$mouse) | mice.missing.bivData$mouse==""), ]
+write.table(mice.missing.bivData, "~./MLH1repo/data/MissingMice_13.1.20.csv", sep=",",
+            row.names = TRUE)
+
+
+```
 
 
 
