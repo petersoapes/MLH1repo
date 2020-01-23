@@ -128,7 +128,7 @@ MELT_Chrm.Proportion <- add_sex(MELT_Chrm.Proportion)
 MELT_Chrm.Proportion <- add_strain(MELT_Chrm.Proportion)
 
 #then this DF has to be summarized into categories
-chrm.class.category <- ddply(MELT_Chrm.Proportion, c("strain","sex", "variable"), summarise,
+chrm.class.category_MELT <- ddply(MELT_Chrm.Proportion, c("strain","sex", "variable"), summarise,
                              mean.percent.type = mean(value)
                              #sum is the wrong!
                              #used average percentage, might consider a different summary
@@ -137,7 +137,7 @@ chrm.class.category <- ddply(MELT_Chrm.Proportion, c("strain","sex", "variable")
 
 #ggplot
 
-chrm.class.barplot <- ggplot(data = chrm.class.category, aes(y = mean.percent.type, x = strain, fill=as.factor(variable)) ) + geom_col(position = "dodge")+ggtitle("Chrm Proportions from BivData Data")+ylim(c(0,1)) + facet_wrap(~sex, scales = "free")
+chrm.class.barplot <- ggplot(data = chrm.class.category_MELT, aes(y = mean.percent.type, x = strain, fill=as.factor(variable)) ) + geom_col(position = "dodge")+ggtitle("Chrm Proportions from BivData Data")+ylim(c(0,1)) + facet_wrap(~sex, scales = "free")
 chrm.class.barplot
 
 ```
@@ -232,7 +232,7 @@ show.the.cells_females_musc <- ggplot(whole.cell.data_manual[(whole.cell.data_ma
    geom_point(data=manual_summary_stats[(manual_summary_stats$sex == "female") & (manual_summary_stats$subsp == "Musc"),],aes(y=Qar.4, x=fileName, col="black", size=2.6), shape=4)+
   
   facet_wrap(~strain, scales="free")+ylim(c(30,200))+ggtitle("Female Musc whole cell manual measures")
-show.the.cells_females_musc
+
 
 
 almost_cells_Musc_f <- ggplot(almost_whole_cell_BivData[(almost_whole_cell_BivData$sex == "female") & (almost_whole_cell_BivData$subsp == "Musc"),], aes(x=fileName, y= chromosomeLength, color=strain))+
@@ -243,7 +243,7 @@ almost_cells_Musc_f <- ggplot(almost_whole_cell_BivData[(almost_whole_cell_BivDa
    geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "female") & (Biv_Data_mean_table$subsp == "Musc"),],aes(y=Qar.4, x=fileName, col="black", size=2.6), shape=4)+
   
   facet_wrap(~strain, scales="free")+ylim(c(30,200))+ggtitle("Musc female, almost whole cell \nMean, median, 4th Quartille ploted")
-almost_cells_Musc_f
+
 
 
 ### Dom Male
@@ -278,7 +278,7 @@ show.the.cells_male_musc <- ggplot(whole.cell.data_manual[(whole.cell.data_manua
    geom_point(data=manual_summary_stats[(manual_summary_stats$sex == "male") & (manual_summary_stats$subsp == "Musc"),],aes(y=Qar.4, x=fileName, col="black", size=2.6), shape=4)+
   
   facet_wrap(~strain, scales="free")+ylim(c(30,150))+ggtitle("Musc Dom whole cell manual measures")
-show.the.cells_male_musc
+
 
 
 almost_cells_Musc_m <- ggplot(almost_whole_cell_BivData[(almost_whole_cell_BivData$sex == "male") & (almost_whole_cell_BivData$subsp == "Musc"),], aes(x=fileName, y= chromosomeLength, color=strain))+
@@ -289,12 +289,6 @@ almost_cells_Musc_m <- ggplot(almost_whole_cell_BivData[(almost_whole_cell_BivDa
    geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "male") & (Biv_Data_mean_table$subsp == "Musc"),],aes(y=Qar.4, x=fileName, col="black", size=2.6), shape=4)+
   
   facet_wrap(~strain, scales="free")+ylim(c(30,150))+ggtitle("Musc male, almost whole cell \nMean, median, 4th Quartille ploted")
-almost_cells_Musc_m
-
-
-
-
-#the min is pretty stable
 
 #show.the.cells_male <- ggplot(whole.cell.data_manual[whole.cell.data_manual$sex == "male",], aes(x=fileName, y= SC.length, color=strain))+geom_point()+
   
@@ -326,6 +320,8 @@ But this dataset might be noisy, given the amount of variance in the SC length d
 
 ```{r long.chrm.dataset, echo=FALSE, eval=FALSE}
 
+#adding the extra cols, messed up this part
+
 #how many biv's are from cells with >15 bivalents
 
 al.15_bivs <- cell.level.BivData_table[cell.level.BivData_table$Nbiv >15, ]#150 cells have al 15
@@ -337,36 +333,158 @@ long_BivData_set$fileName <- as.character(long_BivData_set$fileName)
 Biv_Data_mean_table$fileName <- as.character(Biv_Data_mean_table$fileName)
 
 
+
+
 #pull out the biv's which exceed the cell's Q4
 #for each line of long_BivData_set
 # check if it's SC length is greater than the Q4 for the given cell
 
 long_BivData_set99 <- long_BivData_set
 
-for(  i in 1:length( long_BivData_set99$fileName)  ){
-  long_BivData_set99$cell.Q4[i] <- Biv_Data_mean_table[ which(Biv_Data_mean_table$fileName == long_BivData_set99$fileName[i]), ]
+long_BivData_set99 <- long_BivData_set99[1:50,]
+#3 unique fileNames, in abbridged DF
+
+
+ifelse(grepl("PWD", mouse.avs_4MM_male$strain), 1, 
+                                    ifelse(grepl("MSM", mouse.avs_4MM_male$strain), 1, 0))
+
+newfile = strsplit(i, "_")[[1]][1:7]
+
+Biv_Data_mean_table[grepl(newfile, Biv_Data_mean_table$fileName )]
+
+#i is obj.id, this returns a table of all falses -- because it's look for the whole string
+
+o<- strsplit(i, "_")
+
+Biv_Data_mean_table$fileName[which(grepl(newfile, Biv_Data_mean_table$fileName ) )]
+#above returns the BivData, filename which the grepl matches
+
+Biv_Data_mean_table$Qar.4[which(grepl(newfile, Biv_Data_mean_table$fileName ) )]
+#this returns the Q4
+
+#this will put the cell's Q4
+#I think I need a counter
+counter = 1
+
+length(duplicated(long_BivData_set99$Obj.ID))#there are 2605 duplicated Obj.ID
+anyDuplicated(long_BivData_set99$Obj.ID)
+dup.curated <- long_BivData_set99[duplicated(long_BivData_set99$Obj.ID),]#65 duplicated obj.ID
+long_BivData_set99 <- long_BivData_set99 %>% distinct()
+
+#REDO
+#61 unique biv.id
+
+#this must be charecter for str split
+
+
+
+long_BivData_set99$Obj.ID <- as.character(long_BivData_set99$Obj.ID )
+long_BivData_set99.mini <- long_BivData_set99[905:2605,]
+
+long_BivData_set99.mini$Obj.ID <- paste(long_BivData_set99.mini$fileName, long_BivData_set99.mini$boxNumber, sep = "_")
+
+
+anyDuplicated(long_BivData_set99.mini$Obj.ID)#1093
+dup.mini.curated <- long_BivData_set99.mini[duplicated(long_BivData_set99.mini$Obj.ID),]
+
+#do a pipe remove
+long_BivData_set99.mini <- long_BivData_set99.mini[ ! long_BivData_set99.mini$fileName %in% dup.mini.curated$fileName, ]
+#think this removes the duplicated rows
+
+
+#IT COULD BE THAT THERE are filenames in the Biv_Data_mean_table which don't have the 
+
+#make sure the biv.mini only have filenames which are also in the mean teabl
+long_BivData_set99.mini <- long_BivData_set99.mini[ ! long_BivData_set99.mini$fileName %in% dup.mini.curated$fileName, ]
+
+
+long.data.set.cells <- al.15_bivs
+
+long_BivData_set99.mini <- long_BivData_set99.mini[long_BivData_set99.mini$fileName %in% long.data.set.cells$fileName, ]
+
+long_BivData_set99.mini <- long_BivData_set99.mini[long_BivData_set99.mini$fileName %in% Biv_Data_mean_table$fileName, ]
+#removed fileNames which don't appear in Biv_Data_mean_table (which has the Q4)
+
+
+#long_BivData_set99.mini <- long_BivData_set99[905:2605,]
+
+for(  i in 1:length( unique(long_BivData_set99.mini$Obj.ID) ) ){
+  newfile.str = strsplit( long_BivData_set99.mini$Obj.ID[i], "_")[[1]][1:7]
+  new.egg <- paste0(newfile.str, collapse = "_")
+  
+  the.Q4 <- Biv_Data_mean_table$Qar.4[which( grepl(new.egg, Biv_Data_mean_table$fileName ) )]
+  #the above can produe mulitple Q4
+  
+  long_BivData_set99.mini$cell.Q4.99[i] <- the.Q4
+  #these are just using the last index, 
+    
+  the.FN <- Biv_Data_mean_table$fileName[which(grepl(new.egg, Biv_Data_mean_table$fileName ) )]
+  
+  long_BivData_set99.mini$Q4.FN[i] <- the.FN
+  
+  print(c(i, the.FN, the.Q4))
+
 }
+#some kind of error at 903 -- the loop should continue past it
 
 
-for(  k in 1:length( long_BivData_set99$fileName)  ){
-long_BivData_set99$above.Q4[k] <- ifelse( (long_BivData_set99$cell.Q4 < long_BivData_set99$chromosomeLength), "yes", "no")
-}
-#This isn't working either
+long_BivData_set99.mini$FN2 <- long_BivData_set99.mini$fileName
+#mini, looks good so far
+
+long_BivData_set99.mini$long.Biv <- ifelse( (long_BivData_set99.mini$chromosomeLength >= long_BivData_set99.mini$cell.Q4), "yes", "no" )
+
+long_BivData_set99.mini$wtf <- long_BivData_set99.mini$chromosomeLength - long_BivData_set99.mini$cell.Q4
 
 
+real.long.bivData <- long_BivData_set99.mini[long_BivData_set99.mini$long.Biv == "yes",]
+table(real.long.bivData$fileName)
 
-#for(i in 1:length( long_BivData_set$fileName)  ){ 
-  # print(i)
-#  current_obj_fileName <- long_BivData_set$fileName[i]
-#  current_obj_SC_length <- long_BivData_set$chromosomeLength[i]  
-#  current.Q4 <- Biv_Data_mean_table$Qar.4[which(Biv_Data_mean_table$fileName == current_obj_fileName) ]
-# current.Q4 <- Biv_Data_mean_table$Qar.4[which(Biv_Data_mean_table$fileName == long_BivData_set$fileName[i]) ]
-#  long_BivData_set$above.Q4 <-ifelse( (current.Q4 < current_obj_SC_length), 1, 0)
-#  print( paste( c(current.Q4, current_obj_fileName, current_obj_SC_length), sep = "_" ) )
+#!!! omg it finally worked!~!!
+#OMFG
+
+#OG try
+#for(  i in unique(long_BivData_set99$Obj.ID) ){
+#  newfile = strsplit(i, "_")[[1]][1:7]
+#  the.Q4 <- Biv_Data_mean_table$Qar.4[which(grepl(newfile, Biv_Data_mean_table$fileName ) )]
+#  long_BivData_set99$cell.Q4.99[counter] <- the.Q4
+#  #these are just using the last index, 
+#  the.FN <- Biv_Data_mean_table$fileName[which(grepl(newfile, Biv_Data_mean_table$fileName ) )]
+#  long_BivData_set99$Q4.FN[counter] <- the.FN
+#  print(c(i, the.FN, the.Q4))
+#  counter = counter+1
 #}
-#this loop isn't working
+#not sure what the final error is in regards to
+#the file name matches are wronge
+
+
+
+
 
 ```
+
+Ugggg, still something wrong,
+9apr18_1feb18_LEW_f1_sp1_9_rev
+
+ 0%    25%    50%    75%   100% 
+ 77.00 114.50 136.00 152.75 212.00 
+
+
+Started compiling the long_biv data set, some cells have more than I expect: 
+
+13apr15_1apr15_PWD_f2_sp1_4_rev, 5aug17_14jul17_MSM_f1_sp1_12_rev, 5aug17_14jul17_MSM_f1_sp1_26_rev, 30jun17_4jan17_LEW_f3_sp1_1_rev, 8feb17_4jan17_LEW_f1_sp1_5_rev, 8feb17_4jan17_LEW_f1_sp1_3_rev, 9apr18_1feb18_LEW_f1_sp1_9_rev, 8jun15_23apr15_PWD_f2_sp1_17_rev
+
+They have like ~10, it might have to do with not haveing = in the >=
+
+Qar.4 = quantile(chromosomeLength)[[4]],
+quantile(Curated_BivData$chromosomeLength[Curated_BivData$fileName == "8feb17_4jan17_LEW_f1_sp1_3_rev"]) #148.00
+Curated_BivData$chromosomeLength[Curated_BivData$fileName == "8feb17_4jan17_LEW_f1_sp1_3_rev"]
+
+
+9apr18_1feb18_LEW_f1_sp1_9_rev
+
+
+the correct Q4 is 148, but the value in the Q4 col is 116, and the filName listed is completely wrong
+
 
 The dataset is unbalanced in some ways -- integrating manual measures might fix. MSM under rep, since most cell had high overlap.
 
@@ -460,8 +578,11 @@ Two bivalent level traits are predicted to display heterochiasmy (ie significant
 1) SC length (cite Lynn)  
 
 
-2) normalized CO positions (sedell and Kirkpatrick). 
-
+2.A) normalized CO positions (sedell and Kirkpatrick). 
+ 
+  B) **sis**ter **co**hesion **ten**sion (sis-co-ten) will be sexually dimorphic as it reflects the general property of unifrom vs telomere/biased CO positioning.
+  
+  
 
 3) Interference, measured in the physical units, has been shown to lack sexual dimorphism (petkov).
 
@@ -486,6 +607,9 @@ B.2) **Interference/IFD** will be longer in high Rec males, sis-co-ten metric wi
 
 
 C) It's unknown if **1CO normalized positions** between high and low musc strains, will differ. (no good predictions come to mind)
+
+
+D) Sis-co-ten predictions fall into 
 
 
 Using the same MM framework we would expect the random strain effect would be significant for these predictions.
@@ -618,8 +742,12 @@ rand_SC.Length_MM
 
 > Is sex a significant effect for SC length? (as predicted)
 
-Sex is a significant effect for SC length
-The results seem to indicate that sex is a significant factor. Consider writing a subsampling approach (randomize / permute a data set of BivData)
+- Sex is a significant effect for SC length
+The results seem to indicate that sex is a significant factor. Consider writing a subsampling approach (randomize / permute a data set of BivData)  
+
+
+- According to anova, sex effect explains most of the variance in single bivalent SC lengths.  
+
 
 > Is the random Effect of strain an effect on SC length?
 
@@ -826,7 +954,7 @@ rand_test_IFD.PER.MM
 
 > Do the IFD measures lack significant sex effect? (as predicted)
 
-There are sex effects for the lme() models for both the ABS and PER IFD measures. There isn't evidence of Random effects from the lmer() models.
+There are sex effects for the lme() models for both the ABS and PER IFD measures. There is slight evidence for significant strain effect.
 
 
 > Are there signiticant strain effects?
@@ -836,7 +964,7 @@ The random strain effect was tested for raw and normalized IFD, neither are sign
 
 ### Male Polymorphism Prediction
 
-> Is the Male polymorphism Prediction met? High rec strains have shorter IFDs?
+> prediction A, Is the Male polymorphism Prediction met? High rec strains have shorter IFDs?
 
 
 ```{r IFD.t.test, echo=FALSE, eval=FALSE}
@@ -887,14 +1015,8 @@ Post-hoc comparisons ideas?
 Preliminary results from an independant dataset indecated that PWD had longer IFDs, which goes agaisnt the simple prediction of more COs ~ denser spacing of foci on the same bivalent. This also indecated that interference distance may evolved in the house mouse complex.
 
 
-> Is there evidence for the alternative IFD meansure
+> Prediction B, Is there evidence for the alternative IFD meansure
 
-
-INSERT THE SISCOTEN ESTIMATES!!
-
-```{r siscoten.test, echo=FALSE}
-
-```
 
 
 
