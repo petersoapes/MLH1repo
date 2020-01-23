@@ -363,8 +363,16 @@ add_SisCoTen <- function(DF){
   #                       ifelse(  as.numeric(DF$hand.foci.count) == 3,  "meee3","")))
   
   DF$SisCoTen <- ifelse(  as.numeric(DF$hand.foci.count) == 1,DF$chromosomeLength - DF$Foci1,
-                          ifelse(  as.numeric(DF$hand.foci.count) == 2, DF$IFD1,
-                                   ifelse(  as.numeric(DF$hand.foci.count) == 3, as.numeric(DF$IFD1) + (as.numeric(DF$chromosomeLength)-as.numeric(DF$Foci3) ), "")))
+                          
+                          ifelse(  as.numeric(DF$hand.foci.count) == 2, DF$IFD1_ABS,
+                                 
+                                     ifelse(  as.numeric(DF$hand.foci.count) == 3, as.numeric(DF$IFD1_ABS) +
+                                              (as.numeric(DF$chromosomeLength)-as.numeric(DF$Foci3) ),
+                          
+                          ifelse(  as.numeric(DF$hand.foci.count) == 4, as.numeric(DF$IFD1_ABS) +
+                                         (as.numeric(DF$Foci4)-as.numeric(DF$Foci3) ),                
+                                            
+                                            ""))))
   #adding the as.numeric around the pieces of expression above fixed the tiny bug
   
   DF$SisCoTen <- as.numeric(DF$SisCoTen)#not sure if numeric or integer is the best
