@@ -99,7 +99,6 @@ OG.cURATE.table.category <- table(new.Curate.FULL.org$category, new.Curate.FULL.
 ```
 
 ```{r split.up.DF, echo=FALSE}
-
 #SC PASS
 new.Curate.FULL <- new.Curate.FULL[new.Curate.FULL$SC.pass == '1',]#10480 #9819, #9769
 
@@ -127,7 +126,7 @@ Curated_BivData <- Curated_BivData[Curated_BivData$strain != "AST",]
 Curated_BivData <- Curated_BivData[Curated_BivData$strain != "TOM",]
 Curated_BivData <- Curated_BivData[Curated_BivData$strain != "CZECH",]
 
-Curated_BivData <- droplevels(Curated_BivData$strain)
+Curated_BivData$strain <- droplevels(Curated_BivData$strain)
 
 ```
 
@@ -171,8 +170,6 @@ whole.cell.data_manual$Obj.ID <- paste(whole.cell.data_manual$fileName, whole.ce
 
 
 #add all the extra columns, blah
-
-
 #percent Foci position
 
 
@@ -187,12 +184,7 @@ for(cellys in as.character(unique(whole.cell.data_manual$fileName))){
 #IFD 
 whole.cell.data_manual <- add_IFD(whole.cell.data_manual)
 
-
-
-
 ```
-
-
 
 
 ToDo  
@@ -314,7 +306,17 @@ Curated_BivData$dis.cent.PER  <- Curated_BivData$dis.cent / Curated_BivData$chro
 
 
 #add telomere.dist
-#str(Curated_BivData)
+Curated_BivData$telo_dist <- ifelse(grepl(1, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength - Curated_BivData$Foci1), 
+                     ifelse(grepl(2, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength -  Curated_BivData$Foci2), 
+                     ifelse(grepl(3, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength - Curated_BivData$Foci3),
+                    ifelse(grepl(4, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength - Curated_BivData$Foci4),   0))) )
+  
+
+Curated_BivData$telo_dist_PER <- Curated_BivData$telo_dist / Curated_BivData$chromosomeLength
+
+#sis.co.ten
+Curated_BivData <- add_SisCoTen(Curated_BivData)
+
 ```
 
 
@@ -631,7 +633,7 @@ cell.total_skel, cell.total_binary
 ```{r save.file}
 
 #save Rdata
-save.image("~./MLH1repo/data/CleanBivData_1.21.20.RData")
+save.image("~./MLH1repo/data/CleanBivData_1.22.20.RData")
 #save.image("data/BivData_4_PCA.RData")
 
 ```
