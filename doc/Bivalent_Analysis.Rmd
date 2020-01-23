@@ -316,177 +316,86 @@ I'm purposing to take all the automated biv measures above the cell's 4th quarti
 
 But this dataset might be noisy, given the amount of variance in the SC length distributions across cells (PWD females, WSB females). But it's easier to just run another set of analysis.
 
+Biv_Data_mean_table has the Q4 values
+
+```{r long.chrm.dataset, echo=FALSE}
+
+#1. how many biv's are from cells with >15 bivalents
+
+over_15_biv_cell_DF <- cell.level.BivData_table[cell.level.BivData_table$Nbiv >15, ]
+BivData_from_15biv_cells <- Curated_BivData[ Curated_BivData$fileName %in% over_15_biv_cell_DF$fileName, ]
+
+#check for blank obj.id
+BivData_from_15biv_cells$Obj.ID <- paste(BivData_from_15biv_cells$fileName, BivData_from_15biv_cells$boxNumber, sep = "_")
+
+#check for dup
+length(duplicated(BivData_from_15biv_cells$Obj.ID))#2605
+anyDuplicated(BivData_from_15biv_cells$Obj.ID)#1997
+dups.dummy <- BivData_from_15biv_cells[duplicated(BivData_from_15biv_cells$Obj.ID),]
+
+#remove duplicate obj.ids
+BivData_from_15biv_cells <- BivData_from_15biv_cells %>% distinct() #distinct doesn't work for chr type
+BivData_from_15biv_cells <- BivData_from_15biv_cells[ ! BivData_from_15biv_cells$fileName %in% dups.dummy$fileName, ]
 
 
-```{r long.chrm.dataset, echo=FALSE, eval=FALSE}
+#make sure obj.id and fileName are charcter for str stuff
+BivData_from_15biv_cells$fileName <- as.character(BivData_from_15biv_cells$fileName)
+BivData_from_15biv_cells$Obj.ID <- as.character(BivData_from_15biv_cells$Obj.ID)
 
-#adding the extra cols, messed up this part
+#make sure 
+missing_from_cell_table <- BivData_from_15biv_cells[ ! BivData_from_15biv_cells$fileName %in% Biv_Data_mean_table$fileName, ]#there are 75, objs 3 cells
+#these are bivalents which don't appear the in cell level table, which can break the loop
+BivData_from_15biv_cells <- BivData_from_15biv_cells[ ! BivData_from_15biv_cells$fileName %in% missing_from_cell_table$fileName, ]
 
-#how many biv's are from cells with >15 bivalents
-
-al.15_bivs <- cell.level.BivData_table[cell.level.BivData_table$Nbiv >15, ]#150 cells have al 15
-
-long_BivData_set <- Curated_BivData[ Curated_BivData$fileName %in% al.15_bivs$fileName, ] #across those 150 cells are 2654 biv measures
-
-#table(potential.data.set$category)
-long_BivData_set$fileName <- as.character(long_BivData_set$fileName)
-Biv_Data_mean_table$fileName <- as.character(Biv_Data_mean_table$fileName)
+#final cleaned BivData table, 2428
 
 
-
-
-#pull out the biv's which exceed the cell's Q4
-#for each line of long_BivData_set
-# check if it's SC length is greater than the Q4 for the given cell
-
-long_BivData_set99 <- long_BivData_set
-
-long_BivData_set99 <- long_BivData_set99[1:50,]
-#3 unique fileNames, in abbridged DF
-
-
-ifelse(grepl("PWD", mouse.avs_4MM_male$strain), 1, 
-                                    ifelse(grepl("MSM", mouse.avs_4MM_male$strain), 1, 0))
-
-newfile = strsplit(i, "_")[[1]][1:7]
-
-Biv_Data_mean_table[grepl(newfile, Biv_Data_mean_table$fileName )]
-
-#i is obj.id, this returns a table of all falses -- because it's look for the whole string
-
-o<- strsplit(i, "_")
-
-Biv_Data_mean_table$fileName[which(grepl(newfile, Biv_Data_mean_table$fileName ) )]
-#above returns the BivData, filename which the grepl matches
-
-Biv_Data_mean_table$Qar.4[which(grepl(newfile, Biv_Data_mean_table$fileName ) )]
-#this returns the Q4
-
-#this will put the cell's Q4
-#I think I need a counter
-counter = 1
-
-length(duplicated(long_BivData_set99$Obj.ID))#there are 2605 duplicated Obj.ID
-anyDuplicated(long_BivData_set99$Obj.ID)
-dup.curated <- long_BivData_set99[duplicated(long_BivData_set99$Obj.ID),]#65 duplicated obj.ID
-long_BivData_set99 <- long_BivData_set99 %>% distinct()
-
-#REDO
-#61 unique biv.id
-
-#this must be charecter for str split
-
-
-
-long_BivData_set99$Obj.ID <- as.character(long_BivData_set99$Obj.ID )
-long_BivData_set99.mini <- long_BivData_set99[905:2605,]
-
-long_BivData_set99.mini$Obj.ID <- paste(long_BivData_set99.mini$fileName, long_BivData_set99.mini$boxNumber, sep = "_")
-
-
-anyDuplicated(long_BivData_set99.mini$Obj.ID)#1093
-dup.mini.curated <- long_BivData_set99.mini[duplicated(long_BivData_set99.mini$Obj.ID),]
-
-#do a pipe remove
-long_BivData_set99.mini <- long_BivData_set99.mini[ ! long_BivData_set99.mini$fileName %in% dup.mini.curated$fileName, ]
-#think this removes the duplicated rows
-
-
-#IT COULD BE THAT THERE are filenames in the Biv_Data_mean_table which don't have the 
-
-#make sure the biv.mini only have filenames which are also in the mean teabl
-long_BivData_set99.mini <- long_BivData_set99.mini[ ! long_BivData_set99.mini$fileName %in% dup.mini.curated$fileName, ]
-
-
-long.data.set.cells <- al.15_bivs
-
-long_BivData_set99.mini <- long_BivData_set99.mini[long_BivData_set99.mini$fileName %in% long.data.set.cells$fileName, ]
-
-long_BivData_set99.mini <- long_BivData_set99.mini[long_BivData_set99.mini$fileName %in% Biv_Data_mean_table$fileName, ]
-#removed fileNames which don't appear in Biv_Data_mean_table (which has the Q4)
-
-
-#long_BivData_set99.mini <- long_BivData_set99[905:2605,]
-
-for(  i in 1:length( unique(long_BivData_set99.mini$Obj.ID) ) ){
-  newfile.str = strsplit( long_BivData_set99.mini$Obj.ID[i], "_")[[1]][1:7]
+for(  i in 1:length( unique(BivData_from_15biv_cells$Obj.ID) ) ){
+  
+  newfile.str = strsplit( BivData_from_15biv_cells$Obj.ID[i], "_")[[1]][1:7]
   new.egg <- paste0(newfile.str, collapse = "_")
   
   the.Q4 <- Biv_Data_mean_table$Qar.4[which( grepl(new.egg, Biv_Data_mean_table$fileName ) )]
   #the above can produe mulitple Q4
   
-  long_BivData_set99.mini$cell.Q4.99[i] <- the.Q4
+  BivData_from_15biv_cells$cell.Q4[i] <- the.Q4
   #these are just using the last index, 
     
   the.FN <- Biv_Data_mean_table$fileName[which(grepl(new.egg, Biv_Data_mean_table$fileName ) )]
   
-  long_BivData_set99.mini$Q4.FN[i] <- the.FN
-  
-  print(c(i, the.FN, the.Q4))
+  BivData_from_15biv_cells$Q4.FN[i] <- the.FN
+   # print(c(i, the.FN, the.Q4))
 
 }
-#some kind of error at 903 -- the loop should continue past it
 
 
-long_BivData_set99.mini$FN2 <- long_BivData_set99.mini$fileName
-#mini, looks good so far
+BivData_from_15biv_cells$long.Biv <- ifelse( (BivData_from_15biv_cells$chromosomeLength >= BivData_from_15biv_cells$cell.Q4), "yes", "no" )
 
-long_BivData_set99.mini$long.Biv <- ifelse( (long_BivData_set99.mini$chromosomeLength >= long_BivData_set99.mini$cell.Q4), "yes", "no" )
-
-long_BivData_set99.mini$wtf <- long_BivData_set99.mini$chromosomeLength - long_BivData_set99.mini$cell.Q4
-
-
-real.long.bivData <- long_BivData_set99.mini[long_BivData_set99.mini$long.Biv == "yes",]
+real.long.bivData <- BivData_from_15biv_cells[BivData_from_15biv_cells$long.Biv == "yes",]
 table(real.long.bivData$fileName)
 
-#!!! omg it finally worked!~!!
-#OMFG
-
-#OG try
-#for(  i in unique(long_BivData_set99$Obj.ID) ){
-#  newfile = strsplit(i, "_")[[1]][1:7]
-#  the.Q4 <- Biv_Data_mean_table$Qar.4[which(grepl(newfile, Biv_Data_mean_table$fileName ) )]
-#  long_BivData_set99$cell.Q4.99[counter] <- the.Q4
-#  #these are just using the last index, 
-#  the.FN <- Biv_Data_mean_table$fileName[which(grepl(newfile, Biv_Data_mean_table$fileName ) )]
-#  long_BivData_set99$Q4.FN[counter] <- the.FN
-#  print(c(i, the.FN, the.Q4))
-#  counter = counter+1
-#}
-#not sure what the final error is in regards to
-#the file name matches are wronge
-
-
-
-
+#!!! omg it finally worked!~!!#OMFG
 
 ```
 
-Ugggg, still something wrong,
-9apr18_1feb18_LEW_f1_sp1_9_rev
 
- 0%    25%    50%    75%   100% 
- 77.00 114.50 136.00 152.75 212.00 
+Well fixing those bigs took forever
 
 
-Started compiling the long_biv data set, some cells have more than I expect: 
-
-13apr15_1apr15_PWD_f2_sp1_4_rev, 5aug17_14jul17_MSM_f1_sp1_12_rev, 5aug17_14jul17_MSM_f1_sp1_26_rev, 30jun17_4jan17_LEW_f3_sp1_1_rev, 8feb17_4jan17_LEW_f1_sp1_5_rev, 8feb17_4jan17_LEW_f1_sp1_3_rev, 9apr18_1feb18_LEW_f1_sp1_9_rev, 8jun15_23apr15_PWD_f2_sp1_17_rev
-
-They have like ~10, it might have to do with not haveing = in the >=
-
-Qar.4 = quantile(chromosomeLength)[[4]],
-quantile(Curated_BivData$chromosomeLength[Curated_BivData$fileName == "8feb17_4jan17_LEW_f1_sp1_3_rev"]) #148.00
-Curated_BivData$chromosomeLength[Curated_BivData$fileName == "8feb17_4jan17_LEW_f1_sp1_3_rev"]
+```{r show.long.SC, echo=FALSE}
 
 
-9apr18_1feb18_LEW_f1_sp1_9_rev
+female_long_biv_plot <- ggplot(real.long.bivData[real.long.bivData$sex == "female",], aes(x=fileName, y=chromosomeLength, color=strain))+geom_point()+facet_wrap(~category, scales="free")+ylim(c(30,200))
+female_long_biv_plot
 
 
-the correct Q4 is 148, but the value in the Q4 col is 116, and the filName listed is completely wrong
+male_long_biv_plot <- ggplot(real.long.bivData[real.long.bivData$sex == "male",], aes(x=fileName, y=chromosomeLength, color=strain))+geom_point()+facet_wrap(~category, scales="free")+ylim(c(30,200))
+male_long_biv_plot
 
+```
 
-The dataset is unbalanced in some ways -- integrating manual measures might fix. MSM under rep, since most cell had high overlap.
+These plots show the SC lengths for bivalents I'm calling the 'long SC data set'. They are supposed to be the longest 4-5 SC from cells where I could get good measures. These longer bivalents are useful because their patterns shouldn't be affect by chromsome size effect (which effects, CO position). Hopefully this data set will have less noise from chromosome identity, but there was still data missing (they don't come from whole cell measures).
+
 
 
 # Applying Mix Model framework
