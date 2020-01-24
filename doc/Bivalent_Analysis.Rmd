@@ -66,6 +66,11 @@ colors_of_strains <- c('WSB'= "#56B4E9",'G' ='cadetblue','LEW'= 'lightblue','PER
                     
                     "F1"='grey', "other" = 'grey'
                     )
+
+#add Rec group
+Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
+                                    ifelse(grepl("MSM male", Curated_BivData$category), 1, 0))
+
 ```
 
 
@@ -465,6 +470,13 @@ I think a formula something like this can be applied to adjust for XX
 - rate of bivalent segmentation /* rate of XX, 5% /* mean SC length for 3rd longest bivalent / total SC area (by bivalent) = proportion of SC araea due to XX
 
 
+```{r XX.adj, echo=FALSE}
+
+#load and examine the the whole cell hand measures here
+
+```
+
+
 # Applying Mix Model framework
 
 I will use two different mixed models using lme() and lmer(), because the different models have limitations for reporting p values for fixed and random effects.
@@ -747,12 +759,69 @@ The results seem to indicate that sex is a significant factor. Consider writing 
 The exactRLRT() test indicates that the random strain effect might be significant, p= xx
 
 
-### Male polymorphism Predcition
+### Male Polymorphism Prediction
 
 Prediction, High rec males have longer SC.
 
+```{r log.reg_SC.length, echo=FALSE}
+
+mouse.avs_4MM_male <- mouse.avs_4MM[mouse.avs_4MM$sex == "male",]
+mouse.avs_4MM_M.male <- mouse.avs_4MM_male[mouse.avs_4MM_male$subsp == "Musc",]
+
+#divide musc males into groups
+mouse.avs_4MM_male$Rec.group <- ifelse(grepl("PWD", mouse.avs_4MM_male$strain), 1, 
+                                    ifelse(grepl("MSM", mouse.avs_4MM_male$strain), 1, 0))
+#
+
+log.reg_SC.length <- glm(Rec.group ~ mean_SC, 
+                            data=mouse.avs_4MM_male, family=binomial(link="logit"))
+
+log.reg_SC.length_Musc <- glm(Rec.group ~ mean_SC, 
+                            data=mouse.avs_4MM_male[mouse.avs_4MM_male$subsp == "Musc",], family=binomial(link="logit"))
+mouse.av_log.reg_SC.length <- summary(log.reg_SC.length_Musc)
+
+
+# bivalent level log regression
+log.reg_SC.length_Musc_BIV <- glm(Rec.group ~ chromosomeLength, 
+                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")& (Curated_BivData$sex == "male"),], family=binomial(link="logit"))
+
+bivalent_log.reg_SC.length <- summary(log.reg_SC.length_Musc_BIV)
+
+```
+
+The mean SC logistic regresion model for mouse averages 
+
+`r mouse.av_log.reg_SC.length$coefficients`  
+
+and for the single bivalent levels  
+
+`r bivalent_log.reg_SC.length$coefficients`
+
+
+
+#### t.test for sc length
+
+
+```{r t.test, echo=FALSE}
+
+T.test_Poly_SC.Len_mouse.av <- t.test(mouse.avs_4MM_male$mean_SC[mouse.avs_4MM_male$Rec.group == 1],
+       
+  mouse.avs_4MM_male$mean_SC[(mouse.avs_4MM_male$subsp == "Musc")&(mouse.avs_4MM_male$sex == "male")&(mouse.avs_4MM_male$Rec.group == 0)]
+)#p-value = 0.001567
+
+T.test_Poly_SC.Len_single.biv <- t.test(Curated_BivData$chromosomeLength[Curated_BivData$Rec.group == 1],
+       
+  Curated_BivData$chromosomeLength[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")&(Curated_BivData$Rec.group == 0)]
+)#p-value < 2.2e-16
+
+```
+
+The mouse average and single bivalents are significantly longer in the high rec group p = `r T.test_Poly_SC.Len_mouse.av$p.value` and p=`r T.test_Poly_SC.Len_single.biv$p.value`.
+
 
 ```{r male.poly.test.MM, echo=FALSE, eval=FALSE}
+#I don't think the Mixed models fit well for the high vs low polymorphism tests.
+
 #t.test comparisons of PWD_SC vs (KAZ, SKIVE, )
 #MSM_SC vs MOLF_SC
 
@@ -769,14 +838,11 @@ mouse.avs_4MM_M.male$mouse <- factor(mouse.avs_4MM_M.male$mouse, ordered = FALSE
 lme_MM_SC_length_male.poly <- lme(mean_SC ~ mouse + 1|strain, data= mouse.avs_4MM_M.male)#this syntax not working
 as.data.frame( round(  summary(lme_MM_SC.length)$tTable, 6 ) )
 
-
-
 lmer_MM_SC_length_male.poly <- lmer(mean_SC ~ (1|strain), data=mouse.avs_4MM_M.male, REML = TRUE)
 
 anova(lmer_MM_SC_length_male.poly)
 
 rand_SC.Length_MM.male.poly <- exactRLRT(lmer_MM_SC_length_male.poly)#this won't work either...hmm
-
 ```
 
 
@@ -784,37 +850,18 @@ rand_SC.Length_MM.male.poly <- exactRLRT(lmer_MM_SC_length_male.poly)#this won't
 I can't get the above mixed models to work for testing high vs low rec groups
 
 
-```{r logreg, echo=FALSE}
+```{r long.sc_log.res_meanSC, eval=FALSE}
+#hold off on reporting/ working with the long SC biv resutls
 
-mouse.avs_4MM_male <- mouse.avs_4MM[mouse.avs_4MM$sex == "male",]
-mouse.avs_4MM_M.male <- mouse.avs_4MM_male[mouse.avs_4MM_male$subsp == "Musc",]
-
-#divide musc males into groups
-mouse.avs_4MM_male$Rec.group <- ifelse(grepl("PWD", mouse.avs_4MM_male$strain), 1, 
-                                    ifelse(grepl("MSM", mouse.avs_4MM_male$strain), 1, 0))
-
-
-log.reg_SC.length <- glm(Rec.group ~ mean_SC, 
-                            data=mouse.avs_4MM_male, family=binomial(link="logit"))
-
-log.reg_SC.length_Musc <- glm(Rec.group ~ mean_SC, 
-                            data=mouse.avs_4MM_male[mouse.avs_4MM_male$subsp == "Musc",], family=binomial(link="logit"))
-
-
-summary(log.reg_SC.length_Musc)
-
-#mean SC slightly sig-- these are all mean SC--should I try distinguishing by chrm classes?
-```
-
-
-```{r long.sc_log.res_meanSC}
 
 long.SC.mouse.avs_4MM_male <- Long_biv_mouse.avs_4MM[Long_biv_mouse.avs_4MM$sex == "male",]
 long.SC.mouse.avs_4MM_Mmale <- long.SC.mouse.avs_4MM_male[long.SC.mouse.avs_4MM_male$subsp == "Musc",]
 
 #divide musc males into groups
-long.SC.mouse.avs_4MM_male$Rec.group <- ifelse(grepl("PWD", long.SC.mouse.avs_4MM_male$strain), 1, 
-                                    ifelse(grepl("MSM", long.SC.mouse.avs_4MM_male$strain), 1, 0))
+long.SC.mouse.avs_4MM_male$Rec.group <- ifelse(grepl("PWD male", long.SC.mouse.avs_4MM_male$category), 1, 
+                                    ifelse(grepl("MSM male", long.SC.mouse.avs_4MM_male$category), 1, 0))
+
+
 
 long.biv.log.reg <- glm(Rec.group ~ mean_SC, 
                             data=long.SC.mouse.avs_4MM_male, family=binomial(link="logit"))
@@ -833,6 +880,8 @@ In a logistic regression, mouse average SC length is slightly predictive telling
 
 
 # IFD
+
+ToDo: make a melt.DF with the IFD1, IFD2, IFD3 in a single cols
 
 explain the difference between the raw and PER measures. Why should I use /examine the IFD.PER?
 
@@ -881,7 +930,7 @@ first.IFD.plot_PER <- ggplot(Curated_BivData.22, aes(y = IFD1_PER, x= strain, co
 ```
 
 
-```{r blah.again, echo=FALSE, eval=FALSE}
+```{r IFD.old.plots, echo=FALSE, eval=FALSE}
 #long SC Long_biv_mouse.avs_4MM
 #real.long.bivData
 #Only use 2CO bivalents
@@ -984,58 +1033,122 @@ The random strain effect was tested for raw and normalized IFD, neither are sign
 
 ### Male Polymorphism Prediction
 
+The polymorphism frame-work
+
 > prediction A, Is the Male polymorphism Prediction met? High rec strains have shorter IFDs?
 
+logistic regression
+$$  Rec \ Group ~=~ mouse \ average \ IFD $$
+For these tests I am looking at the single IFD measure from 2CO bivalents.
 
-```{r IFD.t.test, echo=FALSE, eval=FALSE}
+```{r IFD.log.reg, echo=FALSE}
+#
+log.reg_IFD_ABS_mouse.av <- glm(Rec.group ~ mean_IFD.2CO_ABS, 
+              data=mouse.avs_4MM[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc"),], family=binomial(link="logit"))
 
-#pool the whole groups
+summary(log.reg_IFD_ABS_mouse.av)# 0.0366 *
 
-ABS.t.test <- t.test( mouse.avs_4MM_M.male$mean_IFD.2CO_ABS[mouse.avs_4MM_M.male$Rec.group == 1],
-  mouse.avs_4MM_M.male$mean_IFD.2CO_ABS[mouse.avs_4MM_M.male$Rec.group == 0])
+log.reg_IFD_PER_mouse.av <- glm(Rec.group ~ mean_IFD.2CO_PER, 
+                            data=mouse.avs_4MM[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc"),], family=binomial(link="logit"))
 
-PER.t.test <- t.test( mouse.avs_4MM_M.male$mean_IFD.2CO_PER[mouse.avs_4MM_M.male$Rec.group == 1],
-  mouse.avs_4MM_M.male$mean_IFD.2CO_PER[mouse.avs_4MM_M.male$Rec.group == 0])
+summary(log.reg_IFD_PER_mouse.av)#NS
 
-#compare strain by strain
-# p = `r ABS.t.test$p.value`  and p = `r PER.t.test$p.value`.
+### Single Bivalent levels
+
+log.reg_IFD_ABS_single.biv <- glm(Rec.group ~ IFD1_ABS, 
+              data=Curated_BivData[(Curated_BivData$sex == "male") & (Curated_BivData$subsp == "Musc"),], family=binomial(link="logit"))
+summary(log.reg_IFD_ABS_single.biv)
+
+log.reg_IFD_PER_single.biv <- glm(Rec.group ~ IFD1_PER, 
+              data=Curated_BivData[(Curated_BivData$sex == "male") & (Curated_BivData$subsp == "Musc"),], family=binomial(link="logit"))
+summary(log.reg_IFD_PER_single.biv)
 ```
 
 
-```{r compare.IFD,echo=FALSE}
-#make t.tests for pooled high and low
-mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD", mouse.avs_4MM$strain), 1, 
-                                    ifelse(grepl("MSM", mouse.avs_4MM$strain), 1, 0))
+```{r t.test_IFD_mouse.av, echo=FALSE, eval=FALSE}
 
-Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
-                                    ifelse(grepl("MSM male", Curated_BivData$category), 1, 0))
+#mouse.av - the mouse average IFD is from just 2CO
+t.test_mouse.av.IFD_ABS <- t.test(
+  mouse.avs_4MM$mean_IFD.2CO_ABS[(mouse.avs_4MM$Rec.group == 1)],
+  
+  mouse.avs_4MM$mean_IFD.2CO_ABS[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc") &(mouse.avs_4MM$Rec.group == 0)] 
+  )
+  
+t.test_mouse.av.IFD_PER <- t.test(
+  
+  mouse.avs_4MM$mean_IFD.2CO_PER[(mouse.avs_4MM$Rec.group == 1)],
+  
+  mouse.avs_4MM$mean_IFD.2CO_PER[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc") &(mouse.avs_4MM$Rec.group == 0)] 
+  )
 
 
-Curated_BivData <- add_IFD(Curated_BivData)
 
-Rec.group_IFD.ABS_test <- t.test(Curated_BivData$IFD1_ABS[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc") & (Curated_BivData$Rec.group ==0 )],
-     Curated_BivData$IFD1_ABS[ ( Curated_BivData$Rec.group ==1 )]
-)#p-value = 7.955e-05
+```
 
+
+```{r t.test_IFD,echo=FALSE}
+
+#Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
+#                                    ifelse(grepl("MSM male", Curated_BivData$category), 1, 0))
+
+#Curated_BivData <- add_IFD(Curated_BivData)
+#THIS SHOULD ALREADY BE ADDED
+
+#single biv level
+
+Rec.group_IFD.ABS_test <- t.test(Curated_BivData$IFD1_ABS[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc") & (Curated_BivData$Rec.group ==0 ) & (Curated_BivData$hand.foci.count == 2 )],
+                                 
+     Curated_BivData$IFD1_ABS[ ( Curated_BivData$Rec.group ==1 ) & (Curated_BivData$hand.foci.count == 2 )]
+)
 Rec.group_IFD.ABS_test$p.value
 
-Rec.group_IFD.PER_test <- t.test( Curated_BivData$IFD1_PER[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc") & (Curated_BivData$Rec.group ==0 )],
-     Curated_BivData$IFD1_PER[ ( Curated_BivData$Rec.group ==1 )]
+## PER
+
+Rec.group_IFD.PER_test <- t.test( Curated_BivData$IFD1_PER[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc") & (Curated_BivData$Rec.group ==0 )& (Curated_BivData$hand.foci.count == 2 )],
+                                  
+     Curated_BivData$IFD1_PER[ ( Curated_BivData$Rec.group ==1 ) &  (Curated_BivData$hand.foci.count == 2 )]
 )#p-value = 0.04231
 
 Rec.group_IFD.PER_test$p.value
 
-biv.IFDs <- ggplot(Curated_BivData[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc"),], aes(y = IFD1_ABS, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
+
+
+#Single Biv Leve
+single.biv.ABS.t.test <- t.test( Curated_BivData$IFD1_ABS[Curated_BivData$Rec.group == 1],
+      
+         Curated_BivData$IFD1_ABS[(Curated_BivData$sex == "male") & (Curated_BivData$subsp == "Musc") &(Curated_BivData$Rec.group == 0)] )
+                                 
+                                 
+single.biv.IFD_PER.t.test <- t.test( Curated_BivData$IFD1_PER[Curated_BivData$Rec.group == 1],
+      
+         Curated_BivData$IFD1_PER[(Curated_BivData$sex == "male") & (Curated_BivData$subsp == "Musc") &(Curated_BivData$Rec.group == 0)] )
+```
+
+
+```{r show.IFD, echo=FALSE}
+
+biv.IFDs_by_group <- ggplot(Curated_BivData[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc"),], aes(y = IFD1_ABS, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
   geom_jitter(alpha=.2)+
   ggtitle("Interfocal Distances, ABS")+
   scale_color_manual(values=colors_of_strains)+ facet_wrap(~Rec.group, scales = "free")+theme(legend.position="none")+ylim(c(0,100))
+biv.IFDs_by_group
+
+
+biv.IFDs_PER_by.group <- ggplot(Curated_BivData[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc"),], aes(y = IFD1_PER, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
+  geom_jitter(alpha=.2)+
+  ggtitle("Interfocal Distances, ABS \n Low=0, High=1")+
+  scale_color_manual(values=colors_of_strains)+ facet_wrap(~Rec.group, scales = "free")+theme(legend.position="none")+ylim(c(0,1))
+biv.IFDs_PER_by.group
+
 
 oo.ifd <- ggplot(mouse.avs_4MM[ ( mouse.avs_4MM$sex == "male" ) & (mouse.avs_4MM$subsp == "Musc"),], aes(y = mean_IFD.2CO_PER, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
   geom_jitter(alpha=.2)+
   ggtitle("Interfocal Distances, ABS")+
-  scale_color_manual(values=colors_of_strains)+ facet_wrap(~strain, scales = "free")+ylim(c(0,1))+theme(legend.position="none")
+  scale_color_manual(values=colors_of_strains)+ facet_wrap(~Rec.group, scales = "free")+ylim(c(0,1))+theme(legend.position="none")
 
 ```
+
+Re-order the above figure if possible.
 
 
 Neither t.test are sig for both the ABS and PER when I test just the Musc strains.
@@ -1245,6 +1358,50 @@ CO_pos_rand
 ```
 
 
+
+
+```{r log.reg.CO1_pos, echo=FALSE}
+#mouse av, norm.first foci is from 1CO bivalents
+log.reg_1CO_pos_mouse.av <- glm(Rec.group ~ norm.first.foci.pos, 
+                            data=mouse.avs_4MM[(mouse.avs_4MM$subsp == "Musc")&(mouse.avs_4MM$sex == "male"),], family=binomial(link="logit"))
+summary(log.reg_1CO_pos_mouse.av)
+
+
+#single biv level
+log.reg_1CO_pos_biv <- glm(Rec.group ~ PER_Foci_1, 
+                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")&(Curated_BivData$hand.foci.count == 1),], family=binomial(link="logit"))
+summary(log.reg_1CO_pos_biv)
+
+```
+
+
+
+```{r t.test_1CO_pos, echo=FALSE}
+
+#mouse av
+t.test_mouse.av.1CO_pos <- t.test(
+  
+  mouse.avs_4MM$norm.first.foci.pos[(mouse.avs_4MM$Rec.group == 1)],
+  
+  mouse.avs_4MM$norm.first.foci.pos[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc") &(mouse.avs_4MM$Rec.group == 0)] 
+  )
+
+
+#Single Biv Leve;
+single.biv.1CO_pos_t.test <- t.test( 
+  
+  Curated_BivData$PER_Foci_1[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")&(Curated_BivData$hand.foci.count == 1) & (Curated_BivData$Rec.group == 1)], 
+ 
+   Curated_BivData$PER_Foci_1[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")&(Curated_BivData$hand.foci.count == 1) & (Curated_BivData$Rec.group == 0)]
+  )
+   
+#0single biv level
+```
+
+
+the mouse average foci1 pos is more sig in t.test, but not log regression... (is something wrong?) Check the mouse averages for the F1_pos, there might be an outlier or mouse with v.few observations.
+
+
 ### Siscoten
 
 The metric Sis-co-ten measures the amount of sister cohesion connected to the other pole.
@@ -1352,10 +1509,43 @@ mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD", mouse.avs_4MM$strain), 1,
 ```
 
 
+```{r log.reg_siscoten, echo=FALSE}
+#SISCOTEN
+#mouse av, norm.first foci is from 1CO bivalents
+log.reg_SIS.co.ten_mouse.av <- glm(Rec.group ~ mean.siscoten, 
+                           
+                                 data=mouse.avs_4MM[(mouse.avs_4MM$subsp == "Musc")&(mouse.avs_4MM$sex == "male"),], family=binomial(link="logit"))
+summary(log.reg_SIS.co.ten_mouse.av)
 
-> is the male polymorphism 
+
+#single biv level
+log.reg_Sis.co.ten_biv <- glm(Rec.group ~ SisCoTen, 
+                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
+
+summary(log.reg_Sis.co.ten_biv)
+
+```
 
 
+```{r t.test_sis.co.ten,echo=FALSE}
+#mouse av
+t.test_mouse.av_siscoten <- t.test(
+  
+  mouse.avs_4MM$mean.siscoten[(mouse.avs_4MM$Rec.group == 1)],
+  
+  mouse.avs_4MM$mean.siscoten[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc") &(mouse.avs_4MM$Rec.group == 0)] 
+  )
+
+#Single Biv Level
+t.test_single.biv_siscoten <- t.test( 
+  
+  Curated_BivData$SisCoTen[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")& (Curated_BivData$Rec.group == 1)], 
+ 
+   Curated_BivData$SisCoTen[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")& (Curated_BivData$Rec.group == 0)]
+  )
+```
+
+All the sis.co.ten tests are highly significant. Maybe I should consider running a normalized sis.co.ten? I think nrm_siscoten would still reflect the differing cohesion struction/outcome.
 
 ### Telomere and centromere Distance
 
@@ -1406,9 +1596,65 @@ rand_telo.dist_MM <- exactRLRT(lmer_MM_telo.dist)
 rand_telo.dist_MM
 ```
 
+Mixed model result summary:
 
 
-```{r cent.dist, echo=FALSE}
+```{r log.reg_telo.dist, echo=FALSE}
+#TELO.DIST
+#mouse av, norm.first foci is from 1CO bivalents
+log.reg_Telo.Dist_mouse.av <- glm(Rec.group ~ mean.telo.dist, 
+                           
+                                 data=mouse.avs_4MM[(mouse.avs_4MM$subsp == "Musc")&(mouse.avs_4MM$sex == "male"),], family=binomial(link="logit"))
+summary(log.reg_Telo.Dist_mouse.av)
+
+
+#single biv level
+log.reg_Telo.Dist_biv <- glm(Rec.group ~ telo_dist, 
+                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
+
+summary(log.reg_Telo.Dist_biv)
+
+
+#PER versions
+log.reg_Telo.Dist.PER_biv <- glm(Rec.group ~ telo_dist_PER, 
+                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
+
+summary(log.reg_Telo.Dist.PER_biv)
+```
+
+
+```{r t.test_Telo.Dist, echo=FALSE}
+
+#mouse av
+t.test_mouse.av_telo.dist <- t.test(
+  
+  mouse.avs_4MM$mean.telo.dist[(mouse.avs_4MM$Rec.group == 1)],
+  
+  mouse.avs_4MM$mean.telo.dist[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc") &(mouse.avs_4MM$Rec.group == 0)] 
+  )
+
+
+#Single Biv Level
+single.biv_t.test_Telo.Dist <- t.test( 
+  
+  Curated_BivData$telo_dist[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 1)], 
+ 
+   Curated_BivData$telo_dist[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 0)]
+  )
+   
+#Telo Dist PER
+single.biv_t.test_Telo.Dist_PER <- t.test( 
+  
+  Curated_BivData$telo_dist_PER[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")& (Curated_BivData$Rec.group == 1)], 
+ 
+   Curated_BivData$telo_dist_PER[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 0)]
+  )
+   
+```
+
+
+
+```{r cent.dist_show, echo=FALSE}
 cent.dist_boxplots <- ggplot(Curated_BivData, aes(x= strain, y=dis.cent ) )+ geom_boxplot(aes( fill=hand.foci.count, group=strain), alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("raw centromere distance")+ ylim(c(0, 150))
 
 
@@ -1429,6 +1675,62 @@ lmer_MM_cent.dist <- lmer(mean.cent.dist ~ subsp * sex + (1|strain), data=mouse.
 
 exactRLRT(lmer_MM_cent.dist)
 ```
+
+
+```{r log.reg_CENT.dist, echo=FALSE}
+
+#CENT.DIST
+#mouse av, norm.first foci is from 1CO bivalents
+log.reg_CENT.Dist_mouse.av <- glm(Rec.group ~ mean.cent.dist, 
+                           
+                                 data=mouse.avs_4MM[(mouse.avs_4MM$subsp == "Musc")&(mouse.avs_4MM$sex == "male"),], family=binomial(link="logit"))
+summary(log.reg_CENT.Dist_mouse.av)
+
+
+#single biv level
+log.reg_CENT.Dist_biv <- glm(Rec.group ~ dis.cent, 
+                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
+
+summary(log.reg_CENT.Dist_biv)
+
+
+#PER versions
+log.reg_CENT.Dist.PER_biv <- glm(Rec.group ~ dis.cent.PER, 
+                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
+
+summary(log.reg_CENT.Dist.PER_biv)
+```
+
+
+```{r t.test_CENT.Dist, echo=FALSE}
+#CENT.DIST
+#mouse av
+t.test_mouse.av_Cent.dist <- t.test(
+  
+  mouse.avs_4MM$mean.cent.dist[(mouse.avs_4MM$Rec.group == 1)],
+  
+  mouse.avs_4MM$mean.cent.dist[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc") &(mouse.avs_4MM$Rec.group == 0)] 
+  )
+
+
+#Single Biv Level
+single.biv_t.test_Cent.Dist <- t.test( 
+  
+  Curated_BivData$dis.cent[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 1)], 
+ 
+   Curated_BivData$dis.cent[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 0)]
+  )
+   
+#Cent Dist PER
+single.biv_t.test_Cent.Dist_PER <- t.test( 
+  
+  Curated_BivData$dis.cent.PER[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 1)], 
+ 
+   Curated_BivData$dis.cent.PER[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")& (Curated_BivData$Rec.group == 0)]
+  )
+   
+```
+
 
 
 The normalized centromere plots show that in Musc males, on 2CO bivalents the 1st CO is closer to the centromere end than in Dom males.
