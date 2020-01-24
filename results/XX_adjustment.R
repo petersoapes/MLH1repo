@@ -101,15 +101,14 @@ whole.cell.data <- add_category(whole.cell.data)
 female.whole.cell <- whole.cell.data[whole.cell.data$sex == "female", ]#384
 
 ### isolate rank 1:5 chrms
-
 #plot cos / per chrm
-
 
 #THE ranks are backwards
 pp <- ggplot(female.whole.cell[female.whole.cell$rank > 15,], aes(x=rank, y=SC.length, color=as.factor(hand.foci.count) ))+
   geom_jitter()+  facet_wrap(~strain)
+#theme(legend.position = "none"  )+ggtitle("my first plot")
 
-theme(legend.position = "none"  )+ggtitle("my first plot")
+#I think I need more whole cell measures
 
 # need more data on the ratios of 0:1:2:3 COs per biv across these ranks
 # 5 cells per mouse?
@@ -147,6 +146,10 @@ curated_cell_summary <- ddply(Curated_BivData[Curated_BivData$sex == "female",],
 )
 #there are some images with >20 Bivalents, they should be edited
 #3 female cell images with 20 bivalents, 11 cells with 19
+
+#write out curated cell summary
+write.table(curated_cell_summary, "~./MLH1repo/curate_female_cells_table.csv", sep=",", row.names = FALSE)
+
 
 
 #table summarize by rank

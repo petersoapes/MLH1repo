@@ -23,6 +23,8 @@ library(lme4)
 library(nlme)
 library(RLRsim)
 library(reshape2)
+#library(lmerTest) #loading this package will mess up RLRsim's exactRTRL()
+#for got the function i wanted to use
 
 
 #setwd("C:/Users/alpeterson7/Documents/MLH1repo/")
@@ -48,11 +50,15 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
 # Setup and Discription of Dataset
 
-This plot illustrates how well the algorithm seperated indiviual bivalents per cell image. 
-Several MSM male spreads had tight cells with a high degree of overlap, so fewer bivalents were indiviudally segmented.
+Bivalent level traits and metrics have been added in the src/Setup_BivData.Rmd script. These observations are from the automated image analysis algorithm and have been currated (threw out incorrect algorithm output).  
+
+The breakdown of curated bivalents by category
+
+`r data.frame(table(droplevels(Curated_BivData$category) ) )`
 
 
-```{r tech.ect, echo=FALSE, eval=TRUE}
+```{r tech.ect, echo=FALSE, eval=FALSE}
+#this fig not needed
 
 nBiv.per.cell <- ggplot(cell.level.BivData_table, aes(nbivs)) + ggtitle("Number of passing bivalents per cell") + geom_histogram(bins = 30) +facet_wrap( ~ category)
 nBiv.per.cell
@@ -61,30 +67,16 @@ nBiv.per.cell
 #they should be used to 
 
 #This isn't the same as curated/passing bivalents           
+#This plot illustrates how well the algorithm seperated indiviual bivalents per cell image. 
+#Several MSM male spreads had tight cells with a high degree of overlap, so fewer bivalents were indiviudally #segmented.
            
 ```
 
 
 
-consider making a table with predictions for bivalent patterns which are related to the mechanism
-
-
 # Chrm Class proportions
 
-
-Should I be thinking of making a MM or lm for predicting CO number (within a category)
-
-but there is so little variance in the CO number
-
-co ~ sc.length
-
-I ran this model before,  I remember that these models are better predictors (more significant for males than females)
-
-maybe -- female nuanced pattern -- falls along the lines of 
-
-simple predictions not met as strongly as in male patterns...
-
-this reasoning might be complicated by the fact that the range in CO averages is lower in females -- so there is less power
+The figure below shows the average percentages of chromosome classes per category.
 
 
 ```{r Chrm.props, echo=FALSE}
@@ -142,28 +134,24 @@ chrm.class.barplot
 
 ```
 
-the above plot displays the average proportion of each type of chromosome class across mice. The results mostly align with the hand measured results.
+These results align with the previous figure I made using percentages from hand measured results (dozens of observations, instead of hundreds). These results fit with the rapid male evolution of gwRR in MSM and PWD.  
 
-Look into ordering the mouse strains to highlight the MSM and PWD differences, renameing the chrm type labels, spacing out the x axis labels or removing some of the other mice.
-
-
-# Chromosome Size effect
-
-In an attempt to deal with the chromosome effect size that is know to effect total rate and CO position, we try to make a dataset of the longest 25% SC from a cell.
-
-The majority of cells from the BivData set do not have the complete completement of bivalents, (ie they are missing up to 5) -- which makes it hard to use a absolute length threshold since some cells have shorter or longer bivalents compared to the while. So an absolute measure might catch the lower 25% of some cells. 
-
-I'd like to figure out how to best seperate out the true 4th quartille bivalents (longest 25%), even with this missing data. double check that 4th quartille is top 5/4
+- Look into ordering the mouse strains to highlight the MSM and PWD differences, renameing the chrm type labels, spacing out the x axis labels or removing some of the other mice.
 
 
-Could I use the total SC? (I would be warry: can't ensure that they apply the same skeletonize algorithm/parameters and the XY is also included in that count and will mess everything up.)
+# Chromosome Size Effect
 
-outline logic for filtering / choosing BivData set of almost whole cells  
+In an attempt to test for and metigate noise based on chromosome identity/physical size, I tried to isolate bivalents which are in the top quartille for SC length from their cells.
 
-- 16 to 20 bivalents in the cells
+Since the majority of cells from the Automated BivData set do not have the complete completement of bivalents this subset is much smaller and might have 'smaller' bivalents from cells missing the longer bivalents. But assuming the algorithm's identification of bivalents in random, with a large enough sample size, hopefully this error would be minimized.
+
+Below are examples of plots which show the SC length distributions across cells. The top figure shows whole cell hand measured data and the bottom shows the Automated bivData from cells with at least 15 bivalents measured. There are plot pairs for each category, but they are excluded for space.  
 
 
-```{r chrm.size.effect, echo=FALSE}
+Each point is a bivalent ploted by cell on the x axis. X's are the 4th quartile, big point is the mean and smaller black point is the median. I'm using these to compare the patterns of these statistics in the automated dataset which is missing some bivalent data.  
+
+
+```{r SC.distb_manual_Auto, echo=FALSE}
 
 #calq the mouse means
 manual_summary_stats <- ddply(whole.cell.data_manual, c("fileName"), summarise,
@@ -174,7 +162,6 @@ manual_summary_stats <- ddply(whole.cell.data_manual, c("fileName"), summarise,
 #                        var_SC = format(round(   as.numeric(var(SC.length)),3), nsmall=3)
                    
 )
-
 
 manual_summary_stats <- add_mouse(manual_summary_stats)
 manual_summary_stats <- add_strain(manual_summary_stats)
@@ -255,7 +242,7 @@ show.the.cells_male_dom <- ggplot(whole.cell.data_manual[(whole.cell.data_manual
    geom_point(data=manual_summary_stats[(manual_summary_stats$sex == "male") & (manual_summary_stats$subsp == "Dom"),],aes(y=Qar.4, x=fileName, col="black", size=2.6), shape=4)+
   
   facet_wrap(~strain, scales="free")+ylim(c(30,150))+ggtitle("Male Dom whole cell manual measures")
-show.the.cells_male_dom
+
 
 
 almost_cells_Dom_m <- ggplot(almost_whole_cell_BivData[(almost_whole_cell_BivData$sex == "male") & (almost_whole_cell_BivData$subsp == "Dom"),], aes(x=fileName, y= chromosomeLength, color=strain))+
@@ -266,7 +253,7 @@ almost_cells_Dom_m <- ggplot(almost_whole_cell_BivData[(almost_whole_cell_BivDat
    geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "male") & (Biv_Data_mean_table$subsp == "Dom"),],aes(y=Qar.4, x=fileName, col="black", size=2.6), shape=4)+
   
   facet_wrap(~strain, scales="free")+ylim(c(30,150))+ggtitle("Dom male, almost whole cell \nMean, median, 4th Quartille ploted")
-almost_cells_Dom_m
+
 
 
 #MUSC male
@@ -311,12 +298,10 @@ almost_cells_Musc_m <- ggplot(almost_whole_cell_BivData[(almost_whole_cell_BivDa
 
 All the plots above show the distrtributions of manually whole cell measured SC lengths compared to the SC length distributions from the automated bivalent data. It shows the amount of within cell variance across strains. There is a bit of variance across the SC length distributions in the PWD females.   
 
-I'm purposing to take all the automated biv measures above the cell's 4th quartille as a dataset for 'longestest' bivalents which we would predict to exclude the shortest chromsomes which would have stronger chromsome size effects.  
-
+I'm purposing to take all the automated biv measures above the cell's 4th quartille as a dataset for 'longest' bivalents which we would predict to exclude the shortest chromsomes which would have stronger chromsome size effects.  
 
 But this dataset might be noisy, given the amount of variance in the SC length distributions across cells (PWD females, WSB females). But it's easier to just run another set of analysis.
 
-Biv_Data_mean_table has the Q4 values
 
 ```{r long.chrm.dataset, echo=FALSE}
 
@@ -373,17 +358,22 @@ BivData_from_15biv_cells$long.Biv <- ifelse( (BivData_from_15biv_cells$chromosom
 
 real.long.bivData <- BivData_from_15biv_cells[BivData_from_15biv_cells$long.Biv == "yes",]
 #table(real.long.bivData$fileName)
-
 #!!! omg it finally worked!~!!#OMFG
 
 ```
 
 
-Well fixing those bigs took forever. Use the DF, **real.long.bivData** for comparing the longest bivalents.  still v unblancd across sexes and strains ~ merge with the manual whole cell biv measures later...
+The DF **real.long.bivData** contains `r length(real.long.bivData$Obj.ID)` bivalent measures. full dataset is 
+`r length(Curated_BivData$Obj.ID)`. This is the breakdown of bivalent observations by category `r data.frame(table(droplevels(real.long.bivData$category)))`.  
 
-MSM male only has data from 1 cell, and PWD 3, uh oh -- may need to merge sooner.
 
-First proof of principl will be comparisons within category (long vs all)
+Still very unbalanced across sexes and strains ~ merge with the manual whole cell biv measures later...
+Musc males are very under-represented. MSM male only has data from 1 cell. 
+
+- Try to merge this DF with the whole.cell manual measures.  
+
+- Try estimating which 'loose' bivalent observations might be within the long class of bivalents.  
+
 
 ```{r mouse.av.long.bivData, echo=FALSE}
 #real.long.bivData
@@ -416,21 +406,22 @@ Long_biv_mouse.avs_4MM <- add_subsp(Long_biv_mouse.avs_4MM)
 
 ```
 
-in code chunk above I ran the mouse averages for the longest bivalets (680 bivalents, from 54 mice. full dataset is 10202 bivalents from 86 mice.
+in code chunk above I ran the mouse averages for the longest bivalets. (680 bivalents, from 54 mice. 
+10202 bivalents from 86 mice.
 
 
 ```{r show.long.SC, echo=FALSE}
 
-female_long_biv_plot <- ggplot(real.long.bivData[real.long.bivData$sex == "female",], aes(x=fileName, y=chromosomeLength, color=strain))+geom_point()+facet_wrap(~category, scales="free")+ylim(c(30,200))
+female_long_biv_plot <- ggplot(real.long.bivData[real.long.bivData$sex == "female",], aes(x=fileName, y=chromosomeLength, color=strain))+geom_point()+facet_wrap(~category, scales="free")+ylim(c(30,200))+ggtitle("Long Bivalent Dataset, \nFemale")
 female_long_biv_plot
 
 
-male_long_biv_plot <- ggplot(real.long.bivData[real.long.bivData$sex == "male",], aes(x=fileName, y=chromosomeLength, color=strain))+geom_point()+facet_wrap(~category, scales="free")+ylim(c(30,200))
+male_long_biv_plot <- ggplot(real.long.bivData[real.long.bivData$sex == "male",], aes(x=fileName, y=chromosomeLength, color=strain))+geom_point()+facet_wrap(~category, scales="free")+ylim(c(30,200))+ggtitle("Long Bivalent Dataset, \nmale")
 male_long_biv_plot
 
 ```
 
-These plots show the SC lengths for bivalents I'm calling the 'long SC data set'. They are supposed to be the longest 4-5 SC from cells where I could get good measures. These longer bivalents are useful because their patterns shouldn't be affect by chromsome size effect (which effects, CO position). Hopefully this data set will have less noise from chromosome identity, but there was still data missing (they don't come from whole cell measures).
+These plots show the SC lengths for the 'long SC data set'. They are supposed to be the longest 4-5 SC from cells where I could get good measures. These longer bivalents are useful because their patterns shouldn't be affect by chromsome size effect (which effects, CO position). Hopefully this data set will have less noise from chromosome identity, but there was still data missing (they don't come from whole cell measures).
 
 
 # Adjusting for XX
@@ -438,21 +429,21 @@ These plots show the SC lengths for bivalents I'm calling the 'long SC data set'
 The female mouse averages should have adjustments for the XX. working on code to estimate the SC length from 3rd largest bivalent from female whole cell data across strains. Subtract this amount from the female mouse averages ... This isn't the best solution -- since I can't determine what proportion of cells for female mouse averages include the XX, (most cells are missing at least 3 bivalents)
 
 
-- Of all female single bivalents 5% are XXs (1 of 20). 
+- Of all female single bivalents observations, 5% are XXs (1 of 20). 
 
-- The XX is large, thought to be within the top 25% longest bivalents of the cell (3rd largest by Mb).
+- The XX is large, likely within the top 25% longest bivalents of the cell (3rd largest by Mb).
 
-- What is the average % of XX for whole cell SC (sum(all bivalents)). Lets guess 12% of a cell's total SC area is XX.
+- The average % of XX for whole cell SC (sum(all bivalents)) can be calculated from the whole.cell dataset. Lets guess 12% of a cell's total SC area is XX.
 
-- do the algebra...
+- 
 
 
 # Applying Mix Model framework
 
-I will use two different mixed models using lme() and lmer(), because the different models have limitations for reporting p values ect.
+I will use two different mixed models using lme() and lmer(), because the different models have limitations for reporting p values for fixed and random effects.
 
 
-list out pros and cons for using mouse averages of bivalent traits instead of using the single bivalent traits them selves.  
+Pros and con list for using mouse averages vs single bivalent traits.  
 
 **Pro Bivalent level**  
 
@@ -469,6 +460,8 @@ list out pros and cons for using mouse averages of bivalent traits instead of us
 
 - Limited work to add to the dataset if I can justify that the collection of single bivalents are random and equivilent across mice. 
 
+
+The mouse averages for all the metrics is what is used in the mixed models.
 
 ```{r clean.biv.data4.MM, echo=FALSE}
 
@@ -505,8 +498,10 @@ mouse.avs_4MM <- ddply(Curated_BivData, c("mouse"), summarise,
                  mean_IFD.2CO_PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
                   
                        #CO position things, requires the melt?
-              norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)])
+              norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)]),
                   
+              #sis.co.ten!!
+              mean.siscoten = mean(SisCoTen, na.rm=TRUE)
 )
 
 #vari
@@ -533,42 +528,36 @@ Using the Mixed model framework which tests the effects (and interactions) of su
 
 Two bivalent level traits are predicted to display heterochiasmy (ie significant effects of sex); 
 
-1) SC length (cite Lynn)  
+1) SC length will be sexually dimorphic (sex effect will be signicant)(cite Lynn)  
 
 
-2.A) normalized CO positions (sedell and Kirkpatrick). 
+2.A) Normalized 1CO positions will be sexually dimorphic (sedell and Kirkpatrick). 
  
   B) **sis**ter **co**hesion **ten**sion (sis-co-ten) will be sexually dimorphic as it reflects the general property of unifrom vs telomere/biased CO positioning.
   
-  
+  C) Centromere and telomere distances will be sexually dimorphic.
 
-3) Interference, measured in the physical units, has been shown to lack sexual dimorphism (petkov).
 
-These 3 hypotheses will be tested with the mixed model framework, specifically focusing on the effect of sex.
-
-Mouse averages for the each metric will be used.
+3) Interference / IFD will not be sexually dimorphic. Previous measures has been shown to lack sexual dimorphism (cite petkov).
 
 
 
-## Predictions, male polymorphism
-
-What predictions do I have for how traits will differ between the low and high Musc mouse strains?
+## Predictions, Male Polymorphism (High vs Low Rec strains)
 
 
-A) **SC lengths** will be longer for high Rec  
 
-B.1) **Interfernce/IFD** will be shorter in high Rec
+A) **SC lengths** will be longer for high Rec strains.  
 
-or
-
-B.2) **Interference/IFD** will be longer in high Rec males, sis-co-ten metric will be maximized. (given prelim results from Beth's data)  
+B.1) **Interfernce/IFD** will be shorter in high Rec strains.  
 
 
-C) It's unknown if **1CO normalized positions** between high and low musc strains, will differ. (no good predictions come to mind)
+C.1) It's unknown if **1CO normalized positions** between high and low musc strains, will differ. (no good predictions come to mind)
 
 
-D) Sis-co-ten predictions fall into 
+C.2) sis-co-ten metric will be maximized in higher recombining strains .. because.  
 
+
+C.3) telomere and centromere distances will be shorter in low rec strains
 
 Using the same MM framework we would expect the random strain effect would be significant for these predictions.
 
@@ -663,18 +652,16 @@ I used the mixed model with the lme() for the full Curated BivData and long bivd
 
 $$mouse \ average \ SC  \ length ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
-```{r MM_2_SC.length, echo=FALSE}
+```{r MM_2_SC.length, echo=FALSE, eval=FALSE}
 #Long_biv_mouse.avs_4MM
-
 #as.data.frame( round(  summary(BivData.MixedModel.HQ)$tTable, 6 ) )
 
-#can't make the 
+#did model isn't working
 SC_length.lmer.MM <- lmer(mean_SC ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
 
-anova(SC_length.lmer.MM) 
-
-thing1  <- summary(SC_length.lmer.MM)
-thing2 <- drop1(SC_length.lmer.MM, test="Chisq") 
+#anova(SC_length.lmer.MM)
+#thing1  <- summary(SC_length.lmer.MM)
+#thing2 <- drop1(SC_length.lmer.MM, test="Chisq") 
 
 rand_SC.Length_MM <- exactRLRT(SC_length.lmer.MM)
 rand_SC.Length_MM
@@ -682,24 +669,21 @@ rand_SC.Length_MM
 #this pvalue for ran is 0.0027 -- the strain effect 
 
 ##long bivalents
-long.bivs_SC_length.lmer.MM <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Long_biv_mouse.avs_4MM, REML = TRUE)
+#long.bivs_SC_length.lmer.MM <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Long_biv_mouse.avs_4MM, REML = TRUE)
 
-anova(long.bivs_SC_length.lmer.MM) 
+#anova(long.bivs_SC_length.lmer.MM) 
 #sex is larges explantion of variance
+#thing1  <- summary(long.bivs_SC_length.lmer.MM)
+#thing2 <- drop1(long.bivs_SC_length.lmer.MM, test="Chisq") 
 
-thing1  <- summary(long.bivs_SC_length.lmer.MM)
-thing2 <- drop1(long.bivs_SC_length.lmer.MM, test="Chisq") 
-
-rand_SC.Length_MM <- exactRLRT(long.bivs_SC_length.lmer.MM)
-rand_SC.Length_MM
-
+#rand_SC.Length_MM <- exactRLRT(long.bivs_SC_length.lmer.MM)
+#rand_SC.Length_MM
 #strain no sig, but underpowered
-
 ```
 
 
 
-```{r justify.mouse.level, echo=FALSE}
+```{r justify.mouse.level, echo=FALSE, eval=FALSE}
 
 #start the permutation code here
 #make a randomized BivData DF
@@ -708,9 +692,7 @@ rand_SC.Length_MM
 #30 cells * ( 19 or 20 bivs ) * 70% segment rate = decent sample size for comparing Biv-based patterns?
 # I think this would address if the sample sizes are affecting the pattern
 
-
 #
-
 #justify mouse averages
 #is sampling -- bivalent dataset 
 # random samples 
@@ -736,7 +718,7 @@ The results seem to indicate that sex is a significant factor. Consider writing 
 
 > Is the random Effect of strain an effect on SC length?
 
-The exactRLRT() test indicates that the random strain effect might be significant, p= `r rand_SC.Length_MM$p.value`.
+The exactRLRT() test indicates that the random strain effect might be significant, p= xx
 
 
 ### Male polymorphism Predcition
@@ -955,7 +937,9 @@ I tested 2 versions of the mixed model for this flavor of trait, raw IFD and nor
 
 
 ```{r MM.IFD, echo=FALSE}
+#ugg what changed, FFF kntir is broken!!
 
+library(RLRsim)
 IFD_ABS.MM <- lmer(mean_IFD.2CO_ABS ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
 
 anova(IFD_ABS.MM) 
@@ -1180,7 +1164,7 @@ The mixed model data should only come from 1CO bivalent data.
 #can't make the 
 CO_position.MM <- lmer(norm.first.foci.pos ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
 
-library(lmerTest)
+#library(lmerTest)
 #anova(CO_position.MM)
 anova(CO_position.MM, verbose = TRUE)
 
@@ -1192,26 +1176,21 @@ summary(CO_position.MM) #no p values,,
 #this test, the full model is more predictive than an empty model?
 
 #as.data.frame( round(  summary(CO_position.MM)$tTable, 6 ) )  #lme() needed for this
-
 #thing2 <- drop1(SC_length.MM, test="Chisq") 
 
 CO_pos_rand <- exactRLRT(CO_position.MM)
 CO_pos_rand
-
 ```
 
 
 ### Siscoten
 
-The metric Sis-co-ten measures the amount of sister cohesion connected to the other pole. Alternating IFDs. Assuming chromatid interference and no sister seperation, this should reflect the amount of sister cohesion that is pulled across the opposite pole.
+The metric Sis-co-ten measures the amount of sister cohesion connected to the other pole.
+
+The logic of how the sis-co-ten metric is outlined in the figure below. The goal is to use this metric to model different tension ative cohesin amounts as a consequence of different numbers and placements of chiasmata/CO. This metric is calculated using SC area as a proxy to the amount of cohesion at metaphase.
 
 
-
-The logic of how the sis-co-ten metric is outlined in the figure below. The authors from this paper call it by something else. looking at this siscoten metric is a way to model different cohesin outcomes as a consequence of different numbers and placements of chiasmata/CO. This metric is calculated from SC area -- which we are using as a proxy to the amount of cohesion at metaphase.
-
-
-
-![Logic of Sis-co-ten metric, from (Lee, J. (2019). Is age-related increase of chromosome segregation errors in mammalian oocytes caused by cohesin deterioration?. Reproductive Medicine and Biology.)](figureFiles/Lee2019_Fig2.png)
+![from (Lee, J. (2019). Is age-related increase of chromosome segregation errors in mammalian oocytes caused by cohesin deterioration?. Reproductive Medicine and Biology.)](figureFiles/Lee2019_Fig2.png)
 
 ```{r show.siscoten, echo=FALSE}
 #think of a good way to display this
@@ -1246,21 +1225,74 @@ sis.co.ten.plot_PWD_male
 
 
 Curated_BivData <- Curated_BivData[Curated_BivData$hand.foci.count < 5,]
+Curated_BivData <- Curated_BivData[!(is.na(Curated_BivData$hand.foci.count) | Curated_BivData$hand.foci.count==""), ]
 
 
-sis.co.ten_with.plot <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD female",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+
+jitter_siscoten_PWDf <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD female",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ ggtitle("PWD female Sis.co.ten")+
   geom_jitter()+facet_wrap(sex~strain)
-sis.co.ten_with.plot
+jitter_siscoten_PWDf
 
-
-
-sis.co.ten_with.plot_2 <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD male",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+
+jitter_siscoten_PWDm <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD male",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ggtitle("PWD male sis.co.ten")+
   geom_jitter()+facet_wrap(sex~strain)
-sis.co.ten_with.plot_2
+jitter_siscoten_PWDm
+
+jitter_siscoten_WSBf <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB female",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ggtitle("WSB female sis.co.ten")+
+  geom_jitter()+facet_wrap(sex~strain)
+jitter_siscoten_WSBf
+
+jitter_siscoten_WSBm <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB male",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ggtitle("WSB male sis.co.ten")+
+  geom_jitter()+facet_wrap(sex~strain)
+jitter_siscoten_WSBm
+```
+
+Males have much clearer seperation of siscoten across chrm classes. This is emphasized when SC length is also plotted. It seems like musc males have higher amounts of this metric compared to Dom males (which might)
+
+
+To formally test the differences in sis-co-ten I plan to write a subsampling / permutation loop to compare the mean(sis.co.ten) of the same numbers of bivalents of the same class.
+
+
+```{r sis.co.ten.test_HetC, echo=FALSE}
+#mouse.avs_4MM  - mouse averages with mean sis.co.ten
+
+#MM
+lme_MM_siscoten <- lme(mean.siscoten ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
+as.data.frame( round(  summary(lme_MM_siscoten)$tTable, 6 ) )
+
+#sex and sex*subsp interaction effect are significant for mean sis.co.ten
+
+lmer_MM_siscoten <- lmer(mean.siscoten ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
+#anova(lmer_MM_siscoten) 
+
+#thing1  <- summary(lmer_MM_siscoten)
+#drop1(lmer_MM_siscoten, test="Chisq") 
+
+rand_siscoten_MM <- exactRLRT(lmer_MM_siscoten)
+rand_siscoten_MM
+#slightly sig
+```
+
+
+The fixed effects, sex and sex*subsp are significant. The random strain effect is also significant.
+
+> Is the heterochiasmy prediction met?
+
+Yes, model od predicting the mouse average siscoten, sex and sex-subp interaction are significant factors. The Random strain effect is also significant.  
+
+
+```{r siscoten.test.poly, echo=FALSE}
+
+mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD", mouse.avs_4MM$strain), 1, 
+                                    ifelse(grepl("MSM", mouse.avs_4MM$strain), 1, 0))
+
+#test high vs low Musc strains
+mouse.avs_4MM
 
 ```
 
-Males have much clearer seperation of siscoten across chrm classes. This is emphasized when SC length is also plotted.
+
+
+> is the male polymorphism 
+
 
 
 ### Telomere and centromere Distance
