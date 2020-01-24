@@ -1,4 +1,3 @@
-# Common MLH1repo functions
 #
 #
 
@@ -396,10 +395,21 @@ add_IFD <- function(DF){
   DF$IFD1_ABS <- as.numeric(DF$IFD1_ABS)
   
   
-  DF$IFD1_PER <- ifelse(  (DF$hand.foci.count >= 2), 
-                          as.numeric(DF$Foci2.PER) - as.numeric(DF$Foci1.PER),   "" )
+  DF$IFD2_ABS <- ifelse(  (DF$hand.foci.count == 3),
+                          #manual.verified.f1, 
+                          as.numeric(DF$Foci2) - as.numeric(DF$Foci3),   "" )
+  DF$IFD2_ABS <- as.numeric(DF$IFD2_ABS)
   
-  DF$IFD1_PER <- as.numeric(DF$IFD1_PER)
+  
+  DF$IFD3_ABS <- ifelse(  (DF$hand.foci.count == 4),
+                          #manual.verified.f1, 
+                          as.numeric(DF$Foci3) - as.numeric(DF$Foci4),   "" )
+  DF$IFD3_ABS <- as.numeric(DF$IFD3_ABS)
+  
+  
+ # DF$IFD1_PER <- ifelse(  (DF$hand.foci.count >= 2), 
+  #                        as.numeric(DF$Foci2.PER) - as.numeric(DF$Foci1.PER),   "" )
+  #DF$IFD1_PER <- as.numeric(DF$IFD1_PER)
   
   return(DF)
 }

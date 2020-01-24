@@ -48,6 +48,27 @@ load(file="data/MLH1/MLH1_data_setup_11.12.19.RData")#added batch17
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 ```
 
+```{r misc.setup, echo=FALSE}
+
+colors_of_strains <- c('WSB'= "#56B4E9",'G' ='cadetblue','LEW'= 'lightblue','PERC'= 'blue',
+                       #blues
+                       
+                       'PWD'= 'red2',
+                       'SKIVE'= 'coral1','KAZ'= 'coral4', 'TOM'= 'indianred1','AST' = 'red4',
+                       'CZECH'= 'indianred4',
+                       
+                       'MSM'= 'deeppink', 'MOLF'= 'hotpink', #mol are pinks, bc they are fancy mice
+                       
+                    'CAST'='green','HMI'= 'forestgreen', #greens
+                    
+                    'SPRET'='gold','SPIC'= 'goldenrod1', #browns? color of mounds?
+                    'CAROLI'='gold3',
+                    
+                    "F1"='grey', "other" = 'grey'
+                    )
+```
+
+
 # Setup and Discription of Dataset
 
 Bivalent level traits and metrics have been added in the src/Setup_BivData.Rmd script. These observations are from the automated image analysis algorithm and have been currated (threw out incorrect algorithm output).  
@@ -69,7 +90,6 @@ nBiv.per.cell
 #This isn't the same as curated/passing bivalents           
 #This plot illustrates how well the algorithm seperated indiviual bivalents per cell image. 
 #Several MSM male spreads had tight cells with a high degree of overlap, so fewer bivalents were indiviudally #segmented.
-           
 ```
 
 
@@ -186,6 +206,8 @@ Biv_Data_mean_table <- add_strain(Biv_Data_mean_table)
 Biv_Data_mean_table <- add_sex(Biv_Data_mean_table)
 Biv_Data_mean_table <- add_subsp(Biv_Data_mean_table)
 
+#colors_of_strains
+#scale_color_manual(values=colors_of_strains)
 
 show.the.cells_females_dom <- ggplot(whole.cell.data_manual[(whole.cell.data_manual$sex == "female") & (whole.cell.data_manual$subsp == "Dom"),], aes(x=fileName, y= SC.length, color=strain))+geom_point()+
   
@@ -194,7 +216,10 @@ show.the.cells_females_dom <- ggplot(whole.cell.data_manual[(whole.cell.data_man
   
    geom_point(data=manual_summary_stats[(manual_summary_stats$sex == "female") & (manual_summary_stats$subsp == "Dom"),],aes(y=Qar.4, x=fileName, col="black", size=2.6), shape=4)+
   
+  scale_color_manual(values=colors_of_strains)+
   facet_wrap(~strain, scales="free")+ylim(c(30,200))+ggtitle("Female whole cell manual measures")
+
+
 show.the.cells_females_dom
 #PWD seems to have the biggest variance across cells
 
@@ -204,7 +229,7 @@ almost_cells_DOM_f <- ggplot(almost_whole_cell_BivData[(almost_whole_cell_BivDat
   geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "female") & (Biv_Data_mean_table$subsp == "Dom"),],aes(y=mean_SC, x=fileName, col="red", size=2))+
   geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "female") & (Biv_Data_mean_table$subsp == "Dom"),],aes(y=median_SC, x=fileName, col="black", size=1.5))+
    geom_point(data=Biv_Data_mean_table[(Biv_Data_mean_table$sex == "female") & (Biv_Data_mean_table$subsp == "Dom"),],aes(y=Qar.4, x=fileName, col="black", size=2.6), shape=4)+
-  
+  scale_color_manual(values=colors_of_strains)+
   facet_wrap(~strain, scales="free")+ylim(c(30,200))+ggtitle("Dom female, almost whole cell \nMean, median, 4th Quartille ploted")
 almost_cells_DOM_f
 
@@ -412,11 +437,11 @@ in code chunk above I ran the mouse averages for the longest bivalets. (680 biva
 
 ```{r show.long.SC, echo=FALSE}
 
-female_long_biv_plot <- ggplot(real.long.bivData[real.long.bivData$sex == "female",], aes(x=fileName, y=chromosomeLength, color=strain))+geom_point()+facet_wrap(~category, scales="free")+ylim(c(30,200))+ggtitle("Long Bivalent Dataset, \nFemale")
+female_long_biv_plot <- ggplot(real.long.bivData[real.long.bivData$sex == "female",], aes(x=fileName, y=chromosomeLength, color=strain))+geom_point()+facet_wrap(~category, scales="free")+ylim(c(30,200))+ggtitle("Long Bivalent Dataset, \nFemale")+scale_color_manual(values=colors_of_strains)
 female_long_biv_plot
 
 
-male_long_biv_plot <- ggplot(real.long.bivData[real.long.bivData$sex == "male",], aes(x=fileName, y=chromosomeLength, color=strain))+geom_point()+facet_wrap(~category, scales="free")+ylim(c(30,200))+ggtitle("Long Bivalent Dataset, \nmale")
+male_long_biv_plot <- ggplot(real.long.bivData[real.long.bivData$sex == "male",], aes(x=fileName, y=chromosomeLength, color=strain))+geom_point()+facet_wrap(~category, scales="free")+ylim(c(30,200))+ggtitle("Long Bivalent Dataset, \nmale")+scale_color_manual(values=colors_of_strains)
 male_long_biv_plot
 
 ```
@@ -516,8 +541,6 @@ mouse.avs_4MM$strain <- factor(mouse.avs_4MM$strain, ordered = FALSE)
 #MAKE the same version of the TABLE but for the longest_biv_Dataset (when I get around to making it)
 
 #code if males are high or low?
-
-
 ```
 
 In the chunk above the mouse averages table is made -- may need to add all the extra metrics (IFD, .
@@ -541,9 +564,7 @@ Two bivalent level traits are predicted to display heterochiasmy (ie significant
 3) Interference / IFD will not be sexually dimorphic. Previous measures has been shown to lack sexual dimorphism (cite petkov).
 
 
-
 ## Predictions, Male Polymorphism (High vs Low Rec strains)
-
 
 
 A) **SC lengths** will be longer for high Rec strains.  
@@ -597,14 +618,14 @@ The CO position traits are:
 #for now remove the 
 Curated_BivData.99 <- Curated_BivData[Curated_BivData$hand.foci.count <5,]
 
-first.SC.plot <- ggplot(Curated_BivData, aes(y = chromosomeLength, x= strain, fill= hand.foci.count))+geom_jitter(aes(alpha=0.2))+geom_boxplot(aes(alpha=0.5))+  ggtitle("SC Length for Bivalents")+facet_wrap(sex~subsp, scales = "free")
+first.SC.plot <- ggplot(Curated_BivData, aes(y = chromosomeLength, x= strain, fill= hand.foci.count))+geom_jitter(aes(alpha=0.2))+geom_boxplot(aes(alpha=0.5))+  ggtitle("SC Length for Bivalents")+facet_wrap(sex~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)
 first.SC.plot
 #add boxplots for mouse level means
 #add second x axis, hand.foci.count
 
-other_thing22 <- ggplot(data = Curated_BivData.99, aes(y = chromosomeLength, x = hand.foci.count, fill=as.factor(mouse)) ) + geom_jitter() + facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")
+other_thing22 <- ggplot(data = Curated_BivData.99, aes(y = chromosomeLength, x = hand.foci.count, fill=as.factor(mouse)),color=strain ) + geom_jitter() + facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")+scale_color_manual(values=colors_of_strains)
 
-SC.lengths.1CO <- ggplot(Curated_BivData[Curated_BivData$hand.foci.count == 1,], aes(y = chromosomeLength, x=strain, fill=sex))+geom_boxplot(aes(alpha=0.5))+geom_jitter(aes(alpha=0.2))+  ggtitle("1COs male and females") +ylim(c(30,250))
+SC.lengths.1CO <- ggplot(Curated_BivData[Curated_BivData$hand.foci.count == 1,], aes(y = chromosomeLength, x=strain, fill=sex, color=strain))+geom_boxplot(aes(alpha=0.5))+geom_jitter(aes(alpha=0.2))+  ggtitle("1COs male and females") +ylim(c(30,250))+scale_color_manual(values=colors_of_strains)
 
 
 #sfsL <- ggplot(lowGEN, aes(variable, prop, fill=as.factor(Group.2))) + geom_col(position = "dodge") + #scale_fill_viridis(name="Migration Rate", discrete = TRUE) + theme(axis.text.x=element_blank()) + #xlab("Frequency in the sample") + ylab("Proportion of Total Junctions") + ggtitle("C. Generation = #2,000") + ylim(0,1)
@@ -783,8 +804,6 @@ summary(log.reg_SC.length_Musc)
 
 ```{r long.sc_log.res_meanSC}
 
-
-
 long.SC.mouse.avs_4MM_male <- Long_biv_mouse.avs_4MM[Long_biv_mouse.avs_4MM$sex == "male",]
 long.SC.mouse.avs_4MM_Mmale <- long.SC.mouse.avs_4MM_male[long.SC.mouse.avs_4MM_male$subsp == "Musc",]
 
@@ -810,33 +829,20 @@ In a logistic regression, mouse average SC length is slightly predictive telling
 
 # IFD
 
-ToDo fix the function to calculat IFD2, IFD3
+
+3) Interference / IFD will not be sexually dimorphic.
+
+B.1) **Interfernce/IFD** will be shorter in high Rec strains to allow more foci to fit on a single bivalent.  
+
 
 **I**nter**f**ocal **D**istance, a indication of CO interference.
 
-
-How can I highlight the result (I need to verify this first) for greater IFD in high rec male mice?
-
 The raw measures are pretty nosy, this might not be the best way to display these results.
 
-
+ Each point is a IFD observation. Maybe add mouse level lines for the means.
+ 
 ```{r show.IFD, echo=FALSE, warning=FALSE}
-colors_of_strains <- c('WSB'= "#56B4E9",'G' ='cadetblue','LEW'= 'lightblue','PERC'= 'blue',
-                       #blues
-                       
-                       'PWD'= 'red2',
-                       'SKIVE'= 'coral1','KAZ'= 'coral4', 'TOM'= 'indianred1','AST' = 'red4',
-                       'CZECH'= 'indianred4',
-                       
-                       'MSM'= 'deeppink', 'MOLF'= 'hotpink', #mol are pinks, bc they are fancy mice
-                       
-                    'CAST'='green','HMI'= 'forestgreen', #greens
-                    
-                    'SPRET'='gold','SPIC'= 'goldenrod1', #browns? color of mounds?
-                    'CAROLI'='gold3',
-                    
-                    "F1"='grey', "other" = 'grey'
-                    )
+
 #first draft of the IFD comparisons
 #make the mouse boxplots -- instead of geom_points
 
@@ -848,33 +854,29 @@ Curated_BivData.22 <- Curated_BivData.22[(!is.na(Curated_BivData.22$hand.foci.co
 boxplots_first.IFD.plot_ABS <- ggplot(Curated_BivData.22, aes(y = IFD1_ABS, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
   geom_jitter(alpha=.2)+
   ggtitle("Interfocal Distances, ABS")+
-  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none")
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none")+scale_color_manual(values=colors_of_strains)
 boxplots_first.IFD.plot_ABS
 #order is out of wack, but -- good for now
 
 
 boxplots_first.IFD.plot_PER <- ggplot(Curated_BivData.22, aes(y = IFD1_PER, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
   geom_jitter(alpha=.2)+
-  ggtitle("Interfocal Distances, ABS")+
-  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")+ylim(c(0,1))
+  ggtitle("Interfocal Distances, PER")+
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")+ylim(c(0,1))+scale_color_manual(values=colors_of_strains)
 boxplots_first.IFD.plot_PER
 
 
-first.IFD.plot_ABS <- ggplot(Curated_BivData.22, aes(y = IFD1_ABS, x= strain, color=mouse))+geom_jitter()+ggtitle("Interfocal Distances, ABS")+facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none")
+first.IFD.plot_ABS <- ggplot(Curated_BivData.22, aes(y = IFD1_ABS, x= strain, color=mouse))+geom_jitter()+ggtitle("Interfocal Distances, ABS")+facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none") #+scale_color_manual(values=colors_of_strains)
 
 first.IFD.plot_PER <- ggplot(Curated_BivData.22, aes(y = IFD1_PER, x= strain, color=chromosomeLength))+geom_jitter()+ggtitle("Interfocal Distances, PER")+facet_wrap(sex~subsp, scales = "free")+ylim(c(0,1)) 
 
 #+theme(legend.position="none")
-
-
 ```
 
 
-```{r blah.again}
+```{r blah.again, echo=FALSE, eval=FALSE}
 #long SC Long_biv_mouse.avs_4MM
 #real.long.bivData
-
-
 #Only use 2CO bivalents
 real.long.bivData.22 <- real.long.bivData[real.long.bivData$hand.foci.count == 2,]
 real.long.bivData.22 <- real.long.bivData.22[(!is.na(real.long.bivData.22$hand.foci.count)),]
@@ -883,32 +885,23 @@ real.long.bivData.22 <- real.long.bivData.22[(!is.na(real.long.bivData.22$hand.f
 long.biv_IFD_look_ABS <- ggplot(real.long.bivData.22, aes(y = IFD1_ABS, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
   geom_jitter(alpha=.2)+
   ggtitle("Interfocal Distances, ABS")+
-  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none")
-
-long.biv_IFD_look_ABS
-
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none")+scale_color_manual(values=colors_of_strains)
 
 
 long.biv_IFD_look_PER <- ggplot(real.long.bivData.22, aes(y = IFD1_PER, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
   geom_jitter(alpha=.2)+
   ggtitle("Interfocal Distances, ABS")+
-  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+ylim(c(0,1))+theme(legend.position="none")
-
-long.biv_IFD_look_PER
-
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+ylim(c(0,1))+theme(legend.position="none")+scale_color_manual(values=colors_of_strains)
 ```
 
 
-Above is the first plots of IFDs. Each point is a IFD observation. colors are by mouse. 
-Maybe add mouse level lines for the means
+### Fixed Effects
 
-Maybe I should try binned the SC lengths.
-
-mixed model analysis for IFD (interference), the first set of models are made with the lme() functions.
+Mixed model analysis for IFD (interference), the first set of models are made with the lme() functions.
 
 $$mouse \ average \ IFD ~=~ subsp * sex + rand(strain*sex) + \varepsilon $$
 
-```{r MM_1.SC.Length, echo=FALSE}
+```{r MM_IFB.ABS, echo=FALSE}
 #get a list of the old mice to double check
 #old.mice <- DF.HetC.MixedModel.HQ$mouse[DF.HetC.MixedModel.HQ$age.weeks < 25,]
 #MIXED MODEL
@@ -924,8 +917,9 @@ lme_MM_IFD_PER <- lme(mean_IFD.2CO_PER ~ subsp * sex, data= mouse.avs_4MM, rando
 as.data.frame( round(  summary(lme_MM_IFD_PER)$tTable, 6 ) )
 ```
 
+Sex is a slightly significant factor for raw and normalized IFD. 
 
-### second set of Mixed Models
+### Random Effects
 
 These seond set of models are made using the lmer()
 
@@ -939,25 +933,21 @@ I tested 2 versions of the mixed model for this flavor of trait, raw IFD and nor
 ```{r MM.IFD, echo=FALSE}
 #ugg what changed, FFF kntir is broken!!
 
-library(RLRsim)
 IFD_ABS.MM <- lmer(mean_IFD.2CO_ABS ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
-
-anova(IFD_ABS.MM) 
+#anova(IFD_ABS.MM) 
 
 #thing1  <- summary(IFD_ABS.MM)
 IFD.ABS_chi <- drop1(IFD_ABS.MM, test="Chisq") 
-IFD.ABS_chi
 
 rand_test_IFD.ABS.MM <- exactRLRT(IFD_ABS.MM)
 rand_test_IFD.ABS.MM
 
 
 IFD_PER.MM <- lmer(mean_IFD.2CO_PER ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
-
-anova(IFD_PER.MM)
+#anova(IFD_PER.MM)
 
 Chis.sp_IFD.PER.MM <- drop1(IFD_PER.MM, test="Chisq") 
-Chis.sp_IFD.PER.MM
+#Chis.sp_IFD.PER.MM
 
 rand_test_IFD.PER.MM <- exactRLRT(IFD_PER.MM)
 rand_test_IFD.PER.MM
@@ -965,12 +955,12 @@ rand_test_IFD.PER.MM
 ```
 
 
+Random effect of strain is not significnt for ABS IFD, and only slightly significant for the IFD.PER
 
-```{r compare.IFD}
 
-#make t.tests for pooled high and low
+#### IFD 3CO bivalents
 
-```
+Run comparisons for 3CO bivalents.  
 
 
 ### Heterochiasmy Prediction
@@ -1005,8 +995,48 @@ PER.t.test <- t.test( mouse.avs_4MM_M.male$mean_IFD.2CO_PER[mouse.avs_4MM_M.male
 ```
 
 
+```{r compare.IFD,echo=FALSE}
+#make t.tests for pooled high and low
+mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD", mouse.avs_4MM$strain), 1, 
+                                    ifelse(grepl("MSM", mouse.avs_4MM$strain), 1, 0))
+
+Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
+                                    ifelse(grepl("MSM male", Curated_BivData$category), 1, 0))
+
+
+Curated_BivData <- add_IFD(Curated_BivData)
+
+Rec.group_IFD.ABS_test <- t.test(Curated_BivData$IFD1_ABS[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc") & (Curated_BivData$Rec.group ==0 )],
+     Curated_BivData$IFD1_ABS[ ( Curated_BivData$Rec.group ==1 )]
+)#p-value = 7.955e-05
+
+Rec.group_IFD.ABS_test$p.value
+
+Rec.group_IFD.PER_test <- t.test( Curated_BivData$IFD1_PER[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc") & (Curated_BivData$Rec.group ==0 )],
+     Curated_BivData$IFD1_PER[ ( Curated_BivData$Rec.group ==1 )]
+)#p-value = 0.04231
+
+Rec.group_IFD.PER_test$p.value
+
+biv.IFDs <- ggplot(Curated_BivData[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc"),], aes(y = IFD1_ABS, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
+  geom_jitter(alpha=.2)+
+  ggtitle("Interfocal Distances, ABS")+
+  scale_color_manual(values=colors_of_strains)+ facet_wrap(~Rec.group, scales = "free")+theme(legend.position="none")+ylim(c(0,100))
+
+oo.ifd <- ggplot(mouse.avs_4MM[ ( mouse.avs_4MM$sex == "male" ) & (mouse.avs_4MM$subsp == "Musc"),], aes(y = mean_IFD.2CO_PER, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
+  geom_jitter(alpha=.2)+
+  ggtitle("Interfocal Distances, ABS")+
+  scale_color_manual(values=colors_of_strains)+ facet_wrap(~strain, scales = "free")+ylim(c(0,1))+theme(legend.position="none")
+
+```
+
+
 Neither t.test are sig for both the ABS and PER when I test just the Musc strains.
 The above t.tests are breaking the knitr
+
+The t.tests for IFD1s at the bivalent level for the high and low musc males are significant.
+
+
 
 ```{r IFD.poly_log.reg, echo=FALSE}
 
@@ -1055,10 +1085,29 @@ There are a few traits that fall within the CO positions
 
 - centromere and telomere distance  
 
+#### Predictions
 
-for the long chrm, pull the object ids out of the melt table.
+**Heterochiasmy**
+
+2.A) Normalized 1CO positions will be sexually dimorphic (sedell and Kirkpatrick). 
+ 
+  B) **sis**ter **co**hesion **ten**sion (sis-co-ten) will be sexually dimorphic as it reflects the general property of unifrom vs telomere/biased CO positioning.
+  
+  C) Centromere and telomere distances will be sexually dimorphic.
+
+
+**Polymorphism**
+
+C.1) It's unknown if **1CO normalized positions** between high and low musc strains, will differ. (no good predictions come to mind)
+
+
+C.2) sis-co-ten metric will be maximized in higher recombining strains .. because.  
+
+
+C.3) telomere and centromere distances will be shorter in low rec strains
 
 ### Normalized 1CO positions
+
 
 ```{r CO.positions.figs, echo=FALSE}
 #main figure of density plots,
@@ -1075,7 +1124,7 @@ MELT_Curated_BivData.1CO <- MELT_Curated_BivData.1CO[MELT_Curated_BivData.1CO$PE
 # remove the na's
 MELT_Curated_BivData.1CO <- MELT_Curated_BivData.1CO[!(is.na(MELT_Curated_BivData.1CO$hand.foci.count) | MELT_Curated_BivData.1CO$hand.foci.count==""), ]
 
-CO.Pos.density_1CO <- ggplot(MELT_Curated_BivData.1CO, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(sex~subsp, ncol=2)+ggtitle("Normalized 1CO Foci Positions")
+CO.Pos.density_1CO <- ggplot(MELT_Curated_BivData.1CO, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(sex~subsp, ncol=2)+ggtitle("Normalized 1CO Foci Positions")+scale_fill_manual(values=colors_of_strains)
 CO.Pos.density_1CO
 
 
@@ -1095,9 +1144,9 @@ CO.Pos.density_Dom_male <- ggplot(Dom.male_MELT_curBivData, aes(x=PER.Foci.Pos, 
 ```
 
 
-Above plot focuses on the 1CO bivalent normalized positions -- since CO interference controls the general position of COs when there are multiple COs. This plot shows the sexual dimorphism in the density plots.
+Above plot focuses on the 1CO bivalent normalized positions since CO interference controls the general position of COs when there are multiple COs. This plot shows the sexual dimorphism in the density plots.
 
-consider adding annotate_text for the number of observations in each category.
+Consider adding annotate_text for the number of observations in each category.
 think about adding a vertical line for centromere, for the position means. Think about removing the extra Musc strains.
 
 
@@ -1115,26 +1164,24 @@ MELT_long_biv <- add_category(MELT_long_biv)
 
 long.biv_Dom.male <- MELT_long_biv[ (MELT_long_biv$subsp == "Dom") & (MELT_long_biv$sex == "male"), ]
 
-Dom.male_MELT_long <- ggplot( long.biv_Dom.male, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Dom male long biv\nNormalized Foci Positions")
+Dom.male_MELT_long <- ggplot( long.biv_Dom.male, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Dom male long biv\nNormalized Foci Positions")+scale_fill_manual(values=colors_of_strains)
 Dom.male_MELT_long
 
 
 long.biv_Musc.male <- MELT_long_biv[ (MELT_long_biv$subsp == "Musc") & (MELT_long_biv$sex == "male"), ]
 
-Musc_male_MELT_long <- ggplot( long.biv_Musc.male, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Musc male long biv\nNormalized Foci Positions")
+Musc_male_MELT_long <- ggplot( long.biv_Musc.male, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Musc male long biv\nNormalized Foci Positions")+scale_fill_manual(values=colors_of_strains)
 Musc_male_MELT_long
 
 #there are v few observations in this dataset
-
 ```
 
-Tired runnin plots for the long biv data set, I think there are too few observations.
+<!-- Tired runnin plots for the long biv data set, I think there are too few observations. -->
 
-add boxplots for 
 
 ```{r CO1_foci_pos_boxplot, echo=FALSE}
 
-CO.Pos.boxplots_1CO <- ggplot(MELT_Curated_BivData.1CO, aes(x= strain, y=PER.Foci.Pos, fill=strain) ) + geom_boxplot(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("boxy plots")+geom_jitter(alpha=.1)
+CO.Pos.boxplots_1CO <- ggplot(MELT_Curated_BivData.1CO, aes(x= strain, y=PER.Foci.Pos, fill=strain) ) + geom_boxplot(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("IFD across bivalents")+geom_jitter(alpha=.1)+scale_fill_manual(values=colors_of_strains)
 CO.Pos.boxplots_1CO
 
 ```
@@ -1161,14 +1208,22 @@ The mixed model data should only come from 1CO bivalent data.
 #BivData.CO.PER.POS.lme <- lme(mean_PER_pos ~ subsp * sex, data=Pos.CO.avs_1CO, random=list(strain=pdDiag(~sex) ) )
 #as.data.frame( round(  summary(BivData.CO.PER.POS.lme)$tTable, 6 ) )
 
+mouse.avs_4MM <- mouse.avs_4MM[!(is.na(mouse.avs_4MM$norm.first.foci.pos) | mouse.avs_4MM$norm.first.foci.pos==""), ]
+
+#<- lme()
+lme_MM_CO1_pos <- lme(norm.first.foci.pos ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
+
+as.data.frame( round(  summary(lme_MM_CO1_pos)$tTable, 6 ) )
+
+
 #can't make the 
 CO_position.MM <- lmer(norm.first.foci.pos ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
 
 #library(lmerTest)
 #anova(CO_position.MM)
-anova(CO_position.MM, verbose = TRUE)
+#anova(CO_position.MM, verbose = TRUE)
 
-summary(CO_position.MM) #no p values,,
+#summary(CO_position.MM) #no p values,,
 #these just give t and F stats, no pvalue
 
 #CO_pos_fix.est <- drop1(CO_position.MM, test="Chisq")
@@ -1285,7 +1340,7 @@ mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD", mouse.avs_4MM$strain), 1,
                                     ifelse(grepl("MSM", mouse.avs_4MM$strain), 1, 0))
 
 #test high vs low Musc strains
-mouse.avs_4MM
+#mouse.avs_4MM
 
 ```
 
@@ -1465,7 +1520,7 @@ I didn't have a good prediction for the male polymorphism... So I'll just do pos
 ```
 
 
-
+<!-- 
 # old drafts
 
 
@@ -2150,5 +2205,4 @@ sis.co.ten.hist
 #sis.co.ten.hist.poin99 <- ggplot((master_curated_BivData[1:50,]), aes(x=SisCoTen, y=chromosomeLength, color= #as.factor(hand.foci.count)  ))+
 #  geom_point(aes(alpha=.5)) +facet_wrap(~ mouse)
 ```
-
-
+-->
