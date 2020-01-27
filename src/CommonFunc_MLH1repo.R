@@ -397,7 +397,7 @@ add_IFD <- function(DF){
   
   DF$IFD2_ABS <- ifelse(  (DF$hand.foci.count == 3),
                           #manual.verified.f1, 
-                          as.numeric(DF$Foci2) - as.numeric(DF$Foci3),   "" )
+                          as.numeric(DF$Foci3) - as.numeric(DF$Foci2),   "" )
   DF$IFD2_ABS <- as.numeric(DF$IFD2_ABS)
   
   
