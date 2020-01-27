@@ -478,14 +478,16 @@ female.whole.cell <- whole.cell.data_manual[whole.cell.data_manual$sex == "femal
 data.frame(table(droplevels(female.whole.cell$category)))
 
 # cell is 22nov16_13nov16_MSM_f2_sp1_19 is missing a biv
-#cell 5aug17_14jul17_LEW_f1_sp1_11_rev is missing measures for 2 bivs
+
+
+#cell 5aug17_14jul17_LEW_f1_sp1_11_rev has broken SC - could be used to compare broken SC
 
 data.frame(table(droplevels(female.whole.cell$category), female.whole.cell$rank))
 #missing some strains, most have 3 cells (min). MSM has 5 full cells
 
 
-#remove the incomplete MSM cell
-female.whole.cell <- female.whole.cell[female.whole.cell$fileName != "22nov16_13nov16_MSM_f2_sp1_19",]
+#remove the incomplete LEW female cell
+female.whole.cell <- female.whole.cell[female.whole.cell$fileName != "5aug17_14jul17_LEW_f1_sp1_11_rev",]
 
 
 
@@ -577,7 +579,9 @@ The purpose of these plots is to display the variance of single bivalents when t
 
 The other figure shows of each single bivalent contributes to the total SC area. Each column is a cell and each color is the percent of total SC area for the longest 5 bivalents in that cell. on average, each of the top longest bivalents make up ~10% of the cell's totl SC area. So for cells all 20 bivalents, of it's total SC area, 5-7% is due to a XX, 
 
-- is the difference between cell averages for males and females less that 10%?
+
+
+- Is the difference between cell averages for males and females less that 10%?
 
 - also interesting, the pwd and msm dont have longer sc, compared to other strains.
 
@@ -633,7 +637,17 @@ The table above shows the number of bivalents from the same strains as in the ma
 
 (some of the mice have different ranges of per cell passing rate) - given this ranges, i think the xx adjustment factor should be calqd on the mouse level. (it could even be extended to cell level -- except i dont think the XX sc length estimates wont be good.)
 
-strain.XX.adjustment.factor = per_cell_passing rate \* 1 of 20 random biv will be XX \* 
+strain.XX.adjustment.factor = per_cell_passing rate \* 1 of 20 random biv will be XX \*  
+
+
+** It might be simplier to compare the male and female means, and test it they are greater than the whole cell proprotion of the XX in females cells.**  The XX in a whole female cell contributes ~ 7% of total SC, if the female means for a type of total SC measure are from XX. But I am not using 'whole cell' summaries to compare female and males.
+
+
+**What is the effect of an extra XX-autosome on single bivalent means?**
+
+use a permutation approach: Make a True data set to start with, same(similar) number of cells, mice and bivalents. Make fake datasets which sample 19 bivalents, for 'in silico' cells for males and females. Also Run cntrl-female data set, where 20 bivalents are sampled, but randomly. Run the same bivalent level summaries for each 'permuted data set'; male avSC, 19Female_avSC, and rand.20_Female_avSC.  The difference between the rand.20 and rand.19 female -permuted data sets should indicate the influence of having an extra 'XX-autosome' in the total dataset. 
+
+
 
 # Applying Mix Model Framework
 
