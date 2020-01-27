@@ -12,7 +12,7 @@ test work from home ()
 
 add mean.telomere, mean cent.dist and mean sis.coten to the mouse level table
 
-update IFD functions, to add IFD2,3
+update IFD functions, to add IFD2,3 -- report the summaries
 
 format manual data set so SC.length = Chrmlength (matches the bivData)
 
@@ -130,6 +130,31 @@ Curated_BivData <- Curated_BivData[Curated_BivData$strain != "CZECH",]
 
 Curated_BivData$strain <- droplevels(Curated_BivData$strain)
 
+```
+
+
+```{r input.check,echo=FALSE}
+
+#check for mistakes that might have been made when inputing / curation process
+
+#hand foci > 4
+
+#foci pos > SC lengths
+
+#negative PER.foci.pos
+
+
+#it hink most (ALL) of these came from bug in my function (ugh)
+
+#Curated_BivData <- add_IFD(Curated_BivData)
+#negative.IFD <- Curated_BivData[which(Curated_BivData$IFD1_ABS < 0),]
+#caught 2
+#15mar16_16jan16_G_f1_sp1_4_rev
+#27mar16_6mar16_G_m3_sp1_12_rev
+
+#neg Nrm F1
+#negative.IFD2 <- Curated_BivData[which(Curated_BivData$PER_Foci_1 < 0),]
+#0 really?
 ```
 
 
@@ -286,7 +311,7 @@ Curated_BivData$Foci4 <- as.numeric(Curated_BivData$Foci4)
 #I think the number of sig figs and rounding changes slightly from the blocks above
 
 #adding more feature calculations (IFD, ect)
-Curated_BivData <- add_IFD(Curated_BivData)
+Curated_BivData <- add_IFD(Curated_BivData)#fixed a bug
 Curated_BivData$IFD1_PER = Curated_BivData$IFD1_ABS / Curated_BivData$chromosomeLength
 
 #IFD.2 does mulitple IFDs (just absolute)
@@ -638,7 +663,7 @@ cell.total_skel, cell.total_binary
 ```{r save.file}
 
 #save Rdata
-save.image("~./MLH1repo/data/CleanBivData_1.22.20.RData")
+save.image("~./MLH1repo/data/CleanBivData_1.27.20.RData")
 #save.image("data/BivData_4_PCA.RData")
 
 ```
