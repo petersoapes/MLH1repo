@@ -466,25 +466,176 @@ The female mouse averages should have adjustments for the XX. working on code to
 
 I think a formula something like this can be applied to adjust for XX
 
-- rate of bivalent segmentation /* rate of XX, 5% /* mean SC length for 3rd longest bivalent / total SC area (by bivalent) = proportion of SC araea due to XX
+- rate of bivalent segmentation /* rate of XX, 5% /* mean SC length for 3rd longest bivalent / total SC area (by bivalent) = proportion of SC araea due to XX /* 
 
+#### Whole Cell Manual Comparison
 
-```{r XX.adj, echo=FALSE}
+```{r XX.adj_manual.whole.cell, echo=FALSE}
 
 #load and examine the the whole cell hand measures here
 
 female.whole.cell <- whole.cell.data_manual[whole.cell.data_manual$sex == "female",]
 data.frame(table(droplevels(female.whole.cell$category)))
 
-#Here is the data set of female whole cell measures, apply rank to these measures ... 
-#run a ddplyr to 
-#
+# cell is 22nov16_13nov16_MSM_f2_sp1_19 is missing a biv
+#cell 5aug17_14jul17_LEW_f1_sp1_11_rev is missing measures for 2 bivs
+
+data.frame(table(droplevels(female.whole.cell$category), female.whole.cell$rank))
+#missing some strains, most have 3 cells (min). MSM has 5 full cells
+
+
+#remove the incomplete MSM cell
+female.whole.cell <- female.whole.cell[female.whole.cell$fileName != "22nov16_13nov16_MSM_f2_sp1_19",]
+
+
+
+#calq mean SC lengths by rank
+
+mean.SC_rank.strain <- ddply(female.whole.cell, c("strain", "rank"), summarise,
+         
+                       mean.sc =   mean(SC.length, na.rm = TRUE),
+                         nbiv = length(Obj.ID),
+                       sd.SC_length   = sd(SC.length, na.rm = TRUE),
+                         se.SC_length   = sd.SC_length / sqrt(nbiv)
+)
+         #   mean.SC_rank1 = mean(SC.length[which(rank == 20)], na.rm = 
+       
+top.biv <- mean.SC_rank.strain[mean.SC_rank.strain$rank > 15,]
+
+
+show.SC_by.rank_top <- ggplot(data = top.biv, aes(x=strain, y=mean.sc, color = as.factor(rank)  )) +
+    geom_pointrange(aes(ymin = mean.sc-(se.SC_length*2), ymax = mean.sc+(se.SC_length*2)), 
+                    position=position_dodge(width=0.7), 
+                    linetype='solid') +    theme_bw() + facet_wrap(~strain, scales="free")+
+          ylim(c(71,210) )+ggtitle("mean SC Length by ranks \n2SE as line")
+
+show.SC_by.rank_top
+
+bottom.biv <- mean.SC_rank.strain[mean.SC_rank.strain$rank < 6,]
+
+show.SC_by.rank_bottom <- ggplot(data = bottom.biv, aes(x=strain, y=mean.sc, color = as.factor(rank)  )) +
+    geom_pointrange(aes(ymin = mean.sc-(se.SC_length*2), ymax = mean.sc+(se.SC_length*2)), 
+                    position=position_dodge(width=0.7), 
+                    linetype='solid') +    theme_bw() + facet_wrap(~strain, scales="free")+
+          ylim(c(35,99) )+ggtitle("Bottom Bivalents mean SC Length by ranks \n2SE as line")
+
+
+
+
+#CALQ PERCENT TOTAL SC
+
+CELL.SC.proportions <- ddply(female.whole.cell, c("fileName"), summarise,
+         
+                       total.sc.cell =   sum(SC.length, na.rm = TRUE),
+                         nbiv = length(Obj.ID),
+                       #rank.by.per
+                       
+                      rank1_prop = (SC.length[which(rank == 20)] / total.sc.cell),
+                      rank2_prop = (SC.length[which(rank == 19)] / total.sc.cell),
+                      rank3_prop = (SC.length[which(rank == 18)] / total.sc.cell),
+                      rank4_prop = (SC.length[which(rank == 17)] / total.sc.cell),
+                       rank5_prop = (SC.length[which(rank == 16)] / total.sc.cell)
+                       #sd.SC_length   = sd(SC.length, na.rm = TRUE),
+                      #   se.SC_length   = sd.SC_length / sqrt(nbiv)
+)
+    
+#MELT ABOVE
+MELT_Biv.SC_proporion <- melt(CELL.SC.proportions[,c( "fileName","total.sc.cell","nbiv",
+              #leave out the Foci
+               "rank1_prop","rank2_prop","rank3_prop","rank4_prop","rank5_prop")], 
+                 
+            id=c( "fileName","total.sc.cell","nbiv"))
+
+MELT_Biv.SC_proporion <- MELT_Biv.SC_proporion[(!is.na(MELT_Biv.SC_proporion$value)),]
+
+MELT_Biv.SC_proporion <- add_mouse(MELT_Biv.SC_proporion)
+MELT_Biv.SC_proporion <- add_strain(MELT_Biv.SC_proporion)
+
+
+show_long.sc.proportions <- ggplot(data = MELT_Biv.SC_proporion, aes(y = value, x = fileName, fill=as.factor(variable)) ) + geom_col()+ggtitle("Breakdown of total SC per cell")+ylim(c(0,1)) +theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())+facet_wrap(~strain, scales = "free")
+
+show_long.sc.proportions
+
+
+#original plot code 
+#ggplot(data = df1, aes(x, y, color = Group)) +
+#    geom_pointrange(aes(ymin = lb, ymax = ub), 
+#                    position=position_jitter(width=0.5), 
+#                    linetype='dotted') +
+#    theme_bw()
+```
+
+The plots above show the mean SC lengths and 2SE error bars for single bivalents which have been given within cell rank.
+
+The first plot showing the mean sc lengths by the rank (most all of these cells have 3, MSM has 5 cells (observations)). 
+
+The purpose of these plots is to display the variance of single bivalents when they are assigned a within cell rank. For the longest bivalents, XX is predicted to be the 3rd longest (according to physical length Mb).
+
+(use the value for the 3rd bivalent to adjust the single bivalent traits for XX -- then compare to males values -- or re-run in the MM).
+
+The other figure shows of each single bivalent contributes to the total SC area. Each column is a cell and each color is the percent of total SC area for the longest 5 bivalents in that cell. on average, each of the top longest bivalents make up ~10% of the cell's totl SC area. So for cells all 20 bivalents, of it's total SC area, 5-7% is due to a XX, 
+
+- is the difference between cell averages for males and females less that 10%?
+
+- also interesting, the pwd and msm dont have longer sc, compared to other strains.
+
+#### Automated BivData Comparison
+
+```{r XX.Automated.biv.stuff, echo=FALSE}
+
+#make automated female data to compare to
+female.Cur.Bivdata <- Curated_BivData[(Curated_BivData$sex == "female"),]
+
+female.Bivdata_comp <- female.Cur.Bivdata[ ( (female.Cur.Bivdata$strain == "WSB") | (female.Cur.Bivdata$strain == "G") | (female.Cur.Bivdata$strain == "LEW") | (female.Cur.Bivdata$strain == "PWD")| (female.Cur.Bivdata$strain == "MSM") ),]
+
+table(female.Bivdata_comp$strain)
+
+#female.Bivdata_comp
+
+
+#1. calq the rate of chrm segmentation in female categories in automateted data
+
+box.rates <- ddply(female.Bivdata_comp, c("fileName"), summarise,
+                        
+                   Nmice = length(unique(mouse)),
+                   mx.box.num = max(boxNumber), # need to run this at the cell level
+                    N.biv  = length(Obj.ID),
+                   pass.biv = N.biv / mx.box.num
+)
+box.rates <- add_mouse(box.rates)
+box.rates <- add_strain(box.rates)
+box.rates <- add_category(box.rates)
+
+cell.pass.rates <- ggplot(data = box.rates, aes(y=pass.biv, x=mouse, color=strain))+geom_jitter()+ggtitle("Auto biv pass rate per cell")+facet_wrap(~strain, scales="free")+ylim(c(0,1.1))+ theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+cell.pass.rates
+
+
+category.box.rates <- ddply(box.rates, c("category"), summarise,
+                        
+                   mean.pass.rate = mean(pass.biv)
+)
+#category.box.rates
+
+
+#2. pull the 3rd rank biv's calculate the SC means
+#calq means by rank (focus on the top 5)
 
 ```
 
+For the Automated dataset, I like to measure the rate of passing bivlents per cell. The mean pass rate will be multipled to the estimated XX mean_SC. 
 
+The table above shows the number of bivalents from the same strains as in the manual whole cell data. The plot shows the bivalent passing rate across all of the individual cells from this female data set. For each strain, I'll calculate the mean bivalent passing rate (maybe I should look at the mouse levels).  
 
-# Applying Mix Model framework
+(some of the mice have different ranges of per cell passing rate) - given this ranges, i think the xx adjustment factor should be calqd on the mouse level. (it could even be extended to cell level -- except i dont think the XX sc length estimates wont be good.)
+
+strain.XX.adjustment.factor = per_cell_passing rate \* 1 of 20 random biv will be XX \* 
+
+# Applying Mix Model Framework
 
 I will use two different mixed models using lme() and lmer(), because the different models have limitations for reporting p values for fixed and random effects.
 
