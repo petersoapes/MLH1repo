@@ -33,7 +33,7 @@ library(reshape2)
 
 setwd("~./MLH1repo/")
 #load Clean BivData
-load(file="data/CleanBivData_1.22.20.RData")
+load(file="data/CleanBivData_1.27.20.RData")
 
 
 #load other data files, MLH1
@@ -166,14 +166,14 @@ These results align with the previous figure I made using percentages from hand 
 
 # Chromosome Size Effect
 
-In an attempt to test for and mitigate noise based on chromosome identity/physical size, I tried to isolate bivalents which are in the top quartille for SC length from their cells.
+I tried to isolate bivalents which are in the top quartille for SC length from their cells.
 
+<!-- 
 Since the majority of cells from the Automated BivData set do not have the complete complement of bivalents this subset is much smaller and might have 'smaller' bivalents from cells missing the longer bivalents. But assuming the algorithm's identification of bivalents in random, with a large enough sample size, hopefully this error would be minimized.
+--> 
+Below are examples of plots of SC length distributions across cells. The top figure shows whole cell hand measured data and the bottom shows the Automated bivData from cells with at least 15 bivalents measured. Most plts excluded for space.  
 
-Below are examples of plots which show the SC length distributions across cells. The top figure shows whole cell hand measured data and the bottom shows the Automated bivData from cells with at least 15 bivalents measured. There are plot pairs for each category, but they are excluded for space.  
-
-
-Each point is a bivalent plotted by cell on the x axis. X's are the 4th quartile, big point is the mean and smaller black point is the median. I'm using these to compare the patterns of these statistics in the automated data set which is missing some bivalent data.  
+Each point is a bivalent plotted by cell on the x axis. X's are the 4th quartile, big point is the mean and smaller black point is the median. I'm using these to compare the patterns of these statistics in the automated data set which is missing some bivalent data. (the extra stats are not correclty mapped)  
 
 
 ```{r SC.distb_manual_Auto, echo=FALSE}
@@ -328,9 +328,7 @@ almost_cells_Musc_m <- ggplot(almost_whole_cell_BivData[(almost_whole_cell_BivDa
 
 All the plots above show the distributions of manually whole cell measured SC lengths compared to the SC length distributions from the automated bivalent data. It shows the amount of within cell variance across strains. There is a bit of variance across the SC length distributions in the PWD females.   
 
-I'm purposing to take all the automated biv measures above the cell's 4th quartille as a data set for 'longest' bivalents which we would predict to exclude the shortest chromsomes which would have stronger chromosome size effects.  
-
-But this data set might be noisy, given the amount of variance in the SC length distributions across cells (PWD females, WSB females). But it's easier to just run another set of analysis.
+This data set might be noisy, given the amount of variance in the SC length distributions across cells (PWD females, WSB females).
 
 
 ```{r long.chrm.dataset, echo=FALSE}
@@ -392,14 +390,10 @@ real.long.bivData <- BivData_from_15biv_cells[BivData_from_15biv_cells$long.Biv 
 ```
 
 
-The DF **real.long.bivData** contains `r length(real.long.bivData$Obj.ID)` bivalent measures. full data set is 
-`r length(Curated_BivData$Obj.ID)`. This is the breakdown of bivalent observations by category `r data.frame(table(droplevels(real.long.bivData$category)))`.  
+The DF **real.long.bivData** contains `r length(real.long.bivData$Obj.ID)` bivalent measures. The full data set is `r length(Curated_BivData$Obj.ID)`. This is the breakdown of bivalent observations by category for this long dataset are `r data.frame(table(droplevels(real.long.bivData$category)))`.  
 
 
-Still very unbalanced across sexes and strains ~ merge with the manual whole cell biv measures later...
-Musc males are very under-represented. MSM male only has data from 1 cell. 
-
-- Try to merge this DF with the whole.cell manual measures.  
+**- Try to merge this DF with the whole.cell manual measures.**  
 
 - Try estimating which 'loose' bivalent observations might be within the long class of bivalents.  
 
@@ -455,6 +449,16 @@ These plots show the SC lengths for the 'long SC data set'. They are supposed to
 
 # Adjusting for XX
 
+new outline
+
+1. illustrate problem(affects mostly SC length)  
+
+2. Expected impact on sex comparisons, extimated effect size of the X  
+
+3. (prove general pattern that ALL bivalents are longer), chrms sorted by bin comparisons
+
+4. 19 female, 19male, 20female 20 male
+
 The female mouse averages should have adjustments for the XX. working on code to estimate the SC length from 3rd largest bivalent from female whole cell data across strains. Subtract this amount from the female mouse averages ... This isn't the best solution -- since I can't determine what proportion of cells for female mouse averages include the XX, (most cells are missing at least 3 bivalents)
 
 
@@ -489,7 +493,7 @@ data.frame(table(droplevels(female.whole.cell$category), female.whole.cell$rank)
 #remove the incomplete LEW female cell
 female.whole.cell <- female.whole.cell[female.whole.cell$fileName != "5aug17_14jul17_LEW_f1_sp1_11_rev",]
 
-
+female.whole.cell <- female.whole.cell[female.whole.cell$fileName != "22nov16_13nov16_MSM_f2_sp1_19",]
 
 #calq mean SC lengths by rank
 
@@ -531,12 +535,12 @@ CELL.SC.proportions <- ddply(female.whole.cell, c("fileName"), summarise,
                        total.sc.cell =   sum(SC.length, na.rm = TRUE),
                          nbiv = length(Obj.ID),
                        #rank.by.per
-                       
-                      rank1_prop = (SC.length[which(rank == 20)] / total.sc.cell),
-                      rank2_prop = (SC.length[which(rank == 19)] / total.sc.cell),
-                      rank3_prop = (SC.length[which(rank == 18)] / total.sc.cell),
-                      rank4_prop = (SC.length[which(rank == 17)] / total.sc.cell),
-                       rank5_prop = (SC.length[which(rank == 16)] / total.sc.cell)
+                   
+                    rank1_prop = (SC.length[which(rank == 20)] / total.sc.cell),
+                    rank2_prop = (SC.length[which(rank == 19)] / total.sc.cell),
+                    rank3_prop = (SC.length[which(rank == 18)] / total.sc.cell),
+                    rank4_prop = (SC.length[which(rank == 17)] / total.sc.cell),
+                      rank5_prop = (SC.length[which(rank == 16)] / total.sc.cell)
                        #sd.SC_length   = sd(SC.length, na.rm = TRUE),
                       #   se.SC_length   = sd.SC_length / sqrt(nbiv)
 )
@@ -815,34 +819,39 @@ The CO position traits are:
 
 # SC Lengths
 
+Brief lit review for SC length and MLH1 expections.
+
 
 ```{r show.SC.length, echo=FALSE}
-#compile data
-#main figures, show both mouse and bivalent level
-
-#Curated_BivData
-
-#Mouse_average - BivTable?
-
 #for now remove the 
-Curated_BivData.99 <- Curated_BivData[Curated_BivData$hand.foci.count <5,]
+#Curated_BivData.99 <- Curated_BivData[Curated_BivData$hand.foci.count #<5,]
+#CHECK THAT THE ABOVE TOO MANY FOCI BIVALENTS DON"T EXSIS
 
-first.SC.plot <- ggplot(Curated_BivData, aes(y = chromosomeLength, x= strain, fill= hand.foci.count))+geom_jitter(aes(alpha=0.2))+geom_boxplot(aes(alpha=0.5))+  ggtitle("SC Length for Bivalents")+facet_wrap(sex~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(30,200))
-first.SC.plot
 #add boxplots for mouse level means
 #add second x axis, hand.foci.count
 
-other_thing22 <- ggplot(data = Curated_BivData.99, aes(y = chromosomeLength, x = hand.foci.count, fill=as.factor(mouse)),color=strain ) + geom_jitter() + facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")+scale_color_manual(values=colors_of_strains)
+#other_thing22 <- ggplot(data = Curated_BivData.99, aes(y = chromosomeLength, x = hand.foci.count, fill=as.factor(mouse)),color=strain ) + geom_jitter() + facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")+scale_color_manual(values=colors_of_strains)
 
 SC.lengths.1CO <- ggplot(Curated_BivData[Curated_BivData$hand.foci.count == 1,], aes(y = chromosomeLength, x=strain, fill=sex, color=strain))+geom_boxplot(aes(alpha=0.5))+geom_jitter(aes(alpha=0.2))+  ggtitle("1COs male and females") +ylim(c(30,250))+scale_color_manual(values=colors_of_strains)
 
 
-#sfsL <- ggplot(lowGEN, aes(variable, prop, fill=as.factor(Group.2))) + geom_col(position = "dodge") + #scale_fill_viridis(name="Migration Rate", discrete = TRUE) + theme(axis.text.x=element_blank()) + #xlab("Frequency in the sample") + ylab("Proportion of Total Junctions") + ggtitle("C. Generation = #2,000") + ylim(0,1)
+Curated_BivData99 <- Curated_BivData[Curated_BivData$hand.foci.count < 5,]
+Curated_BivData99 <- Curated_BivData99[(!is.na(Curated_BivData99$sex)),]
 
-#geom_boxplot(alpha = .2, position = "dodge")+
+#nested boxplots
+SC.length_Nested_boxplots <- ggplot(Curated_BivData99, aes(y = chromosomeLength, x=strain, fill=as.factor(hand.foci.count) ))+geom_boxplot(aes(alpha=0.5))+ggtitle("SC Lengths by Chrm Class")+facet_wrap(subsp~sex, scales="free")+ylim(c(25,255))
+SC.length_Nested_boxplots
+
+#+ +geom_jitter(aes(alpha=0.2))
+
 
 ```
 
+In the plot above the SC length ~ higher hand foci cells. Any of the chromosome classes above 3, that don't have a higher mean -- are likely due to low data number.
+
+For the 0 class chromosomes most all are around the same size of the 1CO distribution.
+
+Add in the code for the plot under 2COs males and females
 
 First draft of the SC length plot. I'd like to add the hand foci count to the x axis.
 (also add the PWD - male data)
@@ -1149,6 +1158,28 @@ In a logistic regression, mouse average SC length is slightly predictive telling
 
 
 # IFD
+
+
+Brief lit review for IFD / interference expectations  
+**Petkov et al 2007,  CO interference underlies sex differences in RR**  
+
+"Here we show that in mice, this is because of a shorter genomic interference distance in females than in males, measured in Mb. However, the interference distance is the same in terms of bivalent length. We propose a model in which the interference distance in the two sexes reflects the compaction of chromosomes 
+at the pachytene stage of meiosis."
+
+Chrm1 genetic map, 
+
+(other human and mice refs 
+
+Tease n Hulten 2004: -- no difference between MLH1 foci in males and females
+
+DeBoer 2006, 13 -- measured chrm 1 in males and females, both were 2.8 microns
+
+
+))
+
+*Do I believe the physical/SC results?*
+
+
 
 ToDo: make a melt.DF with the IFD1, IFD2, IFD3 in a single cols
 
@@ -2832,13 +2863,15 @@ sis.co.ten.hist
 #males; yes?
 #females
 
-
-
-
 #sis.co.ten.hist.poin <- ggplot(master_curated_BivData, aes(x=SisCoTen, y=chromosomeLength, color= as.factor(hand.foci.count)  ))+
 #  geom_point(aes(alpha=.5)) +facet_wrap(~ category)
 
 #sis.co.ten.hist.poin99 <- ggplot((master_curated_BivData[1:50,]), aes(x=SisCoTen, y=chromosomeLength, color= #as.factor(hand.foci.count)  ))+
 #  geom_point(aes(alpha=.5)) +facet_wrap(~ mouse)
 ```
+
+```{r draft plots, eval=FALSE}
+first.SC.plot <- ggplot(Curated_BivData, aes(y = chromosomeLength, x= strain, fill= hand.foci.count))+geom_jitter(aes(alpha=0.2))+geom_boxplot(aes(alpha=0.5))+  ggtitle("SC Length for Bivalents")+facet_wrap(sex~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(30,200))
+```
+
 -->
