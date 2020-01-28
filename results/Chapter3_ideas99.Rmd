@@ -18,6 +18,8 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
 #read files
 whole.cell.data <- read.csv("~./MLH1repo/whole_cell_measures.csv")
+
+#load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.5.20.RData")#added batch18
 #load(file="~./MLH1repo/data/CleanBivData.RData")#added batch17
 ```
 
@@ -333,6 +335,10 @@ whole.cell.data <- add_IFD(whole.cell.data)
 #whole.cell.data <-  add_IFD.2(whole.cell.data)
 
 
+
+whole.cell.data <- whole.cell.data[!(is.na(whole.cell.data$SC.length) | whole.cell.data$SC.length==""), ]
+
+
 #ADD THE RANK -- this stoped working for a bit, 
 #fixed it with rank
 for(musy in as.character(unique(whole.cell.data$fileName))){
@@ -480,10 +486,68 @@ female.biv.count_table <-  ddply(.data=female.whole.cell,
 female.biv.count_table <- female.biv.count_table[!(is.na(female.biv.count_table$fileName) | female.biv.count_table$fileName==""), ]
 
 female.biv.count_table$ratio.now <- var(refMus.geome_Mb_XX) / female.biv.count_table$var_sc
+
+
 female.biv.count_table$ratio.invert <-  female.biv.count_table$var_sc / var(refMus.geome_Mb_XX)
+
+#plot these variances, do them for male and female
 
 
 ```
+
+
+```{r var.ratios.plot, echo=FALSE}
+
+#var(refMus.geome_Mb_XX) #1146.608
+#var(refMus.geome_Mb_male) #1109.412
+
+#female.biv.count_table, table of 18 cells with their summary stats
+
+female.cell.var.ratios <- ggplot(female.biv.count_table, aes(ratio.now, fileName))+geom_point()
+female.cell.var.ratios
+
+male.cell.var.ratios <- ggplot(male.biv.count_table, aes(ratio.now, fileName))+geom_point()
+male.cell.var.ratios
+
+female.biv.count_table$sex <- "female"
+male.biv.count_table$sex <- "male"
+
+biv.ratio.table <- rbind(female.biv.count_table, male.biv.count_table)
+
+biv.ratio.table <- add_mouse(biv.ratio.table)
+biv.ratio.table <- add_strain(biv.ratio.table)
+
+all.ratios <- ggplot(biv.ratio.table, aes(y=ratio.now, x=strain, color=strain))+geom_jitter()+facet_wrap(~sex)+ggtitle("")+ylab(" var(chrm size Mb) : var(SC lengths)")+theme_bw()
+
+```
+
+
+A question which is fundamental to these Chap3 analyses:
+
+ - Is chrom axis compaction an accurate reflection on the actual physical chrm size? (is ranked SC length a decent predictor for chromosome identity?)
+
+Trying to address this by calculating the ratio between the within cell variance of SC lengths and the variance of chromsomes, ohysical sizes (mb) (haploid sizes from ref genome)
+
+
+The variance across SC is always smaller than variance across chrm sizes. could be due to different resolution of microscope (SC).
+
+what is a better name for this ratio? Chrm size variation (mB), and bivalent length variation (uM)
+
+true compaction ratio, compaction fedelity ratio, ... it's a ratio of variances, so those might be not be the best choices
+
+
+there is a negative relatioship with total SC and this ratio
+
+- is total SC a good metric for comparing with this?
+
+-is it strange that males have a clear min/higher min?
+
+-do the strains cluster with their ratios? ... still unbalanced data
+
+Male cell ratios are mostly 
+
+
+above are ratios for indiviual cells, ratio of the variance of the physical chrm lengths (predicted, no centromere or telomere) to the variance of bivalents in SC.
 
 
 Calculated the ratio of genome size variance (haploid chrm variance), (I think the right denominator is SC length variance)

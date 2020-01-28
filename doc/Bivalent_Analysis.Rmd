@@ -33,7 +33,7 @@ library(reshape2)
 
 setwd("~./MLH1repo/")
 #load Clean BivData
-load(file="data/CleanBivData_1.27.20.RData")
+load(file="data/CleanBivData_1.28.20.RData")
 
 
 #load other data files, MLH1
@@ -819,10 +819,17 @@ The CO position traits are:
 
 # SC Lengths
 
-Brief lit review for SC length and MLH1 expections.
+<!--Brief lit review for SC length and MLH1 expections. -->
 
+We expect female SC lengths to be longer (refs). 
 
-```{r show.SC.length, echo=FALSE}
+In the plot above the SC length ~ higher hand foci cells. Any of the chromosome classes above 3, that don't have a higher mean are likely due to low data number.
+
+For the 0 class chromosomes most all are around the same size of the 1CO distribution.
+
+Add in the code for the plot under 2COs males and females
+
+```{r show.SC.length, echo=FALSE, warning=FALSE}
 #for now remove the 
 #Curated_BivData.99 <- Curated_BivData[Curated_BivData$hand.foci.count #<5,]
 #CHECK THAT THE ABOVE TOO MANY FOCI BIVALENTS DON"T EXSIS
@@ -832,7 +839,7 @@ Brief lit review for SC length and MLH1 expections.
 
 #other_thing22 <- ggplot(data = Curated_BivData.99, aes(y = chromosomeLength, x = hand.foci.count, fill=as.factor(mouse)),color=strain ) + geom_jitter() + facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")+scale_color_manual(values=colors_of_strains)
 
-SC.lengths.1CO <- ggplot(Curated_BivData[Curated_BivData$hand.foci.count == 1,], aes(y = chromosomeLength, x=strain, fill=sex, color=strain))+geom_boxplot(aes(alpha=0.5))+geom_jitter(aes(alpha=0.2))+  ggtitle("1COs male and females") +ylim(c(30,250))+scale_color_manual(values=colors_of_strains)
+#SC.lengths.1CO <- ggplot(Curated_BivData[Curated_BivData$hand.foci.count == 1,], aes(y = chromosomeLength, x=strain, fill=sex, color=strain))+geom_boxplot(aes(alpha=0.5))+geom_jitter(aes(alpha=0.2))+  ggtitle("1COs male and females") +ylim(c(30,250))+scale_color_manual(values=colors_of_strains)
 
 
 Curated_BivData99 <- Curated_BivData[Curated_BivData$hand.foci.count < 5,]
@@ -840,26 +847,26 @@ Curated_BivData99 <- Curated_BivData99[(!is.na(Curated_BivData99$sex)),]
 
 #nested boxplots
 SC.length_Nested_boxplots <- ggplot(Curated_BivData99, aes(y = chromosomeLength, x=strain, fill=as.factor(hand.foci.count) ))+geom_boxplot(aes(alpha=0.5))+ggtitle("SC Lengths by Chrm Class")+facet_wrap(subsp~sex, scales="free")+ylim(c(25,255))
+
 SC.length_Nested_boxplots
 
 #+ +geom_jitter(aes(alpha=0.2))
-
-
 ```
 
-In the plot above the SC length ~ higher hand foci cells. Any of the chromosome classes above 3, that don't have a higher mean -- are likely due to low data number.
 
-For the 0 class chromosomes most all are around the same size of the 1CO distribution.
+The dependant variables I'll be testing in the mixed model framework are:  
 
-Add in the code for the plot under 2COs males and females
+- Pooled SC lengths
 
-First draft of the SC length plot. I'd like to add the hand foci count to the x axis.
-(also add the PWD - male data)
+- 1CO  
 
-TRY ADDING NESTED box plots for hand.foci.count
+- 2CO  
 
+- 3CO  
 
-#### Mixed Model Tests
+- long.biv
+
+### Mixed Model Tests
 
 
 $$mouse \ average \ SC  \ length ~=~ subsp * sex + rand(strain*sex) + \varepsilon $$
@@ -869,6 +876,8 @@ To estimate random effects, I'm using lmer (not lme where I could do the rand(st
 The evolution will be tested with the subsp fixed effect and sexual dimorphism of the trait will be tested with the sex and interaction effects.
 
 remember for the MM use the table **mouse.avs_4MM**  remember the long biv data set in **real.long.bivData**
+
+#### Pooled SC Lengths
 
 ```{r MM_2.SC.Length, echo=FALSE}
 #get a list of the old mice to double check
@@ -893,6 +902,8 @@ I used the mixed model with the lme() for the full Curated BivData and long bivd
 $$mouse \ average \ SC  \ length ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
 ```{r MM_2_SC.length_2_DELETE, echo=FALSE, eval=FALSE}
+#review this block!!
+
 #Long_biv_mouse.avs_4MM
 #as.data.frame( round(  summary(BivData.MixedModel.HQ)$tTable, 6 ) )
 
@@ -922,26 +933,335 @@ rand_SC.Length_MM
 ```
 
 
+#### 1CO
 
-```{r justify.mouse.level, echo=FALSE, eval=FALSE}
+Insert the results for the MMs using the dependant variable 1CO
 
-#start the permutation code here
-#make a randomized BivData DF
+#### 2CO
 
-#30 cells worth of bivs? 
-#30 cells * ( 19 or 20 bivs ) * 70% segment rate = decent sample size for comparing Biv-based patterns?
-# I think this would address if the sample sizes are affecting the pattern
+#### 3CO
 
-#
-#justify mouse averages
-#is sampling -- bivalent dataset 
-# random samples 
-#equivalent sample size
+#### long.biv
+
+## Strain Comparisons
+
+Dive deeper into the sex specific pattern for each strain.  (I think for all the within strain comparisons across sexes the general pattern is met of females being longer)
+
+
+```{r WSB, echo=FALSE}
+#make the dataset
+WSB.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "WSB",]
+#correct and remove, 26dec17_18nov17_WSB_f4_sp1_12_rev_28, 26dec17_18nov17_WSB_f4_sp1_12_rev_27
+table(WSB.Bivalents.DF$sex, WSB.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+wsb.ploty <- ggplot(WSB.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()
+wsb.ploty
+
+#make a table of the means and n ect
+wsb.table <- ddply(WSB.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+#run a t.test
+wsb.ttest  <- t.test(WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "female"], WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "male"])
+
+```
+
+```{r LEW, echo=FALSE}
+#make the dataset
+LEW.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "LEW",]
+table(LEW.Bivalents.DF$sex, LEW.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+LEW.ploty <- ggplot(LEW.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+LEW.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+LEW.table <- ddply(LEW.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+#run a t.test seperate out by the chrm classes
+LEW.ttest  <- t.test(LEW.Bivalents.DF$chromosomeLength[LEW.Bivalents.DF$sex == "female"], LEW.Bivalents.DF$chromosomeLength[LEW.Bivalents.DF$sex == "male"])
+
+```
+
+```{r G, echo=FALSE}
+#make the dataset
+G.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "G",]
+table(G.Bivalents.DF$sex, G.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+G.ploty <- ggplot(G.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+G.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+G.table <- ddply(G.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+#run a t.test seperate out by the chrm classes
+G.ttest  <- t.test(G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "female"], G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "male"])
+
+```
+
+```{r PWD, echo=FALSE}
+#make the dataset
+PWD.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "PWD",]
+table(PWD.Bivalents.DF$sex, PWD.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+PWD.ploty <- ggplot(PWD.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+PWD.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+PWD.table <- ddply(PWD.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+#run a t.test seperate out by the chrm classes
+PWD.ttest  <- t.test(PWD.Bivalents.DF$chromosomeLength[PWD.Bivalents.DF$sex == "female"], PWD.Bivalents.DF$chromosomeLength[PWD.Bivalents.DF$sex == "male"])
+
+```
+
+```{r KAZ, echo=FALSE}
+#make the dataset
+KAZ.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "KAZ",]
+table(KAZ.Bivalents.DF$sex, KAZ.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+KAZ.ploty <- ggplot(KAZ.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+KAZ.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+KAZ.table <- ddply(KAZ.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+#run a t.test seperate out by the chrm classes
+KAZ.ttest  <- t.test(KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "female"], KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "male"])
+
+```
+
+```{r SKIVE, echo=FALSE}
+#make the dataset
+SKIVE.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "SKIVE",]
+table(SKIVE.Bivalents.DF$sex, SKIVE.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+SKIVE.ploty <- ggplot(SKIVE.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+SKIVE.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+SKIVE.table <- ddply(SKIVE.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+#run a t.test seperate out by the chrm classes
+SKIVE.ttest  <- t.test(SKIVE.Bivalents.DF$chromosomeLength[SKIVE.Bivalents.DF$sex == "female"], SKIVE.Bivalents.DF$chromosomeLength[SKIVE.Bivalents.DF$sex == "male"])
+
+```
+
+```{r MSM, echo=FALSE}
+#make the dataset
+MSM.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "MSM",]
+table(MSM.Bivalents.DF$sex, MSM.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+MSM.ploty <- ggplot(MSM.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+MSM.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+MSM.table <- ddply(MSM.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+#run a t.test seperate out by the chrm classes
+MSM.ttest  <- t.test(MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "female"], MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "male"])
+
+```
+
+```{r MOLF, eval=FALSE}
+#make the dataset
+MOLF.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "MOLF",]
+table(MOLF.Bivalents.DF$sex, MOLF.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+MOLF.ploty <- ggplot(MOLF.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+MOLF.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+MOLF.table <- ddply(MOLF.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+#run a t.test seperate out by the chrm classes
+MOLF.ttest  <- t.test(MOLF.Bivalents.DF$chromosomeLength[MOLF.Bivalents.DF$sex == "female"], MOLF.Bivalents.DF$chromosomeLength[MOLF.Bivalents.DF$sex == "male"])
 
 ```
 
 
-### Heterochiasmy Prediction
+
+
+### Summary
 
 > Is sex a significant effect for SC length? (as predicted)
 
@@ -1180,11 +1500,11 @@ DeBoer 2006, 13 -- measured chrm 1 in males and females, both were 2.8 microns
 *Do I believe the physical/SC results?*
 
 
-
+<!--
 ToDo: make a melt.DF with the IFD1, IFD2, IFD3 in a single cols
 
 explain the difference between the raw and PER measures. Why should I use /examine the IFD.PER?
-
+-->
 
 3) Interference / IFD will not be sexually dimorphic.
 
@@ -1312,6 +1632,317 @@ rand_test_IFD.PER.MM
 
 
 Random effect of strain is not significant for ABS IFD, and only slightly significant for the IFD.PER
+
+## Strain Comparisons
+
+Dive deeper into the sex specific pattern for each strain.  
+
+
+```{r WSB.IFD, echo=FALSE}
+#make the dataset
+#WSB.Bivalents.DF
+
+table(WSB.Bivalents.DF$sex, WSB.Bivalents.DF$hand.foci.count)#the 2CO's will be used
+
+#plot the differences
+wsb.ploty_IFD <- ggplot(WSB.Bivalents.DF[WSB.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_ABS, x = sex, color= as.factor(mouse)))+geom_jitter()+ggtitle("")
+wsb.ploty_IFD
+
+#try plotting the other IFD
+
+#make a table of the means and n ect
+wsb.table_IFD <- ddply(WSB.Bivalents.DF, c("sex"), summarise,
+                             
+                       mean_SC = mean(chromosomeLength),
+                       n_SC = length(Obj.ID),
+                   
+                  mean.IFD_2CO = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                  mean.IFD.PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
+                  
+                  n_2CO =  sum(hand.foci.count == 2, na.rm = TRUE) #this is the right syntax
+)
+                  
+#can I plot these stats?
+
+
+#run a t.test
+wsb.ttest  <- t.test(WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "female"], WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "male"])
+
+```
+
+```{r LEW.IFD, echo=FALSE}
+#make the dataset
+LEW.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "LEW",]
+table(LEW.Bivalents.DF$sex, LEW.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+LEW.ploty <- ggplot(LEW.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+LEW.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+LEW.table <- ddply(LEW.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+#run a t.test seperate out by the chrm classes
+LEW.ttest  <- t.test(LEW.Bivalents.DF$chromosomeLength[LEW.Bivalents.DF$sex == "female"], LEW.Bivalents.DF$chromosomeLength[LEW.Bivalents.DF$sex == "male"])
+
+```
+
+```{r G.IFD, echo=FALSE}
+#make the dataset
+G.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "G",]
+table(G.Bivalents.DF$sex, G.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+G.ploty <- ggplot(G.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+G.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+G.table <- ddply(G.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+#run a t.test seperate out by the chrm classes
+G.ttest  <- t.test(G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "female"], G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "male"])
+
+```
+
+```{r PWD.IFD, echo=FALSE}
+#make the dataset
+PWD.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "PWD",]
+table(PWD.Bivalents.DF$sex, PWD.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+PWD.ploty <- ggplot(PWD.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+PWD.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+PWD.table <- ddply(PWD.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+#run a t.test seperate out by the chrm classes
+PWD.ttest  <- t.test(PWD.Bivalents.DF$chromosomeLength[PWD.Bivalents.DF$sex == "female"], PWD.Bivalents.DF$chromosomeLength[PWD.Bivalents.DF$sex == "male"])
+
+```
+
+```{r KAZ.IFD, echo=FALSE}
+#make the dataset
+KAZ.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "KAZ",]
+table(KAZ.Bivalents.DF$sex, KAZ.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+KAZ.ploty <- ggplot(KAZ.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+KAZ.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+KAZ.table <- ddply(KAZ.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+#run a t.test seperate out by the chrm classes
+KAZ.ttest  <- t.test(KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "female"], KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "male"])
+
+```
+
+```{r SKIVE.IFD, echo=FALSE}
+#make the dataset
+SKIVE.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "SKIVE",]
+table(SKIVE.Bivalents.DF$sex, SKIVE.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+SKIVE.ploty <- ggplot(SKIVE.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+SKIVE.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+SKIVE.table <- ddply(SKIVE.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+#run a t.test seperate out by the chrm classes
+SKIVE.ttest  <- t.test(SKIVE.Bivalents.DF$chromosomeLength[SKIVE.Bivalents.DF$sex == "female"], SKIVE.Bivalents.DF$chromosomeLength[SKIVE.Bivalents.DF$sex == "male"])
+
+```
+
+```{r MSM.IFD, echo=FALSE}
+#make the dataset
+MSM.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "MSM",]
+table(MSM.Bivalents.DF$sex, MSM.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+MSM.ploty <- ggplot(MSM.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+MSM.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+MSM.table <- ddply(MSM.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+#run a t.test seperate out by the chrm classes
+MSM.ttest  <- t.test(MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "female"], MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "male"])
+
+```
+
+```{r MOLF.IFD, eval=FALSE}
+#make the dataset
+MOLF.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "MOLF",]
+table(MOLF.Bivalents.DF$sex, MOLF.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+MOLF.ploty <- ggplot(MOLF.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+MOLF.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+MOLF.table <- ddply(MOLF.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+#run a t.test seperate out by the chrm classes
+MOLF.ttest  <- t.test(MOLF.Bivalents.DF$chromosomeLength[MOLF.Bivalents.DF$sex == "female"], MOLF.Bivalents.DF$chromosomeLength[MOLF.Bivalents.DF$sex == "male"])
+
+```
+
 
 
 #### IFD 3CO bivalents
@@ -2188,8 +2819,25 @@ I didn't have a good prediction for the male polymorphism... So I'll just do pos
 
 
 <!-- 
-# old drafts
+# old drafts / trash pile
 
+
+```{r justify.mouse.level, echo=FALSE, eval=FALSE}
+
+#start the permutation code here
+#make a randomized BivData DF
+
+#30 cells worth of bivs? 
+#30 cells * ( 19 or 20 bivs ) * 70% segment rate = decent sample size for comparing Biv-based patterns?
+# I think this would address if the sample sizes are affecting the pattern
+
+#
+#justify mouse averages
+#is sampling -- bivalent dataset 
+# random samples 
+#equivalent sample size
+
+```
 
 I went on a kick thinking of the sis-coten metric, I'm not so sure this is a good metric anymore.  Do paired t-tests for all the male strains; test is foci position distributions are different.
 
