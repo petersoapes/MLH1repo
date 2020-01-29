@@ -67,9 +67,14 @@ colors_of_strains <- c('WSB'= "#56B4E9",'G' ='cadetblue','LEW'= 'lightblue','PER
                     "F1"='grey', "other" = 'grey'
                     )
 
-#add Rec group
+#add Rec group,
+#reclassified SKIVE as intermediate
+Curated_BivData$Rec.group_alt <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
+                              ifelse(grepl("MSM male", Curated_BivData$category), 1,
+                                ifelse(grepl("SKIVE male", Curated_BivData$category), 1, 0)))
+
 Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
-                                    ifelse(grepl("MSM male", Curated_BivData$category), 1, 0))
+                              ifelse(grepl("MSM male", Curated_BivData$category), 1, 0))
 
 ```
 
@@ -213,6 +218,16 @@ Biv_Data_mean_table <- add_subsp(Biv_Data_mean_table)
 
 #colors_of_strains
 #scale_color_manual(values=colors_of_strains)
+
+#un-order these factors
+
+
+
+```
+
+
+
+```{r long.biv.plots, echo=FALSE}
 
 show.the.cells_females_dom <- ggplot(whole.cell.data_manual[(whole.cell.data_manual$sex == "female") & (whole.cell.data_manual$subsp == "Dom"),], aes(x=fileName, y= SC.length, color=strain))+geom_point()+
   
@@ -427,6 +442,15 @@ Long_biv_mouse.avs_4MM <- add_sex(Long_biv_mouse.avs_4MM)
 Long_biv_mouse.avs_4MM <- add_strain(Long_biv_mouse.avs_4MM)
 Long_biv_mouse.avs_4MM <- add_subsp(Long_biv_mouse.avs_4MM)
 
+Long_biv_mouse.avs_4MM$strain <- unclass(Long_biv_mouse.avs_4MM$strain)
+Long_biv_mouse.avs_4MM$strain <- as.factor(Long_biv_mouse.avs_4MM$strain)
+
+Long_biv_mouse.avs_4MM$sex <- unclass(Long_biv_mouse.avs_4MM$sex)
+Long_biv_mouse.avs_4MM$sex <- as.factor(Long_biv_mouse.avs_4MM$sex)
+
+Long_biv_mouse.avs_4MM$subsp <- unclass(Long_biv_mouse.avs_4MM$v)
+Long_biv_mouse.avs_4MM$subsp <- as.factor(Long_biv_mouse.avs_4MM$subsp)
+
 ```
 
 in code chunk above I ran the mouse averages for the longest bivalets. (680 bivalents, from 54 mice. 
@@ -454,7 +478,6 @@ new outline
 1. illustrate problem(affects mostly SC length)  
 
 2. Expected impact on sex comparisons, extimated effect size of the X  
-
 3. (prove general pattern that ALL bivalents are longer), chrms sorted by bin comparisons
 
 4. 19 female, 19male, 20female 20 male
@@ -751,8 +774,12 @@ mouse.avs_4MM$strain <- factor(mouse.avs_4MM$strain, ordered = FALSE)
 
 #assign high and low
 #divide musc males into groups
+mouse.avs_4MM$Rec.group.alt <- ifelse(grepl("PWD male", mouse.avs_4MM$category), 1, 
+                                ifelse(grepl("MSM male", mouse.avs_4MM$category), 1,
+                                 ifelse(grepl("SKIVE male", mouse.avs_4MM$category), 1, 0)))
+
 mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD male", mouse.avs_4MM$category), 1, 
-                                    ifelse(grepl("MSM male", mouse.avs_4MM$category), 1, 0))
+                                ifelse(grepl("MSM male", mouse.avs_4MM$category), 1, 0))
 
 ```
 
@@ -887,12 +914,6 @@ lme_MM_SC.length <- lme(mean_SC ~ subsp * sex, data= mouse.avs_4MM, random=list(
 as.data.frame( round(  summary(lme_MM_SC.length)$tTable, 6 ) )
 #p
 
-
-#model for long Bivs
-long_bivData_SC.Length_MM <- lme(mean_SC ~ subsp * sex, data= Long_biv_mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
-as.data.frame( round(  summary(long_bivData_SC.Length_MM)$tTable, 6 ) )
-
-
 ```
 
 I used the mixed model with the lme() for the full Curated BivData and long bivdata
@@ -901,54 +922,75 @@ I used the mixed model with the lme() for the full Curated BivData and long bivd
 
 $$mouse \ average \ SC  \ length ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
-```{r MM_2_SC.length_2_DELETE, echo=FALSE, eval=FALSE}
-#review this block!!
-
-#Long_biv_mouse.avs_4MM
-#as.data.frame( round(  summary(BivData.MixedModel.HQ)$tTable, 6 ) )
-
-#did model isn't working
-SC_length.lmer.MM <- lmer(mean_SC ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
-
-#anova(SC_length.lmer.MM)
-#thing1  <- summary(SC_length.lmer.MM)
-#thing2 <- drop1(SC_length.lmer.MM, test="Chisq") 
-
-rand_SC.Length_MM <- exactRLRT(SC_length.lmer.MM)
-rand_SC.Length_MM
-
-#this pvalue for ran is 0.0027 -- the strain effect 
-
-##long bivalents
-#long.bivs_SC_length.lmer.MM <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Long_biv_mouse.avs_4MM, REML = TRUE)
-
-#anova(long.bivs_SC_length.lmer.MM) 
-#sex is larges explantion of variance
-#thing1  <- summary(long.bivs_SC_length.lmer.MM)
-#thing2 <- drop1(long.bivs_SC_length.lmer.MM, test="Chisq") 
-
-#rand_SC.Length_MM <- exactRLRT(long.bivs_SC_length.lmer.MM)
-#rand_SC.Length_MM
-#strain no sig, but underpowered
-```
-
-
 #### 1CO
 
 Insert the results for the MMs using the dependant variable 1CO
 
+```{r 1CO.MM, echo=FALSE}
+#I think I need to re-calq the mouse averages for just 1CO
+#mean.SC_1CO is mean 1CO
+
+SC.Length_1CO_MM <- lme(mean.SC_1CO ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
+
+as.data.frame( round(  summary(SC.Length_1CO_MM)$tTable, 6 ) )
+```
+
+
 #### 2CO
+
+```{r 2CO.MM, echo=FALSE, eval=FALSE}
+
+#remove MOLF
+mouse.avs_4MM.99 <- mouse.avs_4MM[mouse.avs_4MM$strain != "MOLF",]
+
+SC.Length_2CO_MM <- lme(mean.SC_2CO ~ subsp * sex, 
+                  random=list(strain=pdDiag(~sex),
+                        data= mouse.avs_4MM.99, 
+                                                                                       na.action=na.omit ) )
+#keep getting errors for building this model
+
+as.data.frame( round(  summary(SC.Length_2CO_MM)$tTable, 6 ) )
+
+table(mouse.avs_4MM$strain, mouse.avs_4MM$sex)
+
+```
+
 
 #### 3CO
 
+```{r 3CO.MM, echo=FALSE}
+
+SC.Length_3CO_MM <- lme(mean.SC_3CO ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ),  na.action=na.omit  )
+#this model is also generating error...
+#don't know how to fix
+
+as.data.frame( round(  summary(SC.Length_3CO_MM)$tTable, 6 ) )
+```
+
+
 #### long.biv
+
+```{r long.biv.MM, echo=FALSE, eval=FALSE}
+
+SC.Length_long.biv_MM <- lme(mean_SC ~ subsp * sex, data= Long_biv_mouse.avs_4MM, random=list(strain=pdDiag(~sex),  na.action=na.omit  ) )
+
+#now there is an error after un-ordering them
+
+as.data.frame( round(  summary(SC.Length_long.biv_MM)$tTable, 6 ) )
+
+
+#model for long Bivs
+#long_bivData_SC.Length_MM <- lme(mean_SC ~ subsp * sex, data= #Long_biv_mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
+#as.data.frame( round(  summary(long_bivData_SC.Length_MM)$tTable, 6 ) )
+```
+
 
 ## Strain Comparisons
 
 Dive deeper into the sex specific pattern for each strain.  (I think for all the within strain comparisons across sexes the general pattern is met of females being longer)
 
 
-```{r WSB, echo=FALSE}
+```{r WSB.SC, echo=FALSE}
 #make the dataset
 WSB.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "WSB",]
 #correct and remove, 26dec17_18nov17_WSB_f4_sp1_12_rev_28, 26dec17_18nov17_WSB_f4_sp1_12_rev_27
@@ -959,22 +1001,22 @@ wsb.ploty <- ggplot(WSB.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= a
 wsb.ploty
 
 #make a table of the means and n ect
-wsb.table <- ddply(WSB.Bivalents.DF, c("sex"), summarise,
+wsb.SC.table <- ddply(WSB.Bivalents.DF, c("sex"), summarise,
                              mean_SC = mean(chromosomeLength),
                               n_SC = length(Obj.ID),
                    
                    mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
                  # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
                   
                    mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
                   
                    mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
                   
                   mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
                           
 )
 #can I plot these stats
@@ -985,7 +1027,7 @@ wsb.ttest  <- t.test(WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "
 
 ```
 
-```{r LEW, echo=FALSE}
+```{r LEW.SC, echo=FALSE}
 #make the dataset
 LEW.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "LEW",]
 table(LEW.Bivalents.DF$sex, LEW.Bivalents.DF$hand.foci.count)
@@ -998,22 +1040,22 @@ LEW.ploty
 
 
 #make a table of the means and n ect
-LEW.table <- ddply(LEW.Bivalents.DF, c("sex"), summarise,
+LEW.SC.table <- ddply(LEW.Bivalents.DF, c("sex"), summarise,
                              mean_SC = mean(chromosomeLength),
                               n_SC = length(Obj.ID),
                    
                    mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
                  # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
                   
                    mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
                   
                    mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
                   
                   mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
                           
 )
 #can I plot these stats
@@ -1024,7 +1066,7 @@ LEW.ttest  <- t.test(LEW.Bivalents.DF$chromosomeLength[LEW.Bivalents.DF$sex == "
 
 ```
 
-```{r G, echo=FALSE}
+```{r G.SC, echo=FALSE}
 #make the dataset
 G.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "G",]
 table(G.Bivalents.DF$sex, G.Bivalents.DF$hand.foci.count)
@@ -1037,22 +1079,22 @@ G.ploty
 
 
 #make a table of the means and n ect
-G.table <- ddply(G.Bivalents.DF, c("sex"), summarise,
+G.SC.table <- ddply(G.Bivalents.DF, c("sex"), summarise,
                              mean_SC = mean(chromosomeLength),
                               n_SC = length(Obj.ID),
                    
                    mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
                  # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
                   
                    mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
                   
                    mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
                   
                   mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
                           
 )
 #can I plot these stats
@@ -1063,7 +1105,7 @@ G.ttest  <- t.test(G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "female
 
 ```
 
-```{r PWD, echo=FALSE}
+```{r PWD.SC, echo=FALSE}
 #make the dataset
 PWD.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "PWD",]
 table(PWD.Bivalents.DF$sex, PWD.Bivalents.DF$hand.foci.count)
@@ -1076,22 +1118,22 @@ PWD.ploty
 
 
 #make a table of the means and n ect
-PWD.table <- ddply(PWD.Bivalents.DF, c("sex"), summarise,
+PWD.SC.table <- ddply(PWD.Bivalents.DF, c("sex"), summarise,
                              mean_SC = mean(chromosomeLength),
                               n_SC = length(Obj.ID),
                    
                    mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
                  # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
                   
                    mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
                   
                    mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
                   
                   mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
                           
 )
 #can I plot these stats
@@ -1102,7 +1144,7 @@ PWD.ttest  <- t.test(PWD.Bivalents.DF$chromosomeLength[PWD.Bivalents.DF$sex == "
 
 ```
 
-```{r KAZ, echo=FALSE}
+```{r KAZ.SC, echo=FALSE}
 #make the dataset
 KAZ.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "KAZ",]
 table(KAZ.Bivalents.DF$sex, KAZ.Bivalents.DF$hand.foci.count)
@@ -1115,22 +1157,22 @@ KAZ.ploty
 
 
 #make a table of the means and n ect
-KAZ.table <- ddply(KAZ.Bivalents.DF, c("sex"), summarise,
+KAZ.SC.table <- ddply(KAZ.Bivalents.DF, c("sex"), summarise,
                              mean_SC = mean(chromosomeLength),
                               n_SC = length(Obj.ID),
                    
                    mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
                  # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
                   
                    mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
                   
                    mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
                   
                   mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
                           
 )
 #can I plot these stats
@@ -1141,7 +1183,7 @@ KAZ.ttest  <- t.test(KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "
 
 ```
 
-```{r SKIVE, echo=FALSE}
+```{r SKIVE.Sc, echo=FALSE}
 #make the dataset
 SKIVE.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "SKIVE",]
 table(SKIVE.Bivalents.DF$sex, SKIVE.Bivalents.DF$hand.foci.count)
@@ -1154,22 +1196,22 @@ SKIVE.ploty
 
 
 #make a table of the means and n ect
-SKIVE.table <- ddply(SKIVE.Bivalents.DF, c("sex"), summarise,
+SKIVE.SC.table <- ddply(SKIVE.Bivalents.DF, c("sex"), summarise,
                              mean_SC = mean(chromosomeLength),
                               n_SC = length(Obj.ID),
                    
                    mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
                  # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
                   
                    mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
                   
                    mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
                   
                   mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
                           
 )
 #can I plot these stats
@@ -1180,7 +1222,7 @@ SKIVE.ttest  <- t.test(SKIVE.Bivalents.DF$chromosomeLength[SKIVE.Bivalents.DF$se
 
 ```
 
-```{r MSM, echo=FALSE}
+```{r MSM.SC, echo=FALSE}
 #make the dataset
 MSM.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "MSM",]
 table(MSM.Bivalents.DF$sex, MSM.Bivalents.DF$hand.foci.count)
@@ -1193,22 +1235,22 @@ MSM.ploty
 
 
 #make a table of the means and n ect
-MSM.table <- ddply(MSM.Bivalents.DF, c("sex"), summarise,
+MSM.SC.table <- ddply(MSM.Bivalents.DF, c("sex"), summarise,
                              mean_SC = mean(chromosomeLength),
                               n_SC = length(Obj.ID),
                    
                    mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
                  # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
                   
                    mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
                   
                    mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
                   
                   mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
                           
 )
 #can I plot these stats
@@ -1219,7 +1261,7 @@ MSM.ttest  <- t.test(MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "
 
 ```
 
-```{r MOLF, eval=FALSE}
+```{r MOLF.SC, eval=FALSE}
 #make the dataset
 MOLF.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "MOLF",]
 table(MOLF.Bivalents.DF$sex, MOLF.Bivalents.DF$hand.foci.count)
@@ -1232,22 +1274,22 @@ MOLF.ploty
 
 
 #make a table of the means and n ect
-MOLF.table <- ddply(MOLF.Bivalents.DF, c("sex"), summarise,
+MOLF.SC.table <- ddply(MOLF.Bivalents.DF, c("sex"), summarise,
                              mean_SC = mean(chromosomeLength),
                               n_SC = length(Obj.ID),
                    
                    mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
                  # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
                   
                    mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
                   
                    mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
                   
                   mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
                           
 )
 #can I plot these stats
@@ -1344,7 +1386,6 @@ log.reg_SC.length_BIV_3CO <- glm(Rec.group ~ chromosomeLength,
                             data=Curated_BivData[(Curated_BivData$subsp == "Musc")& (Curated_BivData$sex == "male")&(Curated_BivData$hand.foci.count == 3),], family=binomial(link="logit"))
 
 summary(log.reg_SC.length_BIV_3CO)
-
 ```
 
 The mean SC logistic regresion model for mouse averages 
@@ -1530,16 +1571,15 @@ Curated_BivData.22 <- Curated_BivData.22[(!is.na(Curated_BivData.22$hand.foci.co
 boxplots_first.IFD.plot_ABS <- ggplot(Curated_BivData.22, aes(y = IFD1_ABS, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
   geom_jitter(alpha=.2)+
   ggtitle("Interfocal Distances, ABS")+
-  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none")+scale_color_manual(values=colors_of_strains)
-boxplots_first.IFD.plot_ABS
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none")
 #order is out of wack, but -- good for now
 
 
 boxplots_first.IFD.plot_PER <- ggplot(Curated_BivData.22, aes(y = IFD1_PER, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
   geom_jitter(alpha=.2)+
   ggtitle("Interfocal Distances, PER")+
-  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")+ylim(c(0,1))+scale_color_manual(values=colors_of_strains)
-boxplots_first.IFD.plot_PER
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")+ylim(c(0,1))
+
 
 
 first.IFD.plot_ABS <- ggplot(Curated_BivData.22, aes(y = IFD1_ABS, x= strain, color=mouse))+geom_jitter()+ggtitle("Interfocal Distances, ABS")+facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none") #+scale_color_manual(values=colors_of_strains)
@@ -1571,7 +1611,10 @@ long.biv_IFD_look_PER <- ggplot(real.long.bivData.22, aes(y = IFD1_PER, x= mouse
 ```
 
 
-### Fixed Effects
+Still working on the best way to display the general IFD patterns.
+
+
+### Mixed Model Tests, Fixed Effects
 
 Mixed model analysis for IFD (interference), the first set of models are made with the lme() functions.
 
@@ -1585,17 +1628,36 @@ $$mouse \ average \ IFD ~=~ subsp * sex + rand(strain*sex) + \varepsilon $$
 #remove the SKIVE male line which is na
 mouse.avs_4MM <- mouse.avs_4MM[!(is.na(mouse.avs_4MM$mean_IFD.2CO_ABS) | mouse.avs_4MM$mean_IFD.2CO_ABS==""), ]
 
-lme_MM_IFD_ABS <- lme(mean_IFD.2CO_ABS ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
+lme_MM_IFD_ABS <- lme(mean_IFD.2CO_ABS ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ),na.action=na.omit  )
+
 as.data.frame( round(  summary(lme_MM_IFD_ABS)$tTable, 6 ) )
 #p
+#same missing values in obc
 
-lme_MM_IFD_PER <- lme(mean_IFD.2CO_PER ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
+lme_MM_IFD_PER <- lme(mean_IFD.2CO_PER ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ), na.action=na.omit )
+
 as.data.frame( round(  summary(lme_MM_IFD_PER)$tTable, 6 ) )
+
+#remove PWD, SKIVE and MSM
+another.DF <- mouse.avs_4MM[mouse.avs_4MM$strain != "PWD",]
+another.DF <- another.DF[another.DF$strain != "MSM",]
+another.DF <- another.DF[another.DF$strain != "SKIVE",]
+
+lme_MM_another_IFD_PER <- lme(mean_IFD.2CO_PER ~ subsp * sex, data= another.DF, random=list(strain=pdDiag(~sex) ), na.action=na.omit )
+
+as.data.frame( round(  summary(lme_MM_another_IFD_PER)$tTable, 6 ) )
+
 ```
 
 Sex is a slightly significant factor for raw and normalized IFD. 
 
-### Random Effects
+The table above should display the slightly unsual pattern, where the coefficients for the significant sex fixed effect are positive and neagtive in the raw and normalized values respectively. That is for the raw IFD values, females are signiciantly longer but the normalized IFD values, males are significantly longer.
+
+
+show a raw plot, and norm plot and a scatter plot
+
+
+#### Random Effects
 
 These second set of models are made using the lmer()
 
@@ -1627,7 +1689,6 @@ Chis.sp_IFD.PER.MM <- drop1(IFD_PER.MM, test="Chisq")
 
 rand_test_IFD.PER.MM <- exactRLRT(IFD_PER.MM)
 rand_test_IFD.PER.MM
-
 ```
 
 
@@ -1637,12 +1698,14 @@ Random effect of strain is not significant for ABS IFD, and only slightly signif
 
 Dive deeper into the sex specific pattern for each strain.  
 
+these are example strains that show the 'unusual' results. show a raw plot, and norm plot and a scatter plot. Could the female bivalents with IFD under 30% be a different class of interference? (What does that mean?). I think the General pattern is that this rec pattern is not observed in males. That is there are rarely instances where 2 foci are positioned closer than 30% of the total SC length.
 
-```{r WSB.IFD, echo=FALSE}
+
+```{r WSB.IFD, echo=FALSE, warning=FALSE}
 #make the dataset
 #WSB.Bivalents.DF
 
-table(WSB.Bivalents.DF$sex, WSB.Bivalents.DF$hand.foci.count)#the 2CO's will be used
+#table(WSB.Bivalents.DF$sex, WSB.Bivalents.DF$hand.foci.count)#the 2CO's will be used
 
 #plot the differences
 wsb.ploty_IFD_raw <- ggplot(WSB.Bivalents.DF[WSB.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_ABS, x = sex))+
@@ -1655,13 +1718,18 @@ wsb.ploty_IFD_PER <- ggplot(WSB.Bivalents.DF[WSB.Bivalents.DF$hand.foci.count ==
 wsb.ploty_IFD_PER
 
 
+WSB.IFDnorm_scatter.plot <- ggplot(WSB.Bivalents.DF[WSB.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = chromosomeLength, color = sex))+        geom_jitter()+ggtitle("WSB \n Normalized IFD and SC Length")+ylim(c(0,1.1))
+
+WSB.IFDnorm_scatter.plot
+#this plot is much messier than the MSM (PWD?)
+
+
 #try plotting the other IFD
 
 #make a table of the means and n ect
 wsb.table_IFD <- ddply(WSB.Bivalents.DF, c("sex"), summarise,
-                             
-                       mean_SC = mean(chromosomeLength),
-                       n_SC = length(Obj.ID),
+                            
+                       total.biv = length(Obj.ID),
                    
                   mean.IFD_2CO = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
                   mean.IFD.PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
@@ -1669,53 +1737,50 @@ wsb.table_IFD <- ddply(WSB.Bivalents.DF, c("sex"), summarise,
                   n_2CO =  sum(hand.foci.count == 2, na.rm = TRUE) #this is the right syntax
 )
                   
-#can I plot these stats?
-
 
 #run a t.test
 wsb.ttest  <- t.test(WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "female"], WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "male"])
 
 ```
 
-```{r LEW.IFD, echo=FALSE}
+The range of normalized IFDs overlap closer in males and females in the WSB data. 
+
+```{r LEW.IFD, echo=FALSE, warning=FALSE}
 #make the dataset
 LEW.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "LEW",]
-table(LEW.Bivalents.DF$sex, LEW.Bivalents.DF$hand.foci.count)
+#table(LEW.Bivalents.DF$sex, LEW.Bivalents.DF$hand.foci.count)
 
 #plot the differences
-LEW.ploty <- ggplot(LEW.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
-LEW.ploty
-#remove the NAs
-
-wsb.ploty_IFD_raw <- ggplot(WSB.Bivalents.DF[WSB.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_ABS, x = sex))+
-                          geom_jitter()+ggtitle("Raw IFD, WSB")+geom_boxplot(aes(x=sex))
-wsb.ploty_IFD_raw
+#LEW.ploty <- ggplot(LEW.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= #as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
 
 
-wsb.ploty_IFD_PER <- ggplot(WSB.Bivalents.DF[WSB.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = sex))+
-                          geom_jitter()+ggtitle("Percent IFD, WSB")+geom_boxplot(aes(x=sex))
-wsb.ploty_IFD_PER
+lew.ploty_IFD_raw <- ggplot(LEW.Bivalents.DF[LEW.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_ABS, x = sex))+
+                          geom_jitter()+ggtitle("Raw IFD, LEW")+geom_boxplot(aes(x=sex))
+lew.ploty_IFD_raw
 
+
+lew.ploty_IFD_PER <- ggplot(LEW.Bivalents.DF[LEW.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = sex))+
+                          geom_jitter()+ggtitle("Percent IFD, LEW")+geom_boxplot(aes(x=sex))
+lew.ploty_IFD_PER
+
+
+LEW.IFDnorm_scatter.plot <- ggplot(LEW.Bivalents.DF[LEW.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = chromosomeLength, color = sex))+                          geom_jitter()+ggtitle("LEW \n Normalized IFD and SC Length")+ylim(c(0,1.1))
+
+LEW.IFDnorm_scatter.plot
 
 #make a table of the means and n ect
-LEW.table <- ddply(LEW.Bivalents.DF, c("sex"), summarise,
-                             mean_SC = mean(chromosomeLength),
-                              n_SC = length(Obj.ID),
+lew.table_IFD <- ddply(LEW.Bivalents.DF, c("sex"), summarise,
+                             
+                  #     mean_SC = mean(chromosomeLength),
+                       n_SC = length(Obj.ID),
                    
-                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  mean.IFD_2CO = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                  mean.IFD.PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
                   
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
-                          
+                  n_2CO =  sum(hand.foci.count == 2, na.rm = TRUE) #this is the right syntax
 )
+
+
 #can I plot these stats
 
 
@@ -1724,42 +1789,46 @@ LEW.ttest  <- t.test(LEW.Bivalents.DF$chromosomeLength[LEW.Bivalents.DF$sex == "
 
 ```
 
-```{r G.IFD, echo=FALSE}
+The Lew pattern doesn't have a clean cut off of nrm.IFD. the range of male and females overlap, but there are more female observations below. 
+
+
+```{r G.IFD, echo=FALSE, warning=FALSE}
 #make the dataset
 G.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "G",]
-table(G.Bivalents.DF$sex, G.Bivalents.DF$hand.foci.count)
+#table(G.Bivalents.DF$sex, G.Bivalents.DF$hand.foci.count)
 
 #plot the metric
 #remove the NAs
 
 G.ploty_IFD_raw <- ggplot(G.Bivalents.DF[G.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_ABS, x = sex))+
                           geom_jitter()+ggtitle("Raw IFD, G")+geom_boxplot(aes(x=sex))
-G.ploty_IFD_raw
 
+G.ploty_IFD_raw
 #
 G.ploty_IFD_PER <- ggplot(G.Bivalents.DF[G.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = sex))+
                           geom_jitter()+ggtitle("Percent IFD, G")+geom_boxplot(aes(x=sex))
+
+
+G.IFDnorm_scatter.plot <- ggplot(G.Bivalents.DF[G.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = chromosomeLength, color = sex))+ geom_jitter()+ggtitle("G \n Normalized IFD and SC Length")+ylim(c(0,1.1))
+
 G.ploty_IFD_PER
 
 
+G.IFDnorm_scatter.plot <- ggplot(G.Bivalents.DF[G.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = chromosomeLength, color = sex))+  geom_jitter()+ggtitle("G \n Normalized IFD and SC Length")+ylim(c(0,1.1))
+
+G.IFDnorm_scatter.plot
+
+
 #make a table of the means and n ect
-G.table <- ddply(G.Bivalents.DF, c("sex"), summarise,
-                             mean_SC = mean(chromosomeLength),
-                              n_SC = length(Obj.ID),
+ 
+G.IFD.table <- ddply(G.Bivalents.DF, c("sex"), summarise,
+                            
+                  total.biv = length(Obj.ID),
                    
-                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  mean.IFD_2CO = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                  mean.IFD.PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
                   
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
-                          
+                  n_2CO =  sum(hand.foci.count == 2, na.rm = TRUE) #this is the right syntax
 )
 #can I plot these stats
 
@@ -1769,44 +1838,40 @@ G.ttest  <- t.test(G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "female
 
 ```
 
-```{r PWD.IFD, echo=FALSE}
+
+
+```{r PWD.IFD, echo=FALSE, warning=FALSE}
 #make the dataset
 PWD.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "PWD",]
-table(PWD.Bivalents.DF$sex, PWD.Bivalents.DF$hand.foci.count)
+#table(PWD.Bivalents.DF$sex, PWD.Bivalents.DF$hand.foci.count)
 
 #plot the differences
 #remove the NAs
 
 PWD.ploty_IFD_raw <- ggplot(PWD.Bivalents.DF[PWD.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_ABS, x = sex))+
                           geom_jitter()+ggtitle("Raw IFD, PWD")+geom_boxplot(aes(x=sex))
-PWD.ploty_IFD_raw
 
 
-PWD.ploty_IFD_PER <- ggplot(WSB.Bivalents.DF[WSB.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = sex))+
+
+PWD.ploty_IFD_PER <- ggplot(PWD.Bivalents.DF[PWD.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = sex))+
                           geom_jitter()+ggtitle("Percent IFD, PWD")+geom_boxplot(aes(x=sex))
-PWD.ploty_IFD_PER
 
+
+
+PWD.IFDnorm_scatter.plot <- ggplot(PWD.Bivalents.DF[PWD.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = chromosomeLength, color = sex))+ geom_jitter()+ggtitle("PWD \n Normalized IFD and SC Length")+ylim(c(0,1.1))
+
+PWD.IFDnorm_scatter.plot
 
 #make a table of the means and n ect
-PWD.table <- ddply(PWD.Bivalents.DF, c("sex"), summarise,
-                             mean_SC = mean(chromosomeLength),
-                              n_SC = length(Obj.ID),
+PWD.table <-  ddply(PWD.Bivalents.DF, c("sex"), summarise,
+                            
+                  total.biv = length(Obj.ID),
                    
-                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  mean.IFD_2CO = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                  mean.IFD.PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
                   
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
-                          
+                  n_2CO =  sum(hand.foci.count == 2, na.rm = TRUE) #this is the right syntax
 )
-#can I plot these stats
 
 
 #run a t.test seperate out by the chrm classes
@@ -1814,10 +1879,13 @@ PWD.ttest  <- t.test(PWD.Bivalents.DF$chromosomeLength[PWD.Bivalents.DF$sex == "
 
 ```
 
-```{r KAZ.IFD, echo=FALSE}
+For PWD, there are a few observations of the short IFDs for males, but there seems to be a cut-off / threshold at .3
+
+```{r KAZ.IFD, echo=FALSE, warning=FALSE}
 #make the dataset
 KAZ.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "KAZ",]
-table(KAZ.Bivalents.DF$sex, KAZ.Bivalents.DF$hand.foci.count)
+
+#table(KAZ.Bivalents.DF$sex, KAZ.Bivalents.DF$hand.foci.count)
 
 #plot the differences
 
@@ -1831,37 +1899,34 @@ KAZ.ploty_IFD_PER <- ggplot(KAZ.Bivalents.DF[KAZ.Bivalents.DF$hand.foci.count ==
                           geom_jitter()+ggtitle("Percent IFD, KAZ")+geom_boxplot(aes(x=sex))
 KAZ.ploty_IFD_PER
 
-#make a table of the means and n ect
-KAZ.table <- ddply(KAZ.Bivalents.DF, c("sex"), summarise,
-                             mean_SC = mean(chromosomeLength),
-                              n_SC = length(Obj.ID),
-                   
-                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
-                  
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
-                          
-)
-#can I plot these stats
 
+KAZ.IFDnorm_scatter.plot <- ggplot(KAZ.Bivalents.DF[KAZ.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = chromosomeLength, color = sex))+ geom_jitter()+ggtitle("KAZ \n Normalized IFD and SC Length")+ylim(c(0,1.1))
+
+KAZ.IFDnorm_scatter.plot
+
+
+#make a table of the means and n ect
+KAZ.table <-  ddply(KAZ.Bivalents.DF, c("sex"), summarise,
+                            
+                  total.biv = length(Obj.ID),
+                   
+                  mean.IFD_2CO = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                  mean.IFD.PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
+                  
+                  n_2CO =  sum(hand.foci.count == 2, na.rm = TRUE) #this is the right syntax
+)
 
 #run a t.test seperate out by the chrm classes
 KAZ.ttest  <- t.test(KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "female"], KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "male"])
 
 ```
 
-```{r SKIVE.IFD, echo=FALSE}
+For the KAZ, pattern the distinction between the male and female pattern is less distinct. There are fewer instances of females with v close IFD distances.
+
+```{r SKIVE.IFD, echo=FALSE, warning=FALSE}
 #make the dataset
 SKIVE.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "SKIVE",]
-table(SKIVE.Bivalents.DF$sex, SKIVE.Bivalents.DF$hand.foci.count)
+#table(SKIVE.Bivalents.DF$sex, SKIVE.Bivalents.DF$hand.foci.count)
 
 #plot the differences
 
@@ -1871,32 +1936,27 @@ SKIVE.ploty_IFD_raw <- ggplot(SKIVE.Bivalents.DF[SKIVE.Bivalents.DF$hand.foci.co
 SKIVE.ploty_IFD_raw
 
 
+
 SKIVE.ploty_IFD_PER <- ggplot(SKIVE.Bivalents.DF[SKIVE.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = sex))+
                           geom_jitter()+ggtitle("Percent IFD, SKIVE")+geom_boxplot(aes(x=sex))
 SKIVE.ploty_IFD_PER
 
 
+SKIVE.IFDnorm_scatter.plot <- ggplot(SKIVE.Bivalents.DF[SKIVE.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = chromosomeLength, color = sex))+ geom_jitter()+ggtitle("SKIVE \n Normalized IFD and SC Length")+ylim(c(0,1.1))
 
-#make a table of the means and n ect
-SKIVE.table <- ddply(SKIVE.Bivalents.DF, c("sex"), summarise,
-                             mean_SC = mean(chromosomeLength),
-                              n_SC = length(Obj.ID),
+SKIVE.IFDnorm_scatter.plot
+
+
+SKIVE.table <-  ddply(SKIVE.Bivalents.DF, c("sex"), summarise,
+                            
+                  total.biv = length(Obj.ID),
                    
-                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  mean.IFD_2CO = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                  mean.IFD.PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
                   
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
-                          
+                  n_2CO =  sum(hand.foci.count == 2, na.rm = TRUE) #this is the right syntax
 )
-#can I plot these stats
+
 
 
 #run a t.test seperate out by the chrm classes
@@ -1904,16 +1964,17 @@ SKIVE.ttest  <- t.test(SKIVE.Bivalents.DF$chromosomeLength[SKIVE.Bivalents.DF$se
 
 ```
 
-```{r MSM.IFD, echo=FALSE}
+In the Skive data, it could be the case that the v. short IFD measures in females are rare / another class of observations.
+
+```{r MSM.IFD, echo=FALSE, warning=FALSE}
 #make the dataset
 MSM.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "MSM",]
-table(MSM.Bivalents.DF$sex, MSM.Bivalents.DF$hand.foci.count)
+#table(MSM.Bivalents.DF$sex, MSM.Bivalents.DF$hand.foci.count)
 
 #plot the differences
 MSM.ploty <- ggplot(MSM.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
 
-MSM.ploty
-#remove the NAs
+
 
 MSM.ploty_IFD_raw <- ggplot(MSM.Bivalents.DF[MSM.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_ABS, x = sex))+
                           geom_jitter()+ggtitle("Raw IFD, MSM")+geom_boxplot(aes(x=sex))
@@ -1930,28 +1991,22 @@ MSM.IFD_another.plot <- ggplot(MSM.Bivalents.DF[MSM.Bivalents.DF$hand.foci.count
 
 MSM.IFDnorm_another.plot <- ggplot(MSM.Bivalents.DF[MSM.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = chromosomeLength, color = sex))+                          geom_jitter()+ggtitle("MSM")+ylim(c(0,1.1))
 
+MSM.IFDnorm_another.plot
+
 #this plot helps illustrate sex-specific differences for normalized IFDs -- both sexes have a large class / proportion of bivalents with similar IFD_PER values -- but the mean in females is lower due to them having MORE low IFD_PER values
 
 
 #make a table of the means and n ect
-MSM.table <- ddply(MSM.Bivalents.DF, c("sex"), summarise,
-                             mean_SC = mean(chromosomeLength),
-                              n_SC = length(Obj.ID),
+MSM.table  <-  ddply(MSM.Bivalents.DF, c("sex"), summarise,
+                            
+                  total.biv = length(Obj.ID),
                    
-                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  mean.IFD_2CO = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                  mean.IFD.PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
                   
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
-                          
+                  n_2CO =  sum(hand.foci.count == 2, na.rm = TRUE) #this is the right syntax
 )
+
 #can I plot these stats
 
 
@@ -1960,7 +2015,11 @@ MSM.ttest  <- t.test(MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "
 
 ```
 
-```{r MOLF.IFD, eval=FALSE}
+The MSM pattern has a short range and longer range of nrm.IFD in males and females respectively.  
+
+
+
+```{r MOLF.IFD, eval=FALSE, echo=FALSE}
 #make the dataset
 MOLF.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "MOLF",]
 table(MOLF.Bivalents.DF$sex, MOLF.Bivalents.DF$hand.foci.count)
@@ -1981,25 +2040,15 @@ molf.ploty_IFD_PER
 
 
 #make a table of the means and n ect
-MOLF.table <- ddply(MOLF.Bivalents.DF, c("sex"), summarise,
-                             mean_SC = mean(chromosomeLength),
-                              n_SC = length(Obj.ID),
+MOLF.table  <-  ddply(MOLF.Bivalents.DF, c("sex"), summarise,
+                            
+                  total.biv = length(Obj.ID),
                    
-                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum(which(hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  mean.IFD_2CO = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                  mean.IFD.PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
                   
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum(which(hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum(which(hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum(which(hand.foci.count == 3), na.rm = TRUE)
-                          
+                  n_2CO =  sum(hand.foci.count == 2, na.rm = TRUE) #this is the right syntax
 )
-#can I plot these stats
 
 
 #run a t.test seperate out by the chrm classes
@@ -2008,13 +2057,21 @@ MOLF.ttest  <- t.test(MOLF.Bivalents.DF$chromosomeLength[MOLF.Bivalents.DF$sex =
 ```
 
 
+The strains which show a clean "30% threshold" for normalized IFD in males are: PWD, SKIVE, and MSM (which are the 2 high Rec and a intermediate strain). The other strains which have more overlap between males and females are the Dom strains and KAZ.
+
 
 #### IFD 3CO bivalents
 
 Run comparisons for 3CO bivalents.  
 
+```{r CO3.comparisons, echo=FALSE}
 
-### Heterochiasmy Prediction
+#take a look at the 3CO things
+
+```
+
+<!--
+ Heterochiasmy Prediction
 
 > Do the IFD measures lack significant sex effect? (as predicted)
 
@@ -2024,9 +2081,10 @@ There are sex effects for the lme() models for both the ABS and PER IFD measures
 > Are there signiticant strain effects?
 
 The random strain effect was tested for raw and normalized IFD, neither are significant.
+-->
 
 
-### Male Polymorphism Prediction
+## Male Polymorphism Prediction
 
 The polymorphism frame-work
 
@@ -2036,9 +2094,13 @@ logistic regression
 $$  Rec \ Group ~=~ mouse \ average \ IFD $$
 For these tests I am looking at the single IFD measure from 2CO bivalents.
 
+For the logistic regression, comparing High and Low groups (there needs to be 2 groups)
+I think I should compare 2 sets of logistic models, where SKIVE (intermediate gwRR), is in high and low.
+
+
 ```{r IFD.log.reg, echo=FALSE}
 #
-log.reg_IFD_ABS_mouse.av <- glm(Rec.group ~ mean_IFD.2CO_ABS, 
+log.reg_IFD_ABS_mouse.av <- glm(Rec.group ~ mean_IFD.2CO_ABS,
               data=mouse.avs_4MM[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc"),], family=binomial(link="logit"))
 
 summary(log.reg_IFD_ABS_mouse.av)# 0.0366 *
@@ -2125,8 +2187,9 @@ single.biv.IFD_PER.t.test <- t.test( Curated_BivData$IFD1_PER[Curated_BivData$Re
 biv.IFDs_by_group <- ggplot(Curated_BivData[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc"),], aes(y = IFD1_ABS, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
   geom_jitter(alpha=.2)+
   ggtitle("Interfocal Distances, ABS")+
-  scale_color_manual(values=colors_of_strains)+ facet_wrap(~Rec.group, scales = "free")+theme(legend.position="none")+ylim(c(0,100))
+  scale_color_manual(values=colors_of_strains)+ facet_wrap(~Rec.group, scales = "free")+ylim(c(0,100))
 biv.IFDs_by_group
+#+theme(legend.position="none")+
 
 
 biv.IFDs_PER_by.group <- ggplot(Curated_BivData[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc"),], aes(y = IFD1_PER, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
@@ -2296,7 +2359,7 @@ Musc_male_MELT_long
 
 ```{r CO1_foci_pos_boxplot, echo=FALSE}
 
-CO.Pos.boxplots_1CO <- ggplot(MELT_Curated_BivData.1CO, aes(x= strain, y=PER.Foci.Pos, fill=strain) ) + geom_boxplot(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("IFD across bivalents")+geom_jitter(alpha=.1)+scale_fill_manual(values=colors_of_strains)
+CO.Pos.boxplots_1CO <- ggplot(MELT_Curated_BivData.1CO, aes(x= strain, y=PER.Foci.Pos, fill=strain) ) + geom_boxplot(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("Percent Foci Position")+geom_jitter(alpha=.1)+scale_fill_manual(values=colors_of_strains)
 CO.Pos.boxplots_1CO
 
 ```
@@ -2410,29 +2473,27 @@ sis.co.ten.plot_WSB_female <- ggplot(data = Curated_BivData[Curated_BivData$cate
   geom_point()+facet_wrap(sex~strain)
 sis.co.ten.plot_WSB_female
 
-
 sis.co.ten.plot_WSB_male <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB male",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
   geom_point()+facet_wrap(sex~strain)
 sis.co.ten.plot_WSB_male
 
-
 sis.co.ten.plot_LEW_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "LEW female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
   geom_point()+facet_wrap(sex~strain)
-sis.co.ten.plot_LEW_female
+#sis.co.ten.plot_LEW_female
 
 sis.co.ten.plot_LEW_male <- ggplot(data = Curated_BivData[Curated_BivData$category == "LEW male",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
   geom_point()+facet_wrap(sex~strain)
-sis.co.ten.plot_LEW_male
+#sis.co.ten.plot_LEW_male
 
 
 sis.co.ten.plot_PWD_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
   geom_point()+facet_wrap(sex~strain)
-sis.co.ten.plot_PWD_female
+#sis.co.ten.plot_PWD_female
 
 
 sis.co.ten.plot_PWD_male <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD male",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
   geom_point()+facet_wrap(sex~strain)
-sis.co.ten.plot_PWD_male
+#sis.co.ten.plot_PWD_male
 
 
 Curated_BivData <- Curated_BivData[Curated_BivData$hand.foci.count < 5,]
@@ -2441,25 +2502,70 @@ Curated_BivData <- Curated_BivData[!(is.na(Curated_BivData$hand.foci.count) | Cu
 
 jitter_siscoten_PWDf <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD female",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ ggtitle("PWD female Sis.co.ten")+
   geom_jitter()+facet_wrap(sex~strain)
-jitter_siscoten_PWDf
+#jitter_siscoten_PWDf
 
 jitter_siscoten_PWDm <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD male",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ggtitle("PWD male sis.co.ten")+
   geom_jitter()+facet_wrap(sex~strain)
-jitter_siscoten_PWDm
+#jitter_siscoten_PWDm
 
 jitter_siscoten_WSBf <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB female",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ggtitle("WSB female sis.co.ten")+
   geom_jitter()+facet_wrap(sex~strain)
-jitter_siscoten_WSBf
+#jitter_siscoten_WSBf
 
 jitter_siscoten_WSBm <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB male",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ggtitle("WSB male sis.co.ten")+
   geom_jitter()+facet_wrap(sex~strain)
-jitter_siscoten_WSBm
+#jitter_siscoten_WSBm
 ```
 
 Males have much clearer separation of siscoten across chrm classes. This is emphasized when SC length is also plotted. It seems like musc males have higher amounts of this metric compared to Dom males (which might)
 
 
 To formally test the differences in sis-co-ten I plan to write a sub sampling / permutation loop to compare the mean(sis.co.ten) of the same numbers of bivalents of the same class.
+
+BUT females have a greater range -- so maybe it's just a scale issue.  
+
+
+```{r show.norm.siscoten, echo=FALSE}
+
+Curated_BivData$nrm.siscoten <- Curated_BivData$SisCoTen/Curated_BivData$chromosomeLength
+
+Nrm.sis.co.ten.plot_WSB <- ggplot(data = Curated_BivData[Curated_BivData$strain == "WSB",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n WSB")+theme(legend.position="none")
+Nrm.sis.co.ten.plot_WSB
+
+
+Nrm.sis.co.ten.plot_G <- ggplot(data = Curated_BivData[Curated_BivData$strain == "G",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n G")+theme(legend.position="none")
+Nrm.sis.co.ten.plot_G
+
+
+Nrm.sis.co.ten.plot_LEW <- ggplot(data = Curated_BivData[Curated_BivData$strain == "LEW",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten\nLEW")+theme(legend.position="none")
+Nrm.sis.co.ten.plot_LEW
+
+
+
+Nrm.sis.co.ten.plot_PWD <- ggplot(data = Curated_BivData[Curated_BivData$strain == "PWD",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n PWD")+theme(legend.position="none")
+Nrm.sis.co.ten.plot_PWD
+
+
+Nrm.sis.co.ten.plot_KAZ <- ggplot(data = Curated_BivData[Curated_BivData$strain == "KAZ",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n KAZ")+theme(legend.position="none")
+Nrm.sis.co.ten.plot_KAZ
+
+
+Nrm.sis.co.ten.plot_SKIVE <- ggplot(data = Curated_BivData[Curated_BivData$strain == "PWD",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n SKIVE")+theme(legend.position="none")
+Nrm.sis.co.ten.plot_SKIVE
+
+Nrm.sis.co.ten.plot_MSM <- ggplot(data = Curated_BivData[Curated_BivData$strain == "MSM",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n MSM")+theme(legend.position="none")
+Nrm.sis.co.ten.plot_MSM
+
+```
+
+I think the the normalized sis.co.ten plots also show that the there is more clustering of the sis.co.ten for the males.
 
 
 ```{r sis.co.ten.test_HetC, echo=FALSE}
@@ -2481,6 +2587,7 @@ rand_siscoten_MM <- exactRLRT(lmer_MM_siscoten)
 rand_siscoten_MM
 #slightly sig
 ```
+
 
 
 The fixed effects, sex and sex*subsp are significant. The random strain effect is also significant.
@@ -2573,6 +2680,8 @@ mouse.avs_4MM$mean.siscoten_2CO
 ```
 
 All the sis.co.ten tests are highly significant. Maybe I should consider running a normalized sis.co.ten? I think nrm_siscoten would still reflect the differing cohesion struction/outcome.
+
+
 
 ### Telomere and centromere Distance
 
