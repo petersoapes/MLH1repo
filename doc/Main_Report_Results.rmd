@@ -110,7 +110,7 @@ var.plot <- ggplot(AP_mouse_table.HQ_target, aes(y=var, x = sex, color=sex))+geo
 ```
 
 
-Details of data set cleaning ect is in SetupData.rmd
+Details of data set cleaning etc is in SetupData.rmd
 Effects from different factors are reviewed in Effects.Rmd
 
 
@@ -273,12 +273,12 @@ DF.HetC.MixedModel <- droplevels(DF.HetC.MixedModel)#remove levels not used
 #mean_co.HQ  (this might remove some of the MOLF males)
 #DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel[DF.HetC.MixedModel$Ncells > 9,]  #this removes the MOLF female
 
-table(DF.HetC.MixedModel$strain, DF.HetC.MixedModel$sex)
+#table(DF.HetC.MixedModel$strain, DF.HetC.MixedModel$sex)
 
 #afriad this is removing NA's
 DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel[( (DF.HetC.MixedModel$age.weeks < 25) &  (DF.HetC.MixedModel$age.days != 13) ) | is.na(DF.HetC.MixedModel$age.weeks), ] #keeps mice without ages, and removes juvinilles
 
-table(DF.HetC.MixedModel.HQ$strain, DF.HetC.MixedModel.HQ$sex)
+#table(DF.HetC.MixedModel.HQ$strain, DF.HetC.MixedModel.HQ$sex)
 
 #reformate Molosinus subsp
 #mean_co.HQ.mol
@@ -306,13 +306,12 @@ DF.HetC.MixedModel.HQ$species <- factor(DF.HetC.MixedModel.HQ$species, ordered =
 ```
 
 
-This is the size of mice used within the Mixed model
+This is the break down of mice used within the Mixed model
 
 `r kable(table(DF.HetC.MixedModel.HQ$sex, DF.HetC.MixedModel.HQ$strain))`
 
-Can I indedate the average number of cells with go into each mouse.?
-
-FOR FINAL ANALYSIS, make sure that MOL is coded as a separate subsp (change all of the main model reports to). For mouse averages of MLH1 counts, only strain with observations for both sexes and are from Mus species. 
+<!--Can I indicate the average number of cells with go into each mouse.? -->
+ 
 
 subspecies levels: 2(3), Musc and Domestics and Molossinus
 
@@ -320,13 +319,31 @@ strain levels: Don: 3, Musc: 4  Mol: 2
 
 sex: 2 female male  
 
+*mouse averages exclude Q5 and male counts are adjusted +1 for PAR)*
 
 ## Mean CO Count
 
-
 todo, add the random effect tests, consider changing all to lmer() (those have better random effects)
 
+For now I will focus on 4 different models run mouse averages on MLH1 counts.
+
+1. $$mouse .mean CO ~=~ subsp * sex  + rand(strain*sex) + \varepsilon$$
+
+2. $$mouse .mean CO ~=~ subsp * sex  + rand(1|strain) + \varepsilon$$
+
+
+3. $$mouse .mean CO ~=~ subsp * sex * strain + \varepsilon$$
+
+
+4. $$mouse .mean CO ~=~ sex * strain + \varepsilon$$
+
+
+
+> Model 1
+
 $$mouse .mean CO ~=~ subsp * sex  + rand(strain*sex) + \varepsilon$$
+
+1.	HetC.MixedModel.HQ <- lme(mean_co ~ subsp*sex, data=DF.HetC.MixedModel.HQ, random=list(strain=pdDiag(~sex) ) )
 
 ```{r HQ.MixedModel.1, echo=FALSE, digits = 2}
 #table(DF.HetC.MixedModel$strain, DF.HetC.MixedModel$sex)
@@ -337,19 +354,14 @@ HetC.MixedModel.HQ <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel.HQ, ran
 
 as.data.frame( round(  summary(HetC.MixedModel.HQ)$tTable, 6 ) )
 
-ranef(HetC.MixedModel.HQ)
+#ranef(HetC.MixedModel.HQ)
 #which is the test for random effects ?!
-
 ```
 
 
 Above is the table of coefficients for MM.1, HQ data set, lme(), random effects strain and strain specific sex effect.  
 
-
-$$mouse .mean CO ~=~ subsp * sex  + rand(strain*sex) + \varepsilon$$
-
-Above is the table of coefficients for MM.1.mol, molssinus coded as separate subspecies, lme(), random effects strain and strain specific sex effect.  
-
+> Model 2.
 
 $$mouse .mean CO ~=~ subsp * sex  + rand(1|strain) + \varepsilon$$
 
@@ -361,9 +373,6 @@ Reduced.strain.HQ <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel.HQ, rand
 as.data.frame(round(summary(Reduced.strain.HQ)$tTable, 6))
 #add a aption to this code chunk
 #ranef(Reduced.strain.HQ)
-
-
-
 ```
 
 Above is the table of coefficients for MM.2, HQ data set, lme(), random effects coded without sex specific effect.
@@ -372,9 +381,7 @@ This is model has sex and interaction coefficient is significant.
 Can the above model be re-written with lmer so that random effect can be tested?
 
 
-
-
-> MM3
+> Model 3
 
 $$mouse .mean CO ~=~ subsp * sex * strain + \varepsilon$$
 
@@ -402,7 +409,7 @@ interaction terms of sex and strain for (G, MSM, PWD).
 How are these models different from the last one -- MM4 is missing subsp, so only sex * strain effects.
 
 
-> MM.4
+> Model 4
 
 $$mouse .mean CO ~=~ sex * strain + \varepsilon$$
 
@@ -560,7 +567,7 @@ QTL on chrm 14, decreased variance in GG genotype, compared to hetZ and WSB (I t
   publisher={Genetics Soc America}
 }
 
-references for phenotypic variance connected to robustness to environment, increase in developmental consistancy
+references for phenotypic variance connected to robustness to environment, increase in developmental consistency
 Waddington 1942, Rutherford and Lindquist 2998, Mackay and Lyman 2005, Levy and Siegal 2008)
 
 phenotypic variance leading to adaptation - 
@@ -568,7 +575,7 @@ phenotypic variance leading to adaptation -
 
 Previous vQTLs (Shen etal 2012, Hulse and Cai 2013, Mulder et al 2016)
 
-meiotic Checkpoints for ensuring consistancy (Hochwagen and Amon 2006, Li and Schimenti 2007, Jaramillo-Lambert 2010 and Kauppi 2013)
+meiotic Checkpoints for ensuring consistency (Hochwagen and Amon 2006, Li and Schimenti 2007, Jaramillo-Lambert 2010 and Kauppi 2013)
 
 #### MLH1 variance Figures
 
@@ -963,7 +970,7 @@ Fig1_v1_strain
 
 #### Proportion of chrm classes
 
-make a smaller propoertion chrm block --
+make a smaller proportion chrm block --
 
 These results are meant to compare the proportions of bivalents with 0,1,2 or 3 chromosomes.
 Most of the variation in gwRR across strains in is due to more 2COs at the 'expense' / trade off of 1COs. (the gwRR for most mice is low/close to the minimum)
@@ -1376,7 +1383,7 @@ The correlation with MLH1 and zygotene cells is `r MLH1.DMC1.Z_cor`.
 
 ## Total SC Results
 
-insert male total sc results here
+insert male total SC results here
 
 
 # Female patterns
