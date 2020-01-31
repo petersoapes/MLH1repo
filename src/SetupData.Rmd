@@ -221,6 +221,88 @@ AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[!(is.na(AP_mouse_table_w.Ages$cat
 
 
 
+```{r Q1Q2.mouse.table, echo=FALSE}
+
+
+#Make a mouse level table
+Q12_mouse_table <- ddply(MLH1_data[MLH1_data$quality < 3,], c("mouse"), summarise,
+                        
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(adj_nMLH1.foci),
+                        mean_co = as.numeric(format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3) ),
+                        cV = cv(adj_nMLH1.foci),
+                        var = as.numeric(format(round(   var(adj_nMLH1.foci),3), nsmall=3)),
+                        sd   = round(sd(adj_nMLH1.foci), 3),
+                        se   = round(sd / sqrt(Ncells), 3)
+                        #quality?
+)
+
+#REMOVE mice with fewer than 3 cells
+Q12_mouse_table <- Q12_mouse_table[Q12_mouse_table$Ncells > 3,]
+
+Q12_mouse_table <- add_strain(Q12_mouse_table)
+Q12_mouse_table <- add_subsp(Q12_mouse_table)
+Q12_mouse_table <- add_sex(Q12_mouse_table)
+Q12_mouse_table <- add_category(Q12_mouse_table)
+
+#use things from prv block
+#mice.frm.meta 
+#meta.data
+#mouse.table_w.Ages
+
+#MERGE HERE
+Q12_mouse_table_w.Ages <- merge(Q12_mouse_table, meta.data, by.y = "mouse", by.x = "mouse", all = TRUE)
+#what are the differences between these two
+
+#remove the NAs
+Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[!(is.na(Q12_mouse_table_w.Ages$category.x) | Q12_mouse_table_w.Ages$category.x==""), ]
+
+
+#CLEAN up and format for mixed models
+Q12_mouse_table_w.Ages <- subset(Q12_mouse_table_w.Ages, select= -c(sex.y,sex.x,
+                            subsp.y,subsp.x,
+                    category.y,category.x, strain.x,
+                    strain.y, mouse.1  )  )
+
+Q12_mouse_table_w.Ages <- add_strain(Q12_mouse_table_w.Ages)
+Q12_mouse_table_w.Ages <- add_subsp(Q12_mouse_table_w.Ages)
+Q12_mouse_table_w.Ages <- add_sex(Q12_mouse_table_w.Ages)
+Q12_mouse_table_w.Ages <- add_category(Q12_mouse_table_w.Ages)
+
+Q12_mouse_table_w.Ages <- add_species(Q12_mouse_table_w.Ages)
+Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$species == "M.musculus",]
+
+#REMOVE EXTRA STRAINS
+Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$subsp != "Cast",]
+#remove musc strains
+Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$strain != "AST",]
+Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$strain != "TOM",]
+#remove PERC, MOLF, CZECH, (no females)
+Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$strain != "CZECH",]
+Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$strain != "PERC",]
+
+#REMOVE WRONG AGES
+#afriad this is removing NA's
+Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[( (Q12_mouse_table_w.Ages$age.weeks < 25) &  (Q12_mouse_table_w.Ages$age.days != 13) ) | is.na(Q12_mouse_table_w.Ages$age.weeks), ] #keeps mice without ages, and removes juvinilles
+
+#MOL = subsp
+Q12_mouse_table_w.Ages$subsp <- ifelse(grepl("MSM", Q12_mouse_table_w.Ages$strain), "Mol", 
+        ifelse(grepl("MOLF", Q12_mouse_table_w.Ages$strain), "Mol", Q12_mouse_table_w.Ages$subsp))
+
+
+#unclass order factors
+#main df with variables coded as chr
+Q12_mouse_table_w.Ages$subsp <- factor(Q12_mouse_table_w.Ages$subsp, ordered = FALSE)
+Q12_mouse_table_w.Ages$sex <- factor(Q12_mouse_table_w.Ages$sex, ordered = FALSE)
+Q12_mouse_table_w.Ages$strain <- factor(Q12_mouse_table_w.Ages$strain, ordered = FALSE)
+Q12_mouse_table_w.Ages$species <- factor(Q12_mouse_table_w.Ages$species, ordered = FALSE)
+
+```
+
+
+
+
+
 ```{r strain.table, echo=FALSE}
 
 ```

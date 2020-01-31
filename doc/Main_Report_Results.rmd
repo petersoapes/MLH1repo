@@ -27,15 +27,20 @@ library(RLRsim)
 library(ggpubr)
 library(reshape2)
 
+setwd("~./MLH1repo/")
+
+load(file="~./MLH1repo/data/MLH1_data_setup_1.5.20.RData")
+load(file="/data/CleanBivData_1.28.20.RData")
+
 #setwd("~./MLH1repo/doc/")
-setwd("C:/Users/alpeterson7/Documents/MLH1repo/doc/")
-#setwd("C:/Users/April/Desktop/MLH1repo")
+#setwd("C:/Users/alpeterson7/Documents/MLH1repo/doc/")
+#setwd("C:/Users/April/Documents/MLH1repo")
 #load(file="data/MLH1/MLH1_data_setup.RData")
 
 #load main data file
-load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.5.20.RData")#added batch18
-
-load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/CleanBivData_1.28.20.RData")
+#load(file="C:/Users/April/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.5.20.RData")#added batch18
+#load(file="C:/Users/April/Documents/MLH1repo/data/CleanBivData_1.28.20.RData")
+#load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/CleanBivData_1.28.20.RData")
 
 #this MLH1 only goes up to batch16!
 #load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#batch18
@@ -693,24 +698,43 @@ cV.Hist
 4.	strain.fixed <- lm(mean_co ~ sex * strain, data=DF.HetC.MixedModel.HQ)  
 
 
+$$mouse .var CO ~=~ subsp * sex + rand(strain*sex)+ \varepsilon$$
 
-
-
-$$mouse .cV CO ~=~ subsp * sex + rand(strain*sex)+ \varepsilon$$
-
-```{r cV.model.setup, echo=FALSE}
+```{r M1.var, echo=FALSE}
 #modeling within mouse variance
-
-DF.HetC.MixedModel.HQ$var <-  as.numeric(DF.HetC.MixedModel.HQ$var)
+#use  DF.HetC.MixedModel.HQ
 
 #HQ var.CO
-HetC.MixedModel.HQ.var_co <- lme(cV ~ subsp * sex, data=DF.HetC.MixedModel.HQ, random=list(strain=pdDiag(~sex) ) )
+M1.var_co <- lme( var ~ subsp * sex, data=DF.HetC.MixedModel.HQ, random=list(strain=pdDiag(~sex) ) )
 
 #summary(HetC.MixedModel.HQ.var_co)
 
-as.data.frame( round(summary(HetC.MixedModel.HQ.var_co)$tTable, 6))
+as.data.frame( round(summary(M1.var_co)$tTable, 6))
 
 #ranef(HetC.MixedModel.HQ.var_co)
+```
+
+
+```{r M1.Q12_table, echo=FALSE}
+#use the Q1Q2 calq'd table
+
+#Q12_mouse_table_w.Ages$subsp <- ifelse(grepl(1, Q12_mouse_table_w.Ages$subsp), "Dom", 
+#        ifelse(grepl(2, Q12_mouse_table_w.Ages$subsp), "Musc", Q12_mouse_table_w.Ages$subsp))
+
+#DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[!(is.na(DF.HetC.MixedModel.HQ$mouse) | #DF.HetC.MixedModel.HQ$mouse==""), ]
+
+Q12_mouse_table_w.Ages <- add_subsp(Q12_mouse_table_w.Ages)
+
+Q12_mouse_table_w.Ages$subsp <- ifelse(grepl("MSM", Q12_mouse_table_w.Ages$strain), "Mol", 
+        ifelse(grepl("MOLF", Q12_mouse_table_w.Ages$strain), "Mol", NA))
+
+
+#Q12_mouse_table_w.Ages
+
+M1.Q12_var_co <- lme( var ~ subsp * sex, data=Q12_mouse_table_w.Ages, random=list(strain=pdDiag(~sex) ) )
+
+as.data.frame( round(summary(M1.Q12_var_co)$tTable, 6))
+
 ```
 
 
