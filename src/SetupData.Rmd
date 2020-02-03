@@ -5,6 +5,12 @@ date: "`r format(Sys.time(), '%d %B %Y')`"
 output: html_document
 ---
 
+
+to Do
+
+- make sure to remove some of the juvi mice!! from the AP_mouse table
+
+
 ```{r setup, include=FALSE}
 library(plyr)
 library(dplyr)
@@ -113,9 +119,9 @@ exclude_mice_list <- c("10mar15_WSB_m2", "8oct14_WSB_f1", "8oct14_WSB_f3", "18no
                   "31jul17_HMI_m1","3sep18_HMI_m1","3sep18_HMI_m2",
                  "21aug17_SPI_f1", "30may18_SPIC_f1", "30oct17_SPIC_m1", "8jun18_SPIC_m2"
                   )
-
-
 MLH1_data <- MLH1_data[ ! MLH1_data$mouse %in% exclude_mice_list, ]
+
+
 ```
 
 
@@ -211,19 +217,35 @@ meta.data <- add_sex(meta.data)
 meta.data <- add_category(meta.data)
 
 #merge with DOB
-mouse.table_w.Ages <- merge(batch.mouse.count.DF, meta.data, by.y = "mouse", by.x = "Var1", all = TRUE)
+
+#why are there 2
+#mouse.table_w.Ages <- merge(batch.mouse.count.DF, meta.data, by.y = #"mouse", by.x = "Var1", all = TRUE)
+
 AP_mouse_table_w.Ages <- merge(AP_mouse_table.HQ, meta.data, by.y = "mouse", by.x = "mouse", all = TRUE)
 #what are the differences between these two
 
+juvi.mice_DF <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$age.days < 15) & (AP_mouse_table_w.Ages$sex.y == "male"),]
+
+juvi.mice_DF <- juvi.mice[!(is.na(juvi.mice$mouse) | juvi.mice$mouse==""), ]
+
+#remove bad ages
+AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[( (AP_mouse_table_w.Ages$age.weeks < 25) &  (AP_mouse_table_w.Ages$age.days != 13) ) | is.na(AP_mouse_table_w.Ages$age.weeks), ]
+
+
+#remove juvi mice
+MLH1_data <- MLH1_data[ ! MLH1_data$mouse %in% juvi.mice_DF$mouse, ]
+
+
 #remove the NAs
 AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[!(is.na(AP_mouse_table_w.Ages$category.x) | AP_mouse_table_w.Ages$category.x==""), ]
+
+
+
 ```
 
 
 
 ```{r Q1Q2.mouse.table, echo=FALSE}
-
-
 #Make a mouse level table
 Q12_mouse_table <- ddply(MLH1_data[MLH1_data$quality < 3,], c("mouse"), summarise,
                         
@@ -300,6 +322,29 @@ Q12_mouse_table_w.Ages$species <- factor(Q12_mouse_table_w.Ages$species, ordered
 ```
 
 
+```{r Q123_mouse.table, echo=FALSE}
+
+Q123_mouse_table <- ddply(MLH1_data[MLH1_data$quality < 4,], c("mouse"), summarise,
+                        
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(adj_nMLH1.foci),
+                        mean_co = as.numeric(format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3) ),
+                        cV = cv(adj_nMLH1.foci),
+                        var = as.numeric(format(round(   var(adj_nMLH1.foci),3), nsmall=3)),
+                        sd   = round(sd(adj_nMLH1.foci), 3),
+                        se   = round(sd / sqrt(Ncells), 3)
+                        #quality?
+)
+
+#REMOVE mice with fewer than 3 cells
+Q123_mouse_table <- Q123_mouse_table[Q123_mouse_table$Ncells > 3,]
+
+Q123_mouse_table <- add_strain(Q123_mouse_table)
+Q123_mouse_table <- add_subsp(Q123_mouse_table)
+Q123_mouse_table <- add_sex(Q123_mouse_table)
+Q123_mouse_table <- add_category(Q123_mouse_table)
+
+```
 
 
 
@@ -332,7 +377,13 @@ male_mouse_table_w.Ages <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$sex.x ==
 all.ages_plot <- ggplot(AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$sex.x == "male",], aes(age.weeks))+geom_histogram(binwidth = 3)+facet_wrap(~category.x)+ggtitle("Male Age Distributions")
 all.ages_plot
 
-male_mouse_table_w.good.ages <- male_mouse_table_w.Ages[male_mouse_table_w.Ages$age.weeks < 20,]
+#male_mouse_table_w.good.ages <- male_mouse_table_w.Ages[male_mouse_table_w.Ages$age.weeks < 20,]
+
+male_mouse_table_w.good.ages <- male_mouse_table_w.Ages[( (male_mouse_table_w.Ages$age.weeks < 25) &  (male_mouse_table_w.Ages$age.days != 13) ) | is.na(male_mouse_table_w.Ages$age.weeks), ]
+
+#remove juvi mice!!
+#DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel[( (DF.HetC.MixedModel$age.weeks < 25) &  (DF.HetC.MixedModel$age.days != 13) ) | is.na(DF.HetC.MixedModel$age.weeks), ]
+
 #droplevels on DF above
 
 good.ages_plot <- ggplot(male_mouse_table_w.good.ages, aes(age.weeks))+geom_histogram(binwidth = 1)+facet_wrap(~category)+ggtitle("Good Male Age Distributions")
@@ -368,7 +419,6 @@ colors_of_strains <- c('WSB'= "#56B4E9",'G' ='cadetblue','LEW'= 'lightblue','PER
 
 # Saving Data file
 
-
 Now that the dataframes have been process and formated, they will be saved as RData. the main files are:
   1. MLH1_data and original_DF
   2. AP_mouse_table and AP_mouse_table_w.Ages
@@ -378,7 +428,7 @@ work on cleaning up all other df with bad names
 
 ```{r save.RData, echo=FALSE}
 
-save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_1.10.20.RData")
+save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_2.2.20.RData")
 
 #  OutPut: big large MLH1_data (AP's) df, big DF of BD with just the mice I want.
 #  MLH1_data_table, means and variance of AP and BD MLH1 values. made from seperate tables from AP and BD data.
@@ -392,7 +442,7 @@ save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_1.10.20.RData")
 
 Use the above information to make the final dataset for analysis
 
--age (for males)
--enough cells
--both male and female
+- age (for males)
+- enough cells
+- both male and female
 
