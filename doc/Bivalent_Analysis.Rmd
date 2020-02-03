@@ -712,7 +712,7 @@ Pros and con list for using mouse averages vs single bivalent traits.
 
 The mouse averages for all the metrics is what is used in the mixed models.
 
-```{r clean.biv.data4.MM, echo=FALSE}
+```{r biv.data_table.4MM.HetC, echo=FALSE}
 
 #remove all the non-used strains!!
 Curated_BivData <- Curated_BivData[Curated_BivData$strain != "AST",]
@@ -729,11 +729,17 @@ Curated_BivData$strain <- factor(Curated_BivData$strain, ordered = FALSE)
 #all numbers, numbers
 #all relavent factors unordered
 
+#I'd like to merge the additional strains used for the male tests
+
+
 #the mouse averages will be used
 
 mouse.avs_4MM <- ddply(Curated_BivData, c("mouse"), summarise,
                         Nmice = length(unique(mouse)),
                         Ncells  = length(Obj.ID),
+                       
+                      # mean_CO = mean()
+                       
                         mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
                         cV = cv(chromosomeLength),
                         var = as.numeric(format(round(   var(chromosomeLength),3), nsmall=3) ),
@@ -782,6 +788,7 @@ mouse.avs_4MM$strain <- factor(mouse.avs_4MM$strain, ordered = FALSE)
 #MAKE the same version of the TABLE but for the longest_biv_Dataset (when I get around to making it)
 #code if males are high or low?
 
+#code intp chr
 
 #assign high and low
 #divide musc males into groups
@@ -795,6 +802,68 @@ mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD male", mouse.avs_4MM$category), 1,
 ```
 
 In the chunk above the mouse averages table is made -- may need to add all the extra metrics (IFD, .
+
+```{r biv.data_table.4MM.Male, echo=FALSE}
+#remove female, 
+#add back in the BIVDATA from strains which were  removed for the sex-specific comparisons
+
+#Curated_BivData_male
+
+male.av_4MM <- ddply(Curated_BivData_male, c("mouse"), summarise,
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(Obj.ID),
+                       
+                      # mean_CO = mean()
+                       
+                        mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
+                        cV = cv(chromosomeLength),
+                        var = as.numeric(format(round(   var(chromosomeLength),3), nsmall=3) ),
+                        sd   = round(sd(chromosomeLength), 3),
+                        se   = round(sd / sqrt(Ncells), 3),
+                       
+                       #calq mean.sc by chrm class
+                       mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                       mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                       mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                       mean.SC_4CO = mean(chromosomeLength[which(hand.foci.count == 4)], na.rm = TRUE),
+                       
+                # IFD things
+                #  mean_IFD_ABS = as.numeric(format(round(  mean(IFD1_ABS, na.rm = TRUE), 3 ), nsmall=3) ),
+                # mean_IFD_PER = as.numeric(format(round(  mean(IFD1_PER, na.rm = TRUE), 3 ), nsmall=3) ),
+                 
+                 mean_IFD.2CO_ABS = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                 mean_IFD.2CO_PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
+                  
+                       #CO position things, requires the melt?
+              norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)]),
+                  
+              #sis.co.ten!!
+              mean.siscoten = mean(SisCoTen, na.rm=TRUE),
+              
+              mean.siscoten_1CO = mean(SisCoTen[which(hand.foci.count == 1)], na.rm = TRUE),
+              mean.siscoten_2CO = mean(SisCoTen[which(hand.foci.count == 2)], na.rm = TRUE),
+              mean.siscoten_3CO = mean(SisCoTen[which(hand.foci.count == 3)], na.rm = TRUE),
+              
+              mean.telo.dist = mean(telo_dist, na.rm=TRUE),
+              mean.cent.dist = mean(dis.cent, na.rm=TRUE)
+)
+
+#vari
+male.av_4MM <- add_sex(male.av_4MM)
+male.av_4MM <- add_strain(male.av_4MM)
+male.av_4MM <- add_subsp(male.av_4MM)
+male.av_4MM <- add_category(male.av_4MM)
+
+#unordered for the mixed models (move this to the MM blocks...?)
+#keep order for the plots?
+male.av_4MM$subsp <- factor(male.av_4MM$subsp, ordered = FALSE)
+male.av_4MM$sex <- factor(male.av_4MM$sex, ordered = FALSE)
+male.av_4MM$strain <- factor(male.av_4MM$strain, ordered = FALSE)
+
+
+
+```
+
 
 ## Predictions, Heterochiasmy
 
@@ -817,6 +886,8 @@ Two bivalent level traits are predicted to display heterochiasmy (ie significant
 
 ## Predictions, Male Polymorphism (High vs Low Rec strains)
 
+
+Rerun all these predictions for MSM > MOLF as well
 
 A) **SC lengths** will be longer for high Rec strains.  
 
@@ -1000,6 +1071,7 @@ as.data.frame( round(  summary(SC.Length_long.biv_MM)$tTable, 6 ) )
 
 Dive deeper into the sex specific pattern for each strain.  (I think for all the within strain comparisons across sexes the general pattern is met of females being longer)
 
+APRIL, consider moving these strain chunks to the bivData set up
 
 ```{r WSB.SC, echo=FALSE}
 #make the dataset
@@ -1312,6 +1384,170 @@ MOLF.ttest  <- t.test(MOLF.Bivalents.DF$chromosomeLength[MOLF.Bivalents.DF$sex =
 ```
 
 
+#### male strain comparisons
+
+```{r male.sc.length.strain, echo=FALSE}
+
+Curated_BivData <- add_species(Curated_BivData)
+#isolate all musc
+Curated_BivData_male <- Curated_BivData[Curated_BivData$sex == "male",]
+
+
+#make table
+SC.Length.male_table <- ddply(Curated_BivData_male, c("strain"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+
+
+```
+
+
+```{r SC.length.male_tests, echo=FALSE}
+
+## run the tests to check following expectations
+
+#1.Dom strains not different from ech other
+#2. PWD and SKIVE are different from the other strains
+#3.MSM and MOLF are different from each other
+
+#decide between lm or glm..?
+#mouse avs, males
+
+male.Dom.mouse.av <- mouse.avs_4MM[ (mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Dom"), ]
+#the subsp labels get messed up, unless they are designated chr first
+male.Musc.mouse.av <- mouse.avs_4MM[ (mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == 2), ]
+
+
+mouse.avs_4MM$subsp <- as.character(mouse.avs_4MM$subsp)
+mouse.avs_4MM$subsp <- ifelse(grepl("MSM", mouse.avs_4MM$strain), "Mol", 
+        ifelse(grepl("MOLF", mouse.avs_4MM$strain), "Mol", mouse.avs_4MM$subsp))
+male.Mol.mouse.av <- mouse.avs_4MM[ (mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Mol"), ]
+
+
+Dom.male_SC.length_lm <- lm(mean_SC~ strain,  data =male.Dom.mouse.av  )
+
+
+Dom.male_SC.length_lm.1 <- lm(mean.SC_1CO~ strain/mouse,  data =male.Dom.mouse.av  )
+Dom.male_SC.length_lm.2 <- lm(mean.SC_2CO~ strain,  data =male.Dom.mouse.av  )
+#Dom.male_SC.length_lm.3 <- lm(mean.SC_3CO~ strain,  data =male.Dom.mouse.av  ) #only WSB and LEW?
+#total sc sig, 1CO sig, 2CO sig
+
+Dom.male_SC.aov <- aov(mean_SC ~ strain, data = male.Dom.mouse.av)
+#0.000369 ***
+
+Dom.male_1CO_SC.aov <- aov(mean.SC_1CO ~ strain, data = male.Dom.mouse.av)
+#0.000816 ***
+
+Dom.male_2CO_SC.aov <- aov(mean.SC_2CO ~ strain, data = male.Dom.mouse.av)
+#0.0148 *
+
+show.Dom.male.SC <- ggplot(male.Dom.mouse.av, aes(y= mean_SC, x= strain, color=strain))+ geom_jitter()
+
+show.Dom.male.SC <- ggplot(male.Dom.mouse.av, aes(y= mean.SC_2CO, x= strain, color=strain))+ geom_jitter()
+#making plots above show that mouse average SC lengths are lower could there be microscope issue?
+
+#make sure to remove some of the juvi mice!! from the AP_mouse table
+
+show.Dom.male.CO <- ggplot(
+AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$sex.x == "male") & (AP_mouse_table_w.Ages$subsp.x == "Dom"),], aes(y= mean_co, x= strain.x, color=strain.x))+ geom_jitter()
+
+Dom.male_CO.aov <- aov(mean_co ~ strain, data = AP_mouse_table.HQ[(AP_mouse_table.HQ$sex == "male") & (AP_mouse_table.HQ$subsp == "Dom"),])
+#P not sig for CO mean
+
+#seems like there are more mice in the MLH1 data set than bivData
+#
+
+#WSB all dissected and imaged in '15
+#G imaged 15 - 16
+#LEW imaged 15 to 17
+
+ggboxplot(data = male.Dom.mouse.av, x = "strain", y = "mean_SC", 
+          color = "strain", palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+          ylab = "", xlab = "")
+
+
+show.Dom.male.SC <- ggplot(male.Dom.mouse.av, aes(y= mean_SC, x= strain, color=strain))+ geom_jitter()
+
+ggboxplot(data = male.Dom.mouse.av, x = "strain", y = "mean_SC", 
+          color = "strain", palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+          ylab = "", xlab = "")
+
+
+ggboxplot(data = male.Dom.mouse.av, x = "strain", y = "mean.SC_1CO", 
+          color = "strain", palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+          ylab = "1CO SC Length", xlab = "")
+
+
+ggboxplot(data = male.Dom.mouse.av, x = "strain", y = "mean.SC_2CO", 
+          color = "strain", palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+          ylab = "2CO SC Length", xlab = "")
+```
+
+
+```{r SC.length.pairwise.T, echo=FALSE}
+#male.Dom.mouse.av, male.Mol.mouse.av, male.Musc.mouse.av
+
+male.Musc.mouse.av <- male.av_4MM[(male.av_4MM$subsp == "Musc")&(male.av_4MM$sex == "male"),]
+
+
+Pwise.ttest_Dom.male <- pairwise.t.test(male.Dom.mouse.av$mean_SC, male.Dom.mouse.av$strain)
+#G-WSB is sig, WSB-LEW are slightly sig
+
+Pwise.ttest_Musc.male <- pairwise.t.test(male.Musc.mouse.av$mean_SC, male.Musc.mouse.av$strain)
+#PWD and MSM are most diff from SKIVE?
+
+Pwise.ttest_Mol.male <- pairwise.t.test(male.Mol.mouse.av$mean_SC, male.Mol.mouse.av$strain)
+#the pooled SC value tests are sig
+
+#the mol comparisons are different due to adj p values
+
+
+Pwise.ttest_Dom.male.1CO <- pairwise.t.test(male.Dom.mouse.av$mean.SC_1CO, male.Dom.mouse.av$strain)
+#G-WSB is sig, WSB-LEW are slightly sig
+
+Pwise.ttest_Musc.male.1CO <- pairwise.t.test(male.Musc.mouse.av$mean.SC_1CO, male.Musc.mouse.av$strain)
+#no sig (only 3) -- does include CZECCH
+
+#non-sig, with mol pooled with musc
+
+Pwise.ttest_Mol.male.1CO <- pairwise.t.test(male.Mol.mouse.av$mean.SC_1CO, male.Mol.mouse.av$strain)
+
+
+Pwise.ttest_Dom.male.2CO <- pairwise.t.test(male.Dom.mouse.av$mean.SC_2CO, male.Dom.mouse.av$strain)
+
+Pwise.ttest_Musc.male.2CO <- pairwise.t.test(male.Musc.mouse.av$mean.SC_2CO, male.Musc.mouse.av$strain)
+#non of these sig with the mulitple adjust
+
+Pwise.ttest_Mol.male.2CO <- pairwise.t.test(male.Mol.mouse.av$mean.SC_2CO, male.Mol.mouse.av$strain)
+
+pairwise.t.test(Ozone, Month, p.adj = "bonf")
+
+```
+
+
+If I want to try to use mouse nested in strain -- I should use cell level metrics (but those have there own flaws)
+
+
+Ideas for the above 3 tests, 
+
+1. no difference in DOM
+- no sig logistic regression test
+- glm, strain effect?
 
 
 ### Summary
@@ -1334,8 +1570,8 @@ The results seem to indicate that sex is a significant factor. Consider writing 
 The exactRLRT() test indicates that the random strain effect might be significant, p= xx
 
 
-### Male Polymorphism Prediction
 
+(merge this with the code above)
 Prediction, High rec males have longer SC.
 
 ```{r log.reg_SC.length, echo=FALSE}
@@ -2107,6 +2343,36 @@ For these tests I am looking at the single IFD measure from 2CO bivalents.
 
 For the logistic regression, comparing High and Low groups (there needs to be 2 groups)
 I think I should compare 2 sets of logistic models, where SKIVE (intermediate gwRR), is in high and low.
+
+```{r male.IFD_strain, echo=FALSE}
+
+#make table
+Musc_male_IFD_table <- ddply(Curated_BivData_male[Curated_BivData_male$hand.foci.count == 2,], c("strain"), summarise,
+                             
+                        n_obs = length(Obj.ID),
+                         mean_IFD = mean(IFD1_ABS, na.rm=TRUE),
+                        mean_IFD.nrm = mean(IFD1_PER,na.rm=TRUE)
+                         )
+
+
+        #           mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+         #         n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+      #             mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+      #              n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
+                  
+      #             mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+      #             n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
+                  
+      #            mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+      #            n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
+                          
+
+```
+
+
+
 
 
 ```{r IFD.log.reg, echo=FALSE}
@@ -2993,6 +3259,42 @@ summary(aov(male.modo))
 ### Male Polymorphism Prediction
 
 I didn't have a good prediction for the male polymorphism... So I'll just do post-hoc comparisons for the groups to test if they are different.
+
+```{r male.Nrm1CO_strain, echo=FALSE}
+
+
+#isolate all musc
+Curated_BivData_male <- Curated_BivData[Curated_BivData$sex == "male",]
+
+
+#make table
+Musc_male_1COpos_table <- ddply(Curated_BivData_male[Curated_BivData_male$hand.foci.count == 1,], c("strain"), summarise,
+                             
+                        n_obs = length(Obj.ID),
+                         mean_F1 = mean(Foci1, na.rm=TRUE),
+                        mean_F1.nrm = mean(PER_Foci_1,na.rm=TRUE)
+
+                         
+                         )
+
+
+        #           mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+         #         n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+      #             mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+      #              n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
+                  
+      #             mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+      #             n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
+                  
+      #            mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+      #            n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
+                          
+
+```
+
+
 
 
 ```{r CO.pos.poly}
