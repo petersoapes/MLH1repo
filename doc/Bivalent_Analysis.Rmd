@@ -231,9 +231,6 @@ Biv_Data_mean_table <- add_subsp(Biv_Data_mean_table)
 #scale_color_manual(values=colors_of_strains)
 
 #un-order these factors
-
-
-
 ```
 
 
@@ -357,65 +354,6 @@ All the plots above show the distributions of manually whole cell measured SC le
 This data set might be noisy, given the amount of variance in the SC length distributions across cells (PWD females, WSB females).
 
 
-```{r long.chrm.dataset, echo=FALSE}
-
-#1. how many biv's are from cells with >15 bivalents
-over_15_biv_cell_DF <- cell.level.BivData_table[cell.level.BivData_table$Nbiv >15, ]
-BivData_from_15biv_cells <- Curated_BivData[ Curated_BivData$fileName %in% over_15_biv_cell_DF$fileName, ]
-
-#check for blank obj.id
-BivData_from_15biv_cells$Obj.ID <- paste(BivData_from_15biv_cells$fileName, BivData_from_15biv_cells$boxNumber, sep = "_")
-
-#check for dup
-#length(duplicated(BivData_from_15biv_cells$Obj.ID))#2605
-#anyDuplicated(BivData_from_15biv_cells$Obj.ID)#1997
-dups.dummy <- BivData_from_15biv_cells[duplicated(BivData_from_15biv_cells$Obj.ID),]
-
-#remove duplicate obj.ids
-BivData_from_15biv_cells <- BivData_from_15biv_cells %>% distinct() #distinct doesn't work for chr type
-BivData_from_15biv_cells <- BivData_from_15biv_cells[ ! BivData_from_15biv_cells$fileName %in% dups.dummy$fileName, ]
-
-
-#make sure obj.id and fileName are charcter for str stuff
-BivData_from_15biv_cells$fileName <- as.character(BivData_from_15biv_cells$fileName)
-BivData_from_15biv_cells$Obj.ID <- as.character(BivData_from_15biv_cells$Obj.ID)
-
-#make sure 
-missing_from_cell_table <- BivData_from_15biv_cells[ ! BivData_from_15biv_cells$fileName %in% Biv_Data_mean_table$fileName, ]#there are 75, objs 3 cells
-#these are bivalents which don't appear the in cell level table, which can break the loop
-BivData_from_15biv_cells <- BivData_from_15biv_cells[ ! BivData_from_15biv_cells$fileName %in% missing_from_cell_table$fileName, ]
-
-#final cleaned BivData table, 2428
-
-
-for(  i in 1:length( unique(BivData_from_15biv_cells$Obj.ID) ) ){
-  
-  newfile.str = strsplit( BivData_from_15biv_cells$Obj.ID[i], "_")[[1]][1:7]
-  new.egg <- paste0(newfile.str, collapse = "_")
-  
-  the.Q4 <- Biv_Data_mean_table$Qar.4[which( grepl(new.egg, Biv_Data_mean_table$fileName ) )]
-  #the above can produe mulitple Q4
-  
-  BivData_from_15biv_cells$cell.Q4[i] <- the.Q4
-  #these are just using the last index, 
-    
-  the.FN <- Biv_Data_mean_table$fileName[which(grepl(new.egg, Biv_Data_mean_table$fileName ) )]
-  
-  BivData_from_15biv_cells$Q4.FN[i] <- the.FN
-   # print(c(i, the.FN, the.Q4))
-
-}
-
-
-BivData_from_15biv_cells$long.Biv <- ifelse( (BivData_from_15biv_cells$chromosomeLength >= BivData_from_15biv_cells$cell.Q4), "yes", "no" )
-
-real.long.bivData <- BivData_from_15biv_cells[BivData_from_15biv_cells$long.Biv == "yes",]
-#table(real.long.bivData$fileName)
-#!!! omg it finally worked!~!!#OMFG
-
-```
-
-
 The DF **real.long.bivData** contains `r length(real.long.bivData$Obj.ID)` bivalent measures. The full data set is `r length(Curated_BivData$Obj.ID)`. This is the breakdown of bivalent observations by category for this long dataset are `r data.frame(table(droplevels(real.long.bivData$category)))`.  
 
 
@@ -424,45 +362,7 @@ The DF **real.long.bivData** contains `r length(real.long.bivData$Obj.ID)` bival
 - Try estimating which 'loose' bivalent observations might be within the long class of bivalents.  
 
 
-```{r mouse.av.long.bivData, echo=FALSE}
-#real.long.bivData
 
-#calq the mouse averages for 
-
-Long_biv_mouse.avs_4MM <- ddply(real.long.bivData, c("mouse"), summarise,
-                        Nmice = length(unique(mouse)),
-                        Ncells  = length(Obj.ID),
-                        mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
-                        cV = cv(chromosomeLength),
-                        var = as.numeric(format(round(   var(chromosomeLength),3), nsmall=3) ),
-                        sd   = round(sd(chromosomeLength), 3),
-                        se   = round(sd / sqrt(Ncells), 3),
-                       #IFD things
-                #  mean_IFD_ABS = as.numeric(format(round(  mean(IFD1_ABS, na.rm = TRUE), 3 ), nsmall=3) ),
-                # mean_IFD_PER = as.numeric(format(round(  mean(IFD1_PER, na.rm = TRUE), 3 ), nsmall=3) ),
-                 
-                 mean_IFD.2CO_ABS = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
-                 mean_IFD.2CO_PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
-                  
-                       #CO position things, requires the melt?
-              norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)])
-                  
-)
-
-Long_biv_mouse.avs_4MM <- add_sex(Long_biv_mouse.avs_4MM)
-Long_biv_mouse.avs_4MM <- add_strain(Long_biv_mouse.avs_4MM)
-Long_biv_mouse.avs_4MM <- add_subsp(Long_biv_mouse.avs_4MM)
-
-Long_biv_mouse.avs_4MM$strain <- unclass(Long_biv_mouse.avs_4MM$strain)
-Long_biv_mouse.avs_4MM$strain <- as.factor(Long_biv_mouse.avs_4MM$strain)
-
-Long_biv_mouse.avs_4MM$sex <- unclass(Long_biv_mouse.avs_4MM$sex)
-Long_biv_mouse.avs_4MM$sex <- as.factor(Long_biv_mouse.avs_4MM$sex)
-
-Long_biv_mouse.avs_4MM$subsp <- unclass(Long_biv_mouse.avs_4MM$v)
-Long_biv_mouse.avs_4MM$subsp <- as.factor(Long_biv_mouse.avs_4MM$subsp)
-
-```
 
 in code chunk above I ran the mouse averages for the longest bivalets. (680 bivalents, from 54 mice. 
 10202 bivalents from 86 mice.
@@ -977,7 +877,7 @@ The dependant variables I'll be testing in the mixed model framework are:
 
 ### Mixed Model Tests
 
-
+<!--
 $$mouse \ average \ SC  \ length ~=~ subsp * sex + rand(strain*sex) + \varepsilon $$
 
 To estimate random effects, I'm using lmer (not lme where I could do the rand(strain*sex)). So now it's just random(strain).
@@ -1000,15 +900,36 @@ as.data.frame( round(  summary(lme_MM_SC.length)$tTable, 6 ) )
 
 I used the mixed model with the lme() for the full Curated BivData and long bivdata
 
+-->
 
 
 $$mouse \ average \ SC  \ length ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
-#### 1CO
+#### Mixed Model 1
 
-Insert the results for the MMs using the dependant variable 1CO
+Insert the results for the MMs using the dependant variable 1CO - use the Mixed model (lmer), for all of the meterics (pooled SC, 1CO 2CO ect)
 
-```{r 1CO.MM, echo=FALSE}
+
+```{r M1_1CO, echo=FALSE}
+
+#run Mixed models
+
+#all pooled SC lengths
+SCLength_all_.MM.M1 <- lmer(mean_co ~ subsp * sex + (1|strain), data=mouse.avs_4MM) 
+#summary(Reduced.strain.HQ)
+
+drop1(SCLength_all_.MM.M1, test="Chisq") # p = 0.0002045 ***
+
+exactRLRT(SCLength_all_.MM.M1) #< 2.2e-16  Random strain effect, the variance due to random strain effect is NOT 0
+as.data.frame(round(summary(SCLength_all_.MM.M1)$tTable, 6))
+
+
+#1CO
+
+
+
+#2CO
+
 #I think I need to re-calq the mouse averages for just 1CO
 #mean.SC_1CO is mean 1CO
 
@@ -1113,37 +1034,36 @@ wsb.ttest  <- t.test(WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "
 ```
 
 
-#### male strain comparisons
+```{r strain.SClength.t.test, echo=FALSE}
+#t.tests for all the strain specific data frames
 
-```{r male.sc.length.strain, echo=FALSE}
+#run a t.test
+wsb.ttest  <- t.test(WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "female"], WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "male"])
 
-Curated_BivData <- add_species(Curated_BivData)
-#isolate all musc
-Curated_BivData_male <- Curated_BivData[Curated_BivData$sex == "male",]
+#run a t.test seperate out by the chrm classes
+LEW.ttest  <- t.test(LEW.Bivalents.DF$chromosomeLength[LEW.Bivalents.DF$sex == "female"], LEW.Bivalents.DF$chromosomeLength[LEW.Bivalents.DF$sex == "male"])
+#run a t.test seperate out by the chrm classes
+G.ttest  <- t.test(G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "female"], G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "male"])
+#run a t.test seperate out by the chrm classes
+PWD.ttest  <- t.test(PWD.Bivalents.DF$chromosomeLength[PWD.Bivalents.DF$sex == "female"], PWD.Bivalents.DF$chromosomeLength[PWD.Bivalents.DF$sex == "male"])
 
+#run a t.test seperate out by the chrm classes
+KAZ.ttest  <- t.test(KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "female"], KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "male"])
+#run a t.test seperate out by the chrm classes
+SKIVE.ttest  <- t.test(SKIVE.Bivalents.DF$chromosomeLength[SKIVE.Bivalents.DF$sex == "female"], SKIVE.Bivalents.DF$chromosomeLength[SKIVE.Bivalents.DF$sex == "male"])
 
-#make table
-SC.Length.male_table <- ddply(Curated_BivData_male, c("strain"), summarise,
-                             mean_SC = mean(chromosomeLength),
-                              n_SC = length(Obj.ID),
-                   
-                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
-                  
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
-                          
-)
+#run a t.test seperate out by the chrm classes
+MSM.ttest  <- t.test(MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "female"], MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "male"])
 
+#run a t.test seperate out by the chrm classes
+MOLF.ttest  <- t.test(MOLF.Bivalents.DF$chromosomeLength[MOLF.Bivalents.DF$sex == "female"], MOLF.Bivalents.DF$chromosomeLength[MOLF.Bivalents.DF$sex == "male"])
 
 ```
+
+
+
+
+#### male strain comparisons
 
 
 ```{r SC.length.male_tests, echo=FALSE}
@@ -1564,6 +1484,7 @@ first.IFD.plot_PER <- ggplot(Curated_BivData.22, aes(y = IFD1_PER, x= strain, co
 
 #+theme(legend.position="none")
 ```
+
 
 
 ```{r IFD.old.plots, echo=FALSE, eval=FALSE}

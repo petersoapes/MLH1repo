@@ -8,12 +8,9 @@ output: html_document
 
 # Data setup and basic cleaning
 
-test work from home (), 
-
-- remove BivData! (these are all Peromyscus!!)
+- remove BivData! (these are all Peromyscus!!) (not sure where this DF comes from)
 
 calq the nromalized.siscoten, double check the negative values; 13sep18_28jun18_MOLF_m1_sp1_18.1_rev_14, 27aug15_12jun15_WSB_m2_sp1_18_rev_18, 21nov17_16nov17_MSM_f3_sp1_3_rev_1
-
 
 foci.pass = 2  5aug17_14jul17_MSM_f1_sp1_13_rev_3
 
@@ -33,7 +30,34 @@ format manual data set so SC.length = Chrmlength (matches the bivData)
 
 add Q1 and Q4 to the cell summary stats table
 
-for final dataset, drop levels of strains not used CZECG, AST, TOM, CAST,
+
+ToDo  
+
+- Go back and clean up the original excel data  
+
+- clean the bottom, fill in missing data  
+
+- check the order of foci positions for 5aug17_14jul17_LEW_f1_sp1_11_rev_blob4.
+
+
+edit / clean up the lines with bad hand.foci.count (61)
+
+
+ToDo:
+
+1.clean up the non-numbered curated values (for the og df)
+
+2.Goal of this doc is to make DFs that are ready for the analysis.
+
+3.remove the 2 main sources of duplicate lines; 6mar16_PWD_m1, 1mar15_PWD_m1
+
+4. decide on the right number of passing curated bivalents per category I should settle for
+Justify why the current number is enough -- or subsample -- to random equivilent sized data sets
+
+5. make sure that the saved Rdata has all the right cols and tables for the next analyses
+
+6. consider integrating manual hand / whole cell measures (check for DUPs ect.)
+
 
 ```{r setup, include=FALSE}
 library(plyr)
@@ -48,7 +72,6 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
 whole.cell.data_manual.OG <- read.csv("~./MLH1repo/whole_cell_measures.csv")
 
-
 #BIVDATA MASTER SHEET
 new.Curate.FULL <- read.csv("~./MLH1repo/data/BivData/curation/FULL_Curated_BivData.csv")
 #83976
@@ -62,38 +85,6 @@ new.Curate.FULL <- read.csv("~./MLH1repo/data/BivData/curation/FULL_Curated_BivD
 #Clean away all the empty rows
 new.Curate.FULL <- new.Curate.FULL[!(is.na(new.Curate.FULL$fileName) | new.Curate.FULL$fileName==""), ]
 
-#Apply the cleaning steps below to the FULL-OG DF
-
-#remove non number charaecters for the FULL / OG DF
-#Curated_BivData <- Curated_BivData[ !grepl("[?]", Curated_BivData$SC.pass) , ]
-#Curated_BivData <- Curated_BivData[ !grepl("[?]", Curated_BivData$hand.foci.count) , ]
-
-#remove data which has paint marks
-#P_fileNames <- Curated_BivData$fileName[(grep('p_rev', Curated_BivData$fileName))]
-#length(P_fileNames)
-
-#remove anything with 'DUPLICATE'
-#DUP_list <- Curated_BivData$fileName[(grep('DUP', Curated_BivData$fileName))]
-#DUP_num = length(DUP_list)#0
-
-
-#dup_list= c()
-#for(i in Curated_BivData$fileName){  #change the file name header,  
-#  # print(i)
-#  ifelse(grepl("\\.[0-9]_rev", i),
-#         (dup_list = c(dup_list, i)), NA)
-#}
-#MultiCells = c()
-#for(j in dup_list){
-#  stringLIST = strsplit(j, split="\\.")[[1]]
-#  new_string = paste(stringLIST[[1]][1], "rev", sep="_")
-#  MultiCells = c(MultiCells, new_string)
-#}
-#MultiCells = unique(MultiCells)
-#multi_cell_num = length(MultiCells)#118
-
-#new.Curate.FULL$Obj.ID <- paste(new.Curate.FULL$fileName, new.Curate.FULL$boxNumber, sep = "_")
-#colnames(new.Curate.FULL)
 
 new.Curate.FULL <- add_mouse(new.Curate.FULL)#this function is v.slow for this big file
 #make OG copy
@@ -102,7 +93,6 @@ new.Curate.FULL.org <- add_category(new.Curate.FULL.org)
 
 #write files for basic stats to csv files
 #OG.cURATE.table.mouse <- table(new.Curate.FULL.org$mouse, new.Curate.FULL.org$SC.pass)
-
 #OG.cURATE.table.mouse <- add_strain(OG.cURATE.table.mouse)
 
 OG.cURATE.table.category <- table(new.Curate.FULL.org$category, new.Curate.FULL.org$SC.pass)
@@ -110,12 +100,15 @@ OG.cURATE.table.category <- table(new.Curate.FULL.org$category, new.Curate.FULL.
 #write the curated file
 #write.table(OG.cURATE.table.mouse, "~./MLH1repo/data/CurrentCuratedDataset_21.1.20.csv", sep=",",
 #            row.names = TRUE)
-#
 #write.table(OG.cURATE.table.category, "~./MLH1repo/data/CurrentCuratedDataset_cat_21.1.20.csv", sep=",",
 #            row.names = TRUE)
 ```
 
+
 ```{r split.up.DF, echo=FALSE}
+
+#new.Curate.FULL to Curated_BivData
+
 #SC PASS
 new.Curate.FULL <- new.Curate.FULL[new.Curate.FULL$SC.pass == '1',]#10480 #9819, #9769
 
@@ -128,22 +121,9 @@ Curated_BivData <- add_category(Curated_BivData)
 Curated_BivData <- add_strain(Curated_BivData)
 Curated_BivData <- add_sex(Curated_BivData)
 Curated_BivData <- add_subsp(Curated_BivData)
+Curated_BivData <- add_species(Curated_BivData)
 
 Foci_TRUE_Curate_BivData <-   Curated_BivData[(!is.na(Curated_BivData$hand.foci.count)),]
-#can I write a quick dummy check?
-#there are 2 lines with 0 hand.foci, but with a foci position
-
-```
-
-
-```{r clean.data, echo=FALSE, eval=FALSE}
-
-Curated_BivData <- Curated_BivData[Curated_BivData$strain != "AST",]
-Curated_BivData <- Curated_BivData[Curated_BivData$strain != "TOM",]
-Curated_BivData <- Curated_BivData[Curated_BivData$strain != "CZECH",]
-
-Curated_BivData$strain <- droplevels(Curated_BivData$strain)
-
 ```
 
 
@@ -154,7 +134,6 @@ just.SC.length <- Curated_BivData[is.na(Curated_BivData$hand.foci.count),]#650 l
 #table(just.SC.length$category)
 #decide what to do with these lines
 #how will they be represented in Mat Methods?
-
 ```
 
 
@@ -163,11 +142,8 @@ just.SC.length <- Curated_BivData[is.na(Curated_BivData$hand.foci.count),]#650 l
 #check for mistakes that might have been made when inputing / curation process
 
 #hand foci > 4
-
 #foci pos > SC lengths
-
 #negative PER.foci.pos
-
 
 #it hink most (ALL) of these came from bug in my function (ugh)
 
@@ -185,9 +161,522 @@ just.SC.length <- Curated_BivData[is.na(Curated_BivData$hand.foci.count),]#650 l
 
 
 
+Main files from this plot:  
+  
+  1. **Curated_BIVDATA**: cleaned up version of the passing, curated Bivalent measures  
+  
+  2.  **Foci_TRUE_Curated_Bivdata**: filterd version of the Curated_BivData file, but with only measures that have 'good' foci position information
+  
+  3. OG.Curate_FULL: original version of the Bivalent data (before 'failed' SC wiped away)  
+  
+  4. MELT_ABS: make melt version of foci positions for abs measuers
+  
+  5. CELL and 
+
+  6. mouse table
+  
+  7. **Strain DFs** for Het models
+  
+  8. **male Subsp DFs** for Polymorphism models
+
+
+
+```{r CLEAN.UP.1, echo=FALSE, include=FALSE}
+
+#check for duplicates, and track them down
+anyDuplicated(new.Curate.FULL$Obj.ID)  #5335, #3467
+
+dup.curated <- new.Curate.FULL[duplicated(new.Curate.FULL$Obj.ID),] #784
+dup.curated <- add_mouse(dup.curated)
+
+#table(dup.curated$mouse)
+#1mar15_PWD_m1
+
+#which lines are duplicated
+#lots of PWD_female duplicated -- probably how I put together the curated files
+
+#new.Curate.FULL <- new.Curate.FULL.org[(new.Curate.FULL.org$SC.pass == 1 | new.Curate.FULL.org$SC.pass == 0),]
+#new.Curate.FULL <- droplevels(new.Curate.FULL)
+
+#new.Curate.FULL <- add_mouse(new.Curate.FULL)
+#new.Curate.FULL <- add_category(new.Curate.FULL)
+
+#pass.fail.table <- table(new.Curate.FULL$SC.pass, new.Curate.FULL$category)
+#this outsput shows the relative ratios of pass to fail biv segmentation
+
+```
+
+
+```{r remove.mice, echo=FALSE, eval=FALSE}
+
+#mice to remove from the Curated_BivData -- should be similar to the mice exclude from the MLH1 
+
+#poor quality?
+
+#reaxamine these mice for if they should be included in 
+exclude_mice_list_MLH1 <- c("10mar15_WSB_m2", "8oct14_WSB_f1", "8oct14_WSB_f3", "18nov17_WSB_f5",
+                  "8jun15_G_f3", "8jun15_G_f4",
+                  "4jan17_LEW_f2",
+                  "8oct14_PWD_f3", "1apr15_PWD_f2", "8oct14_PWD_f5",
+                  "12sep16_MSM_f3","31aug16_MSM_m2",
+                  "27oct18_MOLF_m3",
+                  "26oct18_SKIVE_f1","26oct18_SKIVE_f2","26oct18_SKIVE_f3",
+                  
+#    Musc males
+    "27aug18_CZECH_m1","8jun18_CZECH_m1",
+               
+   "3sep18_AST_m1",
+              
+    "3jul18_TOM_m1","3sep18_TOM_m1",
+  
+
+                "31jul17_HMI_m1","3sep18_HMI_m1","3sep18_HMI_m2",
+                 "21aug17_SPI_f1", "30may18_SPIC_f1", "30oct17_SPIC_m1", "8jun18_SPIC_m2"
+                  )
+#REaxamine and rename to exclude mice_BivData
+
+
+#Curated_BivData <- Curated_BivData[ ! Curated_BivData$mouse %in% exclude_mice_list, ]
+
+exmice.Curated_BivData <- Curated_BivData[ Curated_BivData$mouse %in% exclude_mice_list, ]
+
+
+#juvi males
+#juvi.mice_DF <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$age.days < 15) & (AP_mouse_table_w.Ages$sex.y == "male"),]
+#juvi.mice_DF <- juvi.mice[!(is.na(juvi.mice$mouse) | juvi.mice$mouse==""), ]
+
+#old males
+
+```
+
+I'm considering removing the same mice from the MLH1 counts, from the BivData, but this might -- limit the comparisons -- might be too stict. IF foci are bright and clear, SC/bivalents intact -- include.
+
+IF it seems like primary reason for excluding is low cell number include bivalents
+
+Pro remove:
+
+- more similarity across data sets
+
+
+Con remove:
+
+- the reasons for poor quality of the exclude mice in above list, might be from 2-3 bad bivalents -- which are removed from the biv data during the curation process. 
+
+
+
+
+```{r set.type, echo=FALSE}
+##change factor cols to numbers (factor -> chr -> number)
+Curated_BivData$centromere_ABS_Position <- as.character(Curated_BivData$centromere_ABS_Position)
+Curated_BivData$centromere_PER_Position <- as.character(Curated_BivData$centromere_PER_Position)
+Curated_BivData$chromosomeLength <- as.character(Curated_BivData$chromosomeLength)
+
+Curated_BivData$hand.foci.count <- as.character(Curated_BivData$hand.foci.count)
+
+Curated_BivData$Foci1 <- as.character(Curated_BivData$Foci1)
+Curated_BivData$Foci2 <- as.character(Curated_BivData$Foci2)
+Curated_BivData$Foci3 <- as.character(Curated_BivData$Foci3)
+Curated_BivData$Foci4 <- as.character(Curated_BivData$Foci4)
+
+##Numeric
+Curated_BivData$centromere_ABS_Position <- as.numeric(Curated_BivData$centromere_ABS_Position)
+Curated_BivData$centromere_PER_Position <- as.numeric(Curated_BivData$centromere_PER_Position)
+Curated_BivData$chromosomeLength <- as.numeric(Curated_BivData$chromosomeLength)
+
+Curated_BivData$hand.foci.count <- as.numeric(Curated_BivData$hand.foci.count)
+
+Curated_BivData$Foci1 <- as.numeric(Curated_BivData$Foci1)
+Curated_BivData$Foci2 <- as.numeric(Curated_BivData$Foci2)
+Curated_BivData$Foci3 <- as.numeric(Curated_BivData$Foci3)
+Curated_BivData$Foci4 <- as.numeric(Curated_BivData$Foci4)
+#I think the number of sig figs and rounding changes slightly from the blocks above
+
+#adding more feature calculations (IFD, ect)
+Curated_BivData <- add_IFD(Curated_BivData)#fixed a bug
+Curated_BivData$IFD1_PER = Curated_BivData$IFD1_ABS / Curated_BivData$chromosomeLength
+
+#IFD.2 does mulitple IFDs (just absolute)
+#Curated_BivData <- add_IFD.2(Curated_BivData)
+
+Curated_BivData$PER_Foci_1 <- Curated_BivData$Foci1 / Curated_BivData$chromosomeLength
+Curated_BivData$PER_Foci_2 <- Curated_BivData$Foci2 / Curated_BivData$chromosomeLength
+Curated_BivData$PER_Foci_3 <- Curated_BivData$Foci3 / Curated_BivData$chromosomeLength
+Curated_BivData$PER_Foci_4 <- Curated_BivData$Foci4 / Curated_BivData$chromosomeLength
+
+Curated_BivData$PER_Foci_1 <- as.numeric(Curated_BivData$PER_Foci_1)
+Curated_BivData$PER_Foci_2 <- as.numeric(Curated_BivData$PER_Foci_2)
+Curated_BivData$PER_Foci_3 <- as.numeric(Curated_BivData$PER_Foci_3)
+Curated_BivData$PER_Foci_4 <- as.numeric(Curated_BivData$PER_Foci_4)
+
+#not working
+Curated_BivData$dis.cent <- Curated_BivData$Foci1 - Curated_BivData$centromere_ABS_Position
+Curated_BivData$dis.cent.PER  <- Curated_BivData$dis.cent / Curated_BivData$chromosomeLength
+
+
+#add telomere.dist
+Curated_BivData$telo_dist <- ifelse(grepl(1, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength - Curated_BivData$Foci1), 
+                     ifelse(grepl(2, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength -  Curated_BivData$Foci2), 
+                     ifelse(grepl(3, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength - Curated_BivData$Foci3),
+                    ifelse(grepl(4, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength - Curated_BivData$Foci4),   0))) )
+  
+
+Curated_BivData$telo_dist_PER <- Curated_BivData$telo_dist / Curated_BivData$chromosomeLength
+
+#sis.co.ten
+Curated_BivData <- add_SisCoTen(Curated_BivData)
+
+
+
+
+```
+
+Curated_BivData will be the master DF with most observations. DFs for mixed models and tests need to subsetted from this one.  
+
+- HetC_MM  : subset only mice 
+
+
+
+IFD functions
+
+  - IFD: currently I think just does 2CO bivalents  
+  
+  - IFD.2: for mulitple IFDs (3CO ect.)  
+  
+## Strain specific data sets
+
+Compile dataframes for both sexes of each strain.
+
+```{r WSB.SC, echo=FALSE}
+#make the dataset
+WSB.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "WSB",]
+#correct and remove, 26dec17_18nov17_WSB_f4_sp1_12_rev_28, 26dec17_18nov17_WSB_f4_sp1_12_rev_27
+table(WSB.Bivalents.DF$sex, WSB.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+wsb.ploty <- ggplot(WSB.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()
+wsb.ploty
+
+#make a table of the means and n ect
+wsb.SC.table <- ddply(WSB.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+
+```
+
+
+
+```{r LEW.SC, echo=FALSE}
+#make the dataset
+LEW.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "LEW",]
+table(LEW.Bivalents.DF$sex, LEW.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+LEW.ploty <- ggplot(LEW.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+LEW.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+LEW.SC.table <- ddply(LEW.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+```
+
+```{r G.SC, echo=FALSE}
+#make the dataset
+G.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "G",]
+table(G.Bivalents.DF$sex, G.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+G.ploty <- ggplot(G.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+G.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+G.SC.table <- ddply(G.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+
+```
+
+```{r PWD.SC, echo=FALSE}
+#make the dataset
+PWD.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "PWD",]
+table(PWD.Bivalents.DF$sex, PWD.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+PWD.ploty <- ggplot(PWD.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+PWD.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+PWD.SC.table <- ddply(PWD.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+
+```
+
+```{r KAZ.SC, echo=FALSE}
+#make the dataset
+KAZ.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "KAZ",]
+table(KAZ.Bivalents.DF$sex, KAZ.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+KAZ.ploty <- ggplot(KAZ.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+KAZ.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+KAZ.SC.table <- ddply(KAZ.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+```
+
+```{r SKIVE.Sc, echo=FALSE}
+#make the dataset
+SKIVE.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "SKIVE",]
+table(SKIVE.Bivalents.DF$sex, SKIVE.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+SKIVE.ploty <- ggplot(SKIVE.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+SKIVE.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+SKIVE.SC.table <- ddply(SKIVE.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+
+```
+
+```{r MSM.SC, echo=FALSE}
+#make the dataset
+MSM.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "MSM",]
+table(MSM.Bivalents.DF$sex, MSM.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+MSM.ploty <- ggplot(MSM.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+MSM.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+MSM.SC.table <- ddply(MSM.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+```
+
+```{r MOLF.SC, eval=FALSE}
+#make the dataset
+MOLF.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "MOLF",]
+table(MOLF.Bivalents.DF$sex, MOLF.Bivalents.DF$hand.foci.count)
+
+#plot the differences
+MOLF.ploty <- ggplot(MOLF.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+
+MOLF.ploty
+#remove the NAs
+
+
+#make a table of the means and n ect
+MOLF.SC.table <- ddply(MOLF.Bivalents.DF, c("sex"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+#can I plot these stats
+
+
+```
+
+
+## Male specific data set
+
+```{r male.sc.length.strain, echo=FALSE}
+
+
+#isolate all musc and male
+
+
+Curated_BivData_male <- Curated_BivData[ (Curated_BivData$sex == "male") & (Curated_BivData$species == ),]
+
+
+#make table
+SC.Length.male_table <- ddply(Curated_BivData_male, c("strain"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+
+
+```
+
 
 # Manual Whole Cell
 
+Cleaning and integrating the dataframes for manual measured data.
 
 ```{r whole.cell.manual.clean, echo=FALSE}
 #compare and clean up whole cell measures
@@ -266,464 +755,6 @@ whole.cell.data_manual <- add_IFD(whole.cell.data_manual)
 
 
 
-ToDo  
-
-- Go back and clean up the original excel data  
-
-- clean the bottom, fill in missing data  
-
-- check the order of foci positions for 5aug17_14jul17_LEW_f1_sp1_11_rev_blob4.
-
-
-edit / clean up the lines with bad hand.foci.count (61)
-
-
-ToDo:
-
-1.clean up the non-numbered curated values (for the og df)
-
-2.Goal of this doc is to make DFs that are ready for the analysis.
-
-3.remove the 2 main sources of duplicate lines; 6mar16_PWD_m1, 1mar15_PWD_m1
-
-4. decide on the right number of passing curated bivalents per category I should settle for
-Justify why the current number is enough -- or subsample -- to random equivilent sized data sets
-
-5. make sure that the saved Rdata has all the right cols and tables for the next analyses
-
-6. consider integrating manual hand / whole cell measures (check for DUPs ect.)
-
-Main files from this plot:  
-  
-  1. **Curated_BIVDATA**: cleaned up version of the passing, curated Bivalent measures  
-  
-  2.  **Foci_TRUE_Curated_Bivdata**: filterd version of the Curated_BivData file, but with only measures that have 'good' foci position information
-  
-  3. OG.Curate_FULL: original version of the Bivalent data (before 'failed' SC wiped away)  
-  
-  4. MELT_ABS: make melt version of foci positions for abs measuers
-  
-  5. CELL and 
-
-  6. mouse table
-
-
-
-```{r CLEAN.UP.1, echo=FALSE, include=FALSE}
-
-#check for duplicates, and track them down
-anyDuplicated(new.Curate.FULL$Obj.ID)  #5335, #3467
-
-dup.curated <- new.Curate.FULL[duplicated(new.Curate.FULL$Obj.ID),] #784
-dup.curated <- add_mouse(dup.curated)
-
-#table(dup.curated$mouse)
-#1mar15_PWD_m1
-
-#which lines are duplicated
-#lots of PWD_female duplicated -- probably how I put together the curated files
-
-#new.Curate.FULL <- new.Curate.FULL.org[(new.Curate.FULL.org$SC.pass == 1 | new.Curate.FULL.org$SC.pass == 0),]
-#new.Curate.FULL <- droplevels(new.Curate.FULL)
-
-#new.Curate.FULL <- add_mouse(new.Curate.FULL)
-#new.Curate.FULL <- add_category(new.Curate.FULL)
-
-#pass.fail.table <- table(new.Curate.FULL$SC.pass, new.Curate.FULL$category)
-#this outsput shows the relative ratios of pass to fail biv segmentation
-
-```
-
-
-```{r set.type, echo=FALSE}
-
-##change factor cols to numbers (factor -> chr -> number)
-Curated_BivData$centromere_ABS_Position <- as.character(Curated_BivData$centromere_ABS_Position)
-Curated_BivData$centromere_PER_Position <- as.character(Curated_BivData$centromere_PER_Position)
-Curated_BivData$chromosomeLength <- as.character(Curated_BivData$chromosomeLength)
-
-Curated_BivData$hand.foci.count <- as.character(Curated_BivData$hand.foci.count)
-
-Curated_BivData$Foci1 <- as.character(Curated_BivData$Foci1)
-Curated_BivData$Foci2 <- as.character(Curated_BivData$Foci2)
-Curated_BivData$Foci3 <- as.character(Curated_BivData$Foci3)
-Curated_BivData$Foci4 <- as.character(Curated_BivData$Foci4)
-
-##Numeric
-Curated_BivData$centromere_ABS_Position <- as.numeric(Curated_BivData$centromere_ABS_Position)
-Curated_BivData$centromere_PER_Position <- as.numeric(Curated_BivData$centromere_PER_Position)
-Curated_BivData$chromosomeLength <- as.numeric(Curated_BivData$chromosomeLength)
-
-Curated_BivData$hand.foci.count <- as.numeric(Curated_BivData$hand.foci.count)
-
-Curated_BivData$Foci1 <- as.numeric(Curated_BivData$Foci1)
-Curated_BivData$Foci2 <- as.numeric(Curated_BivData$Foci2)
-Curated_BivData$Foci3 <- as.numeric(Curated_BivData$Foci3)
-Curated_BivData$Foci4 <- as.numeric(Curated_BivData$Foci4)
-#I think the number of sig figs and rounding changes slightly from the blocks above
-
-#adding more feature calculations (IFD, ect)
-Curated_BivData <- add_IFD(Curated_BivData)#fixed a bug
-Curated_BivData$IFD1_PER = Curated_BivData$IFD1_ABS / Curated_BivData$chromosomeLength
-
-#IFD.2 does mulitple IFDs (just absolute)
-#Curated_BivData <- add_IFD.2(Curated_BivData)
-
-Curated_BivData$PER_Foci_1 <- Curated_BivData$Foci1 / Curated_BivData$chromosomeLength
-Curated_BivData$PER_Foci_2 <- Curated_BivData$Foci2 / Curated_BivData$chromosomeLength
-Curated_BivData$PER_Foci_3 <- Curated_BivData$Foci3 / Curated_BivData$chromosomeLength
-Curated_BivData$PER_Foci_4 <- Curated_BivData$Foci4 / Curated_BivData$chromosomeLength
-
-Curated_BivData$PER_Foci_1 <- as.numeric(Curated_BivData$PER_Foci_1)
-Curated_BivData$PER_Foci_2 <- as.numeric(Curated_BivData$PER_Foci_2)
-Curated_BivData$PER_Foci_3 <- as.numeric(Curated_BivData$PER_Foci_3)
-Curated_BivData$PER_Foci_4 <- as.numeric(Curated_BivData$PER_Foci_4)
-
-#not working
-Curated_BivData$dis.cent <- Curated_BivData$Foci1 - Curated_BivData$centromere_ABS_Position
-Curated_BivData$dis.cent.PER  <- Curated_BivData$dis.cent / Curated_BivData$chromosomeLength
-
-
-#add telomere.dist
-Curated_BivData$telo_dist <- ifelse(grepl(1, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength - Curated_BivData$Foci1), 
-                     ifelse(grepl(2, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength -  Curated_BivData$Foci2), 
-                     ifelse(grepl(3, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength - Curated_BivData$Foci3),
-                    ifelse(grepl(4, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength - Curated_BivData$Foci4),   0))) )
-  
-
-Curated_BivData$telo_dist_PER <- Curated_BivData$telo_dist / Curated_BivData$chromosomeLength
-
-#sis.co.ten
-Curated_BivData <- add_SisCoTen(Curated_BivData)
-
-```
-
-
-IFD functions
-
-  - IFD: currently I think just does 2CO bivalents  
-  
-  - IFD.2: for mulitple IFDs (3CO ect.)  
-  
-
-## Strain specific data sets
-
-Compile dataframes for both sexes of each strain.
-
-```{r WSB.SC, echo=FALSE}
-#make the dataset
-WSB.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "WSB",]
-#correct and remove, 26dec17_18nov17_WSB_f4_sp1_12_rev_28, 26dec17_18nov17_WSB_f4_sp1_12_rev_27
-table(WSB.Bivalents.DF$sex, WSB.Bivalents.DF$hand.foci.count)
-
-#plot the differences
-wsb.ploty <- ggplot(WSB.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()
-wsb.ploty
-
-#make a table of the means and n ect
-wsb.SC.table <- ddply(WSB.Bivalents.DF, c("sex"), summarise,
-                             mean_SC = mean(chromosomeLength),
-                              n_SC = length(Obj.ID),
-                   
-                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
-                  
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
-                          
-)
-#can I plot these stats
-
-
-#run a t.test
-wsb.ttest  <- t.test(WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "female"], WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "male"])
-
-```
-
-
-
-```{r LEW.SC, echo=FALSE}
-#make the dataset
-LEW.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "LEW",]
-table(LEW.Bivalents.DF$sex, LEW.Bivalents.DF$hand.foci.count)
-
-#plot the differences
-LEW.ploty <- ggplot(LEW.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
-
-LEW.ploty
-#remove the NAs
-
-
-#make a table of the means and n ect
-LEW.SC.table <- ddply(LEW.Bivalents.DF, c("sex"), summarise,
-                             mean_SC = mean(chromosomeLength),
-                              n_SC = length(Obj.ID),
-                   
-                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
-                  
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
-                          
-)
-#can I plot these stats
-
-
-#run a t.test seperate out by the chrm classes
-LEW.ttest  <- t.test(LEW.Bivalents.DF$chromosomeLength[LEW.Bivalents.DF$sex == "female"], LEW.Bivalents.DF$chromosomeLength[LEW.Bivalents.DF$sex == "male"])
-
-```
-
-```{r G.SC, echo=FALSE}
-#make the dataset
-G.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "G",]
-table(G.Bivalents.DF$sex, G.Bivalents.DF$hand.foci.count)
-
-#plot the differences
-G.ploty <- ggplot(G.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
-
-G.ploty
-#remove the NAs
-
-
-#make a table of the means and n ect
-G.SC.table <- ddply(G.Bivalents.DF, c("sex"), summarise,
-                             mean_SC = mean(chromosomeLength),
-                              n_SC = length(Obj.ID),
-                   
-                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
-                  
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
-                          
-)
-#can I plot these stats
-
-
-#run a t.test seperate out by the chrm classes
-G.ttest  <- t.test(G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "female"], G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "male"])
-
-```
-
-```{r PWD.SC, echo=FALSE}
-#make the dataset
-PWD.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "PWD",]
-table(PWD.Bivalents.DF$sex, PWD.Bivalents.DF$hand.foci.count)
-
-#plot the differences
-PWD.ploty <- ggplot(PWD.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
-
-PWD.ploty
-#remove the NAs
-
-
-#make a table of the means and n ect
-PWD.SC.table <- ddply(PWD.Bivalents.DF, c("sex"), summarise,
-                             mean_SC = mean(chromosomeLength),
-                              n_SC = length(Obj.ID),
-                   
-                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
-                  
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
-                          
-)
-#can I plot these stats
-
-
-#run a t.test seperate out by the chrm classes
-PWD.ttest  <- t.test(PWD.Bivalents.DF$chromosomeLength[PWD.Bivalents.DF$sex == "female"], PWD.Bivalents.DF$chromosomeLength[PWD.Bivalents.DF$sex == "male"])
-
-```
-
-```{r KAZ.SC, echo=FALSE}
-#make the dataset
-KAZ.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "KAZ",]
-table(KAZ.Bivalents.DF$sex, KAZ.Bivalents.DF$hand.foci.count)
-
-#plot the differences
-KAZ.ploty <- ggplot(KAZ.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
-
-KAZ.ploty
-#remove the NAs
-
-
-#make a table of the means and n ect
-KAZ.SC.table <- ddply(KAZ.Bivalents.DF, c("sex"), summarise,
-                             mean_SC = mean(chromosomeLength),
-                              n_SC = length(Obj.ID),
-                   
-                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
-                  
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
-                          
-)
-#can I plot these stats
-
-
-#run a t.test seperate out by the chrm classes
-KAZ.ttest  <- t.test(KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "female"], KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "male"])
-
-```
-
-```{r SKIVE.Sc, echo=FALSE}
-#make the dataset
-SKIVE.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "SKIVE",]
-table(SKIVE.Bivalents.DF$sex, SKIVE.Bivalents.DF$hand.foci.count)
-
-#plot the differences
-SKIVE.ploty <- ggplot(SKIVE.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
-
-SKIVE.ploty
-#remove the NAs
-
-
-#make a table of the means and n ect
-SKIVE.SC.table <- ddply(SKIVE.Bivalents.DF, c("sex"), summarise,
-                             mean_SC = mean(chromosomeLength),
-                              n_SC = length(Obj.ID),
-                   
-                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
-                  
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
-                          
-)
-#can I plot these stats
-
-
-#run a t.test seperate out by the chrm classes
-SKIVE.ttest  <- t.test(SKIVE.Bivalents.DF$chromosomeLength[SKIVE.Bivalents.DF$sex == "female"], SKIVE.Bivalents.DF$chromosomeLength[SKIVE.Bivalents.DF$sex == "male"])
-
-```
-
-```{r MSM.SC, echo=FALSE}
-#make the dataset
-MSM.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "MSM",]
-table(MSM.Bivalents.DF$sex, MSM.Bivalents.DF$hand.foci.count)
-
-#plot the differences
-MSM.ploty <- ggplot(MSM.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
-
-MSM.ploty
-#remove the NAs
-
-
-#make a table of the means and n ect
-MSM.SC.table <- ddply(MSM.Bivalents.DF, c("sex"), summarise,
-                             mean_SC = mean(chromosomeLength),
-                              n_SC = length(Obj.ID),
-                   
-                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
-                  
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
-                          
-)
-#can I plot these stats
-
-
-#run a t.test seperate out by the chrm classes
-MSM.ttest  <- t.test(MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "female"], MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "male"])
-
-```
-
-```{r MOLF.SC, eval=FALSE}
-#make the dataset
-MOLF.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "MOLF",]
-table(MOLF.Bivalents.DF$sex, MOLF.Bivalents.DF$hand.foci.count)
-
-#plot the differences
-MOLF.ploty <- ggplot(MOLF.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
-
-MOLF.ploty
-#remove the NAs
-
-
-#make a table of the means and n ect
-MOLF.SC.table <- ddply(MOLF.Bivalents.DF, c("sex"), summarise,
-                             mean_SC = mean(chromosomeLength),
-                              n_SC = length(Obj.ID),
-                   
-                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
-                  
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
-                          
-)
-#can I plot these stats
-
-
-#run a t.test seperate out by the chrm classes
-MOLF.ttest  <- t.test(MOLF.Bivalents.DF$chromosomeLength[MOLF.Bivalents.DF$sex == "female"], MOLF.Bivalents.DF$chromosomeLength[MOLF.Bivalents.DF$sex == "male"])
-
-```
-
-
-
 # Cell Level table
 
 - pass rate (don't need the OG.DF file, because I can count the number of boxes with the max index number)
@@ -736,6 +767,8 @@ MOLF.ttest  <- t.test(MOLF.Bivalents.DF$chromosomeLength[MOLF.Bivalents.DF$sex =
 
 - number of foci with 'faint' mentioned in the notes
 
+
+The below cell level table is used for making the **long.biv.dataset**, (any others?)
 
 ```{r cell.level.table, echo=FALSE}
 
@@ -808,14 +841,15 @@ as.data.frame( head(cell.level.BivData_table) )
 
 
 
-```{r whole.cell_merging, echo=FALSE}
+```{r whole.cell_merging, echo=FALSE, eval=FALSE}
+#I think this block is redundant, could delete
+
 
 #check if there are fileNames
 double.filename <- whole.cell.data_manual[ whole.cell.data_manual$fileName %in% Curated_BivData$fileName, ]
 
 #which cell-levels fileNames have close to 15-17 chrms?
-
-almost_whole_cell <- cell.level.BivData_table[(cell.level.BivData_table$Nbiv < 21),]
+almost_whole_cell <- cell.level.BivData_table[(cell.level.BivData_table$Nbiv < 21),] #cut off cells with too many
 almost_whole_cell <- almost_whole_cell[almost_whole_cell$Nbiv > 15,]
 
 #there is some discrpancy with the Nbiv and nbivs columns! ugh why, some have 20 and 10
@@ -824,19 +858,120 @@ almost_whole_cell <- almost_whole_cell[almost_whole_cell$Nbiv > 15,]
 almost_whole_cell_BivData <- Curated_BivData[ Curated_BivData$fileName %in% almost_whole_cell$fileName, ]
 
 as.data.frame(  table( droplevels( almost_whole_cell_BivData$fileName) ) )
-length(unique(almost_whole_cell_BivData$fileName))
+#length(unique(almost_whole_cell_BivData$fileName))
+
+#what is almost whole cell BivData used for...
+```
 
 
-#what next?
+3 cells have manual measures and BivData measures. test error, need to match them up. There are 145 cells from the BivData set which are close to whole cells.  
+8jun15_23apr15_PWD_f2_sp1_20_rev, 29nov16_13nov16_MSM_m2_sp1_13_rev, 27oct16_31aug16_MSM_m1_sp1_9_rev
+
+
+
+## Long Biv Data Set
+
+I want to make a dataset of 'longest' 25% chromosomes from cells with at least 16 segmented bivalents from a single cell. 
+
+
+```{r long.chrm.dataset, echo=FALSE}
+
+#1. how many biv's are from cells with >15 bivalents
+over_15_biv_cell_DF <- cell.level.BivData_table[cell.level.BivData_table$Nbiv >15, ]
+BivData_from_15biv_cells <- Curated_BivData[ Curated_BivData$fileName %in% over_15_biv_cell_DF$fileName, ]
+
+#check for blank obj.id
+BivData_from_15biv_cells$Obj.ID <- paste(BivData_from_15biv_cells$fileName, BivData_from_15biv_cells$boxNumber, sep = "_")
+
+#check for dup
+#length(duplicated(BivData_from_15biv_cells$Obj.ID))#2605
+#anyDuplicated(BivData_from_15biv_cells$Obj.ID)#1997
+dups.dummy <- BivData_from_15biv_cells[duplicated(BivData_from_15biv_cells$Obj.ID),]
+
+#remove duplicate obj.ids
+BivData_from_15biv_cells <- BivData_from_15biv_cells %>% distinct() #distinct doesn't work for chr type
+BivData_from_15biv_cells <- BivData_from_15biv_cells[ ! BivData_from_15biv_cells$fileName %in% dups.dummy$fileName, ]
+
+
+#make sure obj.id and fileName are charcter for str stuff
+BivData_from_15biv_cells$fileName <- as.character(BivData_from_15biv_cells$fileName)
+BivData_from_15biv_cells$Obj.ID <- as.character(BivData_from_15biv_cells$Obj.ID)
+
+#make sure 
+missing_from_cell_table <- BivData_from_15biv_cells[ ! BivData_from_15biv_cells$fileName %in% Biv_Data_mean_table$fileName, ]#there are 75, objs 3 cells
+#these are bivalents which don't appear the in cell level table, which can break the loop
+BivData_from_15biv_cells <- BivData_from_15biv_cells[ ! BivData_from_15biv_cells$fileName %in% missing_from_cell_table$fileName, ]
+#final cleaned BivData table, 2428
+
+
+#loop for greping the mouse from file name ect
+for(  i in 1:length( unique(BivData_from_15biv_cells$Obj.ID) ) ){
+  
+  newfile.str = strsplit( BivData_from_15biv_cells$Obj.ID[i], "_")[[1]][1:7]
+  new.egg <- paste0(newfile.str, collapse = "_")
+  
+  the.Q4 <- Biv_Data_mean_table$Qar.4[which( grepl(new.egg, Biv_Data_mean_table$fileName ) )]
+  #the above can produe mulitple Q4
+  
+  BivData_from_15biv_cells$cell.Q4[i] <- the.Q4
+  #these are just using the last index, 
+    
+  the.FN <- Biv_Data_mean_table$fileName[which(grepl(new.egg, Biv_Data_mean_table$fileName ) )]
+  
+  BivData_from_15biv_cells$Q4.FN[i] <- the.FN
+   # print(c(i, the.FN, the.Q4))
+
+}
+
+
+BivData_from_15biv_cells$long.Biv <- ifelse( (BivData_from_15biv_cells$chromosomeLength >= BivData_from_15biv_cells$cell.Q4), "yes", "no" )
+
+real.long.bivData <- BivData_from_15biv_cells[BivData_from_15biv_cells$long.Biv == "yes",]
 
 
 ```
 
 
-3 cells have manual measures and BivData measures. test error, need to match them up. There are 145 cells from the BivData set which are close to whole cells.  
+```{r table.long.biv, echo=FALSE}
 
 
-8jun15_23apr15_PWD_f2_sp1_20_rev, 29nov16_13nov16_MSM_m2_sp1_13_rev, 27oct16_31aug16_MSM_m1_sp1_9_rev
+#real.long.bivData
+#calq the mouse averages for 
+
+Long_biv_mouse.avs_4MM <- ddply(real.long.bivData, c("mouse"), summarise,
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(Obj.ID),
+                        mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
+                        cV = cv(chromosomeLength),
+                        var = as.numeric(format(round(   var(chromosomeLength),3), nsmall=3) ),
+                        sd   = round(sd(chromosomeLength), 3),
+                        se   = round(sd / sqrt(Ncells), 3),
+                       #IFD things
+                #  mean_IFD_ABS = as.numeric(format(round(  mean(IFD1_ABS, na.rm = TRUE), 3 ), nsmall=3) ),
+                # mean_IFD_PER = as.numeric(format(round(  mean(IFD1_PER, na.rm = TRUE), 3 ), nsmall=3) ),
+                 
+                 mean_IFD.2CO_ABS = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                 mean_IFD.2CO_PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
+                  
+                       #CO position things, requires the melt?
+              norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)])
+                  
+)
+
+Long_biv_mouse.avs_4MM <- add_sex(Long_biv_mouse.avs_4MM)
+Long_biv_mouse.avs_4MM <- add_strain(Long_biv_mouse.avs_4MM)
+Long_biv_mouse.avs_4MM <- add_subsp(Long_biv_mouse.avs_4MM)
+
+Long_biv_mouse.avs_4MM$strain <- unclass(Long_biv_mouse.avs_4MM$strain)
+Long_biv_mouse.avs_4MM$strain <- as.factor(Long_biv_mouse.avs_4MM$strain)
+
+Long_biv_mouse.avs_4MM$sex <- unclass(Long_biv_mouse.avs_4MM$sex)
+Long_biv_mouse.avs_4MM$sex <- as.factor(Long_biv_mouse.avs_4MM$sex)
+
+Long_biv_mouse.avs_4MM$subsp <- unclass(Long_biv_mouse.avs_4MM$v)
+Long_biv_mouse.avs_4MM$subsp <- as.factor(Long_biv_mouse.avs_4MM$subsp)
+
+```
 
 
 
@@ -881,6 +1016,12 @@ as.data.frame( head(mouse.level.BivData_table) )
 #kable didn't work
 
 ```
+
+```{r table.HetC.MM, echo=FALSE}
+
+```
+
+
 
 
 ```{r Q1Q2.mouse.table, echo=FALSE}
@@ -1057,3 +1198,50 @@ BivPattern.Rmd started to analyze this but, not a very clear setup
 
 -SC lengths, by CO number
 
+
+<!--
+trash / junk
+#Apply the cleaning steps below to the FULL-OG DF
+
+#remove non number charaecters for the FULL / OG DF
+#Curated_BivData <- Curated_BivData[ !grepl("[?]", Curated_BivData$SC.pass) , ]
+#Curated_BivData <- Curated_BivData[ !grepl("[?]", Curated_BivData$hand.foci.count) , ]
+
+#remove data which has paint marks
+#P_fileNames <- Curated_BivData$fileName[(grep('p_rev', Curated_BivData$fileName))]
+#length(P_fileNames)
+
+#remove anything with 'DUPLICATE'
+#DUP_list <- Curated_BivData$fileName[(grep('DUP', Curated_BivData$fileName))]
+#DUP_num = length(DUP_list)#0
+
+
+#dup_list= c()
+#for(i in Curated_BivData$fileName){  #change the file name header,  
+#  # print(i)
+#  ifelse(grepl("\\.[0-9]_rev", i),
+#         (dup_list = c(dup_list, i)), NA)
+#}
+#MultiCells = c()
+#for(j in dup_list){
+#  stringLIST = strsplit(j, split="\\.")[[1]]
+#  new_string = paste(stringLIST[[1]][1], "rev", sep="_")
+#  MultiCells = c(MultiCells, new_string)
+#}
+#MultiCells = unique(MultiCells)
+#multi_cell_num = length(MultiCells)#118
+
+#new.Curate.FULL$Obj.ID <- paste(new.Curate.FULL$fileName, new.Curate.FULL$boxNumber, sep = "_")
+#colnames(new.Curate.FULL)
+
+```{r clean.data, echo=FALSE, eval=FALSE}
+#Keep these biv data for the male polymorphism version
+
+#Curated_BivData <- Curated_BivData[Curated_BivData$strain != "AST",]
+#Curated_BivData <- Curated_BivData[Curated_BivData$strain != "TOM",]
+#Curated_BivData <- Curated_BivData[Curated_BivData$strain != "CZECH",]
+
+#Curated_BivData$strain <- droplevels(Curated_BivData$strain)
+```
+
+-->
