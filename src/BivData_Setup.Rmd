@@ -6,6 +6,31 @@ output: html_document
 ---
 
 
+# Main Files
+
+Main files from this Script:  
+  
+  1. **Curated_BIVDATA**: cleaned up version of the passing, curated Bivalent measures  
+  
+  2.  **Foci_TRUE_Curated_Bivdata**: filterd version of the Curated_BivData file, but with only measures that have 'good' foci position information
+  
+  3. OG.Curate_FULL: original version of the Bivalent data (before 'failed' SC wiped away)  
+  
+  4. **MELT_ABS**: make melt version of foci positions for abs measuers
+  
+  5. CELL level table (full all mice) (use this to make long biv dataset)
+  
+  6. Long Biv Dataset
+
+  7. mouse table (full all mice)
+  
+  8. **Strain DFs** for Het models **Mouse.Table_BivData_4MM**
+  
+  9. **male Subsp DFs** for Polymorphism models **Male.poly.Mouse.Table_BivData_4MM**
+
+ 
+
+
 # Data setup and basic cleaning
 
 - remove BivData! (these are all Peromyscus!!) (not sure where this DF comes from)
@@ -158,10 +183,7 @@ just.SC.length <- Curated_BivData[is.na(Curated_BivData$hand.foci.count),]#650 l
 #0 really?
 ```
 
-
-
-
-Main files from this plot:  
+Main files from this Script:  
   
   1. **Curated_BIVDATA**: cleaned up version of the passing, curated Bivalent measures  
   
@@ -169,15 +191,19 @@ Main files from this plot:
   
   3. OG.Curate_FULL: original version of the Bivalent data (before 'failed' SC wiped away)  
   
-  4. MELT_ABS: make melt version of foci positions for abs measuers
+  4. **MELT_ABS**: make melt version of foci positions for abs measuers
   
-  5. CELL and 
+  5. CELL level table (full all mice) (use this to make long biv dataset)
+  
+  6. Long Biv Dataset
 
-  6. mouse table
+  7. mouse table (full all mice)
   
-  7. **Strain DFs** for Het models
+  8. **Strain DFs** for Het models (summary strain DFs and tables?)
   
-  8. **male Subsp DFs** for Polymorphism models
+  9. **Mouse.Table_BivData_4MM** Mouse level table for HetC mixed models
+
+  9. **male Subsp DFs** for Polymorphism models **Male.poly.Mouse.Table_BivData_4MM**
 
 
 
@@ -643,11 +669,9 @@ MOLF.SC.table <- ddply(MOLF.Bivalents.DF, c("sex"), summarise,
 
 ```{r male.sc.length.strain, echo=FALSE}
 
-
+#these measure ect should be in the male - mouse 
 #isolate all musc and male
-
-
-Curated_BivData_male <- Curated_BivData[ (Curated_BivData$sex == "male") & (Curated_BivData$species == ),]
+Curated_BivData_male <- Curated_BivData[ (Curated_BivData$sex == "male") & (Curated_BivData$species == "Musculus"),]
 
 
 #make table
@@ -869,7 +893,7 @@ as.data.frame(  table( droplevels( almost_whole_cell_BivData$fileName) ) )
 
 
 
-## Long Biv Data Set
+# Long Biv Data Set
 
 I want to make a dataset of 'longest' 25% chromosomes from cells with at least 16 segmented bivalents from a single cell. 
 
@@ -977,8 +1001,11 @@ Long_biv_mouse.avs_4MM$subsp <- as.factor(Long_biv_mouse.avs_4MM$subsp)
 
 
 
-# Mouse leve table
+# Mouse level table
 
+Mouse level tables are the main meat of the models. There will be several --- which account for different combinations of quality scores.
+
+BC their for MM, format the tables for run the mixed models (unordered factors, ect)
 
 the mouse table will be the pooled stats / summary of all SC.passing + 
 
@@ -1017,19 +1044,157 @@ as.data.frame( head(mouse.level.BivData_table) )
 
 ```
 
-```{r table.HetC.MM, echo=FALSE}
 
+
+```{r mouse.table.HetC.MM, echo=FALSE}
+
+#this mouse level table -- should not have strains without female obs
+#only Mmusculus
+
+#is there a way that the above table would be different than the 
+Mouse.Table_BivData_4MM <- ddply(Curated_BivData, c("mouse"), summarise,
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(Obj.ID),
+                       
+                      # mean_CO = mean()
+                       
+                        mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
+                        cV = cv(chromosomeLength),
+                        var = as.numeric(format(round(   var(chromosomeLength),3), nsmall=3) ),
+                        sd   = round(sd(chromosomeLength), 3),
+                        se   = round(sd / sqrt(Ncells), 3),
+                       
+                       #calq mean.sc by chrm class
+                       mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                       mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                       mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                       mean.SC_4CO = mean(chromosomeLength[which(hand.foci.count == 4)], na.rm = TRUE),
+                       
+                # IFD things
+                #  mean_IFD_ABS = as.numeric(format(round(  mean(IFD1_ABS, na.rm = TRUE), 3 ), nsmall=3) ),
+                # mean_IFD_PER = as.numeric(format(round(  mean(IFD1_PER, na.rm = TRUE), 3 ), nsmall=3) ),
+                 
+                 mean_IFD.2CO_ABS = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                 mean_IFD.2CO_PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
+                  
+                       #CO position things, requires the melt?
+              norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)]),
+                  
+              #sis.co.ten!!
+              mean.siscoten = mean(SisCoTen, na.rm=TRUE),
+              
+              mean.siscoten_1CO = mean(SisCoTen[which(hand.foci.count == 1)], na.rm = TRUE),
+              mean.siscoten_2CO = mean(SisCoTen[which(hand.foci.count == 2)], na.rm = TRUE),
+              mean.siscoten_3CO = mean(SisCoTen[which(hand.foci.count == 3)], na.rm = TRUE),
+              
+              mean.telo.dist = mean(telo_dist, na.rm=TRUE),
+              mean.cent.dist = mean(dis.cent, na.rm=TRUE)
+)
+
+#vari
+Mouse.Table_BivData_4MM <- add_sex(Mouse.Table_BivData_4MM)
+Mouse.Table_BivData_4MM <- add_strain(Mouse.Table_BivData_4MM)
+Mouse.Table_BivData_4MM <- add_subsp(Mouse.Table_BivData_4MM)
+Mouse.Table_BivData_4MM <- add_category(Mouse.Table_BivData_4MM)
+
+#unordered for the mixed models (move this to the MM blocks...?)
+Mouse.Table_BivData_4MM$subsp <- factor(Mouse.Table_BivData_4MM$subsp, ordered = FALSE)
+Mouse.Table_BivData_4MM$sex <- factor(Mouse.Table_BivData_4MM$sex, ordered = FALSE)
+Mouse.Table_BivData_4MM$strain <- factor(Mouse.Table_BivData_4MM$strain, ordered = FALSE)
+
+#remove all the non-used strains!!
+Mouse.Table_BivData_4MM <- Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$strain != "AST",]
+Mouse.Table_BivData_4MM <- Mouse.Table_BivData_4MM[Curated_BivData$strain != "TOM",]
+Mouse.Table_BivData_4MM <- Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$strain != "CZECH",]
+Mouse.Table_BivData_4MM$strain <- droplevels(Mouse.Table_BivData_4MM$strain)
+#MOLF
+
+
+#These shouldn't be needed for now.
+
+#assign high and low
+#divide musc males into groups
+#mouse.avs_4MM$Rec.group.alt <- ifelse(grepl("PWD male", mouse.avs_4MM$category), 1, 
+#                                ifelse(grepl("MSM male", mouse.avs_4MM$category), 1,
+#                                 ifelse(grepl("SKIVE male", mouse.avs_4MM$category), 1, 0)))#
+#
+#mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD male", mouse.avs_4MM$category), 1, 
+#                                ifelse(grepl("MSM male", mouse.avs_4MM$category), 1, 0))
 ```
 
 
+
+```{r mouse.table.Male.Poly, echo=FALSE}
+
+#this table will have male BivData
+#it will include Musc strains
+
+Curated_BivData_male <- Curated_BivData[Curated_BivData$sex == "male",]
+
+Male.poly.Mouse.Table_BivData_4MM <- ddply(Curated_BivData_male, c("mouse"), summarise,
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(Obj.ID),
+                       
+                      # mean_CO = mean()
+                       
+                        mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
+                        cV = cv(chromosomeLength),
+                        var = as.numeric(format(round(   var(chromosomeLength),3), nsmall=3) ),
+                        sd   = round(sd(chromosomeLength), 3),
+                        se   = round(sd / sqrt(Ncells), 3),
+                       
+                       #calq mean.sc by chrm class
+                       mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                       mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                       mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                       mean.SC_4CO = mean(chromosomeLength[which(hand.foci.count == 4)], na.rm = TRUE),
+                       
+                # IFD things
+                #  mean_IFD_ABS = as.numeric(format(round(  mean(IFD1_ABS, na.rm = TRUE), 3 ), nsmall=3) ),
+                # mean_IFD_PER = as.numeric(format(round(  mean(IFD1_PER, na.rm = TRUE), 3 ), nsmall=3) ),
+                 
+                 mean_IFD.2CO_ABS = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                 mean_IFD.2CO_PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
+                  
+                       #CO position things, requires the melt?
+              norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)]),
+                  
+              #sis.co.ten!!
+              mean.siscoten = mean(SisCoTen, na.rm=TRUE),
+              
+              mean.siscoten_1CO = mean(SisCoTen[which(hand.foci.count == 1)], na.rm = TRUE),
+              mean.siscoten_2CO = mean(SisCoTen[which(hand.foci.count == 2)], na.rm = TRUE),
+              mean.siscoten_3CO = mean(SisCoTen[which(hand.foci.count == 3)], na.rm = TRUE),
+              
+              mean.telo.dist = mean(telo_dist, na.rm=TRUE),
+              mean.cent.dist = mean(dis.cent, na.rm=TRUE)
+)
+
+Male.poly.Mouse.Table_BivData_4MM <- add_sex(Male.poly.Mouse.Table_BivData_4MM)
+Male.poly.Mouse.Table_BivData_4MM <- add_strain(Male.poly.Mouse.Table_BivData_4MM)
+Male.poly.Mouse.Table_BivData_4MM <- add_subsp(Male.poly.Mouse.Table_BivData_4MM)
+Male.poly.Mouse.Table_BivData_4MM <- add_category(Male.poly.Mouse.Table_BivData_4MM)
+
+#unordered for the mixed models (move this to the MM blocks...?)
+Male.poly.Mouse.Table_BivData_4MM$subsp <- factor(Male.poly.Mouse.Table_BivData_4MM$subsp, ordered = FALSE)
+Male.poly.Mouse.Table_BivData_4MM$sex <- factor(Male.poly.Mouse.Table_BivData_4MM$sex, ordered = FALSE)
+Male.poly.Mouse.Table_BivData_4MM$strain <- factor(Male.poly.Mouse.Table_BivData_4MM$strain, ordered = FALSE)
+
+#remove females
+Male.poly.Mouse.Table_BivData_4MM$sex <- droplevels(Male.poly.Mouse.Table_BivData_4MM$sex)
+#MOLF
+
+
+```
 
 
 ```{r Q1Q2.mouse.table, echo=FALSE}
 
+#How Do I apply quality score things to BivData?
+#make the same table but 
+
+
 ```
-
-
-
 
 analysis using the mouse level table -- to justify that using mouse averages is a good idea.
 
@@ -1048,27 +1213,7 @@ What are the sources of error fot these data?
 
 
 
-```{r telo.cent_dist, echo=FALSE}
-
-#code for cal1 the telomere distance
-#space between last foci and telomere end
-
-#telo_dist <- if(hand.foci = 1){
-          #SC.Length - F1
-#}
-#elseif(hand_foci == 2){ #SC.length - F2}
-
-
-#code for centromere
-#space between first foci and centromere/centromere-end
-
-#cent_end_dist
-#cent_dist
-```
-
-
-
-# melt position table
+# Melt Position Table
 
 make the melt DF for the abs (raw) foci positions and then calculated the normalized (PER) foci positions from that table
 
@@ -1110,7 +1255,6 @@ MELT_Curated_BivData <- MELT_Curated_BivData[(!is.na(MELT_Curated_BivData$Pos)),
 ```
 
 
-
 ```{r general.foci.pos, echo=FALSE, eval=FALSE}
 
 #make the normalized foci density plots
@@ -1139,11 +1283,10 @@ think about weighing the density plots by the number of bivalents per category..
 
 
 
+# Assemble Final BivData DF
 
-# Assemble final BivData DF
 
-
-Main files from this plot:  
+Main files from this script:  
   
   1. new.Curate.FULL: cleaned up version of the passing, curated Bivalent measures  
   
@@ -1243,5 +1386,23 @@ trash / junk
 
 #Curated_BivData$strain <- droplevels(Curated_BivData$strain)
 ```
+
+```{r telo.cent_dist, echo=FALSE}
+
+#code for cal1 the telomere distance
+#space between last foci and telomere end
+
+#telo_dist <- if(hand.foci = 1){
+          #SC.Length - F1
+#}
+#elseif(hand_foci == 2){ #SC.length - F2}
+
+
+#code for centromere
+#space between first foci and centromere/centromere-end
+
+#cent_end_dist
+#cent_dist
+
 
 -->
