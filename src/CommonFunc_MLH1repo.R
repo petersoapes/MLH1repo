@@ -225,6 +225,7 @@ add_category <- function(oldframe){
 #tried writing this with mutate, couldn't get it to work
 
 
+#written to 
 
 add_subsp <- function(oldframe) {
   #assign subspecies to tables
@@ -242,8 +243,8 @@ add_subsp <- function(oldframe) {
                                                                    ifelse(grepl("CIM", dframe$strain), "Cast",
                                                                           ifelse(grepl("HMI", dframe$strain), "Cast",
                                                                                  
-                                                                                 ifelse(grepl("MSM", dframe$strain), "Musc", 
-                                                                                        ifelse(grepl("MOLF", dframe$strain), "Musc",    
+                                       ifelse(grepl("MSM", dframe$strain), "Mol", #added Mol as distinct subsp class
+                                      ifelse(grepl("MOLF", dframe$strain), "Mol",    
                                                                                                
                                                                                                ifelse(grepl("PWD", dframe$strain), "Musc", 
                                                                                                       
@@ -268,6 +269,7 @@ add_subsp <- function(oldframe) {
   dframe$subsp <- factor(dframe$subsp, ordered = TRUE,levels =c( "Dom",
                                                                  "Cast",
                                                                  "Musc",
+                                                                 "Mol",
                                                                  "Spretus","Spic","Caroli", "Outgroup",
                                                                  "other") )
   
