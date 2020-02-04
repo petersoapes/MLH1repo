@@ -1,0 +1,325 @@
+---
+title: "BivData Patterns"
+author: "April Peterson"
+date: "October 24, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r setup.data, echo=FALSE}
+
+library(ggplot2)
+
+setwd("~./MLH1repo/")
+#load curated data.frame
+load(file="data/BivData_4_PCA.RData")
+```
+
+
+first discribe data (table functions)
+
+
+
+Test everything from chrms of the same class across strains
+How similar are 1COs bivalents in MSM,PWD, and KAZ, LEW ect?
+(male and female?)
+
+
+1CO bivalents; 
+
+> position
+> centromere position
+> SC length
+
+
+
+```{r blah}
+
+master_curated_BivData <- curated.oneCO.male[!(is.na(curated.oneCO.male$fileName) | curated.oneCO.male$fileName ==""), ]
+master_curated_BivData <- master_curated_BivData[master_curated_BivData$hand.foci.count != 8,]
+
+all1CO <- master_curated_BivData[master_curated_BivData$hand.foci.count == 1,]
+all1CO <- all1CO[!(is.na(all1CO$fileName) | all1CO$fileName ==""), ]
+
+blahblah <- ggplot(all1CO, aes(y = chromosomeLength, x=strain, fill=sex))+geom_boxplot(aes(alpha=0.5))+geom_jitter(aes(alpha=0.2))+  ggtitle("1COs male and females") +ylim(c(30,250))
+
+all2CO <- master_curated_BivData[master_curated_BivData$hand.foci.count == 2,]
+all2CO <- all2CO[!(is.na(all2CO$fileName) | all2CO$fileName ==""), ]
+
+blahblah2 <- ggplot(all2CO, aes(y = chromosomeLength, x=strain, fill=sex))+geom_boxplot(aes(alpha=0.5))+geom_jitter(aes(alpha=0.2))+  ggtitle("2COs male and females")+ ylim(c(30,250))
+
+## (try IFD)
+staggered <- ggplot(master_curated_BivData, aes(y = chromosomeLength, x=hand.foci.count, color=mouse))+geom_jitter(aes(alpha=0.2))+ facet_wrap(strain~sex)+ ggtitle("")+theme(legend.position="none") #+ ylim(c(30,250))
+
+
+fill.by.ifd <- ggplot(master_curated_BivData, aes(y = chromosomeLength, x=hand.foci.count, color=IFD1_PER))+geom_jitter(aes(alpha=0.2))+ facet_wrap(strain~sex)+ ggtitle("SC length Fill by IFD")#+theme(legend.position="none") #+ ylim(c(30,250))
+
+ifd.rand <- ggplot(master_curated_BivData, aes(y = IFD1_PER, x=hand.foci.count, color=strain))+geom_jitter(aes(alpha=0.2))+ facet_wrap(~sex)+ ggtitle("SC length Fill by IFD")#+theme(legend.position="none") #+ ylim(c(30,250))
+
+
+IFD.comp <- ggplot(master_curated_BivData, aes(y = IFD1_PER, x=hand.foci.count, color=mouse))+geom_jitter(aes(alpha=0.2))+ facet_wrap(strain~sex)+ ggtitle("IFD1 distributions")+theme(legend.position="none")
+
+```
+
+
+
+
+```{r contrast.chrm.class, echo=FALSE}
+
+curated.oneCO <- master_curated_BivData[master_curated_BivData$hand.foci.count == 1,]
+curated.oneCO.male <- curated.oneCO[curated.oneCO$sex == "male",]
+
+curated.oneCO.male$Foci1.PER <- curated.oneCO.male$Foci1 / curated.oneCO.male$chromosomeLength
+
+curated.oneCO.male <- curated.oneCO.male[!(is.na(curated.oneCO.male$fileName) | curated.oneCO.male$fileName ==""), ]
+
+#lm - but what trait do i want to predict
+#one.co.lm <- lm(data = curated.oneCO.male)
+
+
+#ggplots
+oocc <- ggplot(curated.oneCO.male, aes(y = dis.cent, x = Foci1.PER ))+geom_jitter()+
+  ggtitle("")+facet_wrap(~strain)+ylim(c(0,120))
+
+mabeh <- ggplot(curated.oneCO.male, aes(x= dis.cent, y =chromosomeLength ))+geom_jitter()+
+  ggtitle("")+facet_wrap(~strain)#+ ylim(c(0,125))+xlim(c(30,150))
+
+ghost <- ggplot(curated.oneCO.male, aes(y = chromosomeLength, x =Foci1.PER ))+geom_jitter()+
+  ggtitle("")+facet_wrap(~strain)+ylim(c(30,150))
+
+
+ghost.ssdgm <- ggplot(curated.oneCO.male, aes(y = chromosomeLength, x = Foci1.PER ))+geom_jitter()+
+  ggtitle("")+facet_wrap(~strain) #+ylim(c(30,150))
+
+
+Length.1CO <- ggplot(curated.oneCO.male, aes(y = chromosomeLength, x=strain))+geom_boxplot(aes(alpha=0.5))+geom_jitter()+
+  ggtitle("1CO chromosome Length") #+facet_wrap(~strain) #+ylim(c(0,150))
+#check the outlier
+
+
+oocc
+mabeh
+ghost
+```
+
+KAZ has more terminal 1CO. 
+are 1COs longer?
+
+MSM has higher mean, the PWD and MSM have stronger floor. LEW has stronger ceiling?
+
+
+MSM and PWD have long chromosome length. (and stronger floor - what is the biological significance of the floor?) 
+
+predict that rank would have strata. (there is true bivalent rank and realized rank)
+
+
+```{r two.co.biv, echo=FALSE}
+
+curated.twoCO <- master_curated_BivData[master_curated_BivData$hand.foci.count == 2,]
+curated.twoCO.male <- curated.twoCO[curated.twoCO$sex == "male",]
+
+curated.twoCO.male$Foci1.PER <- curated.twoCO.male$Foci1 / curated.twoCO.male$chromosomeLength
+curated.twoCO.male$Foci2.PER <- curated.twoCO.male$Foci2 / curated.twoCO.male$chromosomeLength
+
+curated.twoCO.male <- curated.twoCO.male[!(is.na(curated.twoCO.male$fileName) | curated.twoCO.male$fileName ==""), ]
+
+
+#ggplots
+ttoo.oo <- ggplot(curated.twoCO.male, aes(y = chromosomeLength, x = IFD1 ))+geom_jitter()+
+  ggtitle("")+facet_wrap(~strain) #+ylim(c(0,150))
+
+per.ifd.oo <- ggplot(curated.twoCO.male, aes(y = chromosomeLength, x=strain))+geom_boxplot(aes(alpha=0.5))+geom_jitter()+
+  ggtitle("2CO chromosome Length") #+facet_wrap(~strain) #+ylim(c(0,150))
+
+
+
+
+mabeh.two <- ggplot(curated.twoCO.male, aes(x = dis.cent, y =chromosomeLength ))+geom_jitter()+
+  ggtitle("")+facet_wrap(~strain) #+ ylim(c(0,125))+xlim(c(30,120))
+
+
+
+ghost.two <- ggplot(curated.twoCO.male, aes(y = chromosomeLength, x = Foci1.PER ))+geom_jitter()+
+  ggtitle("")+facet_wrap(~strain)+ylim(c(30,150))
+
+ghost.two2 <- ggplot(curated.twoCO.male, aes(y = chromosomeLength, x = Foci2.PER ))+geom_jitter()+
+  ggtitle("")+facet_wrap(~strain) #+ylim(c(30,150))
+
+```
+
+
+there seems to be less variance in the MSM and PWD IFD percent. the lengths are similar, but the PER.IFDs are tighter.
+Also, in PWD and MSM there are stronger 'floors' for the 2CO bivalents
+
+
+```{r female.patterns, echo=FALSE}
+
+curated.female.bivs <- master_curated_BivData[master_curated_BivData$sex == "female",]
+curated.female.1CO <- curated.female.bivs[curated.female.bivs$hand.foci.count == 1,]
+curated.female.2CO <- curated.female.bivs[curated.female.bivs$hand.foci.count == 2,]
+
+curated.female.1CO <- curated.female.1CO[!(is.na(curated.female.1CO$fileName) | curated.female.1CO$fileName ==""), ]
+curated.female.2CO <- curated.female.2CO[!(is.na(curated.female.2CO$fileName) | curated.female.2CO$fileName ==""), ]
+
+curated.female.1CO$dist.cent.per <- curated.female.1CO$dis.cent / curated.female.1CO$chromosomeLength
+curated.female.2CO$dist.cent.per <- curated.female.2CO$dis.cent / curated.female.2CO$chromosomeLength
+
+Length.1CO.female <- ggplot(curated.female.1CO, aes(y = chromosomeLength, x=strain))+geom_boxplot(aes(alpha=0.5))+geom_jitter(aes(color=dis.cent))+
+  ggtitle("1CO chromosome Length Female") 
+
+
+Length.2CO.female <- ggplot(curated.female.2CO, aes(y = chromosomeLength, x=strain))+geom_boxplot(aes(alpha=0.5))+geom_jitter(aes(color=dist.cent.per))+
+  ggtitle("2CO chromosome Length Female") 
+
+```
+
+weaker basements? (how can I test) violin plots?
+KAZ and LEW have short 1CO bivalents.
+
+
+Lew shorter 2CO chrms, 
+weaker basments in 2CO chrms
+
+
+within category variation
+
+```{r kaz.male, echo=FALSE}
+#master_curated_BivData
+#KAZ males
+kaz.male <- master_curated_BivData[master_curated_BivData$category == "KAZ male",]
+#3 mice, 73 cells
+
+kaz.male.1CO <- kaz.male[kaz.male$hand.foci.count == 1,]
+
+first.model <- lm(Foci1 ~ mouse  + chromosomeLength+centromere_ABS_Position+centromere_PER_Position+avergeRED,  data=kaz.male.1CO)
+summary(first.model)
+#1CO foci position is driven by SC length
+
+
+kaz.male.2CO <- kaz.male[kaz.male$hand.foci.count == 2,]
+kaz.male.2CO <- kaz.male.2CO[!(is.na(kaz.male.2CO$fileName) | kaz.male.2CO$fileName==""), ]
+
+two.model <- lm(Foci2 ~ mouse  + chromosomeLength+centromere_ABS_Position+centromere_PER_Position+avergeRED+Foci1,  data=kaz.male.2CO)
+summary(two.model)
+#Foci1 not predictable, but foci2 position (raw), predicted by chrm length and mouse
+
+SC.length.lm <- lm(chromosomeLength ~ mouse +centromere_ABS_Position+centromere_PER_Position+avergeRED+Foci1,  data=kaz.male.1CO)
+summary(SC.length.lm)
+
+SC.length.lm2 <- lm(chromosomeLength ~  IFD1_ABS+centromere_ABS_Position+Foci1+Foci2+dis.cent+IFD1,  data=kaz.male.2CO)
+summary(SC.length.lm2)
+#the significance depends on the order, 
+#centromere position is significant for predicting SC length
+
+
+length(unique(kaz.male$fileName))
+
+```
+
+
+
+```{r KAZ.female}
+
+kaz.female <- master_curated_BivData[master_curated_BivData$category == "KAZ female",]
+kaz.female.1CO <- kaz.female[kaz.female$hand.foci.count == 1,]
+kaz.female.2CO <- kaz.female[kaz.female$hand.foci.count == 2,]
+
+kaz.female.1CO <- kaz.female.1CO[!(is.na(kaz.female.1CO$fileName) | kaz.female.1CO$fileName==""), ]
+kaz.female.2CO <- kaz.female.2CO[!(is.na(kaz.female.2CO$fileName) | kaz.female.2CO$fileName==""), ]
+
+
+first.model <- lm(Foci1 ~ mouse  + chromosomeLength+centromere_ABS_Position+centromere_PER_Position+avergeRED,  data=kaz.female.1CO)
+summary(first.model)
+#chrm length is strongest predictor
+
+two.model <- lm(Foci1 ~ mouse  + chromosomeLength+centromere_ABS_Position+centromere_PER_Position+avergeRED+IFD1+Foci2,  data=kaz.female.2CO)
+summary(two.model)
+#chrm length and foci1, predict foci2, and IFD1
+#to predict foci1, IFD, chrm length, and foci 2 are strong predictors
+
+length.model <- lm(chromosomeLength ~ mouse +Foci1 +centromere_ABS_Position+centromere_PER_Position+avergeRED+hand.foci.count,  data=kaz.female)
+summary(length.model)
+#centromere position is sig, IFD1, FOci1 is sig -- this is true for 1 and 2CO
+#for all chrms, hand.foci.count is significant
+
+
+```
+
+
+
+```{r MSM.male, echo=FALSE}
+#MSM male
+MSM.male <- master_curated_BivData[master_curated_BivData$category == "MSM male",]
+droplevels(MSM.male)
+MSM.male.1CO <- MSM.male[MSM.male$hand.foci.count == 1,]
+MSM.male.2CO <- MSM.male[MSM.male$hand.foci.count == 2,]
+
+MSM.male.1CO <- MSM.male.1CO[!(is.na(MSM.male.1CO$fileName) | MSM.male.1CO$fileName==""), ]
+MSM.male.2CO <- MSM.male.2CO[!(is.na(MSM.male.2CO$fileName) | MSM.male.2CO$fileName==""), ]
+
+
+first.mo <- lm(Foci1 ~ mouse  + chromosomeLength+centromere_ABS_Position+centromere_PER_Position+avergeRED,  data=MSM.male.1CO)
+summary(first.mo)
+#chrm length is most sig
+
+two.mo <- lm(Foci2 ~ mouse  + chromosomeLength+centromere_ABS_Position+centromere_PER_Position+avergeRED+IFD1+Foci1+SisCoTen,  data=MSM.male.2CO)
+summary(two.mo)
+#one of the males is sig, chrm length and IFD1, foci2 are signicant
+
+length.mo <- lm(chromosomeLength ~ centromere_ABS_Position+centromere_PER_Position+avergeRED+hand.foci.count+mouse,  data=MSM.male)
+summary(length.mo)
+
+#foci1, and centromere positions are sig for 2CO
+#centromeres sig
+#for all bivs, centromere and hand.foci are the sig factors
+
+```
+
+
+If all bivalents included for a strain, and sex included, sex will be significant for chrm (for foci as well?) -- what does that add -- 
+models don't predict foci, centromere doesn't predict.
+I think the chromosome length predicted by centromere position might be related to resolution.
+
+
+
+```{r MSM.female}
+
+MSM.female <- master_curated_BivData[master_curated_BivData$category == "MSM female",]
+droplevels(MSM.female)
+MSM.female.1CO <- MSM.female[MSM.female$hand.foci.count == 1,]
+MSM.female.2CO <- MSM.female[MSM.female$hand.foci.count == 2,]
+
+MSM.female.1CO <- MSM.female.1CO[!(is.na(MSM.female.1CO$fileName) | MSM.female.1CO$fileName==""), ]
+MSM.female.2CO <- MSM.female.2CO[!(is.na(MSM.female.2CO$fileName) | MSM.female.2CO$fileName==""), ]
+
+
+first.mo <- lm(Foci1 ~ mouse  + chromosomeLength+centromere_ABS_Position+centromere_PER_Position+avergeRED,  data=MSM.female.1CO)
+summary(first.mo)
+#chrm length is most sig
+
+two.mo <- lm(Foci2 ~ mouse  + chromosomeLength+centromere_ABS_Position+centromere_PER_Position+avergeRED+IFD1+Foci1+SisCoTen,  data=MSM.female.2CO)
+summary(two.mo)
+#one of the males is sig, chrm length and IFD1, foci2 are signicant
+
+length.mo <- lm(chromosomeLength ~ centromere_ABS_Position+centromere_PER_Position+avergeRED+hand.foci.count+mouse,  data=MSM.female)
+summary(length.mo)
+#for chrm length in 2COs, intercept, and centromere postions are sig (hand foci count is not significant if i only use 1 chrm class), it is sig for all bivs
+#1 of the mice is significant
+
+
+```
+
+
+what does a significant intercept for foci1 mean? (it's different than 0?)
+
+
+
+
+```{r melt.foci.positions, echo=FALSE}
+
+```
+

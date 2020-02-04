@@ -8,11 +8,17 @@ output: html_document
 
 to Do
 
+-rm Peromycus data BivData!!
+
 - code Mol as discint subsp
 
 - make sure to remove some of the juvi mice!! from the AP_mouse table
 
 - format the DF for applying to Mixed models
+
+- rm all of BD data?
+
+
 
 ```{r setup, include=FALSE}
 library(plyr)
@@ -116,9 +122,9 @@ exclude_mice_list <- c("10mar15_WSB_m2", "8oct14_WSB_f1", "8oct14_WSB_f3", "18no
                   "12sep16_MSM_f3","31aug16_MSM_m2",
                   "27oct18_MOLF_m3",
                   "26oct18_SKIVE_f1","26oct18_SKIVE_f2","26oct18_SKIVE_f3",
-                  "27aug18_CZECH_m1","8jun18_CZECH_m1",
-                  "3sep18_AST_m1",
-                  "3jul18_TOM_m1","3sep18_TOM_m1",
+  "27aug18_CZECH_m1","8jun18_CZECH_m1",
+                 "3sep18_AST_m1",
+                  "3sep18_TOM_m1",
                   "31jul17_HMI_m1","3sep18_HMI_m1","3sep18_HMI_m2",
                  "21aug17_SPI_f1", "30may18_SPIC_f1", "30oct17_SPIC_m1", "8jun18_SPIC_m2"
                   )
@@ -175,6 +181,8 @@ old.mice <- c(
 ```
 
 I have made a list of the old mice, but from the effect document the older mice might not be that different.
+
+the excluded TOM, had low quality cells, only 4. The exclude AST, had low poor quality cells, there are 3 other mice.  The excluded CZECH males are poor quality (but near the mean). There are 3 other males.
 
 ```{r adj_nMLH1, echo=FALSE}
 #add a column with male adjusted MLH1 values (+1 to all males)
@@ -244,7 +252,6 @@ FULL_mouse_table_MLH1 <- ddply(MLH1_data, c("mouse"), summarise,
                         var = as.numeric(format(round(   var(adj_nMLH1.foci),3), nsmall=3)),
                         sd   = round(sd(adj_nMLH1.foci), 3),
                         se   = round(sd / sqrt(Ncells), 3)
-                        
 )
 
 
@@ -399,7 +406,6 @@ Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$strain !
 Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[( (Q12_mouse_table_w.Ages$age.weeks < 25) &  (Q12_mouse_table_w.Ages$age.days != 13) ) | is.na(Q12_mouse_table_w.Ages$age.weeks), ] #keeps mice without ages, and removes juvinilles
 
 
-
 #unclass order factors --(applies to the models)
 #main df with variables coded as chr
 Q12_mouse_table_w.Ages$subsp <- factor(Q12_mouse_table_w.Ages$subsp, ordered = FALSE)
@@ -410,7 +416,7 @@ Q12_mouse_table_w.Ages$species <- factor(Q12_mouse_table_w.Ages$species, ordered
 ```
 
 
-```{r Q123_mouse.table, echo=FALSE}
+```{r Q123_mouse.table, echo=FALSE, eval=FALSE}
 
 Q123_mouse_table <- ddply(MLH1_data[MLH1_data$quality < 4,], c("mouse"), summarise,
                         
@@ -502,6 +508,17 @@ DF.HetC.MixedModel.HQ$species <- factor(DF.HetC.MixedModel.HQ$species, ordered =
 ```
 
 
+```{r male.specific.table,echo=FALSE}
+
+#AP_mouse_table_w.Ages
+#use the above table to pull the male mouse levels
+
+
+male_mouse.av <-  AP_mouse_table_w.Ages %>% filter(sex== "male")
+
+#formate the table for pluggin into models
+
+```
 
 
 update the dissection document (that makes the meta.data DF)
