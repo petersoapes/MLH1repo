@@ -33,11 +33,11 @@ library(reshape2)
 
 setwd("~./MLH1repo/")
 #load Clean BivData
-load(file="data/CleanBivData_1.28.20.RData")
-
+load(file="data/CleanBivData_3.2.20.RData")
+#load(file="data/CleanBivData_1.28.20.RData")
 
 #load other data files, MLH1
-load(file="~./MLH1repo/data/MLH1_data_setup_1.5.20.RData")#added batch18
+load(file="~./MLH1repo/data/MLH1/MLH1_data_setup_2.2.20.RData")#added batch18
 
 #load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.5.20.RData")#added batch18
 
@@ -88,6 +88,8 @@ Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category),
 
 
 ```
+
+
 
 
 # Setup and Discription of Dataset
@@ -614,24 +616,6 @@ The mouse averages for all the metrics is what is used in the mixed models.
 
 ```{r biv.data_table.4MM.HetC, echo=FALSE}
 
-#remove all the non-used strains!!
-Curated_BivData <- Curated_BivData[Curated_BivData$strain != "AST",]
-Curated_BivData <- Curated_BivData[Curated_BivData$strain != "TOM",]
-Curated_BivData <- Curated_BivData[Curated_BivData$strain != "CZECH",]
-Curated_BivData$strain <- droplevels(Curated_BivData$strain)
-#MOLF
-
-#non-ordered factors, 
-Curated_BivData$subsp <- factor(Curated_BivData$subsp, ordered = FALSE)
-Curated_BivData$sex <- factor(Curated_BivData$sex, ordered = FALSE)
-Curated_BivData$strain <- factor(Curated_BivData$strain, ordered = FALSE)
-
-#all numbers, numbers
-#all relavent factors unordered
-
-#I'd like to merge the additional strains used for the male tests
-
-
 #the mouse averages will be used
 
 mouse.avs_4MM <- ddply(Curated_BivData, c("mouse"), summarise,
@@ -875,8 +859,6 @@ The dependant variables I'll be testing in the mixed model framework are:
 
 - long.biv
 
-### Mixed Model Tests
-
 <!--
 $$mouse \ average \ SC  \ length ~=~ subsp * sex + rand(strain*sex) + \varepsilon $$
 
@@ -905,86 +887,79 @@ I used the mixed model with the lme() for the full Curated BivData and long bivd
 
 $$mouse \ average \ SC  \ length ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
-#### Mixed Model 1
+#### HetC_M1
 
 Insert the results for the MMs using the dependant variable 1CO - use the Mixed model (lmer), for all of the meterics (pooled SC, 1CO 2CO ect)
 
 
-```{r M1_1CO, echo=FALSE}
+Below's the code for Mixed model results -- try to organize them into a table or somethinf
 
-#run Mixed models
+```{r M1_many.metrics, echo=FALSE}
+#https://rdrr.io/cran/lme4/man/pvalues.html notes of fixed effect p values
+
+#Mouse.Table_BivData_4MM #this one is the HetC table (all the Curated BivData)
+#Long.biv_mouse_table_HetC  (long biv data set for HetC models)
+
 
 #all pooled SC lengths
-SCLength_all_.MM.M1 <- lmer(mean_co ~ subsp * sex + (1|strain), data=mouse.avs_4MM) 
-#summary(Reduced.strain.HQ)
+lmer.SCLength_all_MM.M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE) 
 
-drop1(SCLength_all_.MM.M1, test="Chisq") # p = 0.0002045 ***
+#these 2 below are LR tests
+drop1(lmer.SCLength_all_MM.M1, test="Chisq" ) #other options for test don't work
+anova(lmer.SCLength_all_MM.M1) # also F values
 
-exactRLRT(SCLength_all_.MM.M1) #< 2.2e-16  Random strain effect, the variance due to random strain effect is NOT 0
-as.data.frame(round(summary(SCLength_all_.MM.M1)$tTable, 6))
 
+exactRLRT(lmer.SCLength_all_MM.M1)
+as.data.frame(round(summary(lmer.SCLength_all_MM.M1)$coefficients, 6))#these Dont return p values for the fixed effects
+
+
+#glmer.SCLength_all_MM.M1 <- glmer(mean_SC ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM) 
+#can't get p values from this summary
 
 #1CO
-
+SCLength_1CO_MM.M1 <- lmer(mean.SC_1CO ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM)
+drop1(SCLength_1CO_MM.M1, test="Chisq")
+exactRLRT(SCLength_1CO_MM.M1)
+as.data.frame(round(summary(SCLength_1CO_MM.M1)$coefficients, 6))
 
 
 #2CO
-
-#I think I need to re-calq the mouse averages for just 1CO
-#mean.SC_1CO is mean 1CO
-
-SC.Length_1CO_MM <- lme(mean.SC_1CO ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
-
-as.data.frame( round(  summary(SC.Length_1CO_MM)$tTable, 6 ) )
-```
+SCLength_2CO_MM.M1 <- lmer(mean.SC_2CO ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM)
+drop1(SCLength_2CO_MM.M1, test="Chisq")
+exactRLRT(SCLength_2CO_MM.M1)
+as.data.frame(round(summary(SCLength_2CO_MM.M1)$coefficients, 6))
 
 
-#### 2CO
+#Long.Biv
+SCLength_long.biv_MM.M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Long.biv_mouse_table_HetC)
 
-```{r 2CO.MM, echo=FALSE, eval=FALSE}
+drop1(SCLength_long.biv_MM.M1, test="Chisq")
+exactRLRT(SCLength_long.biv_MM.M1)
+as.data.frame(round(summary(SCLength_long.biv_MM.M1)$coefficients, 6))
 
-#remove MOLF
-mouse.avs_4MM.99 <- mouse.avs_4MM[mouse.avs_4MM$strain != "MOLF",]
-
-SC.Length_2CO_MM <- lme(mean.SC_2CO ~ subsp * sex, 
-                  random=list(strain=pdDiag(~sex),
-                        data= mouse.avs_4MM.99, 
-                                                                                       na.action=na.omit ) )
-#keep getting errors for building this model
-
-as.data.frame( round(  summary(SC.Length_2CO_MM)$tTable, 6 ) )
-
-table(mouse.avs_4MM$strain, mouse.avs_4MM$sex)
 
 ```
 
 
-#### 3CO
+#### HetC_M2
 
-```{r 3CO.MM, echo=FALSE}
+All fixed and all interactions
 
-SC.Length_3CO_MM <- lme(mean.SC_3CO ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ),  na.action=na.omit  )
-#this model is also generating error...
-#don't know how to fix
+```{r M2_many.metrics, echo=FALSE, eval=FALSE}
 
-as.data.frame( round(  summary(SC.Length_3CO_MM)$tTable, 6 ) )
+#feed these 2 DFs into M2
+#Mouse.Table_BivData_4MM #this one is the HetC table (all the Curated BivData)
+#Long.biv_mouse_table_HetC  (long biv data set for HetC models)
+
+
 ```
 
 
-#### long.biv
 
-```{r long.biv.MM, echo=FALSE, eval=FALSE}
+#### HetC_M3
 
-SC.Length_long.biv_MM <- lme(mean_SC ~ subsp * sex, data= Long_biv_mouse.avs_4MM, random=list(strain=pdDiag(~sex),  na.action=na.omit  ) )
+```{r HetC_M3, echo=FALSE}
 
-#now there is an error after un-ordering them
-
-as.data.frame( round(  summary(SC.Length_long.biv_MM)$tTable, 6 ) )
-
-
-#model for long Bivs
-#long_bivData_SC.Length_MM <- lme(mean_SC ~ subsp * sex, data= #Long_biv_mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
-#as.data.frame( round(  summary(long_bivData_SC.Length_MM)$tTable, 6 ) )
 ```
 
 
@@ -992,47 +967,7 @@ as.data.frame( round(  summary(SC.Length_long.biv_MM)$tTable, 6 ) )
 
 Dive deeper into the sex specific pattern for each strain.  (I think for all the within strain comparisons across sexes the general pattern is met of females being longer)
 
-APRIL, consider moving these strain chunks to the bivData set up
-
 (adding all of these blocks to -- the setup script); strain.Bivalents.DF
-
-```{r WSB.SC, echo=FALSE, eval=FALSE}
-#make the dataset
-WSB.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "WSB",]
-#correct and remove, 26dec17_18nov17_WSB_f4_sp1_12_rev_28, 26dec17_18nov17_WSB_f4_sp1_12_rev_27
-table(WSB.Bivalents.DF$sex, WSB.Bivalents.DF$hand.foci.count)
-
-#plot the differences
-wsb.ploty <- ggplot(WSB.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()
-wsb.ploty
-
-#make a table of the means and n ect
-wsb.SC.table <- ddply(WSB.Bivalents.DF, c("sex"), summarise,
-                             mean_SC = mean(chromosomeLength),
-                              n_SC = length(Obj.ID),
-                   
-                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
-                  
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
-                          
-)
-#can I plot these stats
-
-
-#run a t.test
-wsb.ttest  <- t.test(WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "female"], WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "male"])
-
-```
-
 
 ```{r strain.SClength.t.test, echo=FALSE}
 #t.tests for all the strain specific data frames
@@ -1063,16 +998,23 @@ MOLF.ttest  <- t.test(MOLF.Bivalents.DF$chromosomeLength[MOLF.Bivalents.DF$sex =
 
 
 
-#### male strain comparisons
+#### Male Poly
+
+These are the models for male polymorphism, (I am re-thinking the tests I think)
+
+Use these DFs for the models:  **Male.poly.Mouse.Table_BivData_4MM**  and **Long.biv_mouse_table_male.poly**
 
 
 ```{r SC.length.male_tests, echo=FALSE}
-
 ## run the tests to check following expectations
 
 #1.Dom strains not different from ech other
 #2. PWD and SKIVE are different from the other strains
 #3.MSM and MOLF are different from each other
+
+
+#Male.poly.Mouse.Table_BivData_4MM
+#Long.biv_mouse_table_male.poly
 
 #decide between lm or glm..?
 #mouse avs, males
@@ -1184,7 +1126,7 @@ Pwise.ttest_Musc.male.2CO <- pairwise.t.test(male.Musc.mouse.av$mean.SC_2CO, mal
 
 Pwise.ttest_Mol.male.2CO <- pairwise.t.test(male.Mol.mouse.av$mean.SC_2CO, male.Mol.mouse.av$strain)
 
-pairwise.t.test(Ozone, Month, p.adj = "bonf")
+#pairwise.t.test(Ozone, Month, p.adj = "bonf")
 
 ```
 
@@ -1296,6 +1238,7 @@ and for the single bivalent levels
 
 #### t.test for SC Length
 
+what are the pairwise t-test functions -- use pairwise.t.test(Ozone, Month, p.adj = "bonf")
 
 ```{r SC.Length_t.test, echo=FALSE}
 
@@ -1515,34 +1458,40 @@ Still working on the best way to display the general IFD patterns.
 
 Mixed model analysis for IFD (interference), the first set of models are made with the lme() functions.
 
-$$mouse \ average \ IFD ~=~ subsp * sex + rand(strain*sex) + \varepsilon $$
+$$mouse \ average \ IFD ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
-```{r MM_IFB.ABS, echo=FALSE}
+
+
+```{r HetC_M1_IFD_many.metrics, echo=FALSE}
 #get a list of the old mice to double check
 #old.mice <- DF.HetC.MixedModel.HQ$mouse[DF.HetC.MixedModel.HQ$age.weeks < 25,]
 #MIXED MODEL
 
-#remove the SKIVE male line which is na
-mouse.avs_4MM <- mouse.avs_4MM[!(is.na(mouse.avs_4MM$mean_IFD.2CO_ABS) | mouse.avs_4MM$mean_IFD.2CO_ABS==""), ]
+#https://rdrr.io/cran/lme4/man/pvalues.html notes of fixed effect p values
 
-lme_MM_IFD_ABS <- lme(mean_IFD.2CO_ABS ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ),na.action=na.omit  )
+#Mouse.Table_BivData_4MM #this one is the HetC table (all the Curated BivData)
+#Long.biv_mouse_table_HetC  (long biv data set for HetC models)
 
-as.data.frame( round(  summary(lme_MM_IFD_ABS)$tTable, 6 ) )
-#p
-#same missing values in obc
+#M1_IFD_2CO
+lmer.IFD.PER_MM.M1 <- lmer(mean_IFD.2CO_PER ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE) 
 
-lme_MM_IFD_PER <- lme(mean_IFD.2CO_PER ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ), na.action=na.omit )
+#these 2 below are LR tests
+drop1(lmer.IFD.PER_MM.M1, test="Chisq" )
+anova(lmer.IFD.PER_MM.M1)
 
-as.data.frame( round(  summary(lme_MM_IFD_PER)$tTable, 6 ) )
+exactRLRT(lmer.IFD.PER_MM.M1)
+as.data.frame(round(summary(lmer.IFD.PER_MM.M1)$coefficients, 6))
 
-#remove PWD, SKIVE and MSM
-another.DF <- mouse.avs_4MM[mouse.avs_4MM$strain != "PWD",]
-another.DF <- another.DF[another.DF$strain != "MSM",]
-another.DF <- another.DF[another.DF$strain != "SKIVE",]
 
-lme_MM_another_IFD_PER <- lme(mean_IFD.2CO_PER ~ subsp * sex, data= another.DF, random=list(strain=pdDiag(~sex) ), na.action=na.omit )
+#M1_IFD.RAW_2CO
+lmer.IFD.RAW_MM.M1 <- lmer(mean_IFD.2CO_ABS ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE) 
 
-as.data.frame( round(  summary(lme_MM_another_IFD_PER)$tTable, 6 ) )
+#these 2 below are LR tests
+drop1(lmer.IFD.RAW_MM.M1, test="Chisq" ) #other options for test don't work
+anova(lmer.IFD.RAW_MM.M1) # also F values
+
+exactRLRT(lmer.IFD.RAW_MM.M1)#random strain not sig
+as.data.frame(round(summary(lmer.IFD.RAW_MM.M1)$coefficients, 6))#these Dont return p values for the fixed effects
 
 ```
 
@@ -1554,48 +1503,14 @@ The table above should display the slightly unsual pattern, where the coefficien
 show a raw plot, and norm plot and a scatter plot
 
 
-#### Random Effects
+I tested 2 versions of the mixed model for this flavor of trait, raw IFD and normalized IFD measure. The tables below are from anova( for the lmer model ). Random effect of strain is not significant for ABS IFD, and only slightly significant for the IFD.PER
 
-These second set of models are made using the lmer()
-
-$$mouse \ average \ IFD ~=~ subsp * sex + rand(strain) + \varepsilon $$
-
-$$mouse \ average \ normalized IFD ~=~ subsp * sex + rand(strain) + \varepsilon $$
-
-I tested 2 versions of the mixed model for this flavor of trait, raw IFD and normalized IFD measure. The tables below are from anova( for the lmer model )
-
-
-```{r MM.IFD, echo=FALSE}
-#ugg what changed, FFF kntir is broken!!
-
-IFD_ABS.MM <- lmer(mean_IFD.2CO_ABS ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
-#anova(IFD_ABS.MM) 
-
-#thing1  <- summary(IFD_ABS.MM)
-IFD.ABS_chi <- drop1(IFD_ABS.MM, test="Chisq") 
-
-rand_test_IFD.ABS.MM <- exactRLRT(IFD_ABS.MM)
-rand_test_IFD.ABS.MM
-
-
-IFD_PER.MM <- lmer(mean_IFD.2CO_PER ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
-#anova(IFD_PER.MM)
-
-Chis.sp_IFD.PER.MM <- drop1(IFD_PER.MM, test="Chisq") 
-#Chis.sp_IFD.PER.MM
-
-rand_test_IFD.PER.MM <- exactRLRT(IFD_PER.MM)
-rand_test_IFD.PER.MM
-```
-
-
-Random effect of strain is not significant for ABS IFD, and only slightly significant for the IFD.PER
 
 ## Strain Comparisons
 
-Dive deeper into the sex specific pattern for each strain.  
+Dive deeper into the sex specific pattern for each strain.  Below are code chunks which show the unusal sex specific results for IFD measures. The general pattern is that, female raw IFD > male IFD and  female PER IFD < male PER IFD. The scatter plots show that female raw measures are longer than male and for the PER values, the female mean is brought down by an enrichment of short IFDs.   
 
-these are example strains that show the 'unusual' results. show a raw plot, and norm plot and a scatter plot. Could the female bivalents with IFD under 30% be a different class of interference? (What does that mean?). I think the General pattern is that this rec pattern is not observed in males. That is there are rarely instances where 2 foci are positioned closer than 30% of the total SC length.
+For some strains, PWD, MSM and SKIVE there's a 30% threshold in the male PER IFD distributions. (What does that mean?). How do I test / quantify this pattern? Cluster metric?
 
 
 ```{r WSB.IFD, echo=FALSE, warning=FALSE}
@@ -1688,11 +1603,13 @@ LEW.ttest  <- t.test(LEW.Bivalents.DF$chromosomeLength[LEW.Bivalents.DF$sex == "
 
 The Lew pattern doesn't have a clean cut off of nrm.IFD. the range of male and females overlap, but there are more female observations below. 
 
-
 ```{r G.IFD, echo=FALSE, warning=FALSE}
 #make the dataset
 G.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "G",]
 #table(G.Bivalents.DF$sex, G.Bivalents.DF$hand.foci.count)
+
+G.Bivalents.DF <- G.Bivalents.DF[!(is.na(G.Bivalents.DF$fileName) | G.Bivalents.DF$fileName == ""), ]
+
 
 #plot the metric
 #remove the NAs
@@ -1715,9 +1632,7 @@ G.IFDnorm_scatter.plot <- ggplot(G.Bivalents.DF[G.Bivalents.DF$hand.foci.count =
 
 G.IFDnorm_scatter.plot
 
-
 #make a table of the means and n ect
- 
 G.IFD.table <- ddply(G.Bivalents.DF, c("sex"), summarise,
                             
                   total.biv = length(Obj.ID),
@@ -1729,12 +1644,50 @@ G.IFD.table <- ddply(G.Bivalents.DF, c("sex"), summarise,
 )
 #can I plot these stats
 
-
 #run a t.test seperate out by the chrm classes
 G.ttest  <- t.test(G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "female"], G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "male"])
 
-```
+#calQ percent < 30%
 
+oo <- G.Bivalents.DF[ (G.Bivalents.DF$sex == "male") & (G.Bivalents.DF$IFD1_PER <= .3 ), ]
+oo <- oo[!(is.na(oo$fileName) | oo$fileName == ""), ]
+
+#the na's are being counted (ughhhhhh)
+#use the file thing instead
+
+G.Bivalents.DF <- G.Bivalents.DF[!(is.na(G.Bivalents.DF$fileName) | G.Bivalents.DF$fileName == ""), ]
+
+top.male <-  G.Bivalents.DF %>% filter(sex== "male") %>% filter(IFD1_PER <= .3) #this makes DF
+bottom.male <-  G.Bivalents.DF %>% filter(sex== "male")
+ratio.male <- 18/1031 #2%
+
+
+top.female <-  G.Bivalents.DF %>% filter(sex== "female") %>% filter(IFD1_PER <= .3)
+bottom.female <-  G.Bivalents.DF %>% filter(sex== "female")
+ratio.female <- 36/766  #5%
+
+
+
+LT30_PER_male <-  length(G.Bivalents.DF$Obj.ID[ (  (G.Bivalents.DF$sex == "male") & (G.Bivalents.DF$IFD1_PER >= .3 ) ) ]) / 
+  length(G.Bivalents.DF$Obj.ID[ (G.Bivalents.DF$sex == "male") ]) #0.8302619
+
+#uggh how does this not work ... 
+
+#more males have lower than 30% IFD?
+
+
+LT30_PER_female <-  length(G.Bivalents.DF$Obj.ID[(G.Bivalents.DF$sex == "female") & (G.Bivalents.DF$IFD1_PER <= .3 ) ]) / length(G.Bivalents.DF$Obj.ID[ (G.Bivalents.DF$sex == "female") ])
+#0.7062663
+
+#would Chi-sq be a good test to compare the ratios ect?
+
+
+#the sum of these doesn't add 
+
+G.Bivalents.DF
+
+
+```
 
 
 ```{r PWD.IFD, echo=FALSE, warning=FALSE}
@@ -1913,8 +1866,6 @@ MSM.ttest  <- t.test(MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "
 ```
 
 The MSM pattern has a short range and longer range of nrm.IFD in males and females respectively.  
-
-
 
 ```{r MOLF.IFD, eval=FALSE, echo=FALSE}
 #make the dataset
@@ -2953,9 +2904,26 @@ Musc_male_1COpos_table <- ddply(Curated_BivData_male[Curated_BivData_male$hand.f
 
 ```
 
+# old junk
 
 <!-- 
 # old drafts / trash pile
+
+
+```{r long.biv.MM, echo=FALSE, eval=FALSE}
+
+SC.Length_long.biv_MM <- lme(mean_SC ~ subsp * sex, data= Long_biv_mouse.avs_4MM, random=list(strain=pdDiag(~sex),  na.action=na.omit  ) )
+
+#now there is an error after un-ordering them
+
+as.data.frame( round(  summary(SC.Length_long.biv_MM)$tTable, 6 ) )
+
+
+#model for long Bivs
+#long_bivData_SC.Length_MM <- lme(mean_SC ~ subsp * sex, data= #Long_biv_mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
+#as.data.frame( round(  summary(long_bivData_SC.Length_MM)$tTable, 6 ) )
+```
+
 
 
 ```{r justify.mouse.level, echo=FALSE, eval=FALSE}
@@ -3656,6 +3624,32 @@ sis.co.ten.hist
 
 ```{r draft plots, eval=FALSE}
 first.SC.plot <- ggplot(Curated_BivData, aes(y = chromosomeLength, x= strain, fill= hand.foci.count))+geom_jitter(aes(alpha=0.2))+geom_boxplot(aes(alpha=0.5))+  ggtitle("SC Length for Bivalents")+facet_wrap(sex~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(30,200))
+```
+
+```{r 2CO.MM, echo=FALSE, eval=FALSE}
+
+#remove MOLF
+mouse.avs_4MM.99 <- mouse.avs_4MM[mouse.avs_4MM$strain != "MOLF",]
+
+SC.Length_2CO_MM <- lme(mean.SC_2CO ~ subsp * sex, 
+                  random=list(strain=pdDiag(~sex),
+                        data= mouse.avs_4MM.99, 
+                                                                                       na.action=na.omit ) )
+#keep getting errors for building this model
+
+as.data.frame( round(  summary(SC.Length_2CO_MM)$tTable, 6 ) )
+
+table(mouse.avs_4MM$strain, mouse.avs_4MM$sex)
+
+```
+
+```{r 3CO.MM, echo=FALSE}
+
+SC.Length_3CO_MM <- lme(mean.SC_3CO ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ),  na.action=na.omit  )
+#this model is also generating error...
+#don't know how to fix
+
+as.data.frame( round(  summary(SC.Length_3CO_MM)$tTable, 6 ) )
 ```
 
 -->

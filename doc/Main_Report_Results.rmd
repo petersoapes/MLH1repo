@@ -29,12 +29,13 @@ library(reshape2)
 
 #setwd("~./MLH1repo/")
 
-load(file = "C:/Users/April/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.31.20.RData")
+#load(file = "C:/Users/April/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.31.20.RData")
+
+load(file = "C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.31.20.RData")
 
 #2.2.20
-
-load(file="C:/Users/April/Documents/MLH1repo/data/CleanBivData_1.27.20.RData")
-
+#load(file="C:/Users/April/Documents/MLH1repo/data/CleanBivData_1.27.20.RData")
+load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/CleanBivData_1.27.20.RData")
 
 #load(file="~./MLH1repo/data/MLH1_data_setup_1.5.20.RData")
 
@@ -210,14 +211,18 @@ female.musc.mice.table <- ddply(female.musc.cells, c("sex"), summarise,
 # A. Models for av MLH1 counts foci per cell 
 
 
-ToDo: add the random effect tests!!
+ToDo: change the Mixed models to lmer() so that I can confidantly test random effect (variance)
 
 
 These are the basic Mixed Models we used as a frame work to analyze all the MLH1 count data.
 
 $$mouse .mean CO ~=~ subsp * sex + rand(strain* sex)  + \varepsilon$$
 
-$$mouse .var CO ~=~ subsp * sex + rand(strain* sex) + \varepsilon $$
+I won't run the model above -- even tho it is logical and makes sense -- I can't make good estimates for random effects.
+
+
+
+$$mouse .var CO ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
 The mixed model lets us separate effects to see how they effect a mouse mean CO count. The subspecies effect is a proxy for **Divergence** and the random strain effect is a proxy for **Polymorphism**.
 
@@ -232,7 +237,9 @@ Setting up the data set for using the mixed model (base data set, HQ data set)
 
 - Mol as a different subsp
 
-- ( Nested strain in subsp?)
+(Move this into the Methods)
+
+
 
 
 *The mouse average table used in this part excluded Q5 cells*
@@ -240,6 +247,8 @@ Setting up the data set for using the mixed model (base data set, HQ data set)
 *the MLH1 mean is from mean - adj_MLH1 (males have +1 CO to count for PAR)*
 
 ```{r mixed.model.data.setup, echo=FALSE, warning=FALSE}
+# MOVE this into BIVDATA SETUP!!!
+
 #https://rcompanion.org/handbook/G_03.html
 #testing random effects within lme
 
@@ -291,16 +300,17 @@ DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel[( (DF.HetC.MixedModel$age.weeks < 25
 
 #table(DF.HetC.MixedModel.HQ$strain, DF.HetC.MixedModel.HQ$sex)
 
-#reformate Molosinus subsp
+#add_subsp function re-writen
+
 #mean_co.HQ.mol
-DF.HetC.MixedModel.HQ$subsp <- ifelse(grepl("MSM", DF.HetC.MixedModel.HQ$strain), "Mol", 
-        ifelse(grepl("MOLF", DF.HetC.MixedModel.HQ$strain), "Mol", DF.HetC.MixedModel.HQ$subsp))
+#DF.HetC.MixedModel.HQ$subsp <- ifelse(grepl("MSM", DF.HetC.MixedModel.HQ$strain), "Mol", 
+#        ifelse(grepl("MOLF", DF.HetC.MixedModel.HQ$strain), "Mol", DF.HetC.MixedModel.HQ$subsp))
 
 # For some reason I changed subsp to nums (wtf)
-DF.HetC.MixedModel.HQ$subsp <- ifelse(grepl(1, DF.HetC.MixedModel.HQ$subsp), "Dom", 
-        ifelse(grepl(2, DF.HetC.MixedModel.HQ$subsp), "Musc", DF.HetC.MixedModel.HQ$subsp))
+#DF.HetC.MixedModel.HQ$subsp <- ifelse(grepl(1, DF.HetC.MixedModel.HQ$subsp), "Dom", 
+#        ifelse(grepl(2, DF.HetC.MixedModel.HQ$subsp), "Musc", DF.HetC.MixedModel.HQ$subsp))
 
-DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[!(is.na(DF.HetC.MixedModel.HQ$mouse) | DF.HetC.MixedModel.HQ$mouse==""), ]
+#DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[!(is.na(DF.HetC.MixedModel.HQ$mouse) | #DF.HetC.MixedModel.HQ$mouse==""), ]
 
 
 #remove blank rows (which are these?)
@@ -340,6 +350,8 @@ For now I will focus on 4 different models run mouse averages on MLH1 counts.
 
 1. $$mouse .mean CO ~=~ subsp * sex  + rand(strain*sex) + \varepsilon$$
 
+USE the bottom one
+
 2. $$mouse .mean CO ~=~ subsp * sex  + rand(1|strain) + \varepsilon$$
 
 
@@ -349,6 +361,7 @@ For now I will focus on 4 different models run mouse averages on MLH1 counts.
 4. $$mouse .mean CO ~=~ sex * strain + \varepsilon$$
 
 
+<!--
 
 > Model 1
 
@@ -356,7 +369,7 @@ $$mouse .mean CO ~=~ subsp * sex  + rand(strain*sex) + \varepsilon$$
 
 1.	HetC.MixedModel.HQ <- lme(mean_co ~ subsp*sex, data=DF.HetC.MixedModel.HQ, random=list(strain=pdDiag(~sex) ) )
 
-```{r M1_HQ.MixedModel.1, echo=FALSE, digits = 2}
+```{r M1_HQ.MixedModel.1, echo=FALSE, digits = 2, eval=FALSE}
 #table(DF.HetC.MixedModel$strain, DF.HetC.MixedModel$sex)
 #mean_co.HQ  (this might remove some of the MOLF males)
 
@@ -371,20 +384,31 @@ as.data.frame( round(  summary(HetC.MixedModel.HQ)$tTable, 6 ) )
 
 
 Above is the table of coefficients for MM.1, HQ data set, lme(), random effects strain and strain specific sex effect.  
+-->
 
-> Model 2.
+
+> Model 2. THIS SHOULD BE THE MAIN MIXED MODEL --lmer
 
 $$mouse .mean CO ~=~ subsp * sex  + rand(1|strain) + \varepsilon$$
 
-```{r MixedModel.2, echo=FALSE}
+```{r MixedModel.1, echo=FALSE, digits = 3}
+#THIS IS THE NEW MIXED MODEL
+
 #reduced models
-Reduced.strain.HQ <- lme(mean_co ~ subsp * sex, data=DF.HetC.MixedModel.HQ, random = ~1|strain)
+MLH1.MM.M1 <- lmer(mean_co ~ subsp * sex + (1|strain), data=DF.HetC.MixedModel.HQ) 
 #summary(Reduced.strain.HQ)
 
-as.data.frame(round(summary(Reduced.strain.HQ)$tTable, 6))
+drop1(MLH1.MM.M1, test="Chisq") # p = 0.0002045 ***
+
+exactRLRT(MLH1.MM.M1) #< 2.2e-16  Random strain effect, the variance due to random strain effect is NOT 0
+
+
+as.data.frame(round(summary(MLH1.MM.M1)$tTable, 6))
 #add a aption to this code chunk
 #ranef(Reduced.strain.HQ)
 ```
+
+Above is the mixed model M1, 
 
 Above is the table of coefficients for MM.2, HQ data set, lme(), random effects coded without sex specific effect.
 This is model has sex and interaction coefficient is significant.
@@ -394,9 +418,14 @@ Can the above model be re-written with lmer so that random effect can be tested?
 
 > Model 3
 
+All fixed effects with all interactions.
+
+
 $$mouse .mean CO ~=~ subsp * sex * strain + \varepsilon$$
 
 ```{r MixedModel.3, echo=FALSE}
+
+
 #strain = fixed
 lm.strain.fixed.full <- lm(mean_co ~ subsp * sex * strain, data=DF.HetC.MixedModel.HQ)
 #library(xtable)

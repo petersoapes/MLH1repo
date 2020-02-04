@@ -918,7 +918,6 @@ BivData_from_15biv_cells$Obj.ID <- paste(BivData_from_15biv_cells$fileName, BivD
 dups.dummy <- BivData_from_15biv_cells[duplicated(BivData_from_15biv_cells$Obj.ID),]
 #Dups -- 50, all from 1mar15_PWD_m1
 
-
 #remove duplicate obj.ids
 BivData_from_15biv_cells <- BivData_from_15biv_cells %>% distinct() #distinct doesn't work for chr type
 BivData_from_15biv_cells <- BivData_from_15biv_cells[ ! BivData_from_15biv_cells$fileName %in% dups.dummy$fileName, ]
@@ -946,7 +945,6 @@ BivData_from_15biv_cells <- BivData_from_15biv_cells[ ! BivData_from_15biv_cells
 for(  i in 1:length( unique(BivData_from_15biv_cells$Obj.ID) ) ){
   
   #print(c(i, " the i") )
-  
   newfile.str = strsplit( BivData_from_15biv_cells$Obj.ID[i], "_")[[1]][1:7]
   new.egg <- paste0(newfile.str, collapse = "_")
   
@@ -987,8 +985,7 @@ The above blocks of code 1) isolates bivalents measures from cells with >15 segm
 
 Long.biv_mouse_table <- ddply(real.long.bivData, c("mouse"), summarise,
                         
-                              
-                              Nmice = length(unique(mouse)),
+                        Nmice = length(unique(mouse)),
                         Ncells  = length(Obj.ID),
                       
                           mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
@@ -1044,6 +1041,9 @@ Long.biv_mouse_table_HetC <- Long.biv_mouse_table_HetC[Long.biv_mouse_table$stra
 Long.biv_mouse_table_HetC <- Long.biv_mouse_table_HetC[Curated_BivData$strain != "TOM",]
 Long.biv_mouse_table_HetC <- Long.biv_mouse_table_HetC[Long.biv_mouse_table_HetC$strain != "CZECH",]
 Long.biv_mouse_table_HetC$strain <- droplevels(Long.biv_mouse_table_HetC$strain)
+
+#remove na's
+Long.biv_mouse_table_HetC <- Long.biv_mouse_table_HetC[!(is.na(Long.biv_mouse_table_HetC$mouse) | Long.biv_mouse_table_HetC$mouse==""), ]
 
 #table(droplevels( Long.biv_mouse_table_HetC$category) )  #for double checking
 
