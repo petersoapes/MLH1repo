@@ -858,7 +858,7 @@ drop1(MLH1var_M1, test="Chisq") #interaction term NS
 anova(MLH1var_M1)#sex explains most variance...
 
 exactRLRT(MLH1var_M1) #strain
-as.data.frame( round(summary(MLH1var_M1)$tTable, 6))
+as.data.frame( round(summary(MLH1var_M1)$coefficients, 6))
 
 #CV
 MLH1cv_M1 <- lmer( cV ~ subsp * sex +(1|strain), data=DF.HetC.MixedModel.HQ )
@@ -869,7 +869,7 @@ drop1(MLH1cv_M1, test="Chisq") #interaction term NS
 anova(MLH1cv_M1)  #sex F value is large
 exactRLRT(MLH1cv_M1) #strain
 
-as.data.frame( round(summary(M1.cv_co)$tTable, 6))
+as.data.frame( round(summary(MLH1cv_M1)$coefficients, 6))
 
 #USE Q12 (Q123) table
 #Q12_mouse_table_w.Ages
@@ -907,7 +907,7 @@ MLH1var_M3 <- lm( var ~ subsp * sex * strain,  data=DF.HetC.MixedModel.HQ )
 
 summary(MLH1var_M3)
 anova(MLH1var_M3)  
-as.data.frame( round(summary(MLH1var_M3)$tTable, 6))
+as.data.frame( round(summary(MLH1var_M3)$coefficients, 6))
 
 
 MLH1cv_M3 <- lm(cV ~ subsp*sex*strain, data=DF.HetC.MixedModel.HQ)
@@ -915,7 +915,7 @@ MLH1cv_M3 <- lm(cV ~ subsp*sex*strain, data=DF.HetC.MixedModel.HQ)
 summary(MLH1cv_M3)
 
 anova(MLH1cv_M3)
-as.data.frame( round(summary(M1.cv_co)$tTable, 6))
+as.data.frame( round(summary(MLH1cv_M3)$coefficients, 6))
 
 
 #Q12 var
@@ -923,7 +923,7 @@ MLH1var_M3_Q12 <- lm( var ~ subsp*sex*strain,  data=Q12_mouse_table_w.Ages )
 
 summary(MLH1var_M3_Q12)
 anova(MLH1var_M3_Q12)  
-as.data.frame( round(summary(MLH1var_M3_Q12)$tTable, 6))
+as.data.frame( round(summary(MLH1var_M3_Q12)$coefficients, 6))
 
 #Q12 cv
 MLH1cv_M3_Q12 <- lm( cV ~ subsp*sex*strain, data=Q12_mouse_table_w.Ages )
@@ -950,28 +950,30 @@ summary(MLH1var_M4)
 
 drop1(MLH1var_M4, test="Chisq")
 anova(MLH1var_M4)
-as.data.frame( round(summary(MLH1var_M4)$tTable, 6))
+as.data.frame( round(summary(MLH1var_M4)$coefficients, 6))
 
 
 MLH1cv_M4 <- lm(cV ~ sex * strain, data=DF.HetC.MixedModel.HQ)
 
 summary(MLH1cv_M4)
-
-drop1(MLH1cv_M4, test="Chisq")
 anova(MLH1cv_M4)  
-exactRLRT(MLH1cv_M4)
-as.data.frame( round(summary(MLH1cv_M4)$tTable, 6))
+as.data.frame( round(summary(MLH1cv_M4)$coefficients, 6))
+
 
 ### Q12 var
-MLH1var_M4_Q12 <- lm( var ~ subsp*sex*strain, data=Q12_mouse_table_w.Ages )
+MLH1var_M4_Q12 <- lm( var ~ sex*strain, data=Q12_mouse_table_w.Ages )
+
+summary(MLH1var_M4_Q12)
+
 anova(MLH1var_M4_Q12)
 as.data.frame( round(summary(MLH1var_M4_Q12)$coefficients, 6))
 
+
 #Q12 cv
-MLH1cv_M4_Q12 <- lm( cV ~ subsp*sex*strain, data=Q12_mouse_table_w.Ages )
+MLH1cv_M4_Q12 <- lm( cV ~ sex*strain, data=Q12_mouse_table_w.Ages )
 
 summary(MLH1cv_M4_Q12)
-anova(MLH1cv_M4_Q12)#sex large F
+anova(MLH1cv_M4_Q12)
 
 as.data.frame( round(summary(MLH1cv_M4_Q12)$coefficients, 6))
 
@@ -1067,7 +1069,7 @@ The second model were strain was (nested and random), the fixed effects, sex and
 
 # Figure 1
 
-Main figure, MLH1 strain avs on top, chrm proportion bar plot on bottom
+work more on figure 1. Main figure, MLH1 strain avs on top, chrm proportion bar plot on bottom
 
 ```{r first.boxplots, echo=FALSE, fig.align='center', warning=FALSE}
 
@@ -1176,6 +1178,8 @@ Fig1_v1_strain <- ggplot(AP_strain.table.HQ, aes(y=mean_co, x=strain, color=stra
 Fig1_v1_strain
 ```
 
+What are the steps the each chunks walk through.
+
 
 #### Proportion of chrm classes
 
@@ -1198,6 +1202,9 @@ generate smaller data set of chrm proportions (0CO, 1CO,2CO etc)
 #chrm.class.DF = read.csv("C:/Users/alpeterson7/Documents/MLH1repo/data/ChrmClassProportions.csv", header = TRUE)
 
 chrm.class.DF = read.csv("~./MLH1repo/data/ChrmClassProportions2.csv", header = TRUE)
+
+#try adding the BivData version of the proportions
+
 
 #chrm.class.DF = read.csv("C:/Users/alpeterson7/Documents/MLH1repo/data/ChrmClassProportions2.csv", header = TRUE)
 
@@ -1333,32 +1340,9 @@ The bottom lines and subspecies points don't exactly match up.
 **add in cell images like the other draft figures.**
 
 
-# Rapid male specific evolution
-
-list out the points which support rapid male specific evolution for MLH1 rates.
 
 
-
-number above bars are the raw counts for bivalent classes.
-
-Potential figure 2 (eventually). Try to make the figure taller.
--- add more data to make sample sizes more equal.
--- add space to indicate where female data is missing
-
-SKIVE male has lower proportion of 2CO compared to the hand measured, but it still looks like it's more than other strains.
-What's up with Lew females? there's lots of 2COs, also WSB female.
-
-This type of plot is another way to score heterochiasmy that gets around the sex chromosomes, because the data come from samples of bivalents and not averages of cells. If these data are random samples of bivalents, the X 
-
-
-ToDo: chisq tests for difference in proportions, 
-- within strain across sex,
-- males, across high and low groups
-- look at mouse level proportions
-
-
-
-## DMC1 Results Spermatocytes
+# DMC1 Results Spermatocytes
 
 These data are meant to test if CO precursors, double strand breaks (DSBs), are significant predictors for MLH1 count variation. Simply, do mice with more DSBs also have more COs?
 
@@ -1366,9 +1350,11 @@ ToDo:
   - attempt to supplement data with more KAZ DMC1 cell observations.
   - change all the bad variable names
 
-```{r DMC1.setup, echo=FALSE, eval=FALSE}
+```{r DMC1.setup, echo=FALSE}
 #load DMC1 csv
-DMC1.DF <- read.csv("~./DMC1/newJuviQuant.csv", header = TRUE)
+#DMC1.DF <- read.csv("~./DMC1/newJuviQuant.csv", header = TRUE)
+DMC1.DF <- read.csv("~./MLH1repo/data/DMC1newJuviQuant.csv", header = TRUE)
+
 
 DMC1.DF$fileName <- DMC1.DF$Original.Name
 DMC1.DF <- add_mouse(DMC1.DF)
@@ -1391,15 +1377,13 @@ DMC1.mean.obs.Z <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Z",],
                  mean.count = mean( total.count)
 )
 DMC1.mean.obs.Z$stage <- "Z"
-
-#these tables are merged latter
-
 ```
 
-### Testing Normality Assumptions
 
 ```{r normality, echo=FALSE, warning=FALSE, eval=FALSE}
-#histograms for each
+
+#these are histogram plots for testing Normality shape -- move to supplemenatry section
+
 
 #- check that distributions are close to normal
 #- check for equal variance.
@@ -1415,7 +1399,7 @@ The counts look close to normal.
 
 Potentially figure 2. Using a function to display the p-vales for mean comparison
 
-```{r DMC1.plot, echo=FALSE, warning=FALSE, eval=FALSE}
+```{r DMC1.plot, echo=FALSE, warning=FALSE}
 #think of better color scheme
 #make the jitter col thinner or make the stacked dots.
 #remember that box-plots add outlier dots.
@@ -1429,7 +1413,8 @@ everyday <- ggboxplot(DMC1.DF[DMC1.DF$stage != "P",], x = "strain", y = "total.c
 
 DMC1.boxplot <- ggplot(aes(x=strain, y=total.count, color=stage), data=DMC1.DF[DMC1.DF$stage != "P",])+
   geom_boxplot(aes(alpha=.5))+geom_jitter()+ggtitle("DMC1 averages in juvenile mice")
-  DMC1.boxplot
+
+DMC1.boxplot
   #this will add neat bars, but still need to figure out what groups ect it's actually using
 #THE stat_compare function adds a arm thing and pvalue for 
 #  stat_compare_means(comparisons = my_comparisons)
@@ -1476,9 +1461,14 @@ DMC1.bxlt_High.to.Low
 
 ```
 
+Summary:
+
+The distributions of counts is close to normal (also the higher count is better than the MLH1 counts)
+
 Above figure shows p-values for comparison of means across the cell stages.
 
 Foci of DMC1 were scored from Leptotene and Zygotene spermatocytes of juvenile mice (12-14-18 days). One mouse represents each strain. The main comparison to examine is that between the high (PWD and MSM) and low recombining (WSB, G, KAZ) strains.
+
 
 ToDo think of ways to add in the compared means for the high and low groups (across cell stage)
 how similar are G-WSB or PWD-MSM to each other?
@@ -1491,7 +1481,7 @@ The number of observations are not quite equal across strains and cell stages, s
 
 The observed p value does not fall outside of the permuted distribution with assumes equal cell sampling.
 
-```{r DMC1.subsampling, echo=FALSE, eval=FALSE}
+```{r DMC1.subsampling, echo=FALSE}
 
 #recreate the DMC1 data by subsampling ~9 or lowest cell number from 
 # the 2 groups
@@ -1542,12 +1532,12 @@ replicated.Ttests <- cbind(bunchOpvals.L, bunchOpvals.Z)
 
 #plot the lists of pvals in histogram? compare to the observed pvalue to get a sense as of how much sample size shifts the pvalues.
 
-plot.pvals.L <- ggplot(bunchOpvals.L, aes(bunchOpvals.L) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Leptotene")+geom_vline(xintercept=ttest.HighLow.L$p.value, linetype="dotted", color="red")
+#plot.pvals.L <- ggplot(bunchOpvals.L, aes(bunchOpvals.L) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Leptotene")+geom_vline(xintercept=ttest.HighLow.L$p.value, linetype="dotted", color="red")
 
 
-plot.pvals.Z <- ggplot(bunchOpvals.Z, aes(bunchOpvals.Z) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Zygotene")+geom_vline(xintercept=ttest.HighLow.Z$p.value, linetype="dotted", color="red")
-plot.pvals.L
-plot.pvals.Z
+#plot.pvals.Z <- ggplot(bunchOpvals.Z, aes(bunchOpvals.Z) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Zygotene")+geom_vline(xintercept=ttest.HighLow.Z$p.value, linetype="dotted", color="red")
+#plot.pvals.L
+#plot.pvals.Z
 
 
 #The t.test( ) function produces a variety of t-tests. Unlike most statistical packages, the default assumes #unequal variance and applies the Welsh df modification.
@@ -1556,7 +1546,7 @@ plot.pvals.Z
 ```
 
 
-```{r DMC1_MLH1.cor, echo=FALSE, eval=FALSE}
+```{r DMC1_MLH1.cor, echo=FALSE}
 #make category averages from AP_mouse_table.HQ
 mean.MLH1.obs <- ddply(.data=AP_mouse_table.HQ,
                  .(category),
@@ -1588,16 +1578,84 @@ MLH1.DMC1.Z_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.Z, me
 
 > At what stage are DMC1 foci numbers most correlated with MLH1?
 
-The correlation with MLH1 and leptotene cells is r MLH1.DMC1.L_cor.
+The correlation with MLH1 and leptotene cells is `r MLH1.DMC1.L_cor`.
 
-The correlation with MLH1 and zygotene cells is r MLH1.DMC1.Z_cor.
+The correlation with MLH1 and zygotene cells is `r MLH1.DMC1.Z_cor`.
 
 
+```{r barlett.test, echo=FALSE, eval=FALSE}
 
-# Single Bivalent Patterns
+#bartlett.test(total.count~strain, data=DMC1.DF[DMC1.DF$stage == "L",])#L (don't work with single KAZ L cell)
+bartlett.test(total.count~strain, data=DMC1.DF[DMC1.DF$stage == "Z",])#Z
+
+```
+
+Evidence for non-equal variance across strains for zygotene cells.
+
+Ideas for post-hoc tests, remove strains 1 at a time and test variance. Test variance for L cells without KAz.
+
+
+From ANOVA analysis strain is significant for Leptotene cells but not Zygotene cells. (but take these results with a grain of salt before assumptions are tested.)
+
+```{r DMC1_anova, echo=FALSE, warning=FALSE, eval=FALSE}
+#1. ANOVA, is there a difference in DMC1 counts across strains?
+mod.L <- lm(total.count ~ strain, data = DMC1.DF[DMC1.DF$stage == "L",])
+mod.Z <- lm(total.count ~ strain, data = DMC1.DF[DMC1.DF$stage == "Z",])
+
+l.anova <- anova(mod.L) #0.0002701 ***
+z.anova <- anova(mod.Z) #NS
+
+l.anova
+z.anova
+```
+
+
+```{r DMC1_t.tests, echo=FALSE, warning=FALSE}
+#2. t-tests for the DMC1 counts 
+#need to account for sample sizes when comparing t.tests (KAZ and G don't have equal across )
+#best case scnario -- more microscoping to get ~20 cells for each stage by strain combo
+
+
+#L vs Z (all species)
+#jj <- t.test(DMC1.male.data$total.count[DMC1.male.data$stage == "Z"], DMC1.male.data$total.count[DMC1.male.data$stage == "L"] )
+#p-value = 1.032e-05
+#not a valid interpertation
+
+
+#high vs low group (L)
+ttest.HighLow.L <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )
+# p-value =  0.002145
+
+
+#high vs low group (Z)
+ttest.HighLow.Z <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )
+# p-value = 0.6628
+
+
+#dom vs musc (L) (2 subsp vs)
+ttest.subsp.L <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "L")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "L")] )
+# p-value = 0.003016
+
+#dom vs musc (Z)
+ttest.subsp.Z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Z")] )
+#p-value = 0.09588
+
+#KAZ vs Dom (Z) (only 1 L cell)
+ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], 
+      DMC1.DF$total.count[(DMC1.DF$strain == "KAZ") & (DMC1.DF$stage == "Z")] )
+
+#p-value = 0.004148
+#Kaz Z are higher than Dom
+```
+
+Divide the Musculus strains into high and low recombining groups to characterize the difference in distributions. The p-values from the t.tests of the high vs low groups, indicate that the high recombining are significantly higher for the L cells (p value = r ttest.HighLow.L$p.value) while the Z cells, there is not a significant difference across the high and low groups (value = r ttest.HighLow.Z$p.value).
+
 
 
 <!--
+ Single Bivalent Patterns
 
 ## Total SC Results
 
@@ -1623,6 +1681,29 @@ how does this compare to variance of mid 5, bottom 5?
 # Predictions / tests for selection on Bivalent structure
 
 -->
+
+
+# Rapid male specific evolution
+
+list out the points which support rapid male specific evolution for MLH1 rates.
+
+number above bars are the raw counts for bivalent classes.
+
+Potential figure 2 (eventually). Try to make the figure taller.
+-- add more data to make sample sizes more equal.
+-- add space to indicate where female data is missing
+
+SKIVE male has lower proportion of 2CO compared to the hand measured, but it still looks like it's more than other strains.
+What's up with Lew females? there's lots of 2COs, also WSB female.
+
+This type of plot is another way to score heterochiasmy that gets around the sex chromosomes, because the data come from samples of bivalents and not averages of cells. If these data are random samples of bivalents, the X 
+
+
+ToDo: chisq tests for difference in proportions, 
+- within strain across sex,
+- males, across high and low groups
+- look at mouse level proportions
+
 
 
 # Note on Heterochiasmy Definition
@@ -2160,14 +2241,6 @@ The mouse specific scatter plots aren't show here because there are too bulky. T
 Making all of these scatter plots, allows us to look at the whole distributions of the data for each mouse. The distance of the red line from the black could be a indicator of slides or mice with slide specific technical noise.
 
 
-
-
-
-
-
-
-
-
 ```{r HetC.plot22, echo=FALSE,  fig.width=10, fig.height=5, fig.caption="Sex-Specific MLH1 average", eval=FALSE}
 
 
@@ -2198,7 +2271,14 @@ multiplot(kuku,bubu, cols=2)
 
 
 
-# Blank
+
+
+
+
+
+# Trash / Extra
+
+<!--
 
 
 ```{r trackcurBivData, echo=FALSE, eval=FALSE}
@@ -2272,81 +2352,6 @@ write.table(mice.missing.bivData, "~./MLH1repo/data/MissingMice_13.1.20.csv", se
 
 ```
 
-
-
-```{r barlett.test, echo=FALSE, eval=FALSE}
-
-#bartlett.test(total.count~strain, data=DMC1.DF[DMC1.DF$stage == "L",])#L (don't work with single KAZ L cell)
-bartlett.test(total.count~strain, data=DMC1.DF[DMC1.DF$stage == "Z",])#Z
-
-```
-
-Evidence for non-equal variance across strains for zygotene cells.
-
-Ideas for post-hoc tests, remove strains 1 at a time and test variance. Test variance for L cells without KAz.
-
-
-From ANOVA analysis strain is significant for Leptotene cells but not Zygotene cells. (but take these results with a grain of salt before assumptions are tested.)
-
-```{r DMC1_anova, echo=FALSE, warning=FALSE, eval=FALSE}
-#1. ANOVA, is there a difference in DMC1 counts across strains?
-mod.L <- lm(total.count ~ strain, data = DMC1.DF[DMC1.DF$stage == "L",])
-mod.Z <- lm(total.count ~ strain, data = DMC1.DF[DMC1.DF$stage == "Z",])
-
-l.anova <- anova(mod.L) #0.0002701 ***
-z.anova <- anova(mod.Z) #NS
-
-l.anova
-z.anova
-```
-
-
-```{r DMC1_t.tests, echo=FALSE, warning=FALSE, eval=FALSE}
-#2. t-tests for the DMC1 counts 
-#need to account for sample sizes when comparing t.tests (KAZ and G don't have equal across )
-#best case scnario -- more microscoping to get ~20 cells for each stage by strain combo
-
-
-#L vs Z (all species)
-#jj <- t.test(DMC1.male.data$total.count[DMC1.male.data$stage == "Z"], DMC1.male.data$total.count[DMC1.male.data$stage == "L"] )
-#p-value = 1.032e-05
-#not a valid interpertation
-
-
-#high vs low group (L)
-ttest.HighLow.L <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
-               DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )
-# p-value =  0.002145
-
-
-#high vs low group (Z)
-ttest.HighLow.Z <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
-               DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )
-# p-value = 0.6628
-
-
-#dom vs musc (L) (2 subsp vs)
-ttest.subsp.L <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "L")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "L")] )
-# p-value = 0.003016
-
-#dom vs musc (Z)
-ttest.subsp.Z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Z")] )
-#p-value = 0.09588
-
-#KAZ vs Dom (Z) (only 1 L cell)
-ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], 
-      DMC1.DF$total.count[(DMC1.DF$strain == "KAZ") & (DMC1.DF$stage == "Z")] )
-
-#p-value = 0.004148
-#Kaz Z are higher than Dom
-```
-
-Divide the Musculus strains into high and low recombining groups to characterize the difference in distributions. The p-values from the t.tests of the high vs low groups, indicate that the high recombining are significantly higher for the L cells (p value = r ttest.HighLow.L$p.value) while the Z cells, there is not a significant difference across the high and low groups (value = r ttest.HighLow.Z$p.value).
-
-
-# Trash / Extra
-
-<!--
 
 
 
