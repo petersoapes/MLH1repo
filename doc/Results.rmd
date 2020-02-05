@@ -608,17 +608,17 @@ XXX (old 1.)	HetC.MixedModel.HQ <- lme(mouse.metric ~ subsp*sex, data=DF.HetC.Mi
 4.	lm(mouse.metric ~ sex * strain, data=DF.HetC.MixedModel.HQ)  
 
 
-## MLH1 variance M1
+### MLH1 variance M1
 
 $$mouse metric  ~=~ subsp * sex + rand(strain)+ \varepsilon$$
 
-```{r M1.MLH1.var_cv, echo=FALSE}
+```{r M1.MLH1.var_cv, echo=FALSE, include=FALSE}
 #modeling within mouse variance
 #use  DF.HetC.MixedModel.HQ
 
 #HQ var.CO
 MLH1var_M1 <- lmer( var ~ subsp * sex +(1|strain), data=DF.HetC.MixedModel.HQ )
-summary(MLH1var_M1)
+#summary(MLH1var_M1)
 
 drop1(MLH1var_M1, test="Chisq") #interaction term NS
 #when switched to additive fixed, sex is very sig
@@ -630,7 +630,7 @@ as.data.frame( round(summary(MLH1var_M1)$coefficients, 6))
 
 #CV
 MLH1cv_M1 <- lmer( cV ~ subsp * sex +(1|strain), data=DF.HetC.MixedModel.HQ )
-summary(MLH1cv_M1)
+#summary(MLH1cv_M1)
 
 drop1(MLH1cv_M1, test="Chisq") #interaction term NS
 #when switched to additive fixed, sex is very sig
@@ -665,23 +665,23 @@ The fixed sex effect has the largest effect sizes. All are negative (for male). 
 The strain effects are only slightly significant for within mouse variance measures in the full dataset (includes low quality cells)
 
 
-## MLH1 variance M2
+### MLH1 variance M2
 
 $$mouse CO metric  ~=~ subsp * sex * strain + \varepsilon$$
-M2 slash M3
 
-```{r M2.MLH1.var, echo=FALSE}
+
+```{r M2.MLH1.var, echo=FALSE, include=FALSE}
 
 MLH1var_M3 <- lm( var ~ subsp * sex * strain,  data=DF.HetC.MixedModel.HQ )
 
-summary(MLH1var_M3)
+#summary(MLH1var_M3)
 anova(MLH1var_M3)  
 as.data.frame( round(summary(MLH1var_M3)$coefficients, 6))
 
 
 MLH1cv_M3 <- lm(cV ~ subsp*sex*strain, data=DF.HetC.MixedModel.HQ)
 
-summary(MLH1cv_M3)
+#summary(MLH1cv_M3)
 
 anova(MLH1cv_M3)
 as.data.frame( round(summary(MLH1cv_M3)$coefficients, 6))
@@ -690,14 +690,14 @@ as.data.frame( round(summary(MLH1cv_M3)$coefficients, 6))
 #Q12 var
 MLH1var_M3_Q12 <- lm( var ~ subsp*sex*strain,  data=Q12_mouse_table_w.Ages )
 
-summary(MLH1var_M3_Q12)
+#summary(MLH1var_M3_Q12)
 anova(MLH1var_M3_Q12)  
 as.data.frame( round(summary(MLH1var_M3_Q12)$coefficients, 6))
 
 #Q12 cv
 MLH1cv_M3_Q12 <- lm( cV ~ subsp*sex*strain, data=Q12_mouse_table_w.Ages )
 
-summary(MLH1cv_M3_Q12)
+#summary(MLH1cv_M3_Q12)
 anova(MLH1cv_M3_Q12)#sex large F
 
 as.data.frame( round(summary(MLH1cv_M3_Q12)$coefficients, 6))
@@ -707,15 +707,15 @@ as.data.frame( round(summary(MLH1cv_M3_Q12)$coefficients, 6))
 For LEW - females must have high variance,  for CV Lew strain alone has increased cv. Consider plotting the variance - and diving deeper into this pattern
 Most of the strain specific differences in within mouse variance go away in the Q12 dataset.
 
-## MLH1 variance M3
+### MLH1 variance M3
 
 $$mouse \ CO \ metric  ~=~ subsp * sex * strain + \varepsilon$$
 
-```{r M3.MLH1.var, echo=FALSE}
+```{r M3.MLH1.var, echo=FALSE, include=FALSE}
 
 MLH1var_M4 <- lm( var ~ sex * strain,  data=DF.HetC.MixedModel.HQ )
 
-summary(MLH1var_M4)
+#summary(MLH1var_M4)
 
 drop1(MLH1var_M4, test="Chisq")
 anova(MLH1var_M4)
@@ -724,7 +724,8 @@ as.data.frame( round(summary(MLH1var_M4)$coefficients, 6))
 
 MLH1cv_M4 <- lm(cV ~ sex * strain, data=DF.HetC.MixedModel.HQ)
 
-summary(MLH1cv_M4)
+#summary(MLH1cv_M4)
+
 anova(MLH1cv_M4)  
 as.data.frame( round(summary(MLH1cv_M4)$coefficients, 6))
 
@@ -732,7 +733,7 @@ as.data.frame( round(summary(MLH1cv_M4)$coefficients, 6))
 ### Q12 var
 MLH1var_M4_Q12 <- lm( var ~ sex*strain, data=Q12_mouse_table_w.Ages )
 
-summary(MLH1var_M4_Q12)
+#summary(MLH1var_M4_Q12)
 
 anova(MLH1var_M4_Q12)
 as.data.frame( round(summary(MLH1var_M4_Q12)$coefficients, 6))
@@ -741,14 +742,13 @@ as.data.frame( round(summary(MLH1var_M4_Q12)$coefficients, 6))
 #Q12 cv
 MLH1cv_M4_Q12 <- lm( cV ~ sex*strain, data=Q12_mouse_table_w.Ages )
 
-summary(MLH1cv_M4_Q12)
+#summary(MLH1cv_M4_Q12)
+
 anova(MLH1cv_M4_Q12)
 
 as.data.frame( round(summary(MLH1cv_M4_Q12)$coefficients, 6))
 
 ```
-
-
 
 
 #### Summary witin mouse Variance
@@ -852,22 +852,6 @@ MLH1_data$strain<- factor(MLH1_data$strain, levels =c("G", "LEW","WSB",
 MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
 
 
-#never make boxplot with mouse on X. mouse level boxplots should be faceted by subspecies 
-#can't re-order the miceagg
-#ff <- ggplot(MLH1_data[order(MLH1_data$strain), ], 
-#             aes(x = as.factor(mouse), y = adj_nMLH1.foci, fill= strain ))+geom_boxplot()+ ggtitle("Boxplots of MLH1 distributions by mouse") + theme(axis.title.x=element_blank(),
-#        axis.text.x=element_blank(),
-#        axis.ticks.x=element_blank()) +scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue", #"coral4","coral1", "#E69F00","red", "red4", "red3","purple","grey1", "grey", 
-#        "grey","grey","grey",  "grey","grey","grey" )) +
-# ylim( c((min(MLH1_data$adj_nMLH1.foci)-3) ), (max(MLH1_data$adj_nMLH1.foci)+5)) + facet_wrap(species~ sex, scales="free")
-#don't show M.musculus by mouse
-#scale_fill_manual(values=c("#56B4E9", "cadetblue", "lightblue", "coral4","coral1", "#E69F00","red", "red3", "red4","orange","yellow", "yellow3", 
- #       "green","green4","grey",  "grey","grey","grey" )) +
-
-#order MLH1_data by strain!!
-#colors_of_strains, colors .. 
-#there is no order to 'mouse' so it looks shitty
-
 justMuscu <- ggplot(MLH1_data[MLH1_data$species == "M.musculus", ])+
   geom_boxplot(aes(x = as.factor(strain), y = adj_nMLH1.foci, fill= strain,alpha=0.5) )+ ggtitle("Boxplots of MLH1 distributions") + theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
@@ -897,7 +881,9 @@ ss <- ss   + facet_wrap(~ sex, scales="free")
 ```{r table.for.plot, echo=FALSE}
 #why do I add in a different table?
 
-AP_strain.table.HQ <- ddply(MLH1_data, c("strain", "sex"), summarise,
+#this move this to the setup file
+
+strain.table.HQ_Fig <- ddply(MLH1_data, c("strain", "sex"), summarise,
                         Nmice =length(unique(mouse)),
                         Ncells  =length(nMLH1.foci),
                         mean_co =as.numeric(format(round(mean(nMLH1.foci), 3 ), nsmall=3) ),
@@ -913,20 +899,25 @@ AP_strain.table.HQ <- ddply(MLH1_data, c("strain", "sex"), summarise,
 
 ```{r Fig1, echo=FALSE, warning=FALSE}
 
-Fig1_v1_strain <- ggplot(AP_strain.table.HQ, aes(y=mean_co, x=strain, color=strain, shape=sex))+ 
+#might need to nudge the X values
+
+Fig1_v1_strain <- ggplot(strain.table.HQ_Fig, aes(y=mean_co, x=strain, color=strain, shape=sex))+ 
   ylab("Average MLH1 Foci per Cell")+
 
   geom_point(aes(shape = sex), size=3, position=position_dodge(.5))+
-  geom_errorbar(aes(ymin=mean_co-(se*2), ymax=mean_co+(se*2) ), width=.3, position = position_dodge(.5), size=1.001)+
+
+    geom_errorbar(aes(ymin=mean_co-(se*2), ymax=mean_co+(se*2) ), width=.3, position = position_dodge(.5), size=1.001)+
   
   ylim(c(18, 35))+
  scale_color_manual(values=colors_of_strains)+ 
-  theme(legend.position="none",
+
+    theme(legend.position="none",
   panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
   panel.background = element_blank(), axis.line=element_line(colour = "black"),
   axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())+
 #remove y labfor male 
-  #segments
+ 
+   #segments
   annotate("segment", x=.75, xend=4.5, y=19.5, yend=19.5, colour="black", size=1)+
   #Musc
   annotate("segment", x= 5.5, xend=10.2, y=19.5, yend=19.5, colour="black", size=1)+
@@ -956,14 +947,16 @@ Follow up on this finding -- included more strains which were excluded from the 
 
 -- what's the driving question for this section -- 
 
-> is there a strain effect in Dom?
+> Is there a strain effect in Dom?
 
 > How different are the Musc strains?
 
 test a model for fixed effects of strains within musc. The purpose is to distinguish musc strains from low 'Dom' level strains. 
 
 
-```{r male.show.plots, echo=FALSE}
+```{r male.show.plots, echo=FALSE, fig.width = 4, fig.height=2.5}
+#try customize the plot size
+
 
 male_mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
                             subsp.y,subsp.x,
@@ -1013,6 +1006,8 @@ Dom.male.plot
 
 ```
 
+(Try removing the alpha legend)  
+
 This is the table and plot of new Musc strains
 
 `r kable(table( droplevels( Musc.male_mouse.av$strain)  ))`
@@ -1034,11 +1029,10 @@ bhh11 <- lm(mean_co ~ subsp * strain, data= fomo.male_mouse.av)
 #bhh11$coefficients 
 
 booo <- summary(bhh11)
-booo$coefficients
 
 lm.male.strain <- lm(mean_co ~ strain, data= fomo.male_mouse.av)
 ll <- summary(lm.male.strain)
-ll$coefficients
+
 #even when all the other male strains are added -- the same result; PWD, MSM and SKIVE strain effects are significant.
 ```
 
@@ -1248,9 +1242,13 @@ MELT_Chrm.Proportion <- melt(skinny.mouse.level[,c(  "mouse", "ncells","boxs.IDd
 
 #MELT_Chrm.Proportion <- MELT_Chrm.Proportion[!(is.na(MELT_Chrm.Proportion$value) | MELT_Chrm.Proportion$value==0), ]
 
+
+#no filename for add mouse, strain subsp
 MELT_Chrm.Proportion <- add_category(MELT_Chrm.Proportion)
 MELT_Chrm.Proportion <- add_sex(MELT_Chrm.Proportion)
 MELT_Chrm.Proportion <- add_strain(MELT_Chrm.Proportion)
+
+
 
 #then this DF has to be summarized into categories
 chrm.class.category_MELT <- ddply(MELT_Chrm.Proportion, c("strain","sex", "variable"), summarise,
@@ -1260,9 +1258,39 @@ chrm.class.category_MELT <- ddply(MELT_Chrm.Proportion, c("strain","sex", "varia
 )
 
 
+
+#can't apply function use this
+chrm.class.category_MELT$subsp <- ifelse(grepl("WSB", chrm.class.category_MELT$strain), "Dom", 
+             ifelse(grepl("G", chrm.class.category_MELT$strain), "Dom",
+                 ifelse(grepl("LEW", chrm.class.category_MELT$strain), "Dom", 
+                ifelse(grepl("PERC", chrm.class.category_MELT$strain), "Dom",
+                                                            
+          ifelse(grepl("CAST", chrm.class.category_MELT$strain), "Cast",
+              ifelse(grepl("HMI", chrm.class.category_MELT$strain), "Cast",
+                                                                                 
+                                       ifelse(grepl("MSM", chrm.class.category_MELT$strain), "Mol", #added Mol as distinct subsp class
+                                      ifelse(grepl("MOLF", chrm.class.category_MELT$strain), "Mol",    
+            ifelse(grepl("PWD", chrm.class.category_MELT$strain), "Musc", 
+                     ifelse(grepl("CZECH", chrm.class.category_MELT$strain), "Musc", 
+                 ifelse(grepl("AST", chrm.class.category_MELT$strain), "Musc",     
+                      ifelse(grepl("TOM", chrm.class.category_MELT$strain), "Musc",  
+                   ifelse(grepl("SKIVE", chrm.class.category_MELT$strain), "Musc",
+                        ifelse(grepl("KAZ", chrm.class.category_MELT$strain), "Musc",
+                                                                                                                                                
+                                                                                                                                                
+             ifelse(grepl("SPRET", chrm.class.category_MELT$strain), "Spretus",
+               ifelse(grepl("SPIC", chrm.class.category_MELT$strain), "Spic",  "other"))))))))))))))))
+  
+
+chrm.class.category_MELT$subsp <- factor(chrm.class.category_MELT$subsp, ordered = TRUE,levels =c( "Dom",
+                                                                 "Cast",
+                                                                 "Musc",
+                                                                 "Mol",
+                                                                 "Spretus","Spic",
+                                                                 "other") )
 #ggplot
 
-chrm.class.barplot <- ggplot(data = chrm.class.category_MELT, aes(y = mean.percent.type, x = strain, fill=as.factor(variable)) ) + geom_col(position = "dodge")+ggtitle("Chrm Proportions from BivData Data")+ylim(c(0,1)) + facet_wrap(~sex, scales = "free")
+chrm.class.barplot <- ggplot(data = chrm.class.category_MELT, aes(y = mean.percent.type, x = strain, fill=as.factor(variable)) ) + geom_col(position = "dodge")+ggtitle("Chrm Proportions from BivData Data")+ylim(c(0,1)) + facet_wrap(sex~subsp, scales = "free")
 chrm.class.barplot
 
 ```
@@ -2520,7 +2548,7 @@ I used the mixed model with the lme() for the full Curated BivData and long bivd
 
 $$mouse \ average \ SC  \ length ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
-#### HetC_M1
+#### SC_HetC_M1
 
 Insert the results for the MMs using the dependant variable 1CO - use the Mixed model (lmer), for all of the meterics (pooled SC, 1CO 2CO ect)
 
@@ -2574,7 +2602,7 @@ as.data.frame(round(summary(SCLength_long.biv_MM.M1)$coefficients, 6))
 ```
 
 
-#### HetC_M2
+#### SC_HetC_M2
 
 All fixed and all interactions
 
@@ -2589,7 +2617,7 @@ All fixed and all interactions
 
 
 
-#### HetC_M3
+#### SC_HetC_M3
 
 ```{r HetC_M3, echo=FALSE}
 
@@ -2636,7 +2664,7 @@ The general predictions across the males and subspecies based on th above MLH1 r
 
 For positive correlation traits/metrics
 
-i) in DOM strains, low to no difference across strains  
+i) in DOM strains, low to no difference across strains
 
 ii) in Musc, PWD > SKIVE > KAZ, CZECH all the others  
 
@@ -2657,10 +2685,17 @@ C.2) sis-co-ten metric ... (what about the clustering?)
 
 C.3) telomere and centromere distances ... 
 
+M1 glm model for fixed strain effect across male averages.
 
-$$mouse \ average \ SC  \ length ~=~ rand(strain) + \varepsilon $$
+$$mouse \ average \ SC  \ length ~=~ strain + \varepsilon $$
+M2 anova for glm, of each subset, does at least one of the strains differ from others?
 
-$$mouse \ average \ IFD \ trait  ~=~ rand(strain) + \varepsilon $$
+
+M3 logistic regression, can a bivalent metric predict the high or low group?
+
+$$ log( strain ~=~ \ mouse \ average \ SC  \ length ) $$
+
+
 The IFD traits are:  
 
 - IFD_ABS  
@@ -3081,7 +3116,7 @@ When all male mice are used, the predictive power is greater, than when just the
 In a logistic regression, mouse average SC length is slightly predictive telling if a mouse is in a high or low Rec strain.  I couldn't get the Mixed models working for the male polymorphism predictions...
 
 
-# IFD
+# Q1. IFD
 
 
 Brief lit review for IFD / interference expectations  
@@ -3184,7 +3219,7 @@ Mixed model analysis for IFD (interference), the first set of models are made wi
 
 $$mouse \ average \ IFD ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
-
+### IFD_HetC_M1
 
 ```{r HetC_M1_IFD_many.metrics, echo=FALSE}
 #get a list of the old mice to double check
@@ -3216,7 +3251,6 @@ anova(lmer.IFD.RAW_MM.M1) # also F values
 
 exactRLRT(lmer.IFD.RAW_MM.M1)#random strain not sig
 as.data.frame(round(summary(lmer.IFD.RAW_MM.M1)$coefficients, 6))#these Dont return p values for the fixed effects
-
 ```
 
 Sex is a slightly significant factor for raw and normalized IFD. 
@@ -3228,6 +3262,20 @@ show a raw plot, and norm plot and a scatter plot
 
 
 I tested 2 versions of the mixed model for this flavor of trait, raw IFD and normalized IFD measure. The tables below are from anova( for the lmer model ). Random effect of strain is not significant for ABS IFD, and only slightly significant for the IFD.PER
+
+### IFD_HetC_M2
+
+```{r IFD_HetC_M2, echo=FALSE}
+
+```
+
+
+### IFD_HetC_M3
+
+```{r IFD_HetC_M3, echo=FALSE}
+
+```
+
 
 
 ## Strain Comparisons
@@ -3656,206 +3704,8 @@ The random strain effect was tested for raw and normalized IFD, neither are sign
 -->
 
 
-## Male Polymorphism Prediction
 
-The polymorphism frame-work
-
-> prediction A, Is the Male polymorphism Prediction met? High rec strains have shorter IFDs?
-
-logistic regression
-$$  Rec \ Group ~=~ mouse \ average \ IFD $$
-For these tests I am looking at the single IFD measure from 2CO bivalents.
-
-For the logistic regression, comparing High and Low groups (there needs to be 2 groups)
-I think I should compare 2 sets of logistic models, where SKIVE (intermediate gwRR), is in high and low.
-
-```{r male.IFD_strain, echo=FALSE}
-
-#make table
-Musc_male_IFD_table <- ddply(Curated_BivData_male[Curated_BivData_male$hand.foci.count == 2,], c("strain"), summarise,
-                             
-                        n_obs = length(Obj.ID),
-                         mean_IFD = mean(IFD1_ABS, na.rm=TRUE),
-                        mean_IFD.nrm = mean(IFD1_PER,na.rm=TRUE)
-                         )
-
-
-        #           mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-         #         n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
-                  
-      #             mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-      #              n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
-                  
-      #             mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-      #             n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
-                  
-      #            mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-      #            n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
-                          
-
-```
-
-
-
-
-
-```{r IFD.log.reg, echo=FALSE, eval=FALSE}
-
-# LOGISTIC REGRESSION FOR IFD
-
-
-log.reg_IFD_ABS_mouse.av <- glm(Rec.group ~ mean_IFD.2CO_ABS,
-              data=mouse.avs_4MM[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc"),], family=binomial(link="logit"))
-
-summary(log.reg_IFD_ABS_mouse.av)# 0.0366 *
-
-log.reg_IFD_PER_mouse.av <- glm(Rec.group ~ mean_IFD.2CO_PER, 
-                            data=mouse.avs_4MM[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc"),], family=binomial(link="logit"))
-
-summary(log.reg_IFD_PER_mouse.av)#NS
-
-### Single Bivalent levels
-
-log.reg_IFD_ABS_single.biv <- glm(Rec.group ~ IFD1_ABS, 
-              data=Curated_BivData[(Curated_BivData$sex == "male") & (Curated_BivData$subsp == "Musc"),], family=binomial(link="logit"))
-summary(log.reg_IFD_ABS_single.biv)
-
-log.reg_IFD_PER_single.biv <- glm(Rec.group ~ IFD1_PER, 
-              data=Curated_BivData[(Curated_BivData$sex == "male") & (Curated_BivData$subsp == "Musc"),], family=binomial(link="logit"))
-summary(log.reg_IFD_PER_single.biv)
-```
-
-
-```{r t.test_IFD_mouse.av, echo=FALSE, eval=FALSE}
-
-#t.test for IFD
-#mouse.av - the mouse average IFD is from just 2CO
-t.test_mouse.av.IFD_ABS <- t.test(
-  mouse.avs_4MM$mean_IFD.2CO_ABS[(mouse.avs_4MM$Rec.group == 1)],
-  
-  mouse.avs_4MM$mean_IFD.2CO_ABS[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc") &(mouse.avs_4MM$Rec.group == 0)] 
-  )
-  
-t.test_mouse.av.IFD_PER <- t.test(
-  
-  mouse.avs_4MM$mean_IFD.2CO_PER[(mouse.avs_4MM$Rec.group == 1)],
-  
-  mouse.avs_4MM$mean_IFD.2CO_PER[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc") &(mouse.avs_4MM$Rec.group == 0)] 
-  )
-
-```
-
-
-```{r t.test_IFD,echo=FALSE}
-
-#Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
-#                                    ifelse(grepl("MSM male", Curated_BivData$category), 1, 0))
-
-#Curated_BivData <- add_IFD(Curated_BivData)
-#THIS SHOULD ALREADY BE ADDED
-
-#single biv level
-
-Rec.group_IFD.ABS_test <- t.test(Curated_BivData$IFD1_ABS[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc") & (Curated_BivData$Rec.group ==0 ) & (Curated_BivData$hand.foci.count == 2 )],
-                                 
-     Curated_BivData$IFD1_ABS[ ( Curated_BivData$Rec.group ==1 ) & (Curated_BivData$hand.foci.count == 2 )]
-)
-Rec.group_IFD.ABS_test$p.value
-
-## PER
-
-Rec.group_IFD.PER_test <- t.test( Curated_BivData$IFD1_PER[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc") & (Curated_BivData$Rec.group ==0 )& (Curated_BivData$hand.foci.count == 2 )],
-                                  
-     Curated_BivData$IFD1_PER[ ( Curated_BivData$Rec.group ==1 ) &  (Curated_BivData$hand.foci.count == 2 )]
-)#p-value = 0.04231
-
-Rec.group_IFD.PER_test$p.value
-
-
-
-#Single Biv Leve
-single.biv.ABS.t.test <- t.test( Curated_BivData$IFD1_ABS[Curated_BivData$Rec.group == 1],
-      
-         Curated_BivData$IFD1_ABS[(Curated_BivData$sex == "male") & (Curated_BivData$subsp == "Musc") &(Curated_BivData$Rec.group == 0)] )
-                                 
-                                 
-single.biv.IFD_PER.t.test <- t.test( Curated_BivData$IFD1_PER[Curated_BivData$Rec.group == 1],
-      
-         Curated_BivData$IFD1_PER[(Curated_BivData$sex == "male") & (Curated_BivData$subsp == "Musc") &(Curated_BivData$Rec.group == 0)] )
-```
-
-
-```{r show.IFD, echo=FALSE}
-
-biv.IFDs_by_group <- ggplot(Curated_BivData[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc"),], aes(y = IFD1_ABS, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
-  geom_jitter(alpha=.2)+
-  ggtitle("Interfocal Distances, ABS")+
-  scale_color_manual(values=colors_of_strains)+ facet_wrap(~Rec.group, scales = "free")+ylim(c(0,100))
-biv.IFDs_by_group
-#+theme(legend.position="none")+
-
-
-biv.IFDs_PER_by.group <- ggplot(Curated_BivData[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc"),], aes(y = IFD1_PER, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
-  geom_jitter(alpha=.2)+
-  ggtitle("Interfocal Distances, ABS \n Low=0, High=1")+
-  scale_color_manual(values=colors_of_strains)+ facet_wrap(~Rec.group, scales = "free")+theme(legend.position="none")+ylim(c(0,1))
-biv.IFDs_PER_by.group
-
-
-#oo.ifd <- ggplot(mouse.avs_4MM[ ( mouse.avs_4MM$sex == "male" ) & (mouse.avs_4MM$subsp == "Musc"),], aes(y = mean_IFD.2CO_PER, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
-#  geom_jitter(alpha=.2)+
-#  ggtitle("Interfocal Distances, ABS")+
-#  scale_color_manual(values=colors_of_strains)+ facet_wrap(~Rec.group, scales = #"free")+ylim(c(0,1))+theme(legend.position="none")
-
-```
-
-Re-order the above figure if possible.
-
-
-Neither t.test are sig for both the ABS and PER when I test just the Musc strains.
-The above t.tests are breaking the knitr
-
-The t.tests for IFD1s at the bivalent level for the high and low musc males are significant.
-
-
-
-```{r IFD.poly_log.reg, echo=FALSE, eval=FALSE}
-#This might be a duplicate code chunk
-#test. for the high vs low strains and IFD
-#mouse.avs_4MM_male
-
-mouse.avs_4MM_M.male <- mouse.avs_4MM_male[mouse.avs_4MM_male$subsp == "Musc", ]
-
-log.reg_IFD.ASB <- glm(Rec.group ~ mean_IFD.2CO_ABS, 
-                            data=mouse.avs_4MM_M.male, family=binomial(link="logit"))
-#slightly sig
-
- #summary(log.reg_IFD.ASB)
-
-log.reg_IFD.PER <- glm(Rec.group ~ mean_IFD.2CO_PER, 
-                            data=mouse.avs_4MM_M.male, family=binomial(link="logit"))
- #summary(log.reg_IFD.PER)
-
-#not significant
-```
-
-
-None of the logistic regression models for ABS or PER IFD lengths are significant, even when just the Musc strains are used.
-
-
-
-Post-hoc comparisons ideas?
-
-Preliminary results from an independent data set indicated that PWD had longer IFDs, which goes against the simple prediction of more COs ~ denser spacing of foci on the same bivalent. This also indicated that interference distance may evolved in the house mouse complex.
-
-
-> Prediction B, Is there evidence for the alternative IFD meansure
-
-
-
-
-# General CO Positions
+# Q1. General CO Positions
 
 There are a few traits that fall within the CO positions  
 
@@ -3888,7 +3738,9 @@ C.2) sis-co-ten metric will be maximized in higher recombining strains .. becaus
 
 C.3) telomere and centromere distances will be shorter in low rec strains
 
-# Normalized 1CO positions
+# Q1. Normalized 1CO positions
+
+**for all the test blocks below, integrate the 3 other metrics; siscoten, telomere, centromere distance.
 
 
 ```{r CO.positions.figs, echo=FALSE}
@@ -4065,8 +3917,18 @@ single.biv.1CO_pos_t.test <- t.test(
 
 the mouse average foci1 pos is more sig in t.test, but not log regression... (is something wrong?) Check the mouse averages for the F1_pos, there might be an outlier or mouse with v.few observations.
 
+#### Nrm_1COpos_HetC_M1
+
+
+#### Nrm_1COpos_HetC_M2
+
+
+#### Nrm_1COpos_HetC_M3
+
 
 ### Siscoten
+
+
 
 The metric Sis-co-ten measures the amount of sister cohesion connected to the other pole.
 
@@ -4126,7 +3988,7 @@ jitter_siscoten_WSBm <- ggplot(data = Curated_BivData[Curated_BivData$category =
 #jitter_siscoten_WSBm
 ```
 
-Males have much clearer separation of siscoten across chrm classes. This is emphasized when SC length is also plotted. It seems like musc males have higher amounts of this metric compared to Dom males (which might)
+Males have much clearer separation of siscoten across chrm classes. This is emphasized when SC length is also plotted. It seems like musc males have higher amounts of this metric compared to Dom males.
 
 
 To formally test the differences in sis-co-ten I plan to write a sub sampling / permutation loop to compare the mean(sis.co.ten) of the same numbers of bivalents of the same class.
@@ -4622,11 +4484,14 @@ summary(aov(male.modo))
 ```
 
 
-### Male Polymorphism Prediction
+# Q2 SC
 
 I didn't have a good prediction for the male polymorphism... So I'll just do post-hoc comparisons for the groups to test if they are different.
 
-```{r male.Nrm1CO_strain, echo=FALSE}
+
+
+
+```{r male.Nrm1CO_strain, echo=FALSE, eval=FALSE}
 
 
 #isolate all musc
@@ -4659,6 +4524,401 @@ Musc_male_1COpos_table <- ddply(Curated_BivData_male[Curated_BivData_male$hand.f
                           
 
 ```
+
+
+## SC_male.poly_glm
+
+remeber the 3 predictions for subsp;
+
+i) Dom, no difference  
+ 
+ii) Musc, PWD and SKIVE greater than others
+
+iii) Mol, MSM > MOLF
+
+
+
+```{r Q2.SC.ploy.mal, echo=FALSE}
+# 1 way anova, is at least 1 strain different from the rest?
+# given a lm, how sig is the strain effect
+
+#1. determine which strain effects are sig
+#use mouse biv average
+#Male.poly.Mouse.Table_BivData_4MM
+
+
+glm1.SC.male.poly <- glm(mean_SC ~ subsp * strain, data= Male.poly.Mouse.Table_BivData_4MM)
+#summary(glm1.SC.male.poly) 
+#SC many strains are different (more than the gwRR)
+#subsps are sig
+
+glm2.SC.male.poly <- glm(mean_SC ~ strain, data= Male.poly.Mouse.Table_BivData_4MM)
+#summary(glm2.SC.male.poly) 
+
+
+#Dom
+glm_SC.male_Dom <- glm(mean_SC ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Dom",])
+
+#summary(glm_SC.male_Dom)  #ALL strain are sig
+#both G and LEW have significant mean.SC, doesn't meet predictions
+
+#Musc
+glm_SC.male_Musc <- glm(mean_SC ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",])
+
+#summary(glm_SC.male_Musc)
+
+#Mol
+glm_SC.male_Mol <- glm(mean_SC ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",])
+
+#summary(glm_SC.male_Mol)
+
+
+#Logistic regressions
+
+log.SC.male.poly <- glm(Rec.group ~ mean_SC, 
+              data=Male.poly.Mouse.Table_BivData_4MM,  family=binomial(link="logit"))
+
+                #Curated_BivData[(Curated_BivData$sex == "male") & (Curated_BivData$subsp == "Musc"),],
+
+#summary(log.SC.male.poly)
+
+
+log.SC.male.poly_musc <- glm(Rec.group ~ mean_SC, 
+              data=Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",],  family=binomial(link="logit"))
+
+#summary(log.SC.male.poly_musc)
+#not sig -- when just looking at Musc
+
+#significant in predicting group
+log.SC.male.poly_mol <- glm(Rec.group ~ mean_SC, 
+              data=Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",],  family=binomial(link="logit"))
+
+#summary(log.SC.male.poly_mol)
+#not sig -- when just looking at Mol
+```
+
+
+#### Q2 SC by class
+
+I think these comparisons should be done with the **Bivalent observations**
+
+The logistic regression showed rec groups could be predicted by SC length - re-run them while seperating out by chrm class
+
+```{r Q2.SC.Chrm.Class, echo=FALSE}
+
+#1CO
+log.SC_male_1CO.poly <- glm(Rec.group ~ mean.SC_1CO,
+              data=Male.poly.Mouse.Table_BivData_4MM,  family=binomial(link="logit"))
+#summary(log.SC_male_1CO.poly)
+
+log.SC_male_1CO.Musc <- glm(Rec.group ~ mean.SC_1CO,
+              data=Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",],  family=binomial(link="logit"))
+#summary(log.SC_male_1CO.Musc)
+#double check these directions
+
+log.SC_male_1CO.Mol <- glm(Rec.group ~ mean.SC_1CO,
+              data=Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",],  family=binomial(link="logit"))
+
+#summary(log.SC_male_1CO.Mol)
+
+
+#2CO
+log.SC_male_2CO.poly <- glm(Rec.group ~ mean.SC_2CO,
+              data=Male.poly.Mouse.Table_BivData_4MM,  family=binomial(link="logit"))
+#summary(log.SC_male_2CO.poly)
+
+
+log.SC_male_2CO.Musc <- glm(Rec.group ~ mean.SC_2CO,
+              data=Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",],  family=binomial(link="logit"))
+#summary(log.SC_male_2CO.Musc)
+
+
+log.SC_male_2CO.Mol <- glm(Rec.group ~ mean.SC_2CO,
+              data=Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",],  family=binomial(link="logit"))
+#summary(log.SC_male_2CO.Mol)
+
+
+#3CO
+log.SC_male_3CO.poly <- glm(Rec.group ~ mean.SC_3CO,
+              data=Male.poly.Mouse.Table_BivData_4MM,  family=binomial(link="logit"))
+#summary(log.SC_male_3CO.poly)
+
+
+log.SC_male_3CO.Musc <- glm(Rec.group ~ mean.SC_3CO,
+              data=Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",],  family=binomial(link="logit"))
+#summary(log.SC_male_3CO.Musc)
+
+
+log.SC_male_3CO.Mol <- glm(Rec.group ~ mean.SC_3CO,
+              data=Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",],  family=binomial(link="logit"))
+#summary(log.SC_male_3CO.Mol)
+
+```
+
+
+These are the plots of the logistic regression.
+
+
+```{r Q2.SC.log.regression.show.plots, echo=FALSE}
+
+plot.blah.mouse.av <- ggplot(Male.poly.Mouse.Table_BivData_4MM,
+                          aes(x=mean_SC, y=Rec.group)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("Mouse av. SC (pooled) \nHigh vs low gwRR strains")+facet_wrap(~subsp)
+plot.blah.mouse.av
+
+plot.logReg.mouse.av_1CO <- ggplot(Male.poly.Mouse.Table_BivData_4MM,
+                          aes(x=mean.SC_1CO, y=Rec.group)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("Mouse av. SC 1CO \nHigh vs low gwRR strains")+facet_wrap(~subsp)
+plot.logReg.mouse.av_1CO
+
+
+plot.logReg.mouse.av_2CO <- ggplot(Male.poly.Mouse.Table_BivData_4MM,
+                          aes(x=mean.SC_2CO, y=Rec.group)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("Mouse av. SC 2CO \nHigh vs low gwRR strains")+facet_wrap(~subsp)
+plot.logReg.mouse.av_2CO
+
+
+
+```
+
+
+the plot of log regression for 1COs is wacky/reversed. Musc -- the mean SC lengths for 1COs are longer in the low group 
+
+
+> **Summary**
+
+When the SC lengths are divided by co number / class, -- difference in direction of the logistic regression. I think the shorter 1CO bivalents in the high rec strain reflects the clustering of groups by SC length. (IE the scatter plots of SC length, binned by chrm class on the X).
+
+
+Each point is a mouse average SC. When all bivalents are pooled, the logistic regression SC lengths predict the groups. When the data is divided by CO number, 1CO's have a higher SC length in the low group - in the low group more chrms, including the longer ones have 1CO - whereas in the high group, only shorter chrms (SC) are in the 1CO class.
+For the 2CO class of bivalents - all the SC are longer, the high group averages were longer than the low.
+
+ and the mean 2COs SC are higher in the high strains
+(this must have something to do with the physical size effect)
+
+
+
+
+
+# Q2 IFD
+
+
+this is the Q2 prediction for IFD / interference
+
+> prediction A, Is the Male polymorphism Prediction met? High rec strains have shorter IFDs?
+
+
+B.1) **Interfernce/IFD** will be shorter in high Rec strains. Use IFD_PER to account for SC length differences.  
+
+1. glm across subsp
+
+2. anova within subsp
+
+3. logistic regression for musc (or all males)
+
+
+```{r Q2.IFD, echo=FALSE}
+
+#glm 
+
+
+
+#anova for glm
+
+
+#logistic regression for high and low group
+
+
+```
+
+
+> Male Polymorphism Prediction
+
+The polymorphism frame-work
+
+test 3. logistic regression
+$$  Rec \ Group ~=~ mouse \ average \ IFD $$
+For these tests I am looking at the single IFD measure from 2CO bivalents.
+
+For the logistic regression, comparing High and Low groups (there needs to be 2 groups)
+I think I should compare 2 sets of logistic models, where SKIVE (intermediate gwRR), is in high and low.
+
+```{r male.IFD_strain, echo=FALSE, eval=FALSE}
+#integrate this into the setup scripts
+
+#make table
+Musc_male_IFD_table <- ddply(Curated_BivData_male[Curated_BivData_male$hand.foci.count == 2,], c("strain"), summarise,
+                             
+                        n_obs = length(Obj.ID),
+                         mean_IFD = mean(IFD1_ABS, na.rm=TRUE),
+                        mean_IFD.nrm = mean(IFD1_PER,na.rm=TRUE)
+                         )
+
+```
+
+
+
+
+
+```{r IFD.log.reg, echo=FALSE, eval=FALSE}
+
+# LOGISTIC REGRESSION FOR IFD
+
+log.reg_IFD_ABS_mouse.av <- glm(Rec.group ~ mean_IFD.2CO_ABS,
+              data=mouse.avs_4MM[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc"),], family=binomial(link="logit"))
+
+summary(log.reg_IFD_ABS_mouse.av)# 0.0366 *
+
+log.reg_IFD_PER_mouse.av <- glm(Rec.group ~ mean_IFD.2CO_PER, 
+                            data=mouse.avs_4MM[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc"),], family=binomial(link="logit"))
+
+summary(log.reg_IFD_PER_mouse.av)#NS
+
+### Single Bivalent levels
+
+log.reg_IFD_ABS_single.biv <- glm(Rec.group ~ IFD1_ABS, 
+              data=Curated_BivData[(Curated_BivData$sex == "male") & (Curated_BivData$subsp == "Musc"),], family=binomial(link="logit"))
+summary(log.reg_IFD_ABS_single.biv)
+
+log.reg_IFD_PER_single.biv <- glm(Rec.group ~ IFD1_PER, 
+              data=Curated_BivData[(Curated_BivData$sex == "male") & (Curated_BivData$subsp == "Musc"),], family=binomial(link="logit"))
+summary(log.reg_IFD_PER_single.biv)
+```
+
+
+```{r t.test_IFD_mouse.av, echo=FALSE, eval=FALSE}
+
+#t.test for IFD
+#mouse.av - the mouse average IFD is from just 2CO
+t.test_mouse.av.IFD_ABS <- t.test(
+  mouse.avs_4MM$mean_IFD.2CO_ABS[(mouse.avs_4MM$Rec.group == 1)],
+  
+  mouse.avs_4MM$mean_IFD.2CO_ABS[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc") &(mouse.avs_4MM$Rec.group == 0)] 
+  )
+  
+t.test_mouse.av.IFD_PER <- t.test(
+  
+  mouse.avs_4MM$mean_IFD.2CO_PER[(mouse.avs_4MM$Rec.group == 1)],
+  
+  mouse.avs_4MM$mean_IFD.2CO_PER[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc") &(mouse.avs_4MM$Rec.group == 0)] 
+  )
+
+```
+
+
+```{r t.test_IFD,echo=FALSE}
+
+#Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
+#                                    ifelse(grepl("MSM male", Curated_BivData$category), 1, 0))
+
+#Curated_BivData <- add_IFD(Curated_BivData)
+#THIS SHOULD ALREADY BE ADDED
+
+#single biv level
+
+Rec.group_IFD.ABS_test <- t.test(Curated_BivData$IFD1_ABS[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc") & (Curated_BivData$Rec.group ==0 ) & (Curated_BivData$hand.foci.count == 2 )],
+                                 
+     Curated_BivData$IFD1_ABS[ ( Curated_BivData$Rec.group ==1 ) & (Curated_BivData$hand.foci.count == 2 )]
+)
+Rec.group_IFD.ABS_test$p.value
+
+## PER
+
+Rec.group_IFD.PER_test <- t.test( Curated_BivData$IFD1_PER[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc") & (Curated_BivData$Rec.group ==0 )& (Curated_BivData$hand.foci.count == 2 )],
+                                  
+     Curated_BivData$IFD1_PER[ ( Curated_BivData$Rec.group ==1 ) &  (Curated_BivData$hand.foci.count == 2 )]
+)#p-value = 0.04231
+
+Rec.group_IFD.PER_test$p.value
+
+
+
+#Single Biv Leve
+single.biv.ABS.t.test <- t.test( Curated_BivData$IFD1_ABS[Curated_BivData$Rec.group == 1],
+      
+         Curated_BivData$IFD1_ABS[(Curated_BivData$sex == "male") & (Curated_BivData$subsp == "Musc") &(Curated_BivData$Rec.group == 0)] )
+                                 
+                                 
+single.biv.IFD_PER.t.test <- t.test( Curated_BivData$IFD1_PER[Curated_BivData$Rec.group == 1],
+      
+         Curated_BivData$IFD1_PER[(Curated_BivData$sex == "male") & (Curated_BivData$subsp == "Musc") &(Curated_BivData$Rec.group == 0)] )
+```
+
+
+```{r show.IFD, echo=FALSE}
+
+biv.IFDs_by_group <- ggplot(Curated_BivData[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc"),], aes(y = IFD1_ABS, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
+  geom_jitter(alpha=.2)+
+  ggtitle("Interfocal Distances, ABS")+
+  scale_color_manual(values=colors_of_strains)+ facet_wrap(~Rec.group, scales = "free")+ylim(c(0,100))
+biv.IFDs_by_group
+#+theme(legend.position="none")+
+
+
+biv.IFDs_PER_by.group <- ggplot(Curated_BivData[ ( Curated_BivData$sex == "male" ) & (Curated_BivData$subsp == "Musc"),], aes(y = IFD1_PER, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
+  geom_jitter(alpha=.2)+
+  ggtitle("Interfocal Distances, ABS \n Low=0, High=1")+
+  scale_color_manual(values=colors_of_strains)+ facet_wrap(~Rec.group, scales = "free")+theme(legend.position="none")+ylim(c(0,1))
+biv.IFDs_PER_by.group
+
+
+#oo.ifd <- ggplot(mouse.avs_4MM[ ( mouse.avs_4MM$sex == "male" ) & (mouse.avs_4MM$subsp == "Musc"),], aes(y = mean_IFD.2CO_PER, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
+#  geom_jitter(alpha=.2)+
+#  ggtitle("Interfocal Distances, ABS")+
+#  scale_color_manual(values=colors_of_strains)+ facet_wrap(~Rec.group, scales = #"free")+ylim(c(0,1))+theme(legend.position="none")
+
+```
+
+Re-order the above figure if possible.
+
+
+Neither t.test are sig for both the ABS and PER when I test just the Musc strains.
+The above t.tests are breaking the knitr
+
+The t.tests for IFD1s at the bivalent level for the high and low musc males are significant.
+
+
+
+```{r IFD.poly_log.reg, echo=FALSE, eval=FALSE}
+#This might be a duplicate code chunk
+#test. for the high vs low strains and IFD
+#mouse.avs_4MM_male
+
+mouse.avs_4MM_M.male <- mouse.avs_4MM_male[mouse.avs_4MM_male$subsp == "Musc", ]
+
+log.reg_IFD.ASB <- glm(Rec.group ~ mean_IFD.2CO_ABS, 
+                            data=mouse.avs_4MM_M.male, family=binomial(link="logit"))
+#slightly sig
+
+ #summary(log.reg_IFD.ASB)
+
+log.reg_IFD.PER <- glm(Rec.group ~ mean_IFD.2CO_PER, 
+                            data=mouse.avs_4MM_M.male, family=binomial(link="logit"))
+ #summary(log.reg_IFD.PER)
+
+#not significant
+```
+
+
+None of the logistic regression models for ABS or PER IFD lengths are significant, even when just the Musc strains are used.
+
+
+
+Post-hoc comparisons ideas?
+
+Preliminary results from an independent data set indicated that PWD had longer IFDs, which goes against the simple prediction of more COs ~ denser spacing of foci on the same bivalent. This also indicated that interference distance may evolved in the house mouse complex.
+
+
+> Prediction B, Is there evidence for the alternative IFD meansure
+
+## Normalized CO positions
+
+C.1) not enough is known about variation within species for the  **1CO normalized positions**. Null prediction, no difference in the 'telomeric pattern'.  
+
+The mouse averages for the other position meterics will be highly influenced by proportions of the 1CO and 2CO bivalents. When class of chromosome and SC length is account for, there won't be a difference, however, not enough is known about these patterns.
+
+C.2) sis-co-ten metric ... (what about the clustering?) 
+
+C.3) telomere and centromere distances ... 
+
+
 
 
 #Caveats
