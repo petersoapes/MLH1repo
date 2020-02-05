@@ -208,7 +208,7 @@ female.musc.mice.table <- ddply(female.musc.cells, c("sex"), summarise,
 
 
 
-# Models Framework
+# Average MLH1 Count Model
 
 These are the basic Mixed Models we used as a frame work to analyze all the MLH1 count data.
 
@@ -333,7 +333,7 @@ strain levels: Dom: 3, Musc: 3  Mol: 2
 
 sex: 2 female male  
 
-For now I will focus on 3 different models for comparing the subsp, sex and strain effects across relevant dependant variables.
+For now I will focus on 3 different models for comparing the subsp, sex and strain effects across relevant dependent variables.
 
 
 1. $$mouse \ av \ meteric ~=~ subsp * sex  + rand(1|strain) + \varepsilon$$
@@ -487,6 +487,7 @@ anova(HetC.MixedModel.mean_co, HetC.MixedModel.mol)
 
 -->
 
+#### Summary of Mixed models
 
 
 ## Within Mouse Variance in CO Count per Cell
@@ -568,7 +569,7 @@ Q12.var.hist.plot
 ```
 
 
-A general pattern is that the female data has higher within mouse variance (both var and cV). Some strains more than others (invetigate potential outliers). (LEW females with top 3 variance are all from different dissection dates)
+A general pattern is that the female data has higher within mouse variance (both var and cV). Some strains more than others (investigate potential outliers). (LEW females with top 3 variance are all from different dissection dates)
 This pattern also holds for within mouse cv for MLH1 count (not shown).
 
 **todo**
@@ -593,8 +594,7 @@ cV.Hist <- cV.Hist   + facet_wrap(~ strain, scales="free")
 cV.Hist
 ```
 
-
-### Modeling Within Mouse Variance
+> Modeling Within Mouse Variance
 
 (use the same models are mean_co, )
 
@@ -607,6 +607,7 @@ XXX (old 1.)	HetC.MixedModel.HQ <- lme(mouse.metric ~ subsp*sex, data=DF.HetC.Mi
 4.	lm(mouse.metric ~ sex * strain, data=DF.HetC.MixedModel.HQ)  
 
 
+## MLH1 variance M1
 
 $$mouse metric  ~=~ subsp * sex + rand(strain)+ \varepsilon$$
 
@@ -663,11 +664,12 @@ The fixed sex effect has the largest effect sizes. All are negative (for male). 
 The strain effects are only slightly significant for within mouse variance measures in the full dataset (includes low quality cells)
 
 
+## MLH1 variance M2
 
 $$mouse CO metric  ~=~ subsp * sex * strain + \varepsilon$$
 M2 slash M3
 
-```{r M3.MLH1.var, echo=FALSE}
+```{r M2.MLH1.var, echo=FALSE}
 
 MLH1var_M3 <- lm( var ~ subsp * sex * strain,  data=DF.HetC.MixedModel.HQ )
 
@@ -704,11 +706,11 @@ as.data.frame( round(summary(MLH1cv_M3_Q12)$coefficients, 6))
 For LEW - females must have high variance,  for CV Lew strain alone has increased cv. Consider plotting the variance - and diving deeper into this pattern
 Most of the strain specific differences in within mouse variance go away in the Q12 dataset.
 
+## MLH1 variance M3
 
-$$mouse CO metric  ~=~ subsp * sex * strain + \varepsilon$$
+$$mouse \ CO \ metric  ~=~ subsp * sex * strain + \varepsilon$$
 
-
-```{r M4.MLH1.var, echo=FALSE}
+```{r M3.MLH1.var, echo=FALSE}
 
 MLH1var_M4 <- lm( var ~ sex * strain,  data=DF.HetC.MixedModel.HQ )
 
@@ -957,7 +959,7 @@ Follow up on this finding -- included more strains which were excluded from the 
 
 > How different are the Musc strains?
 
-test a model for fixed effects of strains within musc. The purpose is to distinguihsi musc strains from low 'Dom' level strains. 
+test a model for fixed effects of strains within musc. The purpose is to distinguish musc strains from low 'Dom' level strains. 
 
 
 ```{r male.show.plots, echo=FALSE}
@@ -2141,6 +2143,8 @@ multiplot(kuku,bubu, cols=2)
 
 
 # Trash / Extra
+
+
 
 <!--
 
