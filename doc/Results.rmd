@@ -940,12 +940,117 @@ Fig1_v1_strain
 
 What are the steps the each chunks walk through.
 
+# Female Specific Polymorphism
 
-## Male Specific Polymorphism
+I should run the same questions for the female data -- 
+
+```{r female.show.plots, echo=FALSE, fig.width = 4, fig.height=2.5}
+
+female_mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
+                            subsp.y,subsp.x,
+                    category.y,category.x, strain.x,
+                    strain.y, mouse.1  )  )
+
+female_mouse.av <- add_sex(female_mouse.av)
+female_mouse.av <- add_strain(female_mouse.av)
+female_mouse.av <- add_subsp(female_mouse.av)
+female_mouse.av <- add_species(female_mouse.av)
+
+female_mouse.avs_for.analysis <-  female_mouse.av %>% filter(sex== "female") %>% filter(species == "M.musculus") 
+
+female_mouse.avs_for.analysis$subsp <- factor(female_mouse.avs_for.analysis$subsp, ordered = FALSE)
+female_mouse.avs_for.analysis$sex <- factor(female_mouse.avs_for.analysis$sex, ordered = FALSE)
+female_mouse.avs_for.analysis$strain <- factor(female_mouse.avs_for.analysis$strain, ordered = FALSE)
+female_mouse.avs_for.analysis$species <- factor(female_mouse.avs_for.analysis$species, ordered = FALSE)
+
+table( droplevels(female_mouse.avs_for.analysis$strain) )
+#there are cast strains too
+
+
+Musc.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Musc")
+
+musc.female.plot <- ggplot(Musc.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc female of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,34))
+musc.male.plot
+
+# + theme(axis.title.x=element_blank(),
+#        axis.text.x=element_blank(),
+#        axis.ticks.x=element_blank()) +
+#ylim( c((min(MLH1_data$adj_nMLH1.foci)-3) ), (max(MLH1_data$adj_nMLH1.foci)+3)) +  
+
+#Mol
+Mol.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Mol")
+
+Mol.female.plot <- ggplot(Mol.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Mol female of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,33))
+Mol.female.plot
+
+#Dom version 
+Dom.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Dom")
+
+Dom.female.plot <- ggplot(Dom.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Dom female of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,33))
+Dom.female.plot
+#Gough female is higher
+
+#variance
+musc.female.VAR.plot <- ggplot(Musc.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y =var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc female of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
+musc.female.VAR.plot
+
+Mol.female.plot <- ggplot(Mol.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Mol female of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
+Mol.female.plot
+
+Dom.female.plot <- ggplot(Dom.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Dom feale ofwithin mouse  MLH1 distributions")+scale_color_manual(values=colors_of_strains)
+Dom.female.plot
+
+```
+
+
+
+```{r Female.specific.test, echo=FALSE}
+
+lm.female.strain.subsp <- lm(mean_co ~ subsp * strain, data= female_mouse.avs_for.analysis)
+summry.female.strain.effects <- summary(lm.female.strain.subsp)
+#strainG, 1.06e-05 ***
+#strainLEW  0.0273 *
+
+lm.female.strain <- lm(mean_co ~ strain, data= female_mouse.avs_for.analysis)
+lm.female.strain_sum <- summary(lm.female.strain)
+#G  1.06e-05 ***
+#LEW   0.0273 *
+#PWD  0.0810 .
+#MSM  3.02e-05 ***
+
+#how much greater is G female
+G_female <-  female_mouse.avs_for.analysis %>% filter(strain == "G")
+mean.G.female <- mean(G_female$mean_co)
+
+sans_G_female <- female_mouse.avs_for.analysis %>% filter(strain != "G")
+mean.all.other <- mean(sans_G_female$mean_co)
+
+
+## within mouse variance models 
+lmVAR.female.strain.subsp <- lm(var ~ subsp * strain, data= female_mouse.avs_for.analysis)
+summry.female.strain.VAReffects <- summary(lmVAR.female.strain.subsp)
+
+lmVAR.female.strain <- lm(var ~ strain, data= female_mouse.avs_for.analysis)
+lmVAR.female.strain_sum <- summary(lmVAR.female.strain)
+
+#Q12
+Q12_female_table <-  Q12_mouse_table_w.Ages %>% filter(sex == "female")
+
+lm.m1.Q12_female <- lm(var ~ subsp * strain, data= Q12_female_table)
+lm.m1.Q12_female_sum <- summary(lm.m1.Q12_female)
+#LEW not sig
+
+lm.m2.Q12_female <- lm(var ~ strain, data= Q12_female_table)
+lm.m2.Q12VAR.female_sum <- summary(lmVAR.female.strain)
+#LEW sig
+```
+
+
+
+# Male Specific Polymorphism
 
 Follow up on this finding -- included more strains which were excluded from the HetC analysis.
 
--- what's the driving question for this section -- 
 
 > Is there a strain effect in Dom?
 
@@ -957,7 +1062,6 @@ test a model for fixed effects of strains within musc. The purpose is to disting
 ```{r male.show.plots, echo=FALSE, fig.width = 4, fig.height=2.5}
 #try customize the plot size
 
-
 male_mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
                             subsp.y,subsp.x,
                     category.y,category.x, strain.x,
@@ -968,18 +1072,17 @@ male_mouse.av <- add_strain(male_mouse.av)
 male_mouse.av <- add_subsp(male_mouse.av)
 male_mouse.av <- add_species(male_mouse.av)
 
-fomo.male_mouse.av <-  male_mouse.av %>% filter(sex== "male") %>% filter(species == "M.musculus") 
+just.male_mouse.av <-  male_mouse.av %>% filter(sex== "male") %>% filter(species == "M.musculus") 
 
-fomo.male_mouse.av$subsp <- factor(fomo.male_mouse.av$subsp, ordered = FALSE)
-fomo.male_mouse.av$sex <- factor(fomo.male_mouse.av$sex, ordered = FALSE)
-fomo.male_mouse.av$strain <- factor(fomo.male_mouse.av$strain, ordered = FALSE)
-fomo.male_mouse.av$species <- factor(fomo.male_mouse.av$species, ordered = FALSE)
+just.male_mouse.av$sex <- factor(just.male_mouse.av$sex, ordered = FALSE)
+just.male_mouse.av$strain <- factor(just.male_mouse.av$strain, ordered = FALSE)
+just.male_mouse.av$subsp <- factor(just.male_mouse.av$subsp, ordered = FALSE)
+just.male_mouse.av$species <- factor(just.male_mouse.av$species, ordered = FALSE)
 
-table( droplevels(fomo.male_mouse.av$strain) )
+#table( droplevels(just.male_mouse.av$strain) )
 #there are cast strains too
 
-
-Musc.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Musc")
+Musc.male_mouse.av <-  just.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Musc")
 
 musc.male.plot <- ggplot(Musc.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc male of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,34))
 musc.male.plot
@@ -991,18 +1094,17 @@ musc.male.plot
 
 
 #make the Mol and
-Mol.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Mol")
+Mol.male_mouse.av <-  just.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Mol")
 
 Mol.male.plot <- ggplot(Mol.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Mol male of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,33))
 Mol.male.plot
 
 
 #Dom version 
-Dom.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Dom")
+Dom.male_mouse.av <-  just.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Dom")
 
 Dom.male.plot <- ggplot(Dom.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Dom male of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,33))
 Dom.male.plot
-
 
 ```
 
@@ -1025,15 +1127,56 @@ PWD: 24sep14_PWD_m1, 18may15_PWD_m1?
 
 #1. determine which strain effects are sig
 
-bhh11 <- lm(mean_co ~ subsp * strain, data= fomo.male_mouse.av)
-#bhh11$coefficients 
+lm.male.strain.subsp <- lm(mean_co ~ subsp * strain, data= just.male_mouse.av)
+summry.male.strain.effects <- summary(lm.male.strain.subsp)
 
-booo <- summary(bhh11)
-
-lm.male.strain <- lm(mean_co ~ strain, data= fomo.male_mouse.av)
-ll <- summary(lm.male.strain)
+lm.male.strain <- lm(mean_co ~ strain, data= just.male_mouse.av)
+lm.male.strain_sum <- summary(lm.male.strain)
 
 #even when all the other male strains are added -- the same result; PWD, MSM and SKIVE strain effects are significant.
+
+#how much greater are the High Rec gwRRs
+just.male_mouse.av$Rec.group <- ifelse(grepl("PWD", just.male_mouse.av$strain), 1, 
+                              ifelse(grepl("MSM", just.male_mouse.av$strain), 1,
+                                ifelse(grepl("SKIVE", just.male_mouse.av$strain), 1, 0)))
+
+sans_LewRec_male <- just.male_mouse.av %>% filter(Rec.group == 0)
+#mean(sans_LewRec_male$mean_co)
+
+PWD_male <-  just.male_mouse.av %>% filter(strain == "PWD")
+#mean(PWD_male$mean_co) / mean(sans_LewRec_male$mean_co)
+
+MSM_male <- just.male_mouse.av %>% filter(strain == "MSM")
+#mean(MSM_male$mean_co) / mean(sans_LewRec_male$mean_co)
+
+SKIVE_male <-   just.male_mouse.av %>% filter(strain == "SKIVE")
+#mean(SKIVE_male$mean_co) /  
+  mean(sans_LewRec_male$mean_co)
+
+## within mouse variance models 
+lmVAR.male.strain.subsp <- lm(var ~ subsp * strain, data= just.male_mouse.av)
+summry.male.strain.VAReffects <- summary(lmVAR.male.strain.subsp)
+#all p values kinda high, MSM and TOM are slightly sig
+
+lmVAR.male.strain <- lm(var ~ strain, data= just.male_mouse.av)
+lmVAR.male.strain_sum <- summary(lmVAR.male.strain)
+#non sig
+
+lmcv.male.strain <- lm(cV ~ strain, data= just.male_mouse.av)
+lmcv.male.strain_sum <- summary(lmcv.male.strain)
+#HMI sig for cv model -- in the other model, CAST subsp and TOM strain are slightly significant
+
+#Q12
+Q12_male_table <-  Q12_mouse_table_w.Ages %>% filter(sex == "male")
+
+lm.m1.Q12_male <- lm(var ~ subsp * strain, data= Q12_male_table)
+lm.m1.Q12_male_sum <- summary(lm.m1.Q12_male)
+#NS
+
+lm.m2.Q12_male <- lm(var ~ strain, data= Q12_male_table)
+lm.m2.Q12VAR.male_sum <- summary(lm.m2.Q12_male)
+#NS
+
 ```
 
 msm, pwd skive are when all other male strains are added. skive is less sig than the others -- but it's still sig.  Given these results I can group SKIVE, PWD and MSM into the 'high rec' group.  
@@ -1043,6 +1186,8 @@ msm, pwd skive are when all other male strains are added. skive is less sig than
 
 
 # Proportion of chrm classes
+
+TODO -- try running a chi square test on the proportions.
 
 make a smaller proportion chrm block --
 
@@ -2289,6 +2434,9 @@ The breakdown of curated bivalents by category
 
 # Model Frameworks
 
+As alex said, be careful about mixed models and interperting the random effect (radnom variance) -- assigning strain as random effect is slightly problamatic as i can give it a biological interpertation (it's due to strain -- genetics of each of the strains).  
+
+
 > Q1. same models for MLH1 based sex differences (and evolution)
 
 > Q2 the same models for the male polymorphism and logistic regression for testing if bivalent traits can predcit if they are from high or low rec group
@@ -2468,7 +2616,34 @@ Two bivalent level traits are predicted to display heterochiasmy (ie significant
 
 3) Interference / IFD will not be sexually dimorphic. Previous physical measures of interference were not different between sexes (verify petkov 2001).
 
+## Q2 Analysis Predictions, Male Polymorphism and (High vs Low Rec strains)
 
+The general predictions across the males and subspecies based on th above MLH1 results.
+
+For positive correlation traits/metrics
+
+i) in DOM strains, low to no difference across strains
+
+ii) in Musc, PWD > SKIVE > KAZ, CZECH all the others  
+
+ii) in Mol, MSM > MOLF
+
+
+A) **SC lengths** will be longer for high Rec strains.  
+
+
+B.1) **Interfernce/IFD** will be shorter in high Rec strains. Use IFD_PER to account for SC length differences.  
+
+
+C.1) not enough is known about variation within species for the  **1CO normalized positions**. Null prediction, no difference in the 'telomeric pattern'.  
+
+The mouse averages for the other position meterics will be highly influenced by proportions of the 1CO and 2CO bivalents. When class of chromosome and SC length is account for, there won't be a difference, however, not enough is known about these patterns.
+
+C.2) sis-co-ten metric ... (what about the clustering?) 
+
+C.3) telomere and centromere distances ... 
+
+M1 glm model for fixed strain effect across male averages.
 
 # SC Lengths
 
@@ -2548,7 +2723,7 @@ I used the mixed model with the lme() for the full Curated BivData and long bivd
 
 $$mouse \ average \ SC  \ length ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
-#### SC_HetC_M1
+#### Q1.SC_HetC_M1
 
 Insert the results for the MMs using the dependant variable 1CO - use the Mixed model (lmer), for all of the meterics (pooled SC, 1CO 2CO ect)
 
@@ -2658,34 +2833,7 @@ MSM.ttest  <- t.test(MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "
 
 
 
-# Q2 Analysis Predictions, Male Polymorphism and (High vs Low Rec strains)
 
-The general predictions across the males and subspecies based on th above MLH1 results.
-
-For positive correlation traits/metrics
-
-i) in DOM strains, low to no difference across strains
-
-ii) in Musc, PWD > SKIVE > KAZ, CZECH all the others  
-
-ii) in Mol, MSM > MOLF
-
-
-A) **SC lengths** will be longer for high Rec strains.  
-
-
-B.1) **Interfernce/IFD** will be shorter in high Rec strains. Use IFD_PER to account for SC length differences.  
-
-
-C.1) not enough is known about variation within species for the  **1CO normalized positions**. Null prediction, no difference in the 'telomeric pattern'.  
-
-The mouse averages for the other position meterics will be highly influenced by proportions of the 1CO and 2CO bivalents. When class of chromosome and SC length is account for, there won't be a difference, however, not enough is known about these patterns.
-
-C.2) sis-co-ten metric ... (what about the clustering?) 
-
-C.3) telomere and centromere distances ... 
-
-M1 glm model for fixed strain effect across male averages.
 
 $$mouse \ average \ SC  \ length ~=~ strain + \varepsilon $$
 M2 anova for glm, of each subset, does at least one of the strains differ from others?
@@ -3235,22 +3383,22 @@ $$mouse \ average \ IFD ~=~ subsp * sex + rand(strain) + \varepsilon $$
 lmer.IFD.PER_MM.M1 <- lmer(mean_IFD.2CO_PER ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE) 
 
 #these 2 below are LR tests
-drop1(lmer.IFD.PER_MM.M1, test="Chisq" )
-anova(lmer.IFD.PER_MM.M1)
+#drop1(lmer.IFD.PER_MM.M1, test="Chisq" )
+#anova(lmer.IFD.PER_MM.M1)
 
-exactRLRT(lmer.IFD.PER_MM.M1)
-as.data.frame(round(summary(lmer.IFD.PER_MM.M1)$coefficients, 6))
+#exactRLRT(lmer.IFD.PER_MM.M1)
+#as.data.frame(round(summary(lmer.IFD.PER_MM.M1)$coefficients, 6))
 
 
 #M1_IFD.RAW_2CO
 lmer.IFD.RAW_MM.M1 <- lmer(mean_IFD.2CO_ABS ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE) 
 
 #these 2 below are LR tests
-drop1(lmer.IFD.RAW_MM.M1, test="Chisq" ) #other options for test don't work
-anova(lmer.IFD.RAW_MM.M1) # also F values
+#drop1(lmer.IFD.RAW_MM.M1, test="Chisq" ) #other options for test don't work
+#anova(lmer.IFD.RAW_MM.M1) # also F values
 
-exactRLRT(lmer.IFD.RAW_MM.M1)#random strain not sig
-as.data.frame(round(summary(lmer.IFD.RAW_MM.M1)$coefficients, 6))#these Dont return p values for the fixed effects
+#exactRLRT(lmer.IFD.RAW_MM.M1)#random strain not sig
+#as.data.frame(round(summary(lmer.IFD.RAW_MM.M1)$coefficients, 6))#these Dont return p values for the fixed effects
 ```
 
 Sex is a slightly significant factor for raw and normalized IFD. 
@@ -3285,11 +3433,83 @@ Dive deeper into the sex specific pattern for each strain.  Below are code chunk
 For some strains, PWD, MSM and SKIVE there's a 30% threshold in the male PER IFD distributions. (What does that mean?). How do I test / quantify this pattern? Cluster metric?
 
 
+
+```{r Comp_Ratios, echo=FALSE}
+
+#calq ratios of belo 30
+
+top.male <-  G.Bivalents.DF %>% filter(sex== "male") %>%  filter(hand.foci.count== 2) %>%filter(IFD1_PER <= .3) 
+
+bottom.male <-  G.Bivalents.DF %>% filter(sex== "male") %>%  filter(hand.foci.count== 2) 
+
+
+
+ratio.male <- length(top.male$Obj.ID)/ length(bottom.male$Obj.ID)
+
+
+top.female <-  G.Bivalents.DF %>% filter(sex== "female") %>%  filter(hand.foci.count== 2) %>% filter(IFD1_PER <= .3)
+
+bottom.female <-  G.Bivalents.DF %>% filter(sex== "female")%>%  filter(hand.foci.count== 2)
+
+ratio.female <- length(top.female$Obj.ID)/ length(bottom.female$Obj.ID)
+
+#what is the fastest way to calq all these ratios?  also what's the fastst way to get them into a DF / table?
+
+
+#put all the DFs in a list, for each DF in the list -- apply the filters for the nom and denominator
+
+DF.strain.list <- list(
+  WSB.Bivalents.DF, G.Bivalents.DF, LEW.Bivalents.DF, 
+  PWD.Bivalents.DF, KAZ.Bivalents.DF, SKIVE.Bivalents.DF,
+  MSM.Bivalents.DF, MOLF.Bivalents.DF
+  )
+
+entr_DF <- data.frame(strain=c("WSB", "G", "LEW", "PWD", "KAZ", "SKIVE", "MSM", "MOLF"), 
+        total.2CO_female=c(0,0,0,0,0,0,0,0), total.2CO_male=c(0,0,0,0,0,0,0,0), below30_male = c(0,0,0,0,0,0,0,0), below30_female = c(0,0,0,0,0,0,0,0),     
+          female.ratio = c(0,0,0,0,0,0,0,0), male.ratio = c(0,0,0,0,0,0,0,0))
+  
+i = 1
+for(x in (DF.strain.list) ){
+  
+  #print(head())
+  
+  #these filters won't apply to the indexed DF
+  top.male =  x %>% filter(sex== "male") %>%  filter(hand.foci.count== 2) %>%filter(IFD1_PER <= .3)
+
+  bottom.male <-  x %>% filter(sex== "male") %>%  filter(hand.foci.count== 2)
+
+  entr_DF$total.2CO_male[i] <- length(bottom.male$Obj.ID)
+  entr_DF$below30_male[i] <- length(top.male$Obj.ID)
+  entr_DF$male.ratio[i] <- length(top.male$Obj.ID)/ length(bottom.male$Obj.ID)
+  
+  top.female <-  x %>% filter(sex== "female") %>%  filter(hand.foci.count== 2) %>% filter(IFD1_PER <= .3)
+  
+  bottom.female <-  x %>% filter(sex== "female")%>%  filter(hand.foci.count== 2)
+
+  
+  entr_DF$total.2CO_female[i] <- length(bottom.female$Obj.ID)
+  entr_DF$below30_female[i] <- length(top.female$Obj.ID)
+  entr_DF$female.ratio[i] <- length(top.female$Obj.ID)/ length(bottom.female$Obj.ID)
+  
+  i = i+1
+  
+  }
+entr_DF
+
+entr_DF$sex.dif <- entr_DF$female.ratio - entr_DF$male.ratio
+
+```
+
+Above is a table of the proportion of 2Co bivalents which have a norm IFD below 30%, For all strains but KAZ, the females have a greater proportion of these shorted IFD values.
+
+
 ```{r WSB.IFD, echo=FALSE, warning=FALSE}
 #make the dataset
 #WSB.Bivalents.DF
 
 #table(WSB.Bivalents.DF$sex, WSB.Bivalents.DF$hand.foci.count)#the 2CO's will be used
+WSB.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "WSB",]
+
 
 #plot the differences
 wsb.ploty_IFD_raw <- ggplot(WSB.Bivalents.DF[WSB.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_ABS, x = sex))+
@@ -3332,15 +3552,20 @@ The range of normalized IFDs overlap closer in males and females in the WSB data
 ```{r LEW.IFD, echo=FALSE, warning=FALSE}
 #make the dataset
 LEW.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "LEW",]
+
+LEW.Bivalents.DF_IFD <- LEW.Bivalents.DF[(!is.na(LEW.Bivalents.DF$sex)) & (LEW.Bivalents.DF$hand.foci.count == 2),]
+
+LEW.Bivalents.DF_IFD$sex <- droplevels(LEW.Bivalents.DF_IFD$sex)
+
 #table(LEW.Bivalents.DF$sex, LEW.Bivalents.DF$hand.foci.count)
 
 #plot the differences
 #LEW.ploty <- ggplot(LEW.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= #as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
 
 
-lew.ploty_IFD_raw <- ggplot(LEW.Bivalents.DF[LEW.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_ABS, x = sex))+
-                          geom_jitter()+ggtitle("Raw IFD, LEW")+geom_boxplot(aes(x=sex))
+lew.ploty_IFD_raw <- ggplot( LEW.Bivalents.DF_IFD,  aes(y=IFD1_ABS, x = sex, na.rm = TRUE))+                     geom_jitter( na.rm = TRUE)+ggtitle("Raw IFD, LEW")+geom_boxplot(aes(x=sex, na.rm = TRUE))
 lew.ploty_IFD_raw
+#arg, little annoyed that the x NA won't go away
 
 
 lew.ploty_IFD_PER <- ggplot(LEW.Bivalents.DF[LEW.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = sex))+
@@ -3348,7 +3573,9 @@ lew.ploty_IFD_PER <- ggplot(LEW.Bivalents.DF[LEW.Bivalents.DF$hand.foci.count ==
 lew.ploty_IFD_PER
 
 
-LEW.IFDnorm_scatter.plot <- ggplot(LEW.Bivalents.DF[LEW.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = chromosomeLength, color = sex))+                          geom_jitter()+ggtitle("LEW \n Normalized IFD and SC Length")+ylim(c(0,1.1))
+LEW.IFDnorm_scatter.plot <- ggplot(LEW.Bivalents.DF[LEW.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = chromosomeLength, color = sex))+  
+  scale_color_manual(values=c('#56B4E9','#E69F00'))+
+  geom_jitter()+ggtitle("LEW \n Normalized IFD and SC Length")+ylim(c(0,1.1))
 
 LEW.IFDnorm_scatter.plot
 
@@ -3408,13 +3635,10 @@ G.IFDnorm_scatter.plot
 G.IFD.table <- ddply(G.Bivalents.DF, c("sex"), summarise,
                             
                   total.biv = length(Obj.ID),
-                   
                   mean.IFD_2CO = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
                   mean.IFD.PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
-                  
                   n_2CO =  sum(hand.foci.count == 2, na.rm = TRUE) #this is the right syntax
 )
-#can I plot these stats
 
 #run a t.test seperate out by the chrm classes
 G.ttest  <- t.test(G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "female"], G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "male"])
@@ -3429,14 +3653,6 @@ oo <- oo[!(is.na(oo$fileName) | oo$fileName == ""), ]
 
 G.Bivalents.DF <- G.Bivalents.DF[!(is.na(G.Bivalents.DF$fileName) | G.Bivalents.DF$fileName == ""), ]
 
-top.male <-  G.Bivalents.DF %>% filter(sex== "male") %>% filter(IFD1_PER <= .3) #this makes DF
-bottom.male <-  G.Bivalents.DF %>% filter(sex== "male")
-ratio.male <- 18/1031 #2%
-
-
-top.female <-  G.Bivalents.DF %>% filter(sex== "female") %>% filter(IFD1_PER <= .3)
-bottom.female <-  G.Bivalents.DF %>% filter(sex== "female")
-ratio.female <- 36/766  #5%
 
 
 
@@ -3470,31 +3686,19 @@ PWD.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "PWD",]
 #plot the differences
 #remove the NAs
 
-PWD.ploty_IFD_raw <- ggplot(PWD.Bivalents.DF[PWD.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_ABS, x = sex))+
-                          geom_jitter()+ggtitle("Raw IFD, PWD")+geom_boxplot(aes(x=sex))
+PWD.ploty_IFD_raw <- ggplot(PWD.Bivalents.DF[PWD.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_ABS, x = sex))+                          geom_jitter()+ggtitle("Raw IFD, PWD")+geom_boxplot(aes(x=sex))
 
+PWD.ploty_IFD_raw
 
 
 PWD.ploty_IFD_PER <- ggplot(PWD.Bivalents.DF[PWD.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = sex))+
                           geom_jitter()+ggtitle("Percent IFD, PWD")+geom_boxplot(aes(x=sex))
+PWD.ploty_IFD_PER
 
 
-
-PWD.IFDnorm_scatter.plot <- ggplot(PWD.Bivalents.DF[PWD.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = chromosomeLength, color = sex))+ geom_jitter()+ggtitle("PWD \n Normalized IFD and SC Length")+ylim(c(0,1.1))
+PWD.IFDnorm_scatter.plot <- ggplot(PWD.Bivalents.DF[PWD.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = chromosomeLength, color = sex))+ geom_jitter()+ggtitle("PWD \n Normalized IFD and SC Length")+ylim(c(0,1.1))+scale_color_manual(values=c('#56B4E9','#E69F00'))
 
 PWD.IFDnorm_scatter.plot
-
-#make a table of the means and n ect
-PWD.table <-  ddply(PWD.Bivalents.DF, c("sex"), summarise,
-                            
-                  total.biv = length(Obj.ID),
-                   
-                  mean.IFD_2CO = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
-                  mean.IFD.PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
-                  
-                  n_2CO =  sum(hand.foci.count == 2, na.rm = TRUE) #this is the right syntax
-)
-
 
 #run a t.test seperate out by the chrm classes
 PWD.ttest  <- t.test(PWD.Bivalents.DF$chromosomeLength[PWD.Bivalents.DF$sex == "female"], PWD.Bivalents.DF$chromosomeLength[PWD.Bivalents.DF$sex == "male"])
@@ -3505,7 +3709,7 @@ For PWD, there are a few observations of the short IFDs for males, but there see
 
 ```{r KAZ.IFD, echo=FALSE, warning=FALSE}
 #make the dataset
-KAZ.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "KAZ",]
+#KAZ.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "KAZ",]
 
 #table(KAZ.Bivalents.DF$sex, KAZ.Bivalents.DF$hand.foci.count)
 
@@ -3522,21 +3726,10 @@ KAZ.ploty_IFD_PER <- ggplot(KAZ.Bivalents.DF[KAZ.Bivalents.DF$hand.foci.count ==
 KAZ.ploty_IFD_PER
 
 
-KAZ.IFDnorm_scatter.plot <- ggplot(KAZ.Bivalents.DF[KAZ.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = chromosomeLength, color = sex))+ geom_jitter()+ggtitle("KAZ \n Normalized IFD and SC Length")+ylim(c(0,1.1))
+KAZ.IFDnorm_scatter.plot <- ggplot(KAZ.Bivalents.DF[KAZ.Bivalents.DF$hand.foci.count == 2,],  aes(y=IFD1_PER, x = chromosomeLength, color = sex))+ geom_jitter()+ggtitle("KAZ \n Normalized IFD and SC Length")+ylim(c(0,1.1))+scale_color_manual(values=c('#56B4E9','#E69F00'))
 
 KAZ.IFDnorm_scatter.plot
 
-
-#make a table of the means and n ect
-KAZ.table <-  ddply(KAZ.Bivalents.DF, c("sex"), summarise,
-                            
-                  total.biv = length(Obj.ID),
-                   
-                  mean.IFD_2CO = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
-                  mean.IFD.PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
-                  
-                  n_2CO =  sum(hand.foci.count == 2, na.rm = TRUE) #this is the right syntax
-)
 
 #run a t.test seperate out by the chrm classes
 KAZ.ttest  <- t.test(KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "female"], KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "male"])
@@ -3544,6 +3737,8 @@ KAZ.ttest  <- t.test(KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "
 ```
 
 For the KAZ, pattern the distinction between the male and female pattern is less distinct. There are fewer instances of females with v close IFD distances.
+
+
 
 ```{r SKIVE.IFD, echo=FALSE, warning=FALSE}
 #make the dataset
@@ -3579,14 +3774,17 @@ SKIVE.table <-  ddply(SKIVE.Bivalents.DF, c("sex"), summarise,
                   n_2CO =  sum(hand.foci.count == 2, na.rm = TRUE) #this is the right syntax
 )
 
-
-
 #run a t.test seperate out by the chrm classes
 SKIVE.ttest  <- t.test(SKIVE.Bivalents.DF$chromosomeLength[SKIVE.Bivalents.DF$sex == "female"], SKIVE.Bivalents.DF$chromosomeLength[SKIVE.Bivalents.DF$sex == "male"])
 
 ```
 
+
+
+
 In the Skive data, it could be the case that the v. short IFD measures in females are rare / another class of observations.
+
+
 
 ```{r MSM.IFD, echo=FALSE, warning=FALSE}
 #make the dataset
@@ -3637,9 +3835,11 @@ MSM.ttest  <- t.test(MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "
 
 ```
 
+
+
 The MSM pattern has a short range and longer range of nrm.IFD in males and females respectively.  
 
-```{r MOLF.IFD, eval=FALSE, echo=FALSE}
+```{r MOLF.IFD, echo=FALSE}
 #make the dataset
 MOLF.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "MOLF",]
 table(MOLF.Bivalents.DF$sex, MOLF.Bivalents.DF$hand.foci.count)
@@ -4488,8 +4688,9 @@ summary(aov(male.modo))
 
 I didn't have a good prediction for the male polymorphism... So I'll just do post-hoc comparisons for the groups to test if they are different.
 
+**What is the overlap for cell images in the MLH1 comparisons and these bivalent comparisons?**
 
-
+should all mice be represented.
 
 ```{r male.Nrm1CO_strain, echo=FALSE, eval=FALSE}
 
@@ -4507,21 +4708,7 @@ Musc_male_1COpos_table <- ddply(Curated_BivData_male[Curated_BivData_male$hand.f
 
                          
                          )
-
-
-        #           mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-         #         n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
-                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
-                  
-      #             mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-      #              n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
-                  
-      #             mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-      #             n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
-                  
-      #            mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-      #            n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
-                          
+                        
 
 ```
 
@@ -4538,7 +4725,7 @@ iii) Mol, MSM > MOLF
 
 
 
-```{r Q2.SC.ploy.mal, echo=FALSE}
+```{r Q2.SC.ploy.male, echo=FALSE}
 # 1 way anova, is at least 1 strain different from the rest?
 # given a lm, how sig is the strain effect
 
@@ -4596,6 +4783,11 @@ log.SC.male.poly_mol <- glm(Rec.group ~ mean_SC,
 #summary(log.SC.male.poly_mol)
 #not sig -- when just looking at Mol
 ```
+
+The glm for SC lengths -- sub-grouped by subsp -- indicates that all strain effects are significant for the average mouseisn't met.  SC length.
+My prediction for Dom, isn't met.
+
+(indecation that there is more variation for the SC lengths than for gwRR / CO counts)
 
 
 #### Q2 SC by class
