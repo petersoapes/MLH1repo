@@ -3521,7 +3521,6 @@ There are a few traits that fall within the CO positions
 
 - centromere and telomere distance  
 
-#### Predictions
 
 **Heterochiasmy**
 
@@ -3532,15 +3531,6 @@ There are a few traits that fall within the CO positions
   C) Centromere and telomere distances will be sexually dimorphic.
 
 
-**Polymorphism**
-
-C.1) It's unknown if **1CO normalized positions** between high and low musc strains, will differ. (no good predictions come to mind)
-
-
-C.2) sis-co-ten metric will be maximized in higher recombining strains .. because.  
-
-
-C.3) telomere and centromere distances will be shorter in low rec strains
 
 # Q1. Normalized 1CO positions
 
@@ -3582,9 +3572,31 @@ CO.Pos.density_Dom_male <- ggplot(Dom.male_MELT_curBivData, aes(x=PER.Foci.Pos, 
 ```
 
 
-```{r Q1.Nrm.F1pos, echo=FALSE}
+```{r Q1.Nrm.F1pos_M2, echo=FALSE}
 
 #calq the means for normalized F1
+#M2
+
+Q1.glm_nrmF1pos_M2 <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Table_BivData_4MM)
+#summary(Q1.glm_nrmF1pos_M2)
+
+#DOM
+Q1.glm_nrmF1pos_M2_Dom <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Dom",])
+#summary(Q1.glm_nrmF1pos_M2_Dom)
+
+#MUSC
+Q1.glm_nrmF1pos_M2_Musc <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Musc",])
+#summary(Q1.glm_nrmF1pos_M2_Musc)
+
+#MOL
+Q1.glm_nrmF1pos_M2_Mol <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Mol",])
+#summary(Q1.glm_nrmF1pos_M2_Mol)
+
+```
+
+```{r Q1.Nrm.F1pos_M2_long.biv, echo=FALSE}
+
+#table for the 1CO long biv across strain and sexes?
 
 ```
 
@@ -3652,8 +3664,9 @@ $$mouse \ average \ F1 position ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
 The mixed model data should only come from 1CO bivalent data.
 
+#### Nrm_1COpos_HetC_M1
 
-```{r MM_CO_pos, echo=FALSE, eval=FALSE}
+```{r Q1.MM_CO_pos, echo=FALSE, eval=FALSE}
 #use the 1CO
 #Use MELT DF
 #MELT_Curated_BivData
@@ -3694,7 +3707,23 @@ CO_pos_rand
 ```
 
 
-```{r log.reg.CO1_pos, echo=FALSE, eval=FALSE}
+```{r Q1.nrmFoci1_M1, echo=FALSE}
+
+#M1
+
+
+```
+
+
+the mouse average foci1 pos is more significant in t.test, but not log regression... (is something wrong?) Check the mouse averages for the F1_pos, there might be an outlier or mouse with v.few observations.
+
+
+
+
+#### Nrm_1COpos_HetC_M2
+
+
+```{r Q1.log.reg.CO1_pos, echo=FALSE, eval=FALSE}
 
 #LOGISTIC REGRESSION for FOCI POSITION
 
@@ -3712,7 +3741,8 @@ summary(log.reg_1CO_pos_biv)
 ```
 
 
-```{r t.test_1CO_pos, echo=FALSE, eval=FALSE}
+
+```{r Q1.t.test_1CO_pos, echo=FALSE, eval=FALSE}
 
 #t.test for high and low group  -- logistic regression still need to format the high and low group
 
@@ -3735,17 +3765,6 @@ single.biv.1CO_pos_t.test <- t.test(
    
 
 ```
-
-
-the mouse average foci1 pos is more significant in t.test, but not log regression... (is something wrong?) Check the mouse averages for the F1_pos, there might be an outlier or mouse with v.few observations.
-
-#### Nrm_1COpos_HetC_M1
-
-
-#### Nrm_1COpos_HetC_M2
-
-
-#### Nrm_1COpos_HetC_M3
 
 
 ### Siscoten
@@ -5164,6 +5183,16 @@ Main DFs for this section:
 
 Male.poly.Mouse.Table_BivData_4MM
 male.bivdata.1CO
+
+**Polymorphism**
+
+C.1) It's unknown if **1CO normalized positions** between high and low musc strains, will differ. (no good predictions come to mind)
+
+
+C.2) sis-co-ten metric will be maximized in higher recombining strains .. because.  
+
+
+C.3) telomere and centromere distances will be shorter in low rec strains
 
 -->
 
