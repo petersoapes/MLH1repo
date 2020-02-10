@@ -1191,6 +1191,14 @@ msm, pwd skive are when all other male strains are added. skive is less sig than
 <!--
 TODO -- try running a chi square test on the proportions.
 
+#2 sample prop test
+prop.test(x, y)
+
+x - list of the number of 'successes' across groups  (1COs)
+y - list of the number of 'failures' across groups  (2COs)
+
+(does a chi square test)
+
 make a smaller proportion chrm block --
 Add p.values of tests for the how the proportions differ.
 *cast female data came from another publication, add this ref (Kohler?)
@@ -1295,9 +1303,54 @@ chrm.class.barplot
 
 ```{r test.Chrm.Prop, echo=FALSE}
 
+#prop.test(x, y)  x number of successes, y total  
+#strain sums of n
+#look up continuity correction
 
-#this first one is the 'first' MLH1 count
-#which is this variable
+Mouse.Table_BivData_4MM <- Mouse.Table_BivData_4MM[(!is.na(Mouse.Table_BivData_4MM$mouse)),]
+
+
+female.mouse.av <-  Mouse.Table_BivData_4MM %>%  filter(sex == "female")
+male.mouse.av <-  Mouse.Table_BivData_4MM %>%  filter(sex == "male")
+  
+n1CO_list_F <- c( female.mouse.av$n1CO)
+n1CO_list_M <- c( male.mouse.av$n1CO)
+
+total_biv_F_list <- c( female.mouse.av$tot.biv)
+total_biv_M_list <- c( male.mouse.av$tot.biv)
+
+nbiv_total_list <- c(Mouse.Table_BivData_4MM$tot.biv)
+
+prop.test(n1CO_list_F, total_biv_F_list )
+
+#perform test across strain 
+
+Chrm.prop_strain_table <- ddply(Mouse.Table_BivData_4MM, c("strain","sex"), summarise,
+                  
+                  nbiv = sum(tot.biv ),              
+                 n0CO = sum(n0CO ),
+                  n1CO = sum(n1CO ),
+                 n2CO = sum(n2CO ),
+                  n3CO = sum(n3CO )
+
+                          )
+
+chrm.prop.strain.female <-  Chrm.prop_strain_table %>%  filter(sex == "female")
+
+female.0CO.prop.test <- prop.test(chrm.prop.strain.female$n0CO, chrm.prop.strain.female$nbiv )
+female.1CO.prop.test <- prop.test(chrm.prop.strain.female$n1CO, chrm.prop.strain.female$nbiv )
+female.2CO.prop.test <- prop.test(chrm.prop.strain.female$n2CO, chrm.prop.strain.female$nbiv )
+
+
+chrm.prop.strain.male <-  Chrm.prop_strain_table %>%  filter(sex == "male")
+#chrm.prop.strain.male.high.rec <-  Chrm.prop_strain_table %>%  filter(sex == "male")
+#chrm.prop.strain.male.low.rec <-  Chrm.prop_strain_table %>%  filter(sex == "male")
+
+male.0CO.prop.test <- prop.test(chrm.prop.strain.male$n0CO, chrm.prop.strain.male$nbiv )
+male.1CO.prop.test <- prop.test(chrm.prop.strain.male$n1CO, chrm.prop.strain.male$nbiv )
+male.2CO.prop.test <- prop.test(chrm.prop.strain.male$n2CO, chrm.prop.strain.male$nbiv )
+
+
 
 #oopp2 <- lm( mean.MLH1.foci2 ~ per0CO+ per1CO +per2CO +per3CO, data = proportion_stats_category)
 #summary(oopp2)
@@ -1305,22 +1358,15 @@ chrm.class.barplot
 
 #mean is the new calculated-- mean 0CO is significant and intercept
 #oopp <-  lm( mean.MLH1.foci ~ per0CO+ per1CO +per2CO +per3CO, data = #proportion_stats_category)
-
-
 #summary(oopp)
 #not sure if these are inter-correlated
 #I don't know why 0COs and the intercept are significant..
 #0CO and 1CO are significant when only chrm classes are included (and intercept)
-
-
 #no longer significant when used
 #lm regression indicates that the proportions aren't significant contributers to meanMLH1 -- but this could be due to error
 #after added more MSM data, tot_biv is not significant
 #0CO is now more significant, and 2CO is sightly significant
-
-
 #2CO proportion is the most significant, 1CO is second most significat, 3CO doesn't have enough power - total bivalents is also significant, there might be a bias
-
 #MSM needs more bialent observations
 #use melt to put all propotions 
 #display / visualize / compare proportions
@@ -1431,6 +1477,7 @@ chrm.class.barplot <- ggplot(data = chrm.class.category_MELT, aes(y = mean.perce
 chrm.class.barplot
 
 ```
+
 
 These results align with the previous figure I made using percentages from hand measured results (dozens of observations, instead of hundreds). These results fit with the rapid male evolution of gwRR in MSM and PWD.  
 
@@ -2637,7 +2684,9 @@ Two bivalent level traits are predicted to display heterochiasmy (ie significant
 
 # Q1 SC Lengths
 
-<!--Brief lit review for SC length and MLH1 expections. -->
+<!--Brief lit review for SC length and MLH1 expections.
+add XX adjusment / arguments
+-->
 
 We expect female SC lengths to be longer (refs). In the plot above the SC length ~ higher hand foci cells. Any of the chromosome classes above 3, that don't have a higher mean are likely due to low data number. For the 0 class chromosomes most all are around the same size of the 1CO distribution. Add in the code for the plot under 2COs males and females
 
@@ -2847,13 +2896,7 @@ Q1.SClength_Dom.BivData_plot
 I think the strange thing about the Musc is that Skive females have shorter SC lengths.
 
 
-
-
-#### Strain Comparisons of SC Length
-
-Dive deeper into the sex specific pattern for each strain.  (I think for all the within strain comparisons across sexes the general pattern is met of females being longer)
-
-(adding all of these blocks to -- the setup script); strain.Bivalents.DF
+#### Q1. SC Length t.test
 
 ```{r strain.SClength.t.test, echo=FALSE}
 #t.tests for all the strain specific data frames
@@ -2883,6 +2926,22 @@ MSM.ttest  <- t.test(MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "
 
 
 
+
+#### Strain Comparisons of SC Length
+
+Dive deeper into the sex specific pattern for each strain.  (I think for all the within strain comparisons across sexes the general pattern is met of females being longer)
+
+(adding all of these blocks to -- the setup script); strain.Bivalents.DF
+
+
+
+#### XX adjustment
+
+Generate inteligible summaries for the permutation / subsampling results. 
+
+```{r Q1_XX.adjustment, echo=FALSE}
+
+```
 
 
 
@@ -3513,29 +3572,19 @@ The random strain effect was tested for raw and normalized IFD, neither are sign
 
 # Q1. General CO Positions
 
+<!--
+
 There are a few traits that fall within the CO positions  
-
 - 1CO normalized position  
-
 - sis.co.ten (sorta interference)  
-
 - centromere and telomere distance  
-
-
 **Heterochiasmy**
 
 2.A) Normalized 1CO positions will be sexually dimorphic (sedell and Kirkpatrick). 
- 
   B) **sis**ter **co**hesion **ten**sion (sis-co-ten) will be sexually dimorphic as it reflects the general property of unifrom vs telomere/biased CO positioning.
-  
   C) Centromere and telomere distances will be sexually dimorphic.
-
-
-
-# Q1. Normalized 1CO positions
-
 **for all the test blocks below, integrate the 3 other metrics; siscoten, telomere, centromere distance.
-
+-->
 
 ```{r CO.positions.figs, echo=FALSE}
 #main figure of density plots,
@@ -3570,6 +3619,27 @@ CO.Pos.density_Dom_male <- ggplot(Dom.male_MELT_curBivData, aes(x=PER.Foci.Pos, 
 
 
 ```
+
+
+```{r Q1.mean.nrmF1_table, echo=FALSE,eval=FALSE}
+
+#make a table for the sex specific values of the normalized F1 positions
+
+#for strain, sex -- Curated_BivData
+#or (Mouse.Table_BivData_4MM)
+#norm.first.foci.pos
+
+
+Q1.normF1.pos_table <- ddply(Mouse.Table_BivData_4MM, c("strain","sex"), summarise,
+                  
+                    mean_1CO_nrm.pos = mean(norm.first.foci.pos, na.rm = TRUE), 
+                  n1CO = sum(n1CO )
+
+                          )
+
+
+```
+
 
 
 ```{r Q1.Nrm.F1pos_M2, echo=FALSE}
