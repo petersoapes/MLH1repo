@@ -205,9 +205,325 @@ female.musc.mice.table <- ddply(female.musc.cells, c("sex"), summarise,
 )
 ```
 
+# gwRR estimates
+
+make table of the strain averages 
+
+```{r MLH1.summ.stats, echo=FALSE}
+
+#table for the means by strain
+
+```
 
 
-# Average MLH1 Count Model
+## Female Specific Analysis
+
+
+```{r female.show.plots, echo=FALSE, fig.width = 4, fig.height=2.5}
+
+female_mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
+                            subsp.y,subsp.x,
+                    category.y,category.x, strain.x,
+                    strain.y, mouse.1  )  )
+
+female_mouse.av <- add_sex(female_mouse.av)
+female_mouse.av <- add_strain(female_mouse.av)
+female_mouse.av <- add_subsp(female_mouse.av)
+female_mouse.av <- add_species(female_mouse.av)
+
+female_mouse.avs_for.analysis <-  female_mouse.av %>% filter(sex== "female") %>% filter(species == "M.musculus") 
+
+female_mouse.avs_for.analysis$subsp <- factor(female_mouse.avs_for.analysis$subsp, ordered = FALSE)
+female_mouse.avs_for.analysis$sex <- factor(female_mouse.avs_for.analysis$sex, ordered = FALSE)
+female_mouse.avs_for.analysis$strain <- factor(female_mouse.avs_for.analysis$strain, ordered = FALSE)
+female_mouse.avs_for.analysis$species <- factor(female_mouse.avs_for.analysis$species, ordered = FALSE)
+
+table( droplevels(female_mouse.avs_for.analysis$strain) )
+#there are cast strains too
+
+
+Musc.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Musc")
+
+musc.female.plot <- ggplot(Musc.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc female of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,34))
+musc.female.plot
+
+
+#Mol
+Mol.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Mol")
+
+Mol.female.plot <- ggplot(Mol.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Mol female of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,33))
+Mol.female.plot
+
+#Dom version 
+Dom.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Dom")
+
+Dom.female.plot <- ggplot(Dom.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Dom female of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,33))
+Dom.female.plot
+#Gough female is higher
+
+
+
+#variance plots
+musc.female.VAR.plot <- ggplot(Musc.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y =var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc female of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
+
+
+Mol.female.plot <- ggplot(Mol.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Mol female of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
+
+
+Dom.female.plot <- ggplot(Dom.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Dom feale ofwithin mouse  MLH1 distributions")+scale_color_manual(values=colors_of_strains)
+
+
+```
+
+
+```{r female.strain.table, echo=FALSE}
+
+#female strain table
+#female_mouse.avs_for.analysis
+F.strain.table <- ddply(female_mouse.avs_for.analysis, c("strain"), summarise,
+                        Nmice =length(unique(mouse)),
+                        Ncells  = sum(Ncells),
+                        mean_co =as.numeric(format(round(mean(mean_co), 3 ), nsmall=3) ),
+                       
+                        mean.mouse_cV = mean(cV, na.rm = TRUE),
+                        
+                        mean.mouse_var = mean(var, na.rm = TRUE ), 
+                        
+                        mean.mouse_sd   = mean(sd),
+                       
+                        #Standard error (mice vs cells)
+                        mean.mouse_se  = mean(se)
+    )
+
+```
+
+
+
+```{r Female.specific.glm, echo=FALSE}
+
+glm.female.strain.subsp <- lm(mean_co ~ subsp * strain, data= female_mouse.avs_for.analysis)
+
+summry.female.strain.effects <- summary(glm.female.strain.subsp)
+
+#write.table(summry.female.strain.effects$coefficients, "~./MLH1repo/summry.female.strain.effects.csv", sep=",",row.names = TRUE)
+
+lm.female.strain <- glm(mean_co ~ strain, data= female_mouse.avs_for.analysis)
+lm.female.strain_sum <- summary(lm.female.strain)
+
+#write.table(lm.female.strain_sum$coefficients, "~./MLH1repo/lm.female.strain.csv", sep=",",row.names = TRUE)
+
+#how much greater is G female
+G_female <-  female_mouse.avs_for.analysis %>% filter(strain == "G")
+mean.G.female <- mean(G_female$mean_co)
+
+sans_high_female <- female_mouse.avs_for.analysis %>% filter(strain != "G") %>%  filter(strain != "MSM")
+mean.all.other <- mean(sans_high_female$mean_co)
+
+
+#how much greater is MSM female
+MSM_female <-  female_mouse.avs_for.analysis %>% filter(strain == "MSM")
+mean.MSN.female <- mean(MSM_female$mean_co)
+
+sans_MSM_female <- female_mouse.avs_for.analysis %>% filter(strain != "MSM")
+mean.all.other <- mean(sans_MSM_female$mean_co)
+
+mean.MSN.female / mean.all.other
+
+## within mouse variance models 
+lmVAR.female.strain.subsp <- lm(var ~ subsp * strain, data= female_mouse.avs_for.analysis)
+summry.female.strain.VAReffects <- summary(lmVAR.female.strain.subsp)
+
+lmVAR.female.strain <- lm(var ~ strain, data= female_mouse.avs_for.analysis)
+lmVAR.female.strain_sum <- summary(lmVAR.female.strain)
+
+#Q12
+Q12_female_table <-  Q12_mouse_table_w.Ages %>% filter(sex == "female")
+
+lm.m1.Q12_female <- lm(var ~ subsp * strain, data= Q12_female_table)
+lm.m1.Q12_female_sum <- summary(lm.m1.Q12_female)
+#LEW not sig
+
+lm.m2.Q12_female <- lm(var ~ strain, data= Q12_female_table)
+lm.m2.Q12VAR.female_sum <- summary(lmVAR.female.strain)
+#LEW sig
+```
+
+
+The range of strain means is `r min()`
+
+the ranges of mouse means for each strain is X
+
+MSM, G, LEW have significant strain effects.
+
+
+## Male Specific Analysis
+
+Follow up on this finding -- included more strains which were excluded from the HetC analysis.
+
+
+> Is there a strain effect in Dom?
+
+> How different are the Musc strains?
+
+test a model for fixed effects of strains within musc. The purpose is to distinguish musc strains from low 'Dom' level strains. 
+
+
+```{r male.show.plots, echo=FALSE, fig.width = 4, fig.height=2.5}
+#try customize the plot size
+
+male_mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
+                            subsp.y,subsp.x,
+                    category.y,category.x, strain.x,
+                    strain.y, mouse.1  )  )
+
+male_mouse.av <- add_sex(male_mouse.av)
+male_mouse.av <- add_strain(male_mouse.av)
+male_mouse.av <- add_subsp(male_mouse.av)
+male_mouse.av <- add_species(male_mouse.av)
+
+just.male_mouse.av <-  male_mouse.av %>% filter(sex== "male") %>% filter(species == "M.musculus") 
+
+just.male_mouse.av$sex <- factor(just.male_mouse.av$sex, ordered = FALSE)
+just.male_mouse.av$strain <- factor(just.male_mouse.av$strain, ordered = FALSE)
+just.male_mouse.av$subsp <- factor(just.male_mouse.av$subsp, ordered = FALSE)
+just.male_mouse.av$species <- factor(just.male_mouse.av$species, ordered = FALSE)
+
+#table( droplevels(just.male_mouse.av$strain) )
+#there are cast strains too
+
+Musc.male_mouse.av <-  just.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Musc")
+
+musc.male.plot <- ggplot(Musc.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc male of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,34))
+musc.male.plot
+
+# + theme(axis.title.x=element_blank(),
+#        axis.text.x=element_blank(),
+#        axis.ticks.x=element_blank()) +
+#ylim( c((min(MLH1_data$adj_nMLH1.foci)-3) ), (max(MLH1_data$adj_nMLH1.foci)+3)) +  
+
+
+#make the Mol and
+Mol.male_mouse.av <-  just.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Mol")
+
+Mol.male.plot <- ggplot(Mol.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Mol male of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,33))
+Mol.male.plot
+
+
+#Dom version 
+Dom.male_mouse.av <-  just.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Dom")
+
+Dom.male.plot <- ggplot(Dom.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Dom male of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,33))
+Dom.male.plot
+
+```
+
+(Try removing the alpha legend)  
+
+This is the table and plot of new Musc strains
+
+`r kable(table( droplevels( Musc.male_mouse.av$strain)  ))`
+
+Given the plot, make note of the potential outlier mice.  The strains have unequal variance
+
+KAZ: 10jul19_KAZ_m3, 10jul19_KAZ_m1, 10jul19_KAZ_m2   
+
+PWD: 24sep14_PWD_m1, 18may15_PWD_m1?
+
+
+```{r male.strain.table, echo=FALSE}
+
+#female strain table
+#female_mouse.avs_for.analysis
+M.strain.table <- ddply(just.male_mouse.av, c("strain"), summarise,
+                        Nmice =length(unique(mouse)),
+                        Ncells  = sum(Ncells),
+                        mean_co =as.numeric(format(round(mean(mean_co), 3 ), nsmall=3) ),
+                       
+                        mean.mouse_cV = mean(cV, na.rm = TRUE),
+                        
+                        mean.mouse_var = mean(var, na.rm = TRUE ), 
+                        
+                        mean.mouse_sd   = mean(sd),
+                       
+                        #Standard error (mice vs cells)
+                        mean.mouse_se  = mean(se)
+    )
+
+```
+
+
+
+```{r Male.specific.glm, echo=FALSE}
+# 1 way anova, is at least 1 strain different from the rest?
+# given a lm, how sig is the strain effect
+glm.male.strain.subsp <- lm(mean_co ~ subsp * strain, data= just.male_mouse.av)
+
+summry.male.strain.effects <- summary(glm.male.strain.subsp)
+
+#write.table(summry.male.strain.effects$coefficients , "~./MLH1repo/summry.male.strain.effects.csv", sep=",",row.names = TRUE)
+
+#1. determine which strain effects are sig
+#M2
+lm.male.strain <- glm(mean_co ~ strain, data= just.male_mouse.av)
+lm.male.strain_sum<- summary(lm.male.strain)
+
+#write.table(lm.male.strain_sum$coefficients , "~./MLH1repo/lm.male.strain_sum.csv", sep=",",row.names = TRUE)
+
+#even when all the other male strains are added -- the same result; PWD, MSM and SKIVE strain effects are significant.
+
+#how much greater are the High Rec gwRRs
+just.male_mouse.av$Rec.group <- ifelse(grepl("PWD", just.male_mouse.av$strain), 1, 
+                              ifelse(grepl("MSM", just.male_mouse.av$strain), 1,
+                                ifelse(grepl("SKIVE", just.male_mouse.av$strain), 1, 0)))
+
+#how much bigger are the high rec male means?
+sans_LewRec_male <- just.male_mouse.av %>% filter(Rec.group == 0)
+#mean(sans_LewRec_male$mean_co)
+
+PWD_male <-  just.male_mouse.av %>% filter(strain == "PWD")
+#mean(PWD_male$mean_co) / mean(sans_LewRec_male$mean_co)
+
+MSM_male <- just.male_mouse.av %>% filter(strain == "MSM")
+#mean(MSM_male$mean_co) / mean(sans_LewRec_male$mean_co)
+
+SKIVE_male <-   just.male_mouse.av %>% filter(strain == "SKIVE")
+#mean(SKIVE_male$mean_co) /  
+  mean(sans_LewRec_male$mean_co)
+
+## within mouse variance models 
+lmVAR.male.strain.subsp <- lm(var ~ subsp * strain, data= just.male_mouse.av)
+summry.male.strain.VAReffects <- summary(lmVAR.male.strain.subsp)
+#all p values kinda high, MSM and TOM are slightly sig
+
+lmVAR.male.strain <- lm(var ~ strain, data= just.male_mouse.av)
+lmVAR.male.strain_sum <- summary(lmVAR.male.strain)
+#non sig
+
+lmcv.male.strain <- lm(cV ~ strain, data= just.male_mouse.av)
+lmcv.male.strain_sum <- summary(lmcv.male.strain)
+#HMI sig for cv model -- in the other model, CAST subsp and TOM strain are slightly significant
+
+#Q12
+Q12_male_table <-  Q12_mouse_table_w.Ages %>% filter(sex == "male")
+
+lm.m1.Q12_male <- lm(var ~ subsp * strain, data= Q12_male_table)
+lm.m1.Q12_male_sum <- summary(lm.m1.Q12_male)
+#NS
+
+lm.m2.Q12_male <- lm(var ~ strain, data= Q12_male_table)
+lm.m2.Q12VAR.male_sum <- summary(lm.m2.Q12_male)
+#NS
+
+```
+
+the ranges of means are X
+
+PWD, MSM and SKIVE have strain significant strain effects so they will be designedated into the high rec group.
+
+
+# Analysis for Evolutionary Patterns
+
+In order to understand the variance within an evolutionary framework we fit the mouse gwRRs to a mixed model, which specified subspecies, sex and the interaction as fixed effects. The subspecies effect - is a proxy for measuring the degree of divergence across subspecies. The strains were coded as a random effect to -simulate / approximate / the standing genetic variation across subspecies.
 
 These are the basic Mixed Models we used as a frame work to analyze all the MLH1 count data.
 
@@ -216,30 +532,25 @@ $$mouse \ av.\  metric ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
 The mixed model lets us separate effects to see how they effect a mouse mean CO count. The subspecies effect is a proxy for **Divergence** and the random strain effect is a proxy for **Polymorphism**.
 
-
+<!--
 Setting up the data set for using the mixed model (base data set, HQ data set)
 
 - only Mus musculus strains with sex matched observations  
-
 - Male gwRR have been adjusted for the PAR
-
 - Q5 excluded
-
 - All the effects are un-ordered factors  
-
 - male ages within 5 - 20 weeks
-
 - Molossinus is coded as a subsp level
 
+subspecies levels: 3, Musc, Dom and Molossinus
 
+strain levels: Dom: 3, Musc: 3  Mol: 2
+
+sex: 2 female male  
+-->
 
 ```{r mixed.model.data.setup, echo=FALSE, warning=FALSE, eval=FALSE}
-# MOVE this into BIVDATA SETUP!!!
-
-#should be able to use the loaded 
 #DF.HetC.MixedModel.HQ
-
-
 
 #https://rcompanion.org/handbook/G_03.html
 #testing random effects within lme
@@ -323,16 +634,6 @@ This is the break down of mice used within the Mixed model
 
 `r kable(table(DF.HetC.MixedModel.HQ$sex, DF.HetC.MixedModel.HQ$strain))`
 
-<!--Can I indicate the average number of cells with go into each mouse.? -->
- 
-
-subspecies levels: 3, Musc, Dom and Molossinus
-
-strain levels: Dom: 3, Musc: 3  Mol: 2
-
-sex: 2 female male  
-
-For now I will focus on 3 different models for comparing the subsp, sex and strain effects across relevant dependent variables.
 
 
 1. $$mouse \ av \ meteric ~=~ subsp * sex  + rand(1|strain) + \varepsilon$$
@@ -340,61 +641,45 @@ For now I will focus on 3 different models for comparing the subsp, sex and stra
 Allows random effect from strain. Considers the wild derived inbred strains as random samples from each subspecies territory.
 
 
-2. $$mouse \ av \ meteric ~=~ subsp * sex * strain + \varepsilon$$
 
-
-Post hoc model for investigating strain as a fixed effect.
-
-
-3. $$mouse \ av \ meteric ~=~ sex * strain + \varepsilon$$
-
-Used after it's apparent strain has a significant effect - another post-hoc examination for strain as a fixed effect.
-
-## MLH1 count M1
-
-$$mouse .mean CO ~=~ subsp * sex  + rand(1|strain) + \varepsilon$$
-
-```{r MLH1co.av.M1, echo=FALSE, digits = 3}
+```{r MLH1co.MM, echo=FALSE, digits = 3}
 #THIS IS THE NEW MIXED MODEL
 #should be able to use the loaded 
 #DF.HetC.MixedModel.HQ
 
 MLH1.MM.M1 <- lmer(mean_co ~ subsp * sex + (1|strain), data=DF.HetC.MixedModel.HQ) 
-#summary(Reduced.strain.HQ)
-
 #summary(MLH1.MM.M1)
-drop1(MLH1.MM.M1, test="Chisq") # p = 0.0002045 ***
 
-as.data.frame(round(summary(MLH1.MM.M1)$coefficients, 6))
+MM.Fixed.pval <- drop1(MLH1.MM.M1, test="Chisq")$`Pr(Chi)`[2]
+MM.rand.pval <- exactRLRT(MLH1.MM.M1)$p.value 
+
+#as.data.frame(round(summary(MLH1.MM.M1)$coefficients, 6))
 
 #only the interaction term shows up, when the 2 terms are additive, they both show up in the drop1 results
-anova(MLH1.MM.M1)
-
-exactRLRT(MLH1.MM.M1) #< 2.2e-16  Random strain effect, the variance due to random strain effect is NOT 0
 
 ```
 
-Above is the mixed model M1, 
+The significance of the interaction effect for the 2 fixed effects is `r MM.Fixed.pval`. The random effect for strain effect is `r MM.rand.pval`. 
 
 
-## MLH1 count M2
+### glm followup
 
-$$mouse \ av \ metric ~=~ subsp * sex * strain + \varepsilon$$
+To follow up on the mixed model results, we also ran glm / linear models to get a better idea of the strain by sex interaction effects.
+
+
+2. $$mouse \ av \ meteric ~=~ subsp * sex * strain + \varepsilon$$
+
+
+Post hoc model for investigating strain as a fixed effect.
 
 ```{r MixedModel.2, echo=FALSE,  digits = 3}
 #strain = fixed
-lm.strain.fixed.full <- lm(mean_co ~ subsp * sex * strain, data=DF.HetC.MixedModel.HQ)
+glm.strain.fixed.full <- glm(mean_co ~ subsp * sex * strain, data=DF.HetC.MixedModel.HQ)
 
-anova(lm.strain.fixed.full)
+summ <- summary(glm.strain.fixed.full)
 
-#this table of results is broken -- might be too long -- lm
-#lm has different names
-as.data.frame(round( summary(lm.strain.fixed.full)$coefficients, 6))
+#write.table(summ$coefficients , "~./MLH1repo/glm.strain.fixed.full.csv", sep=",",row.names = TRUE)
 
-#summary(strain.fixed.full)
-#when strain added as fixed, MSM, PWD and WSB are signifcant, subsp*sex is most significant
-
-#non of the 3-way interactions are significant, very puzzeled that WSB is significant and non of ht ehigh Musc are 
 ```
 
 Above is the table of coefficients for MM.3, HQ data set, lm function, sex, strain and subsp are interacting fixed effects.  
@@ -406,7 +691,20 @@ interaction terms of sex and strain for (G, MSM, PWD).
 How are these models different from the last one -- MM4 is missing subsp, so only sex * strain effects.
 
 
-## MLH1 count M3
+
+
+3. $$mouse \ av \ meteric ~=~ sex * strain + \varepsilon$$
+
+Used after it's apparent strain has a significant effect - another post-hoc examination for strain as a fixed effect.
+
+
+
+$$mouse \ av \ metric ~=~ subsp * sex * strain + \varepsilon$$
+
+
+
+
+
 
 $$mouse \ av \ metric ~=~ sex * strain + \varepsilon$$
 
@@ -486,7 +784,7 @@ anova(HetC.MixedModel.mean_co, HetC.MixedModel.mol)
 
 -->
 
-#### Summary of Mixed models
+
 
 
 ## Within Mouse Variance in CO Count per Cell
@@ -606,7 +904,7 @@ XXX (old 1.)	HetC.MixedModel.HQ <- lme(mouse.metric ~ subsp*sex, data=DF.HetC.Mi
 4.	lm(mouse.metric ~ sex * strain, data=DF.HetC.MixedModel.HQ)  
 
 
-### MLH1 variance M1
+
 
 $$mouse metric  ~=~ subsp * sex + rand(strain)+ \varepsilon$$
 
@@ -663,7 +961,7 @@ The fixed sex effect has the largest effect sizes. All are negative (for male). 
 The strain effects are only slightly significant for within mouse variance measures in the full data set (includes low quality cells)
 
 
-### MLH1 variance M2
+
 
 $$mouse CO metric  ~=~ subsp * sex * strain + \varepsilon$$
 
@@ -705,7 +1003,7 @@ as.data.frame( round(summary(MLH1cv_M3_Q12)$coefficients, 6))
 For LEW - females must have high variance,  for CV Lew strain alone has increased cv. Consider plotting the variance - and diving deeper into this pattern
 Most of the strain specific differences in within mouse variance go away in the Q12 data set.
 
-### MLH1 variance M3
+
 
 $$mouse \ CO \ metric  ~=~ subsp * sex * strain + \varepsilon$$
 
@@ -941,252 +1239,11 @@ What are the steps the each chunks walk through.
 
 -->
 
-# Female Specific Polymorphism
 
-I should run the same questions for the female data -- 
 
-```{r female.show.plots, echo=FALSE, fig.width = 4, fig.height=2.5}
+# Proportion of Chromosome Classes
 
-female_mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
-                            subsp.y,subsp.x,
-                    category.y,category.x, strain.x,
-                    strain.y, mouse.1  )  )
-
-female_mouse.av <- add_sex(female_mouse.av)
-female_mouse.av <- add_strain(female_mouse.av)
-female_mouse.av <- add_subsp(female_mouse.av)
-female_mouse.av <- add_species(female_mouse.av)
-
-female_mouse.avs_for.analysis <-  female_mouse.av %>% filter(sex== "female") %>% filter(species == "M.musculus") 
-
-female_mouse.avs_for.analysis$subsp <- factor(female_mouse.avs_for.analysis$subsp, ordered = FALSE)
-female_mouse.avs_for.analysis$sex <- factor(female_mouse.avs_for.analysis$sex, ordered = FALSE)
-female_mouse.avs_for.analysis$strain <- factor(female_mouse.avs_for.analysis$strain, ordered = FALSE)
-female_mouse.avs_for.analysis$species <- factor(female_mouse.avs_for.analysis$species, ordered = FALSE)
-
-table( droplevels(female_mouse.avs_for.analysis$strain) )
-#there are cast strains too
-
-
-Musc.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Musc")
-
-musc.female.plot <- ggplot(Musc.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc female of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,34))
-musc.male.plot
-
-# + theme(axis.title.x=element_blank(),
-#        axis.text.x=element_blank(),
-#        axis.ticks.x=element_blank()) +
-#ylim( c((min(MLH1_data$adj_nMLH1.foci)-3) ), (max(MLH1_data$adj_nMLH1.foci)+3)) +  
-
-#Mol
-Mol.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Mol")
-
-Mol.female.plot <- ggplot(Mol.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Mol female of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,33))
-Mol.female.plot
-
-#Dom version 
-Dom.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Dom")
-
-Dom.female.plot <- ggplot(Dom.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Dom female of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,33))
-Dom.female.plot
-#Gough female is higher
-
-#variance
-musc.female.VAR.plot <- ggplot(Musc.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y =var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc female of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
-musc.female.VAR.plot
-
-Mol.female.plot <- ggplot(Mol.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Mol female of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
-Mol.female.plot
-
-Dom.female.plot <- ggplot(Dom.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Dom feale ofwithin mouse  MLH1 distributions")+scale_color_manual(values=colors_of_strains)
-Dom.female.plot
-
-```
-
-
-
-```{r Female.specific.test, echo=FALSE}
-
-lm.female.strain.subsp <- lm(mean_co ~ subsp * strain, data= female_mouse.avs_for.analysis)
-summry.female.strain.effects <- summary(lm.female.strain.subsp)
-#strainG, 1.06e-05 ***
-#strainLEW  0.0273 *
-
-lm.female.strain <- lm(mean_co ~ strain, data= female_mouse.avs_for.analysis)
-lm.female.strain_sum <- summary(lm.female.strain)
-#G  1.06e-05 ***
-#LEW   0.0273 *
-#PWD  0.0810 .
-#MSM  3.02e-05 ***
-
-#how much greater is G female
-G_female <-  female_mouse.avs_for.analysis %>% filter(strain == "G")
-mean.G.female <- mean(G_female$mean_co)
-
-sans_G_female <- female_mouse.avs_for.analysis %>% filter(strain != "G")
-mean.all.other <- mean(sans_G_female$mean_co)
-
-
-## within mouse variance models 
-lmVAR.female.strain.subsp <- lm(var ~ subsp * strain, data= female_mouse.avs_for.analysis)
-summry.female.strain.VAReffects <- summary(lmVAR.female.strain.subsp)
-
-lmVAR.female.strain <- lm(var ~ strain, data= female_mouse.avs_for.analysis)
-lmVAR.female.strain_sum <- summary(lmVAR.female.strain)
-
-#Q12
-Q12_female_table <-  Q12_mouse_table_w.Ages %>% filter(sex == "female")
-
-lm.m1.Q12_female <- lm(var ~ subsp * strain, data= Q12_female_table)
-lm.m1.Q12_female_sum <- summary(lm.m1.Q12_female)
-#LEW not sig
-
-lm.m2.Q12_female <- lm(var ~ strain, data= Q12_female_table)
-lm.m2.Q12VAR.female_sum <- summary(lmVAR.female.strain)
-#LEW sig
-```
-
-
-
-# Male Specific Polymorphism
-
-Follow up on this finding -- included more strains which were excluded from the HetC analysis.
-
-
-> Is there a strain effect in Dom?
-
-> How different are the Musc strains?
-
-test a model for fixed effects of strains within musc. The purpose is to distinguish musc strains from low 'Dom' level strains. 
-
-
-```{r male.show.plots, echo=FALSE, fig.width = 4, fig.height=2.5}
-#try customize the plot size
-
-male_mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
-                            subsp.y,subsp.x,
-                    category.y,category.x, strain.x,
-                    strain.y, mouse.1  )  )
-
-male_mouse.av <- add_sex(male_mouse.av)
-male_mouse.av <- add_strain(male_mouse.av)
-male_mouse.av <- add_subsp(male_mouse.av)
-male_mouse.av <- add_species(male_mouse.av)
-
-just.male_mouse.av <-  male_mouse.av %>% filter(sex== "male") %>% filter(species == "M.musculus") 
-
-just.male_mouse.av$sex <- factor(just.male_mouse.av$sex, ordered = FALSE)
-just.male_mouse.av$strain <- factor(just.male_mouse.av$strain, ordered = FALSE)
-just.male_mouse.av$subsp <- factor(just.male_mouse.av$subsp, ordered = FALSE)
-just.male_mouse.av$species <- factor(just.male_mouse.av$species, ordered = FALSE)
-
-#table( droplevels(just.male_mouse.av$strain) )
-#there are cast strains too
-
-Musc.male_mouse.av <-  just.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Musc")
-
-musc.male.plot <- ggplot(Musc.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc male of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,34))
-musc.male.plot
-
-# + theme(axis.title.x=element_blank(),
-#        axis.text.x=element_blank(),
-#        axis.ticks.x=element_blank()) +
-#ylim( c((min(MLH1_data$adj_nMLH1.foci)-3) ), (max(MLH1_data$adj_nMLH1.foci)+3)) +  
-
-
-#make the Mol and
-Mol.male_mouse.av <-  just.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Mol")
-
-Mol.male.plot <- ggplot(Mol.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Mol male of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,33))
-Mol.male.plot
-
-
-#Dom version 
-Dom.male_mouse.av <-  just.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Dom")
-
-Dom.male.plot <- ggplot(Dom.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Dom male of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,33))
-Dom.male.plot
-
-```
-
-(Try removing the alpha legend)  
-
-This is the table and plot of new Musc strains
-
-`r kable(table( droplevels( Musc.male_mouse.av$strain)  ))`
-
-Given the plot, make note of the potential outlier mice.  The strains have unequal variance
-
-KAZ: 10jul19_KAZ_m3, 10jul19_KAZ_m1, 10jul19_KAZ_m2   
-
-PWD: 24sep14_PWD_m1, 18may15_PWD_m1?
-
-
-```{r Male.specific.test, echo=FALSE}
-# 1 way anova, is at least 1 strain different from the rest?
-# given a lm, how sig is the strain effect
-
-#1. determine which strain effects are sig
-
-lm.male.strain.subsp <- lm(mean_co ~ subsp * strain, data= just.male_mouse.av)
-summry.male.strain.effects <- summary(lm.male.strain.subsp)
-
-lm.male.strain <- lm(mean_co ~ strain, data= just.male_mouse.av)
-lm.male.strain_sum <- summary(lm.male.strain)
-
-#even when all the other male strains are added -- the same result; PWD, MSM and SKIVE strain effects are significant.
-
-#how much greater are the High Rec gwRRs
-just.male_mouse.av$Rec.group <- ifelse(grepl("PWD", just.male_mouse.av$strain), 1, 
-                              ifelse(grepl("MSM", just.male_mouse.av$strain), 1,
-                                ifelse(grepl("SKIVE", just.male_mouse.av$strain), 1, 0)))
-
-sans_LewRec_male <- just.male_mouse.av %>% filter(Rec.group == 0)
-#mean(sans_LewRec_male$mean_co)
-
-PWD_male <-  just.male_mouse.av %>% filter(strain == "PWD")
-#mean(PWD_male$mean_co) / mean(sans_LewRec_male$mean_co)
-
-MSM_male <- just.male_mouse.av %>% filter(strain == "MSM")
-#mean(MSM_male$mean_co) / mean(sans_LewRec_male$mean_co)
-
-SKIVE_male <-   just.male_mouse.av %>% filter(strain == "SKIVE")
-#mean(SKIVE_male$mean_co) /  
-  mean(sans_LewRec_male$mean_co)
-
-## within mouse variance models 
-lmVAR.male.strain.subsp <- lm(var ~ subsp * strain, data= just.male_mouse.av)
-summry.male.strain.VAReffects <- summary(lmVAR.male.strain.subsp)
-#all p values kinda high, MSM and TOM are slightly sig
-
-lmVAR.male.strain <- lm(var ~ strain, data= just.male_mouse.av)
-lmVAR.male.strain_sum <- summary(lmVAR.male.strain)
-#non sig
-
-lmcv.male.strain <- lm(cV ~ strain, data= just.male_mouse.av)
-lmcv.male.strain_sum <- summary(lmcv.male.strain)
-#HMI sig for cv model -- in the other model, CAST subsp and TOM strain are slightly significant
-
-#Q12
-Q12_male_table <-  Q12_mouse_table_w.Ages %>% filter(sex == "male")
-
-lm.m1.Q12_male <- lm(var ~ subsp * strain, data= Q12_male_table)
-lm.m1.Q12_male_sum <- summary(lm.m1.Q12_male)
-#NS
-
-lm.m2.Q12_male <- lm(var ~ strain, data= Q12_male_table)
-lm.m2.Q12VAR.male_sum <- summary(lm.m2.Q12_male)
-#NS
-
-```
-
-msm, pwd skive are when all other male strains are added. skive is less sig than the others -- but it's still sig.  Given these results I can group SKIVE, PWD and MSM into the 'high rec' group.  
-
-*PWD, MSM, SKIVE are in 'high rec group'*
-
-
-
-# Proportion of chromosome classes
+In order to decompose the cell wide rate, we decided to look at the proportion or chromosomes with different numbers of COs)
 
 <!--
 TODO -- try running a chi square test on the proportions.
@@ -1301,7 +1358,7 @@ chrm.class.barplot
 ```
 
 
-```{r test.Chrm.Prop, echo=FALSE}
+```{r test.Chrm.Prop, echo=FALSE, eval=FALSE}
 
 #prop.test(x, y)  x number of successes, y total  
 #strain sums of n
@@ -1332,7 +1389,6 @@ Chrm.prop_strain_table <- ddply(Mouse.Table_BivData_4MM, c("strain","sex"), summ
                   n1CO = sum(n1CO ),
                  n2CO = sum(n2CO ),
                   n3CO = sum(n3CO )
-
                           )
 
 chrm.prop.strain.female <-  Chrm.prop_strain_table %>%  filter(sex == "female")
