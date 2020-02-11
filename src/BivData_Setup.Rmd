@@ -51,6 +51,12 @@ add Q1 and Q4 to the cell summary stats table
 
 ToDo  
 
+
+- Fix the hand.foci.count ==2, 5jan19_27oct18_SKIVE_m2_sp1_3.2_rev_13
+
+- Fix all the hand.foci == 4, which don't have the right number of positions
+
+
 - Go back and clean up the original excel data  
 
 - clean the bottom, fill in missing data  
@@ -1067,7 +1073,13 @@ Mouse level tables are the main meat of the models. There will be several for us
 
 ```{r FULL.mouse.table, echo=FALSE}
 
-mouse.level.BivData_table <- ddply(.data=Curated_BivData, 
+#remove bivalent entries without hand foci count values
+
+
+cleanCurated_BivData <-  Curated_BivData  %>%  filter(hand.foci.count  == 0 | hand.foci.count  == 1 |
+                                      hand.foci.count  == 2 | hand.foci.count  == 3 | hand.foci.count  == 4 )
+
+mouse.level.BivData_table <- ddply(.data=cleanCurated_BivData, 
                        .(mouse),
                        summarize, 
                        
@@ -1077,14 +1089,14 @@ mouse.level.BivData_table <- ddply(.data=Curated_BivData,
                        nboxes_passed = length(boxNumber),
                        
                        Nbiv = length(Obj.ID), #if there are na's below -- it breaks
-                       tot.biv = length(Obj.ID),
+                     
+                      tot.biv = length( !is.na(hand.foci.count) ),
                        
                        n0CO = sum( (hand.foci.count == 0), na.rm = TRUE ),
                       n1CO = sum( (hand.foci.count == 1), na.rm = TRUE ),
                       n2CO = sum( (hand.foci.count == 2), na.rm = TRUE ),
                       n3CO = sum( (hand.foci.count == 3), na.rm = TRUE ),
                       n4CO = sum(hand.foci.count == 4, na.rm=TRUE),
-
 
                        mean.SC_length = mean(chromosomeLength, na.rm = TRUE),
                        var.SC_length = var(chromosomeLength, na.rm = TRUE),
@@ -1106,6 +1118,10 @@ mouse.level.BivData_table$subsp <- factor(mouse.level.BivData_table$subsp, order
 mouse.level.BivData_table$sex <- factor(mouse.level.BivData_table$sex, ordered = FALSE)
 mouse.level.BivData_table$strain <- factor(mouse.level.BivData_table$strain, ordered = FALSE)
 
+
+mouse.level.BivData_table$Rec.group <- ifelse(grepl("PWD male", mouse.level.BivData_table$category), 1, 
+                              ifelse(grepl("MSM male", mouse.level.BivData_table$category), 1,
+                                 ifelse(grepl("SKIVE male", mouse.level.BivData_table$category), 1, 0)))
 ```
 
 
