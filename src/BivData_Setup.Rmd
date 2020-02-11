@@ -1077,26 +1077,34 @@ mouse.level.BivData_table <- ddply(.data=Curated_BivData,
                        nboxes_passed = length(boxNumber),
                        
                        Nbiv = length(Obj.ID), #if there are na's below -- it breaks
-                       CO0 =  sum(hand.foci.count == 0, na.rm=TRUE), 
-                       CO1 =  sum(hand.foci.count == 1, na.rm=TRUE), 
-                       CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
-                       CO3 = sum(hand.foci.count == 3, na.rm=TRUE),
-                       CO4 = sum(hand.foci.count == 4, na.rm=TRUE),
+                       tot.biv = length(Obj.ID),
                        
-                       ncells = length(unique(fileName)),
-                       nbivs = length(unique(Obj.ID)),
+                       n0CO = sum( (hand.foci.count == 0), na.rm = TRUE ),
+                      n1CO = sum( (hand.foci.count == 1), na.rm = TRUE ),
+                      n2CO = sum( (hand.foci.count == 2), na.rm = TRUE ),
+                      n3CO = sum( (hand.foci.count == 3), na.rm = TRUE ),
+                      n4CO = sum(hand.foci.count == 4, na.rm=TRUE),
+
 
                        mean.SC_length = mean(chromosomeLength, na.rm = TRUE),
                        var.SC_length = var(chromosomeLength, na.rm = TRUE),
                        sd.SC_length   = round(sd(chromosomeLength), 3),
-                       se.SC_length   = round(sd.SC_length / sqrt(nbivs), 3),
+                       se.SC_length   = round(sd.SC_length / sqrt(Nbiv), 3),
                        
                        #sis.co.ten
                        mean.sis.co.ten = mean(SisCoTen, na.rm = TRUE)
 )   
 
-as.data.frame( head(mouse.level.BivData_table) )
-#kable didn't work
+
+mouse.level.BivData_table <- add_sex(mouse.level.BivData_table)
+mouse.level.BivData_table <- add_strain(mouse.level.BivData_table)
+mouse.level.BivData_table <- add_subsp(mouse.level.BivData_table)
+mouse.level.BivData_table <- add_category(mouse.level.BivData_table)
+
+#unordered for the mixed models (move this to the MM blocks...?)
+mouse.level.BivData_table$subsp <- factor(mouse.level.BivData_table$subsp, ordered = FALSE)
+mouse.level.BivData_table$sex <- factor(mouse.level.BivData_table$sex, ordered = FALSE)
+mouse.level.BivData_table$strain <- factor(mouse.level.BivData_table$strain, ordered = FALSE)
 
 ```
 
@@ -1106,7 +1114,6 @@ as.data.frame( head(mouse.level.BivData_table) )
 #this mouse level table -- should not have strains without female obs
 #only Mmusculus
 
-#is there a way that the above table would be different than the 
 Mouse.Table_BivData_4MM <- ddply(Curated_BivData, c("mouse"), summarise,
                         Nmice = length(unique(mouse)),
                         Ncells  = length(  unique(fileName) ),
@@ -1149,7 +1156,6 @@ Mouse.Table_BivData_4MM <- ddply(Curated_BivData, c("mouse"), summarise,
               mean.telo.dist = mean(telo_dist, na.rm=TRUE),
               mean.cent.dist = mean(dis.cent, na.rm=TRUE)
 )
-Mouse.Table_BivData_4MM <- Mouse.Table_BivData_4MM[(!is.na(Mouse.Table_BivData_4MM$mouse)),]
 
 #
 Mouse.Table_BivData_4MM <- add_sex(Mouse.Table_BivData_4MM)
@@ -1163,19 +1169,17 @@ Mouse.Table_BivData_4MM$sex <- factor(Mouse.Table_BivData_4MM$sex, ordered = FAL
 Mouse.Table_BivData_4MM$strain <- factor(Mouse.Table_BivData_4MM$strain, ordered = FALSE)
 
 #remove all the non-used strains!!
-Mouse.Table_BivData_4MM <- Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$strain != "AST",]
-Mouse.Table_BivData_4MM <- Mouse.Table_BivData_4MM[Curated_BivData$strain != "TOM",]
-Mouse.Table_BivData_4MM <- Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$strain != "CZECH",]
-Mouse.Table_BivData_4MM$strain <- droplevels(Mouse.Table_BivData_4MM$strain)
 
-#assign high and low
-#divide musc males into groups
-#mouse.avs_4MM$Rec.group.alt <- ifelse(grepl("PWD male", mouse.avs_4MM$category), 1, 
-#                                ifelse(grepl("MSM male", mouse.avs_4MM$category), 1,
-#                                 ifelse(grepl("SKIVE male", mouse.avs_4MM$category), 1, 0)))#
-#
-#mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD male", mouse.avs_4MM$category), 1, 
-#                                ifelse(grepl("MSM male", mouse.avs_4MM$category), 1, 0))
+Mouse.Table_BivData_4MM <-  Mouse.Table_BivData_4MM %>%  filter(strain != "AST")  %>% filter(strain != "TOM")  %>% filter(strain != "CZECH")
+
+
+#Mouse.Table_BivData_4MM$strain <- droplevels(Mouse.Table_BivData_4MM$strain)
+#Mouse.Table_BivData_4MM <- Mouse.Table_BivData_4MM[(!is.na(Mouse.Table_BivData_4MM$mouse)),] #so many NAs still 
+
+Mouse.Table_BivData_4MM$Rec.group <- ifelse(grepl("PWD male", Mouse.Table_BivData_4MM$category), 1, 
+                              ifelse(grepl("MSM male", Mouse.Table_BivData_4MM$category), 1,
+                                 ifelse(grepl("SKIVE male", Mouse.Table_BivData_4MM$category), 1, 0)))
+
 ```
 
 
@@ -1344,7 +1348,7 @@ cell.total_skel, cell.total_binary
 ```{r save.file}
 
 #save Rdata
-save.image("~./MLH1repo/data/CleanBivData_3.2.20.RData")
+save.image("~./MLH1repo/data/CleanBivData_11.2.20.RData")
 #save.image("data/BivData_4_PCA.RData")
 
 ```
