@@ -710,7 +710,7 @@ strain levels: Dom: 3, Musc: 3  Mol: 2
 sex: 2 female male  
 -->
 
-```{r mixed.model.data.setup, echo=FALSE, warning=FALSE, eval=FALSE}
+```{r mixed.model.data.setup, echo=FALSE, warning=FALSE, eval=TRUE}
 #DF.HetC.MixedModel.HQ
 
 #https://rcompanion.org/handbook/G_03.html
@@ -2612,25 +2612,13 @@ DeBoer 2006, 13 -- measured chrm 1 in males and females, both were 2.8 microns
 
 ))
 
-*Do I believe the physical/SC results?*
-
-
 <!--
 ToDo: make a melt.DF with the IFD1, IFD2, IFD3 in a single cols
 
 explain the difference between the raw and PER measures. Why should I use /examine the IFD.PER?
 -->
 
-3) Interference / IFD will not be sexually dimorphic.
 
-B.1) **Interfernce/IFD** will be shorter in high Rec strains to allow more foci to fit on a single bivalent.  
-
-
-**I**nter**f**ocal **D**istance, a indication of CO interference.
-
-The raw measures are pretty nosy, this might not be the best way to display these results.
-
- Each point is a IFD observation. Maybe add mouse level lines for the means.
  
 ```{r show.IFD_99, echo=FALSE, warning=FALSE}
 
@@ -2695,9 +2683,7 @@ Mixed model analysis for IFD (interference), the first set of models are made wi
 
 $$mouse \ average \ IFD ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
-### IFD_HetC_M1
-
-```{r HetC_M1_IFD_many.metrics, echo=FALSE}
+```{r Q1.IFD.M1, echo=FALSE}
 #get a list of the old mice to double check
 #old.mice <- DF.HetC.MixedModel.HQ$mouse[DF.HetC.MixedModel.HQ$age.weeks < 25,]
 #MIXED MODEL
@@ -2708,50 +2694,98 @@ $$mouse \ average \ IFD ~=~ subsp * sex + rand(strain) + \varepsilon $$
 #Long.biv_mouse_table_HetC  (long biv data set for HetC models)
 
 #M1_IFD_2CO
+lmer.IFD.ABS_MM.M1 <- lmer(mean_IFD.2CO_ABS ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE) 
+
+lmer.IFD.ABS_MM.M1.reduce.sex <- lmer( mean_IFD.2CO_ABS ~ subsp  +(1|strain), data=Mouse.Table_BivData_4MM )
+
+lmer.IFD.ABS_MM.M1.reduce.subp <- lmer( mean_IFD.2CO_ABS ~ sex  +(1|strain), data=Mouse.Table_BivData_4MM )
+
+anova(lmer.IFD.ABS_MM.M1, lmer.IFD.ABS_MM.M1.reduce.sex)
+anova(lmer.IFD.ABS_MM.M1, lmer.IFD.ABS_MM.M1.reduce.subp)
+
+drop1(lmer.IFD.ABS_MM.M1, test="Chisq" )
+
+exactRLRT(lmer.IFD.ABS_MM.M1)
+
+#M1_IFD_2CO
 lmer.IFD.PER_MM.M1 <- lmer(mean_IFD.2CO_PER ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE) 
 
-#these 2 below are LR tests
-#drop1(lmer.IFD.PER_MM.M1, test="Chisq" )
-#anova(lmer.IFD.PER_MM.M1)
+lmer.IFD.PER_MM.M1.reduce.sex <- lmer( mean_IFD.2CO_PER ~ subsp  +(1|strain), data=Mouse.Table_BivData_4MM )
 
-#exactRLRT(lmer.IFD.PER_MM.M1)
-#as.data.frame(round(summary(lmer.IFD.PER_MM.M1)$coefficients, 6))
+lmer.IFD.PER_MM.M1.reduce.subp <- lmer( mean_IFD.2CO_PER ~ sex  +(1|strain), data=Mouse.Table_BivData_4MM )
 
-
-#M1_IFD.RAW_2CO
-lmer.IFD.RAW_MM.M1 <- lmer(mean_IFD.2CO_ABS ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE) 
+anova(lmer.IFD.PER_MM.M1, lmer.IFD.PER_MM.M1.reduce.sex)
+anova(lmer.IFD.PER_MM.M1, lmer.IFD.PER_MM.M1.reduce.subp)
 
 #these 2 below are LR tests
-#drop1(lmer.IFD.RAW_MM.M1, test="Chisq" ) #other options for test don't work
-#anova(lmer.IFD.RAW_MM.M1) # also F values
+drop1(lmer.IFD.PER_MM.M1, test="Chisq" )
+exactRLRT(lmer.IFD.PER_MM.M1)
 
-#exactRLRT(lmer.IFD.RAW_MM.M1)#random strain not sig
-#as.data.frame(round(summary(lmer.IFD.RAW_MM.M1)$coefficients, 6))#these Dont return p values for the fixed effects
+
 ```
 
-Sex is a slightly significant factor for raw and normalized IFD. 
 
 The table above should display the slightly unusual pattern, where the coefficients for the significant sex fixed effect are positive and negative in the raw and normalized values respectively. That is for the raw IFD values, females are significantly longer but the normalized IFD values, males are significantly longer.
 
 
-show a raw plot, and norm plot and a scatter plot
-
-
 I tested 2 versions of the mixed model for this flavor of trait, raw IFD and normalized IFD measure. The tables below are from anova( for the lmer model ). Random effect of strain is not significant for ABS IFD, and only slightly significant for the IFD.PER
 
-### IFD_HetC_M2
+$$mouse \ average \ IFD ~=~ subsp * sex * strain + \varepsilon $$
 
 ```{r IFD_HetC_M2, echo=FALSE}
 
+glm.Q1_IFD.ABS.M2  <- glm(mean_IFD.2CO_ABS ~ subsp * sex * strain, data=Mouse.Table_BivData_4MM)
+
+summry.glm.Q1_IFD.ABS.M2 <- summary(glm.Q1_IFD.ABS.M2)
+#round(summry.glm.Q1_IFD.ABS.M2$coefficients[,c(1,4)],5)
+
+#write.table(round(summry.glm.Q1_IFD.ABS.M2$coefficients,5), "~./MLH1repo/summry.glm.Q1_IFD.ABS.M2.csv", sep=",",row.names = TRUE)
+
+#PER
+glm.Q1_IFD.PER.M2 <- glm(mean_IFD.2CO_PER ~ subsp * sex * strain, data=Mouse.Table_BivData_4MM)
+
+summry.glm.Q1_IFD.PER.M2 <- summary(glm.Q1_IFD.PER.M2)
+#round(summry.glm.Q1_IFD.PER.M2$coefficients[,c(1,4)],5)
+
+#write.table(round(summry.glm.Q1_IFD.PER.M2$coefficients, 6), "~./MLH1repo/summry.glm.Q1_IFD.PER.M2.csv", sep=",",row.names = TRUE)
+
 ```
 
 
-### IFD_HetC_M3
+$$mouse \ average \ IFD ~=~  sex * strain + \varepsilon $$
 
 ```{r IFD_HetC_M3, echo=FALSE}
 
+glm.Q1_IFD.ABS.M3  <- glm(mean_IFD.2CO_ABS ~  sex * strain, data=Mouse.Table_BivData_4MM)
+
+summry.glm.Q1_IFD.ABS.M3 <- summary(glm.Q1_IFD.ABS.M3)
+round(summry.glm.Q1_IFD.ABS.M3$coefficients[,c(1,4)],5)
+
+write.table(round(summry.glm.Q1_IFD.ABS.M3$coefficients,6), "~./MLH1repo/summry.glm.Q1_IFD.ABS.M3.csv", sep="\t",row.names = TRUE)
+
+#PER
+glm.Q1_IFD.PER.M3  <- glm(mean_IFD.2CO_PER ~ sex * strain, data=Mouse.Table_BivData_4MM)
+summry.glm.Q1_IFD.PER.M3 <- summary(glm.Q1_IFD.PER.M3)
+round(summry.glm.Q1_IFD.PER.M3$coefficients[,c(1,4)],5)
+
+write.table(round(summry.glm.Q1_IFD.PER.M3$coefficients,6), "~./MLH1repo/summry.glm.Q1_IFD.PER.M3.csv", sep=",",row.names = TRUE)
+
 ```
 
+
+For the Mixed models of IFDs, sex is a significant effect for both raw and nrmIFD. for the nrm.IFD, subspecies.
+
+the interaction effects were slightly significant for both raw and nrm.IFD.
+
+The most significant value was the sex effect for nrm.IFDs. 
+
+The the random strain effect was not significant for either model.
+
+For the raw measures, in M2, I think the 2 SKIVE effects mean that the female raw IFD is shorter than the male IFD.raw. The other effects are for PWD ansD SKIVE (larger raw IFD from intercept.)  I think the MSM and MOLF interaction effects were too far down the list to sop up any variance. For the M3, only SKIVE*male effect is close to significant
+
+For the normalized values in both M2 and M3, sex is a significant effect, increasing nrm.IFD in males. SKIVE*male is the only other consistantly significant effect, which also increases the nrm.IFD measure.
+
+Overall There's a low amount of significant effects across the 2CO IFD measures. This might be an indication that interference is conserved across these samples and/or that there is too much noise across from chromosome specific effects.
 
 
 ## Strain Comparisons
@@ -3234,6 +3268,7 @@ There are a few traits that fall within the CO positions
 **for all the test blocks below, integrate the 3 other metrics; siscoten, telomere, centromere distance.
 -->
 
+density plots
 ```{r CO.positions.figs, echo=FALSE, include=FALSE}
 #main figure of density plots,
 
@@ -3303,15 +3338,6 @@ Q2.shoooo
 ```
 
 
-
-```{r show.long.biv, echo=FALSE}
-#real.long.bivData
-
-
-```
-
-
-
 ```{r Q1.mean.nrmF1_table, echo=FALSE,eval=FALSE}
 
 #make a table for the sex specific values of the normalized F1 positions
@@ -3331,15 +3357,46 @@ Q1.normF1.pos_table <- ddply(Mouse.Table_BivData_4MM, c("strain","sex"), summari
 
 ```
 
+$$mouse \ average \ F1 position ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
+```{r Q1.nrmF1CO.pos_M1, echo=FALSE}
+
+lmer.Q1.nrm1CO_M1 <- lmer(norm.first.foci.pos ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE) 
+
+lmer.Q1.nrm1CO_M1reduce.sex <- lmer( norm.first.foci.pos ~ subsp  +(1|strain), data=Mouse.Table_BivData_4MM )
+
+lmer.Q1.nrm1CO_M1reduce.subp <- lmer( norm.first.foci.pos ~ sex  +(1|strain), data=Mouse.Table_BivData_4MM )
+
+anova(lmer.Q1.nrm1CO_M1, lmer.Q1.nrm1CO_M1reduce.sex)
+anova(lmer.Q1.nrm1CO_M1, lmer.Q1.nrm1CO_M1reduce.subp)
+
+drop1(lmer.Q1.nrm1CO_M1, test="Chisq" )
+
+exactRLRT(lmer.Q1.nrm1CO_M1)
+
+
+#write.table(round(summry.glm.Q1_IFD.PER.M2$coefficients, 6), "~./MLH1repo/summry.glm.Q1_IFD.PER.M2.csv", sep=",",row.names = TRUE)
+
+```
+
+
+$$mouse \ average \ F1 position ~=~ subsp * sex * strain + \varepsilon $$
 
 ```{r Q1.Nrm.F1pos_M2, echo=FALSE}
 
 #calq the means for normalized F1
 #M2
 
-Q1.glm_nrmF1pos_M2 <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Table_BivData_4MM)
+Q1.glm_nrmF1pos_M2 <- glm(norm.first.foci.pos ~ subsp * strain * sex, data=Mouse.Table_BivData_4MM)
 #summary(Q1.glm_nrmF1pos_M2)
+
+summry.Q1.glm_nrmF1pos_M2 <- summary(Q1.glm_nrmF1pos_M2)
+round(summry.Q1.glm_nrmF1pos_M2$coefficients[,c(1,4)],5)
+
+write.table(round(summry.Q1.glm_nrmF1pos_M2$coefficients,5), "~./MLH1repo/summry.Q1.glm_nrmF1pos_M2.csv", sep=",",row.names = TRUE)
+
+
+
 
 #DOM
 Q1.glm_nrmF1pos_M2_Dom <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Dom",])
@@ -3355,11 +3412,32 @@ Q1.glm_nrmF1pos_M2_Mol <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Tab
 
 ```
 
-```{r Q1.Nrm.F1pos_M2_long.biv, echo=FALSE}
 
-#table for the 1CO long biv across strain and sexes?
+$$mouse \ average \ F1 position ~=~ sex * strain + \varepsilon $$
 
+
+```{r Q1.nrmCO.pos_M3, echo=FALSE, eval=FALSE}
+
+Q1.glm_nrmF1pos_M3 <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Table_BivData_4MM)
+#summary(Q1.glm_nrmF1pos_M2)
+
+summry.Q1.glm_nrmF1pos_M3 <- summary(Q1.glm_nrmF1pos_M3)
+round(summry.Q1.glm_nrmF1pos_M3$coefficients[,c(1,4)],5)
+
+write.table(round(summry.Q1.glm_nrmF1pos_M3$coefficients,5), "~./MLH1repo/summry.Q1.glm_nrmF1pos_M3.csv", sep=",",row.names = TRUE)
 ```
+
+
+The model results aren't as clear as I'd like.
+For the Mol, both the sex effect and MOLF strain effect are significant (this means both female and male rec landscapes are effected - most of the time towards the middle
+
+GENERALLY - Sex is the biggest effect for the 1CO landscape (female middle male telomereic)
+molf
+Not sure I understand how MSM is supper significant for 
+There must be some strange effect due to the Mol subsp - MOLF isn't even in M2 (
+Male is consistently significant across the two models.
+
+Male and MOLF are the most significant effects for M3
 
 
 Above plot focuses on the 1CO bivalent normalized positions since CO interference controls the general position of COs when there are multiple COs. This plot shows the sexual dimorphism in the density plots.
@@ -3417,71 +3495,24 @@ CO.Pos.boxplots_1CO
 
 These box plot show that females have a much more medial position of single foci bivalents, (much closer to 50% compared to males). They also show that Musc males' Foci1 position is slightly more central / medial compared to the same type of positions in the Dom male strains. MOLF males have much more medial positions than other strains.
 
-##### Mixed models norm 1CO positions
+
 
 the distribution of SC lengths and sis-coten seems very different across sexes
 
-$$mouse \ average \ F1 position ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
 The mixed model data should only come from 1CO bivalent data.
 
-#### Nrm_1COpos_HetC_M1
-
-```{r Q1.MM_CO_pos, echo=FALSE, eval=FALSE}
-#use the 1CO
-#Use MELT DF
-#MELT_Curated_BivData
-
-#isolate the 1COPos.CO.avs
-#Pos.CO.avs_1CO <- Pos.CO.avs[Pos.CO.avs$Foci_Type == "Foci1",]
-#Pos.CO.avs_1CO <- Pos.CO.avs_1CO[!(is.na(Pos.CO.avs_1CO$mouse) | Pos.CO.avs_1CO$mouse==""), ]
-#BivData.CO.PER.POS.lme <- lme(mean_PER_pos ~ subsp * sex, data=Pos.CO.avs_1CO, random=list(strain=pdDiag(~sex) ) )
-#as.data.frame( round(  summary(BivData.CO.PER.POS.lme)$tTable, 6 ) )
-
-mouse.avs_4MM <- mouse.avs_4MM[!(is.na(mouse.avs_4MM$norm.first.foci.pos) | mouse.avs_4MM$norm.first.foci.pos==""), ]
-
-#<- lme()
-lme_MM_CO1_pos <- lme(norm.first.foci.pos ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
-
-as.data.frame( round(  summary(lme_MM_CO1_pos)$tTable, 6 ) )
 
 
-#can't make the 
-CO_position.MM <- lmer(norm.first.foci.pos ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
-
-#library(lmerTest)
-#anova(CO_position.MM)
-#anova(CO_position.MM, verbose = TRUE)
-
-#summary(CO_position.MM) #no p values,,
-#these just give t and F stats, no pvalue
-
-#CO_pos_fix.est <- drop1(CO_position.MM, test="Chisq")
-#CO_pos_fix.est
-#this test, the full model is more predictive than an empty model?
-
-#as.data.frame( round(  summary(CO_position.MM)$tTable, 6 ) )  #lme() needed for this
-#thing2 <- drop1(SC_length.MM, test="Chisq") 
-
-CO_pos_rand <- exactRLRT(CO_position.MM)
-CO_pos_rand
-```
 
 
-```{r Q1.nrmFoci1_M1, echo=FALSE}
 
-#M1
-
-
-```
 
 
 the mouse average foci1 pos is more significant in t.test, but not log regression... (is something wrong?) Check the mouse averages for the F1_pos, there might be an outlier or mouse with v.few observations.
 
 
 
-
-#### Nrm_1COpos_HetC_M2
 
 
 ```{r Q1.log.reg.CO1_pos, echo=FALSE, eval=FALSE}
@@ -3500,6 +3531,9 @@ log.reg_1CO_pos_biv <- glm(Rec.group ~ PER_Foci_1,
 summary(log.reg_1CO_pos_biv)
 
 ```
+
+
+
 
 
 
@@ -6590,18 +6624,6 @@ write.table(mice.missing.bivData, "~./MLH1repo/data/MissingMice_13.1.20.csv", se
             row.names = TRUE)
 
 
-```
-
-
-```{r var.contrast, echo=FALSE, eval=FALSE}
-#contrast models -- what's the points for this block
-# review this logic again
-full2strain.CV <- anova(HetC.MixedModel.varco, just.strain.var_co)#0.9997
-
-full2noRandom.CV <- anova(HetC.MixedModel.varco, full.Reduced.var_co) #0.3012
-
-strain2noRandom.CV <- anova(just.strain.var_co, full.Reduced.var_co)#0.1213
-#for var, p = 0.0219
 ```
 
 
