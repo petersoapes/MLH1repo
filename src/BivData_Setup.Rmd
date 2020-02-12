@@ -843,36 +843,20 @@ cell.level.BivData_table <- ddply(.data=Curated_BivData,
 
 #cent_dis
                       mean_cent_dist = mean(dis.cent, na.rm=TRUE),
-                       Qar.4 = quantile(chromosomeLength, na.rm = TRUE)[[4]] #calq threshold for all cells, pull out 'almost.whole.cells' later
+                       Qar.4 = quantile(chromosomeLength, na.rm = TRUE)[[4]], #calq threshold for all cells, pull out 'almost.whole.cells' later
+                      Qar.3 = quantile(chromosomeLength, na.rm = TRUE)[[3]],
+                      Qar.2 = quantile(chromosomeLength, na.rm = TRUE)[[2]],
+                      Qar.1 = quantile(chromosomeLength, na.rm = TRUE)[[1]]
 
                         )
-                       
-#add the centromere and ifd here?
-                       #mean.dist_cent = mean(dis.cent, na.rm=TRUE),
-#                       var.dist_cent = var(dis.cent, na.rm=TRUE),
-#                       sd.dist_cent   = round(sd(dis.cent, na.rm=TRUE), 3),
-#                       se.dist_cent   = round(sd.dist_cent / sqrt(nbivs), 3),
-                       
-#                       mean.siscoten = mean(SisCoTen, na.rm=TRUE),
-#                       var.siscoten = var(SisCoTen, na.rm=TRUE),
-#                       sd.siscoten   = round(sd(SisCoTen, na.rm=TRUE), 3),
- #                      se.siscoten   = round(sd.siscoten / sqrt(nbivs), 3),
-                       
-#                       mean.IFD = mean(IFD1, na.rm=TRUE),#IFD1 is chr
-#                       var.IFD = var(IFD1, na.rm=TRUE),
-#                       sd.IFD   = round(sd(IFD1, na.rm=TRUE), 3),
-#                       se.IFD   = round(sd.IFD / sqrt(nbivs), 3),
-                       
- #                      mean.IFDper = mean(IFD1_PER, na.rm=TRUE),#IFD1 is chr
-#                       var.IFDper = var(IFD1_PER, na.rm=TRUE),
-#                       sd.IFDper   = round(sd(IFD1_PER, na.rm=TRUE), 3),
-#                       se.IFDper   = round(sd.IFDper / sqrt(nbivs), 3)
-                       
+                      
 cell.level.BivData_table <- add_mouse(cell.level.BivData_table)
 cell.level.BivData_table <- add_strain(cell.level.BivData_table)
 cell.level.BivData_table <- add_category(cell.level.BivData_table)
 
 #as.data.frame( head(cell.level.BivData_table) )
+
+#use quartille 2 as a min, on average it grabs 4 
 
 ```
 
@@ -882,7 +866,7 @@ cell.level.BivData_table <- add_category(cell.level.BivData_table)
 #I think this block is redundant, could delete
 
 #check if there are fileNames
-double.filename <- whole.cell.data_manual[ whole.cell.data_manual$fileName %in% Curated_BivData$fileName, ]
+#double.filename <- whole.cell.data_manual[ whole.cell.data_manual$fileName %in% #Curated_BivData$fileName, ]
 
 #which cell-levels fileNames have close to 15-17 chrms?
 almost_whole_cell <- cell.level.BivData_table[(cell.level.BivData_table$Nbiv < 21),] #cut off cells with too many
@@ -935,7 +919,7 @@ BivData_from_15biv_cells$Obj.ID <- as.character(BivData_from_15biv_cells$Obj.ID)
 #what are the Biv_Data_mean_table ... ? old version of cell table..
 #replacing Biv_Data_mea_table with... cell.level.BivData_table
 
-missing_from_cell_table <- BivData_from_15biv_cells[!BivData_from_15biv_cells$fileName %in% cell.level.BivData_table$fileName, ]#0, 
+missing_from_cell_table <- BivData_from_15biv_cells[!BivData_from_15biv_cells$fileName %in% cell.level.BivData_table$fileName, ] 
 #all these files stem from
 
 #these are bivalents which don't appear the in cell level table, which can break the loop
@@ -946,29 +930,28 @@ BivData_from_15biv_cells <- BivData_from_15biv_cells[ ! BivData_from_15biv_cells
 #loop for greping the mouse from file name ect
 
 #mini.now  <- BivData_from_15biv_cells[1:300,]
-#broken again -- confusion between the number Q4 and the fileName
 
 for(  i in 1:length( unique(BivData_from_15biv_cells$Obj.ID) ) ){
   
-  #print(c(i, " the i") )
-  newfile.str = strsplit( BivData_from_15biv_cells$Obj.ID[i], "_")[[1]][1:7]
+
+  newfile.str = strsplit( BivData_from_15biv_cells$Obj.ID[i], "_" )[[1]][1:7]
   new.egg <- paste0(newfile.str, collapse = "_")
   
-  the.Q4 <- cell.level.BivData_table$Qar.4[ which( grepl(new.egg, cell.level.BivData_table$fileName ) )]
-  #there is no Qar4 in this DF
+  the.Q4 <-cell.level.BivData_table$Qar.4[ which( grepl(new.egg, cell.level.BivData_table$fileName ) )]
+   the.Q3 <-cell.level.BivData_table$Qar.3[ which( grepl(new.egg, cell.level.BivData_table$fileName ) )]
+  the.Q2 <-cell.level.BivData_table$Qar.2[ which( grepl(new.egg, cell.level.BivData_table$fileName ) )]
   
-  #print(c("the Q4  ",the.Q4)  )
-  
-  #the above can produe mulitple Q4
+  the.Q1 <-cell.level.BivData_table$Qar.1[ which( grepl(new.egg, cell.level.BivData_table$fileName ) )]
   
   BivData_from_15biv_cells$cell.Q4[i] <- the.Q4
-  #these are just using the last index,
-  #this might be wrong....
+    BivData_from_15biv_cells$cell.Q3[i] <- the.Q3
+  BivData_from_15biv_cells$cell.Q2[i] <- the.Q2
+  BivData_from_15biv_cells$cell.Q1[i] <- the.Q1
     
   the.FN <- as.character(cell.level.BivData_table$fileName[which(grepl(new.egg, cell.level.BivData_table$fileName ) )] )
   
-  BivData_from_15biv_cells$Q4.FN[i] <- as.character(the.FN)  #this FN is NOT RIGHT
-   # print(c(i, the.FN, the.Q4))
+  BivData_from_15biv_cells$Q4.FN[i] <- as.character(the.FN)
+  BivData_from_15biv_cells$Q1.FN[i] <- as.character(the.FN)
 }
 
 #3.mark which bivalents are above the threshold
@@ -977,7 +960,37 @@ for(  i in 1:length( unique(BivData_from_15biv_cells$Obj.ID) ) ){
 BivData_from_15biv_cells$long.Biv <- ifelse( (BivData_from_15biv_cells$chromosomeLength >= as.numeric(BivData_from_15biv_cells$cell.Q4)  ), "yes", "no" )
 
 real.long.bivData <- BivData_from_15biv_cells[BivData_from_15biv_cells$long.Biv == "yes",]#713 observations
+
+
+#isolate the short bivdata
+BivData_from_15biv_cells$short.Biv <- ifelse( (BivData_from_15biv_cells$chromosomeLength <= as.numeric(BivData_from_15biv_cells$cell.Q2)  ), "yes", "no" )
+
+real.short.bivData <- BivData_from_15biv_cells[BivData_from_15biv_cells$short.Biv == "yes",]# 708 much few than 
+
 ```
+
+
+```{r short.biv.data, echo=FALSE, include=FALSE, eval=FALSE}
+
+#notes for short biv
+
+mini_G.15_15biv_FN <- BivData_from_15biv_cells %>% filter(category == "G male")
+#ploting short biv data
+G.15_15biv_male <- BivData_from_15biv_cells %>% filter(category == "G male")
+mini_G.15_15biv_FN <- sample( G.15_15biv_male$fileName, 10)
+mini_G.15_15biv  <- BivData_from_15biv_cells[BivData_from_15biv_cells$fileName %in% mini_G.15_15biv_FN, ] 
+
+
+ppll <- ggplot(mini_G.15_15biv, aes(x = fileName, y=chromosomeLength, color=mouse))+geom_jitter()+facet_wrap(~fileName, scales="free")+ theme(legend.position="none")+
+  geom_hline(aes(yintercept= cell.Q1), color='coral') + 
+  geom_hline(aes(yintercept= cell.Q2), color='red') +
+ geom_hline(aes(yintercept= cell.Q3), color='blue') +   ##actually Q3 might not be a real thing...
+ geom_hline(aes(yintercept= cell.Q4), color='black')  
+
+  #this plot shows that the Q1 is capturing only single values -- I should try Q2
+#use Q2 as a 
+```
+
 
 The above blocks of code 1) isolates bivalents measures from cells with >15 segmented bivalents 2) for the cells in these data calculates the Q4 threshold and 3) marks which bivalents are longer than the threshold.
 
@@ -1364,7 +1377,7 @@ cell.total_skel, cell.total_binary
 ```{r save.file}
 
 #save Rdata
-save.image("~./MLH1repo/data/CleanBivData_11.2.20.RData")
+save.image("~./MLH1repo/data/CleanBivData_12.2.20.RData")
 #save.image("data/BivData_4_PCA.RData")
 
 ```
