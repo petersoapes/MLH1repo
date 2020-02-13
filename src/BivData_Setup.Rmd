@@ -20,7 +20,7 @@ Main files from this Script:
   
   5. CELL level table (full all mice) (use this to make long biv dataset)
   
-  6. Long Biv Dataset
+  6. Long Biv Dataset and short biv dataset
 
   7. mouse table (full all mice)
   
@@ -115,6 +115,8 @@ new.Curate.FULL <- add_mouse(new.Curate.FULL)#this function is v.slow for this b
 #make OG copy
 new.Curate.FULL.org <- new.Curate.FULL
 new.Curate.FULL.org <- add_category(new.Curate.FULL.org)
+
+new.Curate.FULL.org$Obj.ID <- paste(new.Curate.FULL.org$fileName, new.Curate.FULL.org$boxNumber, sep = "_")
 
 #write files for basic stats to csv files
 #OG.cURATE.table.mouse <- table(new.Curate.FULL.org$mouse, new.Curate.FULL.org$SC.pass)
@@ -804,7 +806,7 @@ manual_summary_stats <- add_subsp(manual_summary_stats)
 - number of foci with 'faint' mentioned in the notes
 
 
-The below cell level table is used for making the **long.biv.dataset**, (any others?)
+The below cell level table is used for making the **long.biv.dataset** and short, (any others?)
 
 ```{r cell.level.table, echo=FALSE}
 
@@ -888,7 +890,7 @@ as.data.frame(  table( droplevels( almost_whole_cell_BivData$fileName) ) )
 8jun15_23apr15_PWD_f2_sp1_20_rev, 29nov16_13nov16_MSM_m2_sp1_13_rev, 27oct16_31aug16_MSM_m1_sp1_9_rev
 
 
-# Long BivData Set
+# Long and Short BivData Set
 
 I want to make a dataset of 'longest' 25% chromosomes from cells with at least 16 segmented bivalents from a single cell. 
 
@@ -937,8 +939,10 @@ for(  i in 1:length( unique(BivData_from_15biv_cells$Obj.ID) ) ){
   newfile.str = strsplit( BivData_from_15biv_cells$Obj.ID[i], "_" )[[1]][1:7]
   new.egg <- paste0(newfile.str, collapse = "_")
   
-  the.Q4 <-cell.level.BivData_table$Qar.4[ which( grepl(new.egg, cell.level.BivData_table$fileName ) )]
-   the.Q3 <-cell.level.BivData_table$Qar.3[ which( grepl(new.egg, cell.level.BivData_table$fileName ) )]
+  the.Q4 <- cell.level.BivData_table$Qar.4[ which( grepl(new.egg, cell.level.BivData_table$fileName ) )]
+  
+  the.Q3 <-cell.level.BivData_table$Qar.3[ which( grepl(new.egg, cell.level.BivData_table$fileName ) )]
+  
   the.Q2 <-cell.level.BivData_table$Qar.2[ which( grepl(new.egg, cell.level.BivData_table$fileName ) )]
   
   the.Q1 <-cell.level.BivData_table$Qar.1[ which( grepl(new.egg, cell.level.BivData_table$fileName ) )]
@@ -955,7 +959,6 @@ for(  i in 1:length( unique(BivData_from_15biv_cells$Obj.ID) ) ){
 }
 
 #3.mark which bivalents are above the threshold
-#WHY DOESN"T THIS WORK?
 
 BivData_from_15biv_cells$long.Biv <- ifelse( (BivData_from_15biv_cells$chromosomeLength >= as.numeric(BivData_from_15biv_cells$cell.Q4)  ), "yes", "no" )
 
@@ -1050,6 +1053,11 @@ Long.biv_mouse_table$subsp <- factor(Long.biv_mouse_table$subsp, ordered = FALSE
 Long.biv_mouse_table$sex <- factor(Long.biv_mouse_table$sex, ordered = FALSE)
 Long.biv_mouse_table$strain <- factor(Long.biv_mouse_table$strain, ordered = FALSE)
 
+#rec group
+Long.biv_mouse_table$Rec.group <- ifelse(grepl("PWD", Long.biv_mouse_table$category), 1, 
+                            ifelse(grepl("MSM", Long.biv_mouse_table$category), 1,
+                             ifelse(grepl("SKIVE", Long.biv_mouse_table$category), 1, 0)) )
+
 #long.biv. 1) HetC  2) male.poly (the main factors are still unordered)
 
 #1) Long Biv for 
@@ -1065,6 +1073,7 @@ Long.biv_mouse_table_HetC$strain <- droplevels(Long.biv_mouse_table_HetC$strain)
 Long.biv_mouse_table_HetC <- Long.biv_mouse_table_HetC[!(is.na(Long.biv_mouse_table_HetC$mouse) | Long.biv_mouse_table_HetC$mouse==""), ]
 
 #table(droplevels( Long.biv_mouse_table_HetC$category) )  #for double checking
+
 
 
 #2) Long Biv for male.poly

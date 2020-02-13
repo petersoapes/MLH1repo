@@ -2082,7 +2082,7 @@ These questions use different datasets: Q1 uses a dataset with only sex matched 
 
 These are our predictions for the sex specifici patterns on the single bivalent lanscape
 
-# Q1 Analysis, Predictions for Heterochiasmy Q1
+ Q1 Analysis, Predictions for Heterochiasmy Q1
 
 Two bivalent level traits are predicted to display heterochiasmy (ie significant effects of sex); 
 
@@ -2097,16 +2097,8 @@ Two bivalent level traits are predicted to display heterochiasmy (ie significant
 
 The same basic models from the MLH1 counts per cell will be used. In addition to basic t.tests and logistic regression models for Q2 to distinguish betwee high and low recombining strains.
 
-Q1. Model 1, mixed model lmer()  
-$$mouse \ av.\  metric ~=~ subsp * sex + rand(strain) + \varepsilon $$
-
-Q1. Model 2, glm()
-$$mouse \ av.\  metric ~=~ sex * strain + \varepsilon $$
 
 
-Q2 Model 3, logistic regression
-
-$$Rec \ group  ~=~ mouse \ av.\  metric  $$
 
 
 ```{r Q1.biv.data_table.4MM.HetC, echo=FALSE, eval=FALSE}
@@ -2258,21 +2250,8 @@ We expect female SC lengths to be longer (refs). In the plot above the SC length
 
 The most convincing should be the short biv data set
 
-```{r show.short.biv, echo=FALSE}
-
-Short_biv_Nested_boxplots <- ggplot(real.short.bivData, aes(y = chromosomeLength, x=strain, fill=as.factor(hand.foci.count) ))+geom_boxplot(aes(alpha=0.5))+ggtitle("Short Biv \nSplit by Chrm Class")+facet_wrap(subsp~sex, scales="free")+ylim(c(25,150))
-Short_biv_Nested_boxplots
-
-```
 
 
-the models for testing
-
-> M1. subsp * sex + (strain)
-
-> M2. subsp \* sex \* strain  (slightly redundant model)
-
-> M3. sex * strain
 
 ```{r show.SC.length, echo=FALSE, warning=FALSE}
 #for now remove the 
@@ -2323,6 +2302,21 @@ Q1.real.long_mouse_table <- add_subsp(Q1.real.long_mouse_table)
 ```
 
 
+```{r show.short.biv, echo=FALSE}
+Q1.SC.short.mouse_scatter_boxplot <- ggplot( Q1.real.short_mouse_table, aes(y = mean_SC, x = sex, color=strain)) + geom_jitter()+ geom_boxplot(alpha=.2) +scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales="free")+ylim(c(20,115) )+ggtitle("Mouse average SC Length \n short bivalent dataset")
+
+Q1.SC.short.mouse_scatter_boxplot
+```
+
+
+```{r show.long.biv, echo=FALSE}
+#mouse av
+Q1.SC.long.mouse_scatter_boxplot <- ggplot( Q1.real.long_mouse_table, aes(y = mean_SC, x = sex, color=strain)) + geom_jitter()+ geom_boxplot(alpha=.2) +scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales="free")+ylim(c(75,150) )+ggtitle("Mouse average SC Length \n long bivalent dataset")
+
+Q1.SC.long.mouse_scatter_boxplot
+```
+
+
 ```{r Q1_short_biv_lmer, echo=FALSE}
 
 
@@ -2350,8 +2344,10 @@ Q1lmer.MM_SC_short_results
 
 ```
 
+These plot above show that qualitatively, the average female bivalent SC length is significantly longer than the mean length for males from the same strain.
 
-```{r Q1_long_biv_lmer, echo=FALSE}
+
+```{r Q1_long_biv_lmer, echo=FALSE, message=FALSE}
 ###
 lmer.Q1_SCLength_long_M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Q1.real.long_mouse_table, REML = TRUE) 
 lmer.Q1_SCLength_long_M1_R.sex <- lmer(mean_SC ~ subsp + (1|strain), data=Q1.real.long_mouse_table, REML = TRUE) 
@@ -2368,7 +2364,7 @@ sex.results =  Q1lmer.MM_SC_long_sex,
                interaction.pval = Q1lmer.MM_SC_long_interaction,  rand.pval = 
 Q1lmer.MM_SC_long_strain)
 
-Q1lmer.MM_SC_short_results
+Q1lmer.MM_SC_long_results
 
 ```
 
@@ -2419,10 +2415,12 @@ Q1.lmer_SCLength.2CO_results
 
 Above are the mixed model results seperated by mouse averages for 1 crossover and 2 crossover bivalents respectively.
 
-
 The fixed sex effect is highly significant for the mouse means of SC length. The data sets tested were all pooled SC lengths, the long bivalents, 1CO and 2CO seperately.
 
-All fixed and all interactions
+
+$$mouse \ average \ SC  \ length ~=~ sex * strain + \varepsilon $$
+
+
 
 ```{r Q1.SC.Length_M2, echo=FALSE}
 #feed these 2 DFs into M2
@@ -2472,9 +2470,20 @@ Q1glm_SCLength_M2.2CO.Mol <- glm(mean.SC_2CO ~ strain * sex, data=Mouse.Table_Bi
 ```
 
 
+```{r Q1.SC.length.show_long.short, echo=FALSE}
+
+
+
+Q1.SClength_Musc.BivData_plot <- ggplot( Q1.real.long_mouse_table, aes(y = chromosomeLength, x = strain, color=strain)) + geom_jitter(alpha=.3)+ geom_boxplot(alpha=.3)+scale_color_manual(values=colors_of_strains)+ggtitle("Musc av. SC Length \nBivData Level")+facet_wrap(~sex, scales="free")+ylim(c(30,225))
+
+Q1.SClength_Musc.BivData_plot
+
+```
+
+
 ```{r Q1.SC.M2plot, echo=FALSE}
 
-#Q1 plots for SC Lengths across Musc strains
+#removing these plots for space
 
 Musc.mouse.av <-  Mouse.Table_BivData_4MM %>%  filter(subsp == "Musc") 
 #Musc.all
@@ -2482,14 +2491,14 @@ Q1glm_SCLength_M2.Musc <- glm(mean_SC ~ strain * sex, data = Musc.mouse.av)
 
 #mouse av
 Q1.SClength_Musc_plot <- ggplot( Musc.mouse.av, aes(y = mean_SC, x = strain, color=strain)) + geom_jitter()+ geom_boxplot(alpha=.2) +scale_color_manual(values=colors_of_strains)+ggtitle("Musc av. SC Length")+facet_wrap(~sex)+ylim(c(75,125) )
-Q1.SClength_Musc_plot
+
 
 #BivData Level
 Musc_BivData <-  Curated_BivData %>%  filter(subsp == "Musc") 
 
 Q1.SClength_Musc.BivData_plot <- ggplot( Musc_BivData, aes(y = chromosomeLength, x = strain, color=strain)) + geom_jitter(alpha=.3)+ geom_boxplot(alpha=.3)+scale_color_manual(values=colors_of_strains)+ggtitle("Musc av. SC Length \nBivData Level")+facet_wrap(~sex, scales="free")+ylim(c(30,225))
 
-Q1.SClength_Musc.BivData_plot
+
 
 
 #BivData Level
@@ -2497,14 +2506,10 @@ Dom_BivData <-  Curated_BivData %>%  filter(subsp == "Dom")
 
 Q1.SClength_Dom.BivData_plot <- ggplot( Dom_BivData, aes(y = chromosomeLength, x = strain, color=strain)) + geom_jitter(alpha=.3)+ geom_boxplot(alpha=.3)+scale_color_manual(values=colors_of_strains)+ggtitle("Dom SC Lengths \nBivData Level")+facet_wrap(~sex, scales="free")+ylim(c(30,225))
 
-Q1.SClength_Dom.BivData_plot
+
 
 ```
 
-I think the strange thing about the Musc is that Skive females have shorter SC lengths.
-
-
- Q1. SC Length t.test
 
 ```{r strain.SClength.t.test, echo=FALSE}
 #t.tests for all the strain specific data frames
@@ -2533,32 +2538,9 @@ MSM.ttest  <- t.test(MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "
 ```
 
 
- Strain Comparisons of SC Length
-
-Dive deeper into the sex specific pattern for each strain.  (I think for all the within strain comparisons across sexes the general pattern is met of females being longer)
-
-(adding all of these blocks to -- the setup script); strain.Bivalents.DF
-
-
-
-```{r Q1.SC.show.long.biv99, echo=FALSE, eval=FALSE}
-
-
-mouse.shoo.long.biv <- ggplot(real.long.bivData, aes(y=chromosomeLength, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Mouse av. \nMale Long Biv SC Lengths")
-
-
-mouse.shoo.long.biv <- ggplot(real.long.bivData, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Mouse av. \nMale Long Biv SC Lengths")
-
-mouse.shoo.long.biv  
-
-
-
-```
-
-
 
 ```{r Q1.SC.long.biv_wacko, echo=FALSE}
-
+#removed these plots for space
 
 male.long.biv <- real.long.bivData %>% filter(sex== "male")
 
@@ -2574,7 +2556,7 @@ Q1.long.biv_cell_table <- add_subsp(Q1.long.biv_cell_table)
 
 
 Q1_cell_long.biv <- ggplot(Q1.long.biv_cell_table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(sex~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,200))+geom_boxplot(alpha=.2) + ggtitle("Cell averages for Long Bivs")+theme(legend.position="none")
-Q1_cell_long.biv
+
 
 
 #mouse av for long biv
@@ -2589,7 +2571,7 @@ cell.av.long.biv.table <- add_strain(cell.av.long.biv.table)
 cell.av.long.biv.table <- add_subsp(cell.av.long.biv.table)
 
 cell.avlong.biv <- ggplot(cell.av.long.biv.table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Cell av. \nMale Long Biv SC Lengths")
-cell.avlong.biv  
+  
 
 
 
@@ -2604,14 +2586,21 @@ mouse.av.long.biv.table <- add_strain(mouse.av.long.biv.table)
 mouse.av.long.biv.table <- add_subsp(mouse.av.long.biv.table)
                         
 mouse.shoo.long.biv <- ggplot(mouse.av.long.biv.table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Mouse av. \nMale Long Biv SC Lengths")
-mouse.shoo.long.biv  
-
-                      
+ 
 ```
 
 
 
-<!--
+<!-- 
+lmr - sex is most significant effect
+
+
+plots,
+
+- ranges overlap,
+
+- try the short and long mouse averages
+
 
 G and MSM female?
 
@@ -2619,8 +2608,944 @@ G male vs female
 
 -->
 
+# Q1. General CO Positions
 
-# Q1. IFD
+To quantify one of the major -- patterns that is different between male and female recombiantion landscapes
+
+In order to test for evolution -- and examine sex differences in the recombination landscape (crossover position bias)
+
+we focus on the foci positions from one crossover (1CO) bivalents since the landscape patterns for multi crossover bivalents will be highly influences by crossover interference.
+
+
+Chromosome size effects are a confonding factor for CO position, with shorter chromosomes having a more uniform landscape compared to larger chromosomes (cite). To account for this we again use the reduct bivalent sets (long.biv and short.biv)
+
+<!--
+-full 1CO tests
+
+long 1CO tests
+
+short 1CO tests
+
+There are a few traits that fall within the CO positions  
+- 1CO normalized position  
+- sis.co.ten (sorta interference)  
+- centromere and telomere distance  
+**Heterochiasmy**
+
+2.A) Normalized 1CO positions will be sexually dimorphic (sedell and Kirkpatrick). 
+  B) **sis**ter **co**hesion **ten**sion (sis-co-ten) will be sexually dimorphic as it reflects the general property of unifrom vs telomere/biased CO positioning.
+  C) Centromere and telomere distances will be sexually dimorphic.
+**for all the test blocks below, integrate the 3 other metrics; siscoten, telomere, centromere distance.
+-->
+
+
+```{r Q1show.F1pos_Full, echo=FALSE}
+
+Q1.short.biv_scatr_box   <- ggplot(Q1.short.biv_1CO, aes(x=sex, y=PER_Foci_1, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= PER_Foci_1 ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nShort Biv")
+Q1.short.biv_scatr_box
+
+```
+
+
+
+```{r CO1_foci_pos_boxplot, echo=FALSE}
+
+MELT_long_biv <- MELT_Curated_BivData[ MELT_Curated_BivData$Obj.ID %in% real.long.bivData$Obj.ID, ]
+
+CO.Pos.boxplots_1CO <- ggplot(MELT_Curated_BivData.1CO, aes(x= strain, y=PER.Foci.Pos, fill=strain) ) + geom_boxplot(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("Percent Foci Position")+geom_jitter(alpha=.1)+scale_fill_manual(values=colors_of_strains)
+CO.Pos.boxplots_1CO
+
+```
+
+
+```{r Q1.F1pos_long.short_setup, echo=FALSE}
+
+Q1.long.biv_1CO <-  real.long.bivData %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1) %>% filter(strain != "MOLF") %>% filter(strain != "CZECH")
+
+Q1.long.1COpos_mouse.av <-  ddply(Q1.long.biv_1CO, c("mouse"), summarise,
+                        n_obs = length(Obj.ID),
+                         mean_SC = mean(chromosomeLength), 
+                        mean_F1pos_PER =  mean(PER_Foci_1),
+                         mean_F1pos_ABS =  mean(Foci1)
+                         )
+Q1.long.1COpos_mouse.av <- add_strain(Q1.long.1COpos_mouse.av)
+Q1.long.1COpos_mouse.av <- add_sex(Q1.long.1COpos_mouse.av)
+Q1.long.1COpos_mouse.av <- add_subsp(Q1.long.1COpos_mouse.av)
+
+
+Q1.short.biv_1CO <-  real.short.bivData %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1)%>% filter(strain != "MOLF") %>% filter(strain != "CZECH")
+  
+Q1.short.1COpos_mouse.av <-  ddply(Q1.short.biv_1CO, c("mouse"), summarise,
+                        n_obs = length(Obj.ID),
+                         mean_SC = mean(chromosomeLength),
+                        mean_F1pos_PER =  mean(PER_Foci_1),
+                         mean_F1pos_ABS =  mean(Foci1)
+                         )
+
+Q1.short.1COpos_mouse.av <- add_strain(Q1.short.1COpos_mouse.av)
+Q1.short.1COpos_mouse.av <- add_sex(Q1.short.1COpos_mouse.av)
+Q1.short.1COpos_mouse.av <- add_subsp(Q1.short.1COpos_mouse.av)
+    
+```
+
+
+```{r Q1.F1.pos.LONG.SHORT.BIV_scatter, echo=FALSE}
+
+Q1.short.biv_scatr_box   <- ggplot(Q1.short.biv_1CO, aes(x=sex, y=PER_Foci_1, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= PER_Foci_1 ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nShort Biv")
+Q1.short.biv_scatr_box
+
+
+Q1.long.biv_scatr_box   <- ggplot(Q1.long.biv_1CO, aes(x=sex, y=PER_Foci_1, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= PER_Foci_1 ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nLong Biv")
+Q1.long.biv_scatr_box
+```
+
+
+```{r Q1.mouse.av.F1.pos.LONG.BIV_scatter, echo=FALSE}
+
+#make the same plots as above but with the long biv data set
+
+#mouse.av.long.biv.table
+Q1.av.long.biv_scatr_box   <- ggplot(Q1.long.1COpos_mouse.av, aes(x=sex, y=mean_F1pos_PER, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= mean_F1pos_PER ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nLong Biv")
+Q1.av.long.biv_scatr_box
+
+
+
+Q1.av.short.biv_scatr_box   <- ggplot(Q1.short.1COpos_mouse.av, aes(x=sex, y=mean_F1pos_PER, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= mean_F1pos_PER ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nShort Biv")
+Q1.av.short.biv_scatr_box
+
+```
+
+As expected -- confirming previous results, the normalized position of single crossovers varies between males and females. The strain effects indicate that within the musculus strains the difference is less compared to 
+This is an indication of evolution of the sexual dimorphism for the pattern of single foci positions.
+
+The long bivalent pattern -- shows a different effect, both female and males have positions close to the center. This is a lack of telomeric pattern efpected for males
+
+For short bivalents, we predict that the normalized position will be more medial
+
+The short bivalent landscape pattern is more medial compared to males in all strains. However some strains have larger sex differences, WSB 
+
+```{r CO.positions.figs, echo=FALSE, include=FALSE}
+#main figure of density plots,
+
+MELT_Curated_BivData <- add_sex(MELT_Curated_BivData)
+MELT_Curated_BivData <- add_strain(MELT_Curated_BivData)
+MELT_Curated_BivData <- add_subsp(MELT_Curated_BivData)#subsp, needs strain
+
+#clean up all the non 1 to 4 hand.foci counts
+MELT_Curated_BivData.1CO <- MELT_Curated_BivData[MELT_Curated_BivData$hand.foci.count < 2, ]
+
+MELT_Curated_BivData.1CO <- MELT_Curated_BivData.1CO[MELT_Curated_BivData.1CO$PER.Foci.Pos < 1.01, ]
+
+# remove the na's
+MELT_Curated_BivData.1CO <- MELT_Curated_BivData.1CO[!(is.na(MELT_Curated_BivData.1CO$hand.foci.count) | MELT_Curated_BivData.1CO$hand.foci.count==""), ]
+
+CO.Pos.density_1CO <- ggplot(MELT_Curated_BivData.1CO, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(sex~subsp, ncol=2)+ggtitle("Normalized 1CO Foci Positions")+scale_fill_manual(values=colors_of_strains)
+CO.Pos.density_1CO
+
+
+#category specific plots, don't run for now.
+Dom.female_MELT_curBivData <- MELT_Curated_BivData[ ((MELT_Curated_BivData$sex == "female") & (MELT_Curated_BivData$subsp == "Dom") ), ]
+CO.Pos.density_Dom_female <- ggplot(Dom.female_MELT_curBivData, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Dom female \nNormalized Foci Positions")
+#Musc male
+Musc.male_MELT_curBivData <- MELT_Curated_BivData[ ((MELT_Curated_BivData$sex == "male") & (MELT_Curated_BivData$subsp == "Musc") ), ]
+
+CO.Pos.density_Musc_male <- ggplot(Musc.male_MELT_curBivData, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Musc male \nNormalized Foci Positions")
+#Dom male
+Dom.male_MELT_curBivData <- MELT_Curated_BivData[ ((MELT_Curated_BivData$sex == "male") & (MELT_Curated_BivData$subsp == "Dom") ), ]
+
+CO.Pos.density_Dom_male <- ggplot(Dom.male_MELT_curBivData, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Dom male \nNormalized Foci Positions")
+
+
+```
+
+
+
+```{r Q1.mean.nrmF1_table, echo=FALSE,eval=FALSE}
+
+#make a table for the sex specific values of the normalized F1 positions
+
+#for strain, sex -- Curated_BivData
+#or (Mouse.Table_BivData_4MM)
+#norm.first.foci.pos
+
+
+Q1.normF1.pos_table <- ddply(Mouse.Table_BivData_4MM, c("strain","sex"), summarise,
+                  
+                    mean_1CO_nrm.pos = mean(norm.first.foci.pos, na.rm = TRUE), 
+                  n1CO = sum(n1CO )
+
+                          )
+
+
+```
+
+$$mouse \ average \ F1 position ~=~ subsp * sex + rand(strain) + \varepsilon $$
+
+
+```{r Q1.nrmF1CO.pos_M1, echo=FALSE}
+
+lmer.Q1.nrm1CO_M1 <- lmer(norm.first.foci.pos ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE) 
+
+lmer.Q1.nrm1CO_M1reduce.sex <- lmer( norm.first.foci.pos ~ subsp  +(1|strain), data=Mouse.Table_BivData_4MM )
+
+lmer.Q1.nrm1CO_M1reduce.subp <- lmer( norm.first.foci.pos ~ sex  +(1|strain), data=Mouse.Table_BivData_4MM )
+
+anova(lmer.Q1.nrm1CO_M1, lmer.Q1.nrm1CO_M1reduce.sex)
+anova(lmer.Q1.nrm1CO_M1, lmer.Q1.nrm1CO_M1reduce.subp)
+
+
+
+lmer.Q1.nrm1CO_M1 <- lmer(norm.first.foci.pos ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE) 
+
+lmer.Q1.nrm1CO_M1reduce.sex <- lmer( norm.first.foci.pos ~ subsp  +(1|strain), data=Mouse.Table_BivData_4MM )
+
+lmer.Q1.nrm1CO_M1reduce.subp <- lmer( norm.first.foci.pos ~ sex  +(1|strain), data=Mouse.Table_BivData_4MM )
+
+anova(lmer.Q1.nrm1CO_M1, lmer.Q1.nrm1CO_M1reduce.sex)
+anova(lmer.Q1.nrm1CO_M1, lmer.Q1.nrm1CO_M1reduce.subp)
+
+
+drop1(lmer.Q1.nrm1CO_M1, test="Chisq" )
+
+exactRLRT(lmer.Q1.nrm1CO_M1)
+
+
+#write.table(round(summry.glm.Q1_IFD.PER.M2$coefficients, 6), "~./MLH1repo/summry.glm.Q1_IFD.PER.M2.csv", sep=",",row.names = TRUE)
+
+```
+
+
+$$mouse \ average \ F1 position ~=~ subsp * sex * strain + \varepsilon $$
+
+```{r Q1.Nrm.F1pos_M2, echo=FALSE}
+
+#calq the means for normalized F1
+#M2
+
+Q1.glm_nrmF1pos_M2 <- glm(norm.first.foci.pos ~ subsp * strain * sex, data=Mouse.Table_BivData_4MM)
+#summary(Q1.glm_nrmF1pos_M2)
+
+summry.Q1.glm_nrmF1pos_M2 <- summary(Q1.glm_nrmF1pos_M2)
+round(summry.Q1.glm_nrmF1pos_M2$coefficients[,c(1,4)],5)
+
+write.table(round(summry.Q1.glm_nrmF1pos_M2$coefficients,5), "~./MLH1repo/summry.Q1.glm_nrmF1pos_M2.csv", sep=",",row.names = TRUE)
+
+
+
+
+#DOM
+Q1.glm_nrmF1pos_M2_Dom <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Dom",])
+#summary(Q1.glm_nrmF1pos_M2_Dom)
+
+#MUSC
+Q1.glm_nrmF1pos_M2_Musc <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Musc",])
+#summary(Q1.glm_nrmF1pos_M2_Musc)
+
+#MOL
+Q1.glm_nrmF1pos_M2_Mol <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Mol",])
+#summary(Q1.glm_nrmF1pos_M2_Mol)
+
+```
+
+
+$$mouse \ average \ F1 position ~=~ sex * strain + \varepsilon $$
+
+
+```{r Q1.nrmCO.pos_M3, echo=FALSE, eval=FALSE}
+
+Q1.glm_nrmF1pos_M3 <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Table_BivData_4MM)
+#summary(Q1.glm_nrmF1pos_M2)
+
+
+summry.Q1.glm_nrmF1pos_M3 <- summary(Q1.glm_nrmF1pos_M3)
+round(summry.Q1.glm_nrmF1pos_M3$coefficients[,c(1,4)],5)
+
+
+summry.Q1.glm_nrmF1pos_M3 <- summary(Q1.glm_nrmF1pos_M3)
+round(summry.Q1.glm_nrmF1pos_M3$coefficients[,c(1,4)],5)
+
+
+write.table(round(summry.Q1.glm_nrmF1pos_M3$coefficients,5), "~./MLH1repo/summry.Q1.glm_nrmF1pos_M3.csv", sep=",",row.names = TRUE)
+```
+
+
+The model results aren't as clear as I'd like.
+For the Mol, both the sex effect and MOLF strain effect are significant (this means both female and male rec landscapes are effected - most of the time towards the middle
+
+GENERALLY - Sex is the biggest effect for the 1CO landscape (female middle male telomereic)
+molf
+Not sure I understand how MSM is supper significant for 
+There must be some strange effect due to the Mol subsp - MOLF isn't even in M2 (
+Male is consistently significant across the two models.
+
+Male and MOLF are the most significant effects for M3
+
+
+Above plot focuses on the 1CO bivalent normalized positions since CO interference controls the general position of COs when there are multiple COs. This plot shows the sexual dimorphism in the density plots.
+
+Consider adding annotate_text for the number of observations in each category.
+think about adding a vertical line for centromere, for the position means. Think about removing the extra Musc strains.
+
+
+```{r norm.CO.pos_longBiv, echo=FALSE, eval=FALSE}
+
+#real.long.bivData
+#MELT_Curated_BivData
+
+#these isn't long.biv data
+MELT_long_biv <- MELT_Curated_BivData[ MELT_Curated_BivData$Obj.ID %in% real.long.bivData$Obj.ID, ]
+
+real.long.bivData
+MELT_Curated_BivData.1CO <- MELT_Curated_BivData[MELT_Curated_BivData$hand.foci.count < 2, ]
+MELT_Curated_BivData.1CO <- MELT_Curated_BivData.1CO[MELT_Curated_BivData.1CO$PER.Foci.Pos < 1.01, ]
+
+MELT_long_biv <- MELT_Curated_BivData[ MELT_Curated_BivData$Obj.ID %in% real.long.bivData$Obj.ID, ]
+
+
+MELT_long_biv <- add_sex(MELT_long_biv)
+MELT_long_biv <- add_strain(MELT_long_biv)
+MELT_long_biv <- add_subsp(MELT_long_biv)
+MELT_long_biv <- add_category(MELT_long_biv)
+
+
+long.biv_Dom.male <- MELT_long_biv[ (MELT_long_biv$subsp == "Dom") & (MELT_long_biv$sex == "male"), ]
+
+Dom.male_MELT_long <- ggplot( long.biv_Dom.male, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Dom male long biv\nNormalized Foci Positions")+scale_fill_manual(values=colors_of_strains)
+Dom.male_MELT_long
+
+
+long.biv_Musc.male <- MELT_long_biv[ (MELT_long_biv$subsp == "Musc") & (MELT_long_biv$sex == "male"), ]
+
+Musc_male_MELT_long <- ggplot( long.biv_Musc.male, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Musc male long biv\nNormalized Foci Positions")+scale_fill_manual(values=colors_of_strains)
+Musc_male_MELT_long
+
+#there are v few observations in this dataset
+```
+
+<!-- Tired runnin plots for the long biv data set, I think there are too few observations. -->
+
+
+These box plot show that females have a much more medial position of single foci bivalents, (much closer to 50% compared to males). They also show that Musc males' Foci1 position is slightly more central / medial compared to the same type of positions in the Dom male strains. MOLF males have much more medial positions than other strains.
+
+the distribution of SC lengths and sis-coten seems very different across sexes
+
+The mixed model data should only come from 1CO bivalent data.
+
+the mouse average foci1 pos is more significant in t.test, but not log regression... (is something wrong?) Check the mouse averages for the F1_pos, there might be an outlier or mouse with v.few observations.
+
+```{r Q1.log.reg.CO1_pos, echo=FALSE, eval=FALSE}
+
+#LOGISTIC REGRESSION for FOCI POSITION
+
+#mouse av, norm.first foci is from 1CO bivalents
+log.reg_1CO_pos_mouse.av <- glm(Rec.group ~ norm.first.foci.pos, 
+                            data=mouse.avs_4MM[(mouse.avs_4MM$subsp == "Musc")&(mouse.avs_4MM$sex == "male"),], family=binomial(link="logit"))
+summary(log.reg_1CO_pos_mouse.av)
+
+
+#single biv level
+log.reg_1CO_pos_biv <- glm(Rec.group ~ PER_Foci_1, 
+                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")&(Curated_BivData$hand.foci.count == 1),], family=binomial(link="logit"))
+summary(log.reg_1CO_pos_biv)
+
+```
+
+
+```{r Q1.t.test_1CO_pos, echo=FALSE, eval=FALSE}
+
+#t.test for high and low group  -- logistic regression still need to format the high and low group
+
+#mouse av
+t.test_mouse.av.1CO_pos <- t.test(
+  
+  mouse.avs_4MM$norm.first.foci.pos[(mouse.avs_4MM$Rec.group == 1)],
+  
+  mouse.avs_4MM$norm.first.foci.pos[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc") &(mouse.avs_4MM$Rec.group == 0)] 
+  )
+
+
+#Single Biv Level
+single.biv.1CO_pos_t.test <- t.test( 
+  
+  Curated_BivData$PER_Foci_1[(Curated_BivData$subsp=="Musc")&(Curated_BivData$sex=="male")&(Curated_BivData$hand.foci.count==1)&(Curated_BivData$Rec.group==1)], 
+ 
+   Curated_BivData$PER_Foci_1[(Curated_BivData$subsp=="Musc")&(Curated_BivData$sex=="male")&(Curated_BivData$hand.foci.count==1)&(Curated_BivData$Rec.group==0)]
+  )
+   
+
+```
+
+
+### Siscoten
+
+
+
+The metric Sis-co-ten measures the amount of sister cohesion connected to the other pole.
+
+The logic of how the sis-co-ten metric is outlined in the figure below. The goal is to use this metric to model different tension active cohesion amounts as a consequence of different numbers and placements of chiasmata/CO. This metric is calculated using SC area as a proxy to the amount of cohesion at metaphase.
+
+
+![from (Lee, J. (2019). Is age-related increase of chromosome segregation errors in mammalian oocytes caused by cohesin deterioration?. Reproductive Medicine and Biology.)](figureFiles/Lee2019_Fig2.png)
+
+```{r show.siscoten, echo=FALSE}
+#think of a good way to display this
+
+sis.co.ten.plot_WSB_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(sex~strain)
+sis.co.ten.plot_WSB_female
+
+sis.co.ten.plot_WSB_male <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB male",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(sex~strain)
+sis.co.ten.plot_WSB_male
+
+sis.co.ten.plot_LEW_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "LEW female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(sex~strain)
+#sis.co.ten.plot_LEW_female
+
+sis.co.ten.plot_LEW_male <- ggplot(data = Curated_BivData[Curated_BivData$category == "LEW male",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(sex~strain)
+#sis.co.ten.plot_LEW_male
+
+
+sis.co.ten.plot_PWD_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(sex~strain)
+#sis.co.ten.plot_PWD_female
+
+
+sis.co.ten.plot_PWD_male <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD male",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(sex~strain)
+#sis.co.ten.plot_PWD_male
+
+
+Curated_BivData <- Curated_BivData[Curated_BivData$hand.foci.count < 5,]
+Curated_BivData <- Curated_BivData[!(is.na(Curated_BivData$hand.foci.count) | Curated_BivData$hand.foci.count==""), ]
+
+
+jitter_siscoten_PWDf <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD female",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ ggtitle("PWD female Sis.co.ten")+
+  geom_jitter()+facet_wrap(sex~strain)
+#jitter_siscoten_PWDf
+
+jitter_siscoten_PWDm <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD male",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ggtitle("PWD male sis.co.ten")+
+  geom_jitter()+facet_wrap(sex~strain)
+#jitter_siscoten_PWDm
+
+jitter_siscoten_WSBf <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB female",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ggtitle("WSB female sis.co.ten")+
+  geom_jitter()+facet_wrap(sex~strain)
+#jitter_siscoten_WSBf
+
+jitter_siscoten_WSBm <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB male",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ggtitle("WSB male sis.co.ten")+
+  geom_jitter()+facet_wrap(sex~strain)
+#jitter_siscoten_WSBm
+```
+
+Males have much clearer separation of siscoten across chrm classes. This is emphasized when SC length is also plotted. It seems like musc males have higher amounts of this metric compared to Dom males.
+
+
+To formally test the differences in sis-co-ten I plan to write a sub sampling / permutation loop to compare the mean(sis.co.ten) of the same numbers of bivalents of the same class.
+
+BUT females have a greater range -- so maybe it's just a scale issue.  
+
+
+```{r show.norm.siscoten, echo=FALSE}
+
+Curated_BivData$nrm.siscoten <- Curated_BivData$SisCoTen/Curated_BivData$chromosomeLength
+
+Nrm.sis.co.ten.plot_WSB <- ggplot(data = Curated_BivData[Curated_BivData$strain == "WSB",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n WSB")+theme(legend.position="none")
+Nrm.sis.co.ten.plot_WSB
+
+
+Nrm.sis.co.ten.plot_G <- ggplot(data = Curated_BivData[Curated_BivData$strain == "G",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n G")+theme(legend.position="none")
+Nrm.sis.co.ten.plot_G
+
+
+Nrm.sis.co.ten.plot_LEW <- ggplot(data = Curated_BivData[Curated_BivData$strain == "LEW",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten\nLEW")+theme(legend.position="none")
+Nrm.sis.co.ten.plot_LEW
+
+
+
+Nrm.sis.co.ten.plot_PWD <- ggplot(data = Curated_BivData[Curated_BivData$strain == "PWD",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n PWD")+theme(legend.position="none")
+Nrm.sis.co.ten.plot_PWD
+
+
+Nrm.sis.co.ten.plot_KAZ <- ggplot(data = Curated_BivData[Curated_BivData$strain == "KAZ",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n KAZ")+theme(legend.position="none")
+Nrm.sis.co.ten.plot_KAZ
+
+
+Nrm.sis.co.ten.plot_SKIVE <- ggplot(data = Curated_BivData[Curated_BivData$strain == "PWD",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n SKIVE")+theme(legend.position="none")
+Nrm.sis.co.ten.plot_SKIVE
+
+Nrm.sis.co.ten.plot_MSM <- ggplot(data = Curated_BivData[Curated_BivData$strain == "MSM",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n MSM")+theme(legend.position="none")
+Nrm.sis.co.ten.plot_MSM
+
+```
+
+I think the the normalized sis.co.ten plots also show that the there is more clustering of the sis.co.ten for the males.
+
+
+```{r sis.co.ten.test_HetC, echo=FALSE, eval=FALSE}
+
+#glm for siscoten
+
+#mouse.avs_4MM  - mouse averages with mean sis.co.ten
+
+#MM
+lme_MM_siscoten <- lme(mean.siscoten ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
+as.data.frame( round(  summary(lme_MM_siscoten)$tTable, 6 ) )
+
+#sex and sex*subsp interaction effect are significant for mean sis.co.ten
+
+lmer_MM_siscoten <- lmer(mean.siscoten ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
+#anova(lmer_MM_siscoten) 
+
+#thing1  <- summary(lmer_MM_siscoten)
+#drop1(lmer_MM_siscoten, test="Chisq") 
+
+rand_siscoten_MM <- exactRLRT(lmer_MM_siscoten)
+rand_siscoten_MM
+#slightly sig
+```
+
+
+The fixed effects, sex and sex*subsp are significant. The random strain effect is also significant.
+
+> Is the heterochiasmy prediction met?
+
+Yes, model  predicting the mouse average siscoten, sex and sex-subp interaction are significant factors. The Random strain effect is also significant.  
+
+
+```{r siscoten.test.poly, echo=FALSE, eval=FALSE}
+
+#move this to the set up blocks
+
+mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD", mouse.avs_4MM$strain), 1, 
+                            ifelse(grepl("MSM", mouse.avs_4MM$strain), 1,
+                             ifelse(grepl("SKIVE", mouse.avs_4MM$strain), 1, 0)) )
+
+#test high vs low Musc strains
+#mouse.avs_4MM
+
+```
+
+
+```{r log.reg_siscoten, echo=FALSE}
+
+#replace the table
+
+male_mouse.av$Rec.group <- ifelse(grepl("PWD", male_mouse.av$strain), 1, 
+                            ifelse(grepl("MSM", male_mouse.av$strain), 1,
+                             ifelse(grepl("SKIVE", male_mouse.av$strain), 1, 0)) )
+
+Male.poly.Mouse.Table_BivData_4MM$Rec.group <- ifelse(grepl("PWD", Male.poly.Mouse.Table_BivData_4MM$strain), 1, 
+                            ifelse(grepl("MSM", Male.poly.Mouse.Table_BivData_4MM$strain), 1,
+                             ifelse(grepl("SKIVE", Male.poly.Mouse.Table_BivData_4MM$strain), 1, 0)) )
+
+#SISCOTEN
+#mouse av, norm.first foci is from 1CO bivalents
+
+log.reg_SIS.co.ten_mouse.av <- glm(Rec.group ~ mean.siscoten, 
+                           
+                                 data=Male.poly.Mouse.Table_BivData_4MM[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc"),], family=binomial(link="logit"))
+summary(log.reg_SIS.co.ten_mouse.av)
+
+
+#single biv level
+log.reg_Sis.co.ten_biv <- glm(Rec.group ~ SisCoTen, 
+                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
+
+summary(log.reg_Sis.co.ten_biv)
+
+```
+
+
+```{r t.test_sis.co.ten,echo=FALSE, eval=FALSE}
+
+#bivData -- 
+
+t.test_mouse.av_siscoten <- t.test(
+  
+  Male.poly.Mouse.Table_BivData_4MM$mean.siscoten[(mouse.avs_4MM$Rec.group == 1)],
+  
+  Male.poly.Mouse.Table_BivData_4MM$mean.siscoten[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc") &(Male.poly.Mouse.Table_BivData_4MM$Rec.group == 0)] 
+  )
+
+#1CO
+t.test_mouse.av_siscoten_1CO <- t.test( 
+  Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_1CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")& (Male.poly.Mouse.Table_BivData_4MM$Rec.group == 1)], 
+ 
+   Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_1CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")& (Male.poly.Mouse.Table_BivData_4MM$Rec.group == 0)]
+  )
+
+#2CO
+t.test_mouse.av_siscoten_2CO <- t.test( 
+  Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_2CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")&(Male.poly.Mouse.Table_BivData_4MM$Rec.group == 1)], 
+ 
+   Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_2CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")& (Male.poly.Mouse.Table_BivData_4MM$Rec.group == 0)]
+  )
+
+#3CO
+t.test_mouse.av_siscoten_3CO <- t.test( 
+  Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_3CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")& (Male.poly.Mouse.Table_BivData_4MM$Rec.group == 1)], 
+ 
+   Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_3CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")&(Male.poly.Mouse.Table_BivData_4MM$Rec.group == 0)]
+  )
+
+
+
+####
+#Single Biv Level -- from the main 
+#pull the single BivData -- MUSC
+
+#check that these have the extra male strains
+
+t.test_single.biv_siscoten <- t.test( 
+  
+  Curated_BivData$SisCoTen[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")& (Curated_BivData$Rec.group == 1)], 
+ 
+   Curated_BivData$SisCoTen[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")& (Curated_BivData$Rec.group == 0)]
+  )
+
+#1CO
+mouse.avs_4MM$mean.siscoten_2CO
+
+
+
+
+#2CO
+
+
+#3CO
+
+```
+
+All the sis.co.ten tests are highly significant. Maybe I should consider running a normalized sis.co.ten? I think nrm_siscoten would still reflect the differing cohesion structure/outcome.
+
+
+
+### Telomere and centromere Distance
+
+My metric for telomere and centromere distance measure the distance of the nearest foci to the ends of the bivalent (SC). In the plots below each point is a single bivalent. I choose not to use the mark for centromere because it seems noisy and inconsistent... 
+
+
+```{r telo.dist, echo=FALSE}
+
+sis.co.ten.plot_WSB_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
+  geom_point()+facet_wrap(sex~strain)
+
+
+
+Curated_BivData <- Curated_BivData[Curated_BivData$hand.foci.count < 5,]
+Curated_BivData <- Curated_BivData[!(is.na(Curated_BivData$hand.foci.count) | Curated_BivData$hand.foci.count==""), ]
+
+
+telo.dist_boxplots <- ggplot(Curated_BivData, aes(x= hand.foci.count, y=telo_dist ) )+ geom_boxplot(aes( fill=hand.foci.count, group=strain), alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("boxy plots")+ ylim(c(0, 150))
+
+
+telo_jitter <- ggplot(Curated_BivData, aes(x= strain, y=telo_dist, color=as.factor(hand.foci.count) ) )+ geom_jitter(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("raw telomere distance")+ ylim(c(0, 150))
+telo_jitter
+
+
+nrm.telo_jitter <- ggplot(Curated_BivData, aes(x= strain, y=telo_dist_PER, color=as.factor(hand.foci.count) ) )+ geom_jitter(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("Normalized telomere distance")+ylim(c(0,1.2))
+nrm.telo_jitter
+
+#why do a different number of rows removed each time??
+
+```
+
+Males on average have much lower raw telomere distance (reflects the telomere bias) compared to females. In Males, 2CO bivalents have very low telomere distances, while the 1CO bivalents have a greater range. In females the ranges of telomere distances have much more overlap.   
+
+```{r MM.telo, echo=FALSE}
+#HetC
+
+lme_MM_telo.dist <- lmer(mean.telo.dist ~ subsp * sex + (1|strain), data= Mouse.Table_BivData_4MM )
+
+drop1(lme_MM_telo.dist, test="Chisq")
+
+as.data.frame( round(  summary(lme_MM_telo.dist)$coefficients, 6 ) )
+
+#sex and sex*subsp interaction effect are significant for mean sis.co.ten
+
+lmer_MM_telo.dist <- lmer(mean.telo.dist ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE)
+#anova(lmer_MM_siscoten) 
+
+#thing1  <- summary(lmer_MM_siscoten)
+drop1(lmer_MM_telo.dist, test="Chisq") 
+rand_telo.dist_MM <- exactRLRT(lmer_MM_telo.dist)
+rand_telo.dist_MM
+
+```
+
+Mixed model result summary:
+
+
+```{r log.reg_telo.dist, echo=FALSE}
+
+Mouse.Table_BivData_4MM$Rec.group <- ifelse(grepl("PWD male", Mouse.Table_BivData_4MM$category), 1, 
+                            ifelse(grepl("MSM male", Mouse.Table_BivData_4MM$category), 1,
+                             ifelse(grepl("SKIVE male", Mouse.Table_BivData_4MM$category), 1, 0)) )
+
+
+#TELO.DIST
+#mouse av, norm.first foci is from 1CO bivalents
+log.reg_Telo.Dist_mouse.av <- glm(Rec.group ~ mean.telo.dist, 
+                           
+                                 data=Mouse.Table_BivData_4MM[(Mouse.Table_BivData_4MM$subsp == "Musc")&(Mouse.Table_BivData_4MM$sex == "male"),], family=binomial(link="logit"))
+summary(log.reg_Telo.Dist_mouse.av)
+
+
+#single biv level
+log.reg_Telo.Dist_biv <- glm(Rec.group ~ telo_dist, 
+                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
+
+summary(log.reg_Telo.Dist_biv)
+
+
+#PER versions
+log.reg_Telo.Dist.PER_biv <- glm(Rec.group ~ telo_dist_PER, 
+                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
+
+summary(log.reg_Telo.Dist.PER_biv)
+```
+
+
+```{r t.test_Telo.Dist, echo=FALSE}
+
+#mouse av
+t.test_mouse.av_telo.dist <- t.test(
+  
+  Mouse.Table_BivData_4MM$mean.telo.dist[(Mouse.Table_BivData_4MM$Rec.group == 1)],
+  
+  Mouse.Table_BivData_4MM$mean.telo.dist[(Mouse.Table_BivData_4MM$sex == "male") & (Mouse.Table_BivData_4MM$subsp == "Musc") &(Mouse.Table_BivData_4MM$Rec.group == 0)] 
+  )
+
+
+#Single Biv Level
+single.biv_t.test_Telo.Dist <- t.test( 
+  
+  Curated_BivData$telo_dist[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 1)], 
+ 
+   Curated_BivData$telo_dist[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 0)]
+  )
+   
+#Telo Dist PER
+single.biv_t.test_Telo.Dist_PER <- t.test( 
+  
+  Curated_BivData$telo_dist_PER[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")& (Curated_BivData$Rec.group == 1)], 
+ 
+   Curated_BivData$telo_dist_PER[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 0)]
+  )
+   
+```
+
+
+
+```{r cent.dist_show, echo=FALSE}
+cent.dist_boxplots <- ggplot(Curated_BivData, aes(x= strain, y=dis.cent ) )+ geom_boxplot(aes( fill=hand.foci.count, group=strain), alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("raw centromere distance")+ ylim(c(0, 150))
+
+
+cent.dist_jitter <- ggplot(Curated_BivData, aes(x= strain, y=dis.cent, color=as.factor(hand.foci.count) ) )+ geom_jitter(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("raw centromere dist")+ ylim(c(0, 200))
+cent.dist_jitter
+
+norm.cent.dist_jitter <- ggplot(Curated_BivData, aes(x= strain, y=dis.cent.PER, color=as.factor(hand.foci.count) ) )+ geom_jitter(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("Normalized centromere distance")+ylim(c(0,1.2))
+norm.cent.dist_jitter
+
+```
+
+
+```{r MM.cent.dist, echo=FALSE, eval=FALSE}
+
+lme_MM_cent.dist <- lme(mean.cent.dist ~ subsp * sex, data= Mouse.Table_BivData_4MM, random=list(strain=pdDiag(~sex) ) )
+as.data.frame( round(  summary(lme_MM_cent.dist)$tTable, 6 ) )
+
+lmer_MM_cent.dist <- lmer(mean.cent.dist ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE)
+
+exactRLRT(lmer_MM_cent.dist)
+```
+
+
+
+```{r log.reg_CENT.dist, echo=FALSE}
+
+#CENT.DIST
+#mouse av, norm.first foci is from 1CO bivalents
+log.reg_CENT.Dist_mouse.av <- glm(Rec.group ~ mean.cent.dist, 
+                           
+                                 data=Mouse.Table_BivData_4MM[(Mouse.Table_BivData_4MM$subsp == "Musc")&(Mouse.Table_BivData_4MM$sex == "male"),], family=binomial(link="logit"))
+summary(log.reg_CENT.Dist_mouse.av)
+
+
+#single biv level
+log.reg_CENT.Dist_biv <- glm(Rec.group ~ dis.cent, 
+                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
+
+summary(log.reg_CENT.Dist_biv)
+
+
+#PER versions
+log.reg_CENT.Dist.PER_biv <- glm(Rec.group ~ dis.cent.PER, 
+                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
+
+summary(log.reg_CENT.Dist.PER_biv)
+```
+
+
+```{r t.test_CENT.Dist, echo=FALSE}
+#CENT.DIST
+#mouse av
+t.test_mouse.av_Cent.dist <- t.test(
+  
+  Mouse.Table_BivData_4MM$mean.cent.dist[(Mouse.Table_BivData_4MM$Rec.group == 1)],
+  
+  Mouse.Table_BivData_4MM$mean.cent.dist[(Mouse.Table_BivData_4MM$sex == "male") & (Mouse.Table_BivData_4MM$subsp == "Musc") &(Mouse.Table_BivData_4MM$Rec.group == 0)] 
+  )
+
+
+#Single Biv Level
+single.biv_t.test_Cent.Dist <- t.test( 
+  
+  Curated_BivData$dis.cent[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 1)], 
+ 
+   Curated_BivData$dis.cent[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 0)]
+  )
+   
+#Cent Dist PER
+single.biv_t.test_Cent.Dist_PER <- t.test( 
+  
+  Curated_BivData$dis.cent.PER[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 1)], 
+ 
+   Curated_BivData$dis.cent.PER[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")& (Curated_BivData$Rec.group == 0)]
+  )
+   
+```
+
+
+
+The normalized centromere plots show that in Musc males, on 2CO bivalents the 1st CO is closer to the centromere end than in Dom males.
+
+Females have more overlap in the distributions of centromere distances across chromosome class compared to males.
+
+
+### Heterochiasmy Prediction
+
+> Is sex a significant effect for the 1CO normalized CO position? (as predicted)
+
+
+
+> is random strtain effect significant?
+
+The random strain effect seems very significant.
+
+remember to use the mouse average table **mouse.avs_4MM**  (I don't think I need the MELT data frame)
+
+
+
+```{r pos_t.test}
+#make point plots / boxplots which show differences in mean positions 
+
+#scatter + boxplot for t.tests
+```
+
+
+Dr. Broman suggested that the Smirnov K /(curve comparison) wasn't the best test to differences in general CO position. He suggested doing simple t-test for the positions
+
+
+
+```{r F1.by.F2}
+
+#try remaking the plot Megan suggested
+# for 2CO positions, Foci1, Position  on x and Foci 2 position on y
+
+CurBivData_2CO <- Curated_BivData[Curated_BivData$hand.foci.count == 2,]
+
+CurBivData_2CO <- CurBivData_2CO[!(is.na(CurBivData_2CO$Foci2) | CurBivData_2CO$Foci2==""), ]
+
+#isolate 2COs
+#facet by sex and subsp
+
+F1.x.F2 <- ggplot(CurBivData_2CO, aes(x=Foci1,y=Foci2, color=strain) ) + geom_point()+ facet_wrap(~sex)+ggtitle("test plot")
+F1.x.F2
+
+```
+
+
+```{r CO.pos.ANOVA, eval=FALSE}
+#what is the pattern of variance
+#run analyses for each subsp*sex
+#use non-melt DF
+
+#how is the variance partioned across
+#cell, mouse, strain
+
+female.Dom <- Curated_BivData[Curated_BivData$sex == "female",]
+female.Dom <- female.Dom[female.Dom$subsp == "Dom",]
+
+female.Dom$Foc1.PER <- female.Dom$Foci1 / female.Dom$chromosomeLength
+
+#unorder strain and mouse
+
+female.Dom$mouse <- as.factor(female.Dom$mouse)
+
+
+female.Dom$strain <- unclass(female.Dom$strain)
+female.Dom$strain <- as.factor(female.Dom$strain)
+
+female.Dom_1CO <- female.Dom[female.Dom$hand.foci.count == 1,]
+female.Dom_1CO <- female.Dom_1CO[(!is.na(female.Dom_1CO$hand.foci.count)),]
+
+#1CO first
+modo <- lm(Foc1.PER ~ fileName + mouse + strain, data=female.Dom_1CO)
+
+#can't get mouse and strain to have sum of square
+#residual size decreases with per.F1
+#residuals much larger than fileName, mouse and strain no 
+
+#model <- lm(breaks ~ wool * tension, 
+#            data = warpbreaks, 
+#            contrasts = list(wool = "contr.sum", tension = "contr.poly"))
+
+male.Dom <- Curated_BivData[Curated_BivData$sex == "male",]
+male.Dom <- male.Dom[male.Dom$subsp == "Dom",]
+
+male.Dom$mouse <- as.factor(male.Dom$mouse)
+
+male.Dom$strain <- unclass(male.Dom$strain)
+male.Dom$strain <- as.factor(male.Dom$strain)
+
+male.Dom <- male.Dom[male.Dom$hand.foci.count == 1,]
+male.Dom <- male.Dom[(!is.na(male.Dom$hand.foci.count)),]
+
+male.Dom$Foc1.PER <- male.Dom$Foci1 / male.Dom$chromosomeLength
+
+male.modo <- lm(Foc1.PER ~  fileName | mouse | strain, data=male.Dom)
+summary(aov(male.modo))
+
+#only file name is registering as effect
+#Review ANOVA frameworks
+#http://www.biostathandbook.com/nestedanova.html
+
+```
+
+
+
+
+#Q1. IFD
+
+In order to test if there are sex differences between crossover interfernce, a major determinant of the positioning of crossovers along chromosomes, we examined ... ran models with the interfocal distance (IFD) of two foci on the same bivalent. 
+
+
+-We focus on observations from two-crossover bivalents for more comparable observations.
+
+-comparisons of all IFDs of mulit crossover bivalents is also included
+
+Interference is a major determinant of the positioning of chromosomes
+
+<!-- 
 
 
 Brief lit review for IFD / interference expectations  
@@ -2636,16 +3561,11 @@ Chrm1 genetic map,
 Tease n Hulten 2004: -- no difference between MLH1 foci in males and females
 
 DeBoer 2006, 13 -- measured chrm 1 in males and females, both were 2.8 microns
-
-
-))
-
 <!--
 ToDo: make a melt.DF with the IFD1, IFD2, IFD3 in a single cols
 
 explain the difference between the raw and PER measures. Why should I use /examine the IFD.PER?
 -->
-
 
  
 ```{r show.IFD_99, echo=FALSE, warning=FALSE}
@@ -3289,892 +4209,6 @@ The random strain effect was tested for raw and normalized IFD, neither are sign
 -->
 
 
-
-# Q1. General CO Positions
-
-Try accounting for chrm size effects. **Also i didn't notice that I'm using density plots and scatter+boxplots across sections**
-
-<!--
-There are a few traits that fall within the CO positions  
-- 1CO normalized position  
-- sis.co.ten (sorta interference)  
-- centromere and telomere distance  
-**Heterochiasmy**
-
-2.A) Normalized 1CO positions will be sexually dimorphic (sedell and Kirkpatrick). 
-  B) **sis**ter **co**hesion **ten**sion (sis-co-ten) will be sexually dimorphic as it reflects the general property of unifrom vs telomere/biased CO positioning.
-  C) Centromere and telomere distances will be sexually dimorphic.
-**for all the test blocks below, integrate the 3 other metrics; siscoten, telomere, centromere distance.
--->
-
-density plots
-```{r CO.positions.figs, echo=FALSE, include=FALSE}
-#main figure of density plots,
-
-MELT_Curated_BivData <- add_sex(MELT_Curated_BivData)
-MELT_Curated_BivData <- add_strain(MELT_Curated_BivData)
-MELT_Curated_BivData <- add_subsp(MELT_Curated_BivData)#subsp, needs strain
-
-#clean up all the non 1 to 4 hand.foci counts
-MELT_Curated_BivData.1CO <- MELT_Curated_BivData[MELT_Curated_BivData$hand.foci.count < 2, ]
-
-MELT_Curated_BivData.1CO <- MELT_Curated_BivData.1CO[MELT_Curated_BivData.1CO$PER.Foci.Pos < 1.01, ]
-
-# remove the na's
-MELT_Curated_BivData.1CO <- MELT_Curated_BivData.1CO[!(is.na(MELT_Curated_BivData.1CO$hand.foci.count) | MELT_Curated_BivData.1CO$hand.foci.count==""), ]
-
-CO.Pos.density_1CO <- ggplot(MELT_Curated_BivData.1CO, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(sex~subsp, ncol=2)+ggtitle("Normalized 1CO Foci Positions")+scale_fill_manual(values=colors_of_strains)
-CO.Pos.density_1CO
-
-
-#category specific plots, don't run for now.
-Dom.female_MELT_curBivData <- MELT_Curated_BivData[ ((MELT_Curated_BivData$sex == "female") & (MELT_Curated_BivData$subsp == "Dom") ), ]
-CO.Pos.density_Dom_female <- ggplot(Dom.female_MELT_curBivData, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Dom female \nNormalized Foci Positions")
-#Musc male
-Musc.male_MELT_curBivData <- MELT_Curated_BivData[ ((MELT_Curated_BivData$sex == "male") & (MELT_Curated_BivData$subsp == "Musc") ), ]
-
-CO.Pos.density_Musc_male <- ggplot(Musc.male_MELT_curBivData, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Musc male \nNormalized Foci Positions")
-#Dom male
-Dom.male_MELT_curBivData <- MELT_Curated_BivData[ ((MELT_Curated_BivData$sex == "male") & (MELT_Curated_BivData$subsp == "Dom") ), ]
-
-CO.Pos.density_Dom_male <- ggplot(Dom.male_MELT_curBivData, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Dom male \nNormalized Foci Positions")
-
-
-```
-
-
-```{r Q1.F1.pos.LONG.BIV_scatter, echo=FALSE}
-
-#make the same plots as above but with the long biv data set
-male.long.biv.1CO <- real.long.bivData %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1)
-
-
-real.long.bivData_1CO <- real.long.bivData %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1)
-
-#mouse.av.long.biv.table
-
-Q1.show.nrmF1_long.biv <- ggplot(real.long.bivData_1CO, aes(x=strain, y=PER_Foci_1, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= PER_Foci_1 ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(sex~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Normalized 1CO Foci pos \nLong Biv")
-
-Q1.show.nrmF1_long.biv
-
-
-Mouse.av.Long.biv <- ddply(male.long.biv.1CO, c("mouse"), summarise,
-                        Nmice = length(unique(mouse)),
-                        Nbiv  = length(Obj.ID),
-                       mean.1CO_PER = mean(PER_Foci_1)
-                      # mean_CO = mean()
-                       )
-
-Mouse.av.Long.biv <- add_strain(Mouse.av.Long.biv)
-Mouse.av.Long.biv <- add_subsp(Mouse.av.Long.biv)
-
-
-Q2.shoooo   <- ggplot(Mouse.av.Long.biv, aes(x=strain, y=mean.1CO_PER, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= mean.1CO_PER ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("mouse ave \nNormalized 1CO Foci pos \nLong Biv")
-
-Q2.shoooo
-
-
-```
-
-
-```{r Q1.mean.nrmF1_table, echo=FALSE,eval=FALSE}
-
-#make a table for the sex specific values of the normalized F1 positions
-
-#for strain, sex -- Curated_BivData
-#or (Mouse.Table_BivData_4MM)
-#norm.first.foci.pos
-
-
-Q1.normF1.pos_table <- ddply(Mouse.Table_BivData_4MM, c("strain","sex"), summarise,
-                  
-                    mean_1CO_nrm.pos = mean(norm.first.foci.pos, na.rm = TRUE), 
-                  n1CO = sum(n1CO )
-
-                          )
-
-
-```
-
-$$mouse \ average \ F1 position ~=~ subsp * sex + rand(strain) + \varepsilon $$
-
-
-```{r Q1.nrmF1CO.pos_M1, echo=FALSE}
-
-lmer.Q1.nrm1CO_M1 <- lmer(norm.first.foci.pos ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE) 
-
-lmer.Q1.nrm1CO_M1reduce.sex <- lmer( norm.first.foci.pos ~ subsp  +(1|strain), data=Mouse.Table_BivData_4MM )
-
-lmer.Q1.nrm1CO_M1reduce.subp <- lmer( norm.first.foci.pos ~ sex  +(1|strain), data=Mouse.Table_BivData_4MM )
-
-anova(lmer.Q1.nrm1CO_M1, lmer.Q1.nrm1CO_M1reduce.sex)
-anova(lmer.Q1.nrm1CO_M1, lmer.Q1.nrm1CO_M1reduce.subp)
-
-
-
-lmer.Q1.nrm1CO_M1 <- lmer(norm.first.foci.pos ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE) 
-
-lmer.Q1.nrm1CO_M1reduce.sex <- lmer( norm.first.foci.pos ~ subsp  +(1|strain), data=Mouse.Table_BivData_4MM )
-
-lmer.Q1.nrm1CO_M1reduce.subp <- lmer( norm.first.foci.pos ~ sex  +(1|strain), data=Mouse.Table_BivData_4MM )
-
-anova(lmer.Q1.nrm1CO_M1, lmer.Q1.nrm1CO_M1reduce.sex)
-anova(lmer.Q1.nrm1CO_M1, lmer.Q1.nrm1CO_M1reduce.subp)
-
-
-drop1(lmer.Q1.nrm1CO_M1, test="Chisq" )
-
-exactRLRT(lmer.Q1.nrm1CO_M1)
-
-
-#write.table(round(summry.glm.Q1_IFD.PER.M2$coefficients, 6), "~./MLH1repo/summry.glm.Q1_IFD.PER.M2.csv", sep=",",row.names = TRUE)
-
-```
-
-
-$$mouse \ average \ F1 position ~=~ subsp * sex * strain + \varepsilon $$
-
-```{r Q1.Nrm.F1pos_M2, echo=FALSE}
-
-#calq the means for normalized F1
-#M2
-
-Q1.glm_nrmF1pos_M2 <- glm(norm.first.foci.pos ~ subsp * strain * sex, data=Mouse.Table_BivData_4MM)
-#summary(Q1.glm_nrmF1pos_M2)
-
-summry.Q1.glm_nrmF1pos_M2 <- summary(Q1.glm_nrmF1pos_M2)
-round(summry.Q1.glm_nrmF1pos_M2$coefficients[,c(1,4)],5)
-
-write.table(round(summry.Q1.glm_nrmF1pos_M2$coefficients,5), "~./MLH1repo/summry.Q1.glm_nrmF1pos_M2.csv", sep=",",row.names = TRUE)
-
-
-
-
-#DOM
-Q1.glm_nrmF1pos_M2_Dom <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Dom",])
-#summary(Q1.glm_nrmF1pos_M2_Dom)
-
-#MUSC
-Q1.glm_nrmF1pos_M2_Musc <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Musc",])
-#summary(Q1.glm_nrmF1pos_M2_Musc)
-
-#MOL
-Q1.glm_nrmF1pos_M2_Mol <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Mol",])
-#summary(Q1.glm_nrmF1pos_M2_Mol)
-
-```
-
-
-$$mouse \ average \ F1 position ~=~ sex * strain + \varepsilon $$
-
-
-```{r Q1.nrmCO.pos_M3, echo=FALSE, eval=FALSE}
-
-Q1.glm_nrmF1pos_M3 <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Table_BivData_4MM)
-#summary(Q1.glm_nrmF1pos_M2)
-<<<<<<< HEAD
-
-summry.Q1.glm_nrmF1pos_M3 <- summary(Q1.glm_nrmF1pos_M3)
-round(summry.Q1.glm_nrmF1pos_M3$coefficients[,c(1,4)],5)
-
-=======
-
-summry.Q1.glm_nrmF1pos_M3 <- summary(Q1.glm_nrmF1pos_M3)
-round(summry.Q1.glm_nrmF1pos_M3$coefficients[,c(1,4)],5)
-
->>>>>>> 7ebba2e601079e1783e92c05ba74529ea765a5ed
-write.table(round(summry.Q1.glm_nrmF1pos_M3$coefficients,5), "~./MLH1repo/summry.Q1.glm_nrmF1pos_M3.csv", sep=",",row.names = TRUE)
-```
-
-
-The model results aren't as clear as I'd like.
-For the Mol, both the sex effect and MOLF strain effect are significant (this means both female and male rec landscapes are effected - most of the time towards the middle
-
-GENERALLY - Sex is the biggest effect for the 1CO landscape (female middle male telomereic)
-molf
-Not sure I understand how MSM is supper significant for 
-There must be some strange effect due to the Mol subsp - MOLF isn't even in M2 (
-Male is consistently significant across the two models.
-
-Male and MOLF are the most significant effects for M3
-
-
-Above plot focuses on the 1CO bivalent normalized positions since CO interference controls the general position of COs when there are multiple COs. This plot shows the sexual dimorphism in the density plots.
-
-Consider adding annotate_text for the number of observations in each category.
-think about adding a vertical line for centromere, for the position means. Think about removing the extra Musc strains.
-
-
-```{r norm.CO.pos_longBiv, echo=FALSE, eval=FALSE}
-
-#real.long.bivData
-#MELT_Curated_BivData
-
-#these isn't long.biv data
-MELT_long_biv <- MELT_Curated_BivData[ MELT_Curated_BivData$Obj.ID %in% real.long.bivData$Obj.ID, ]
-
-real.long.bivData
-MELT_Curated_BivData.1CO <- MELT_Curated_BivData[MELT_Curated_BivData$hand.foci.count < 2, ]
-MELT_Curated_BivData.1CO <- MELT_Curated_BivData.1CO[MELT_Curated_BivData.1CO$PER.Foci.Pos < 1.01, ]
-
-MELT_long_biv <- MELT_Curated_BivData[ MELT_Curated_BivData$Obj.ID %in% real.long.bivData$Obj.ID, ]
-
-
-MELT_long_biv <- add_sex(MELT_long_biv)
-MELT_long_biv <- add_strain(MELT_long_biv)
-MELT_long_biv <- add_subsp(MELT_long_biv)
-MELT_long_biv <- add_category(MELT_long_biv)
-
-
-long.biv_Dom.male <- MELT_long_biv[ (MELT_long_biv$subsp == "Dom") & (MELT_long_biv$sex == "male"), ]
-
-Dom.male_MELT_long <- ggplot( long.biv_Dom.male, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Dom male long biv\nNormalized Foci Positions")+scale_fill_manual(values=colors_of_strains)
-Dom.male_MELT_long
-
-
-long.biv_Musc.male <- MELT_long_biv[ (MELT_long_biv$subsp == "Musc") & (MELT_long_biv$sex == "male"), ]
-
-Musc_male_MELT_long <- ggplot( long.biv_Musc.male, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Musc male long biv\nNormalized Foci Positions")+scale_fill_manual(values=colors_of_strains)
-Musc_male_MELT_long
-
-#there are v few observations in this dataset
-```
-
-<!-- Tired runnin plots for the long biv data set, I think there are too few observations. -->
-
-
-```{r CO1_foci_pos_boxplot, echo=FALSE}
-
-MELT_long_biv <- MELT_Curated_BivData[ MELT_Curated_BivData$Obj.ID %in% real.long.bivData$Obj.ID, ]
-
-CO.Pos.boxplots_1CO <- ggplot(MELT_Curated_BivData.1CO, aes(x= strain, y=PER.Foci.Pos, fill=strain) ) + geom_boxplot(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("Percent Foci Position")+geom_jitter(alpha=.1)+scale_fill_manual(values=colors_of_strains)
-CO.Pos.boxplots_1CO
-
-```
-
-These box plot show that females have a much more medial position of single foci bivalents, (much closer to 50% compared to males). They also show that Musc males' Foci1 position is slightly more central / medial compared to the same type of positions in the Dom male strains. MOLF males have much more medial positions than other strains.
-
-
-
-the distribution of SC lengths and sis-coten seems very different across sexes
-
-
-The mixed model data should only come from 1CO bivalent data.
-
-
-
-
-
-
-
-
-the mouse average foci1 pos is more significant in t.test, but not log regression... (is something wrong?) Check the mouse averages for the F1_pos, there might be an outlier or mouse with v.few observations.
-
-
-
-
-
-```{r Q1.log.reg.CO1_pos, echo=FALSE, eval=FALSE}
-
-#LOGISTIC REGRESSION for FOCI POSITION
-
-#mouse av, norm.first foci is from 1CO bivalents
-log.reg_1CO_pos_mouse.av <- glm(Rec.group ~ norm.first.foci.pos, 
-                            data=mouse.avs_4MM[(mouse.avs_4MM$subsp == "Musc")&(mouse.avs_4MM$sex == "male"),], family=binomial(link="logit"))
-summary(log.reg_1CO_pos_mouse.av)
-
-
-#single biv level
-log.reg_1CO_pos_biv <- glm(Rec.group ~ PER_Foci_1, 
-                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")&(Curated_BivData$hand.foci.count == 1),], family=binomial(link="logit"))
-summary(log.reg_1CO_pos_biv)
-
-```
-
-
-
-
-
-
-```{r Q1.t.test_1CO_pos, echo=FALSE, eval=FALSE}
-
-#t.test for high and low group  -- logistic regression still need to format the high and low group
-
-#mouse av
-t.test_mouse.av.1CO_pos <- t.test(
-  
-  mouse.avs_4MM$norm.first.foci.pos[(mouse.avs_4MM$Rec.group == 1)],
-  
-  mouse.avs_4MM$norm.first.foci.pos[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc") &(mouse.avs_4MM$Rec.group == 0)] 
-  )
-
-
-#Single Biv Level
-single.biv.1CO_pos_t.test <- t.test( 
-  
-  Curated_BivData$PER_Foci_1[(Curated_BivData$subsp=="Musc")&(Curated_BivData$sex=="male")&(Curated_BivData$hand.foci.count==1)&(Curated_BivData$Rec.group==1)], 
- 
-   Curated_BivData$PER_Foci_1[(Curated_BivData$subsp=="Musc")&(Curated_BivData$sex=="male")&(Curated_BivData$hand.foci.count==1)&(Curated_BivData$Rec.group==0)]
-  )
-   
-
-```
-
-
-### Siscoten
-
-
-
-The metric Sis-co-ten measures the amount of sister cohesion connected to the other pole.
-
-The logic of how the sis-co-ten metric is outlined in the figure below. The goal is to use this metric to model different tension active cohesion amounts as a consequence of different numbers and placements of chiasmata/CO. This metric is calculated using SC area as a proxy to the amount of cohesion at metaphase.
-
-
-![from (Lee, J. (2019). Is age-related increase of chromosome segregation errors in mammalian oocytes caused by cohesin deterioration?. Reproductive Medicine and Biology.)](figureFiles/Lee2019_Fig2.png)
-
-```{r show.siscoten, echo=FALSE}
-#think of a good way to display this
-
-sis.co.ten.plot_WSB_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(sex~strain)
-sis.co.ten.plot_WSB_female
-
-sis.co.ten.plot_WSB_male <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB male",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(sex~strain)
-sis.co.ten.plot_WSB_male
-
-sis.co.ten.plot_LEW_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "LEW female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(sex~strain)
-#sis.co.ten.plot_LEW_female
-
-sis.co.ten.plot_LEW_male <- ggplot(data = Curated_BivData[Curated_BivData$category == "LEW male",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(sex~strain)
-#sis.co.ten.plot_LEW_male
-
-
-sis.co.ten.plot_PWD_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(sex~strain)
-#sis.co.ten.plot_PWD_female
-
-
-sis.co.ten.plot_PWD_male <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD male",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(sex~strain)
-#sis.co.ten.plot_PWD_male
-
-
-Curated_BivData <- Curated_BivData[Curated_BivData$hand.foci.count < 5,]
-Curated_BivData <- Curated_BivData[!(is.na(Curated_BivData$hand.foci.count) | Curated_BivData$hand.foci.count==""), ]
-
-
-jitter_siscoten_PWDf <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD female",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ ggtitle("PWD female Sis.co.ten")+
-  geom_jitter()+facet_wrap(sex~strain)
-#jitter_siscoten_PWDf
-
-jitter_siscoten_PWDm <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD male",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ggtitle("PWD male sis.co.ten")+
-  geom_jitter()+facet_wrap(sex~strain)
-#jitter_siscoten_PWDm
-
-jitter_siscoten_WSBf <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB female",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ggtitle("WSB female sis.co.ten")+
-  geom_jitter()+facet_wrap(sex~strain)
-#jitter_siscoten_WSBf
-
-jitter_siscoten_WSBm <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB male",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ggtitle("WSB male sis.co.ten")+
-  geom_jitter()+facet_wrap(sex~strain)
-#jitter_siscoten_WSBm
-```
-
-Males have much clearer separation of siscoten across chrm classes. This is emphasized when SC length is also plotted. It seems like musc males have higher amounts of this metric compared to Dom males.
-
-
-To formally test the differences in sis-co-ten I plan to write a sub sampling / permutation loop to compare the mean(sis.co.ten) of the same numbers of bivalents of the same class.
-
-BUT females have a greater range -- so maybe it's just a scale issue.  
-
-
-```{r show.norm.siscoten, echo=FALSE}
-
-Curated_BivData$nrm.siscoten <- Curated_BivData$SisCoTen/Curated_BivData$chromosomeLength
-
-Nrm.sis.co.ten.plot_WSB <- ggplot(data = Curated_BivData[Curated_BivData$strain == "WSB",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n WSB")+theme(legend.position="none")
-Nrm.sis.co.ten.plot_WSB
-
-
-Nrm.sis.co.ten.plot_G <- ggplot(data = Curated_BivData[Curated_BivData$strain == "G",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n G")+theme(legend.position="none")
-Nrm.sis.co.ten.plot_G
-
-
-Nrm.sis.co.ten.plot_LEW <- ggplot(data = Curated_BivData[Curated_BivData$strain == "LEW",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten\nLEW")+theme(legend.position="none")
-Nrm.sis.co.ten.plot_LEW
-
-
-
-Nrm.sis.co.ten.plot_PWD <- ggplot(data = Curated_BivData[Curated_BivData$strain == "PWD",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n PWD")+theme(legend.position="none")
-Nrm.sis.co.ten.plot_PWD
-
-
-Nrm.sis.co.ten.plot_KAZ <- ggplot(data = Curated_BivData[Curated_BivData$strain == "KAZ",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n KAZ")+theme(legend.position="none")
-Nrm.sis.co.ten.plot_KAZ
-
-
-Nrm.sis.co.ten.plot_SKIVE <- ggplot(data = Curated_BivData[Curated_BivData$strain == "PWD",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n SKIVE")+theme(legend.position="none")
-Nrm.sis.co.ten.plot_SKIVE
-
-Nrm.sis.co.ten.plot_MSM <- ggplot(data = Curated_BivData[Curated_BivData$strain == "MSM",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n MSM")+theme(legend.position="none")
-Nrm.sis.co.ten.plot_MSM
-
-```
-
-I think the the normalized sis.co.ten plots also show that the there is more clustering of the sis.co.ten for the males.
-
-
-```{r sis.co.ten.test_HetC, echo=FALSE, eval=FALSE}
-
-#glm for siscoten
-
-#mouse.avs_4MM  - mouse averages with mean sis.co.ten
-
-#MM
-lme_MM_siscoten <- lme(mean.siscoten ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
-as.data.frame( round(  summary(lme_MM_siscoten)$tTable, 6 ) )
-
-#sex and sex*subsp interaction effect are significant for mean sis.co.ten
-
-lmer_MM_siscoten <- lmer(mean.siscoten ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
-#anova(lmer_MM_siscoten) 
-
-#thing1  <- summary(lmer_MM_siscoten)
-#drop1(lmer_MM_siscoten, test="Chisq") 
-
-rand_siscoten_MM <- exactRLRT(lmer_MM_siscoten)
-rand_siscoten_MM
-#slightly sig
-```
-
-
-The fixed effects, sex and sex*subsp are significant. The random strain effect is also significant.
-
-> Is the heterochiasmy prediction met?
-
-Yes, model  predicting the mouse average siscoten, sex and sex-subp interaction are significant factors. The Random strain effect is also significant.  
-
-
-```{r siscoten.test.poly, echo=FALSE, eval=FALSE}
-
-#move this to the set up blocks
-
-mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD", mouse.avs_4MM$strain), 1, 
-                            ifelse(grepl("MSM", mouse.avs_4MM$strain), 1,
-                             ifelse(grepl("SKIVE", mouse.avs_4MM$strain), 1, 0)) )
-
-#test high vs low Musc strains
-#mouse.avs_4MM
-
-```
-
-
-```{r log.reg_siscoten, echo=FALSE}
-
-#replace the table
-
-male_mouse.av$Rec.group <- ifelse(grepl("PWD", male_mouse.av$strain), 1, 
-                            ifelse(grepl("MSM", male_mouse.av$strain), 1,
-                             ifelse(grepl("SKIVE", male_mouse.av$strain), 1, 0)) )
-
-Male.poly.Mouse.Table_BivData_4MM$Rec.group <- ifelse(grepl("PWD", Male.poly.Mouse.Table_BivData_4MM$strain), 1, 
-                            ifelse(grepl("MSM", Male.poly.Mouse.Table_BivData_4MM$strain), 1,
-                             ifelse(grepl("SKIVE", Male.poly.Mouse.Table_BivData_4MM$strain), 1, 0)) )
-
-#SISCOTEN
-#mouse av, norm.first foci is from 1CO bivalents
-
-log.reg_SIS.co.ten_mouse.av <- glm(Rec.group ~ mean.siscoten, 
-                           
-                                 data=Male.poly.Mouse.Table_BivData_4MM[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc"),], family=binomial(link="logit"))
-summary(log.reg_SIS.co.ten_mouse.av)
-
-
-#single biv level
-log.reg_Sis.co.ten_biv <- glm(Rec.group ~ SisCoTen, 
-                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
-
-summary(log.reg_Sis.co.ten_biv)
-
-```
-
-
-```{r t.test_sis.co.ten,echo=FALSE, eval=FALSE}
-
-#bivData -- 
-
-t.test_mouse.av_siscoten <- t.test(
-  
-  Male.poly.Mouse.Table_BivData_4MM$mean.siscoten[(mouse.avs_4MM$Rec.group == 1)],
-  
-  Male.poly.Mouse.Table_BivData_4MM$mean.siscoten[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc") &(Male.poly.Mouse.Table_BivData_4MM$Rec.group == 0)] 
-  )
-
-#1CO
-t.test_mouse.av_siscoten_1CO <- t.test( 
-  Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_1CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")& (Male.poly.Mouse.Table_BivData_4MM$Rec.group == 1)], 
- 
-   Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_1CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")& (Male.poly.Mouse.Table_BivData_4MM$Rec.group == 0)]
-  )
-
-#2CO
-t.test_mouse.av_siscoten_2CO <- t.test( 
-  Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_2CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")&(Male.poly.Mouse.Table_BivData_4MM$Rec.group == 1)], 
- 
-   Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_2CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")& (Male.poly.Mouse.Table_BivData_4MM$Rec.group == 0)]
-  )
-
-#3CO
-t.test_mouse.av_siscoten_3CO <- t.test( 
-  Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_3CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")& (Male.poly.Mouse.Table_BivData_4MM$Rec.group == 1)], 
- 
-   Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_3CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")&(Male.poly.Mouse.Table_BivData_4MM$Rec.group == 0)]
-  )
-
-
-
-####
-#Single Biv Level -- from the main 
-#pull the single BivData -- MUSC
-
-#check that these have the extra male strains
-
-t.test_single.biv_siscoten <- t.test( 
-  
-  Curated_BivData$SisCoTen[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")& (Curated_BivData$Rec.group == 1)], 
- 
-   Curated_BivData$SisCoTen[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")& (Curated_BivData$Rec.group == 0)]
-  )
-
-#1CO
-mouse.avs_4MM$mean.siscoten_2CO
-
-
-
-
-#2CO
-
-
-#3CO
-
-```
-
-All the sis.co.ten tests are highly significant. Maybe I should consider running a normalized sis.co.ten? I think nrm_siscoten would still reflect the differing cohesion structure/outcome.
-
-
-
-### Telomere and centromere Distance
-
-My metric for telomere and centromere distance measure the distance of the nearest foci to the ends of the bivalent (SC). In the plots below each point is a single bivalent. I choose not to use the mark for centromere because it seems noisy and inconsistent... 
-
-
-```{r telo.dist, echo=FALSE}
-
-sis.co.ten.plot_WSB_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(sex~strain)
-
-
-
-Curated_BivData <- Curated_BivData[Curated_BivData$hand.foci.count < 5,]
-Curated_BivData <- Curated_BivData[!(is.na(Curated_BivData$hand.foci.count) | Curated_BivData$hand.foci.count==""), ]
-
-
-telo.dist_boxplots <- ggplot(Curated_BivData, aes(x= hand.foci.count, y=telo_dist ) )+ geom_boxplot(aes( fill=hand.foci.count, group=strain), alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("boxy plots")+ ylim(c(0, 150))
-
-
-telo_jitter <- ggplot(Curated_BivData, aes(x= strain, y=telo_dist, color=as.factor(hand.foci.count) ) )+ geom_jitter(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("raw telomere distance")+ ylim(c(0, 150))
-telo_jitter
-
-
-nrm.telo_jitter <- ggplot(Curated_BivData, aes(x= strain, y=telo_dist_PER, color=as.factor(hand.foci.count) ) )+ geom_jitter(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("Normalized telomere distance")+ylim(c(0,1.2))
-nrm.telo_jitter
-
-#why do a different number of rows removed each time??
-
-```
-
-Males on average have much lower raw telomere distance (reflects the telomere bias) compared to females. In Males, 2CO bivalents have very low telomere distances, while the 1CO bivalents have a greater range. In females the ranges of telomere distances have much more overlap.   
-
-```{r MM.telo, echo=FALSE}
-#HetC
-
-lme_MM_telo.dist <- lmer(mean.telo.dist ~ subsp * sex + (1|strain), data= Mouse.Table_BivData_4MM )
-
-drop1(lme_MM_telo.dist, test="Chisq")
-
-as.data.frame( round(  summary(lme_MM_telo.dist)$coefficients, 6 ) )
-
-#sex and sex*subsp interaction effect are significant for mean sis.co.ten
-
-lmer_MM_telo.dist <- lmer(mean.telo.dist ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE)
-#anova(lmer_MM_siscoten) 
-
-#thing1  <- summary(lmer_MM_siscoten)
-drop1(lmer_MM_telo.dist, test="Chisq") 
-rand_telo.dist_MM <- exactRLRT(lmer_MM_telo.dist)
-rand_telo.dist_MM
-
-```
-
-Mixed model result summary:
-
-
-```{r log.reg_telo.dist, echo=FALSE}
-
-Mouse.Table_BivData_4MM$Rec.group <- ifelse(grepl("PWD male", Mouse.Table_BivData_4MM$category), 1, 
-                            ifelse(grepl("MSM male", Mouse.Table_BivData_4MM$category), 1,
-                             ifelse(grepl("SKIVE male", Mouse.Table_BivData_4MM$category), 1, 0)) )
-
-
-#TELO.DIST
-#mouse av, norm.first foci is from 1CO bivalents
-log.reg_Telo.Dist_mouse.av <- glm(Rec.group ~ mean.telo.dist, 
-                           
-                                 data=Mouse.Table_BivData_4MM[(Mouse.Table_BivData_4MM$subsp == "Musc")&(Mouse.Table_BivData_4MM$sex == "male"),], family=binomial(link="logit"))
-summary(log.reg_Telo.Dist_mouse.av)
-
-
-#single biv level
-log.reg_Telo.Dist_biv <- glm(Rec.group ~ telo_dist, 
-                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
-
-summary(log.reg_Telo.Dist_biv)
-
-
-#PER versions
-log.reg_Telo.Dist.PER_biv <- glm(Rec.group ~ telo_dist_PER, 
-                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
-
-summary(log.reg_Telo.Dist.PER_biv)
-```
-
-
-```{r t.test_Telo.Dist, echo=FALSE}
-
-#mouse av
-t.test_mouse.av_telo.dist <- t.test(
-  
-  Mouse.Table_BivData_4MM$mean.telo.dist[(Mouse.Table_BivData_4MM$Rec.group == 1)],
-  
-  Mouse.Table_BivData_4MM$mean.telo.dist[(Mouse.Table_BivData_4MM$sex == "male") & (Mouse.Table_BivData_4MM$subsp == "Musc") &(Mouse.Table_BivData_4MM$Rec.group == 0)] 
-  )
-
-
-#Single Biv Level
-single.biv_t.test_Telo.Dist <- t.test( 
-  
-  Curated_BivData$telo_dist[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 1)], 
- 
-   Curated_BivData$telo_dist[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 0)]
-  )
-   
-#Telo Dist PER
-single.biv_t.test_Telo.Dist_PER <- t.test( 
-  
-  Curated_BivData$telo_dist_PER[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")& (Curated_BivData$Rec.group == 1)], 
- 
-   Curated_BivData$telo_dist_PER[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 0)]
-  )
-   
-```
-
-
-
-```{r cent.dist_show, echo=FALSE}
-cent.dist_boxplots <- ggplot(Curated_BivData, aes(x= strain, y=dis.cent ) )+ geom_boxplot(aes( fill=hand.foci.count, group=strain), alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("raw centromere distance")+ ylim(c(0, 150))
-
-
-cent.dist_jitter <- ggplot(Curated_BivData, aes(x= strain, y=dis.cent, color=as.factor(hand.foci.count) ) )+ geom_jitter(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("raw centromere dist")+ ylim(c(0, 200))
-cent.dist_jitter
-
-norm.cent.dist_jitter <- ggplot(Curated_BivData, aes(x= strain, y=dis.cent.PER, color=as.factor(hand.foci.count) ) )+ geom_jitter(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("Normalized centromere distance")+ylim(c(0,1.2))
-norm.cent.dist_jitter
-
-```
-
-
-```{r MM.cent.dist, echo=FALSE, eval=FALSE}
-
-lme_MM_cent.dist <- lme(mean.cent.dist ~ subsp * sex, data= Mouse.Table_BivData_4MM, random=list(strain=pdDiag(~sex) ) )
-as.data.frame( round(  summary(lme_MM_cent.dist)$tTable, 6 ) )
-
-lmer_MM_cent.dist <- lmer(mean.cent.dist ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE)
-
-exactRLRT(lmer_MM_cent.dist)
-```
-
-
-
-```{r log.reg_CENT.dist, echo=FALSE}
-
-#CENT.DIST
-#mouse av, norm.first foci is from 1CO bivalents
-log.reg_CENT.Dist_mouse.av <- glm(Rec.group ~ mean.cent.dist, 
-                           
-                                 data=Mouse.Table_BivData_4MM[(Mouse.Table_BivData_4MM$subsp == "Musc")&(Mouse.Table_BivData_4MM$sex == "male"),], family=binomial(link="logit"))
-summary(log.reg_CENT.Dist_mouse.av)
-
-
-#single biv level
-log.reg_CENT.Dist_biv <- glm(Rec.group ~ dis.cent, 
-                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
-
-summary(log.reg_CENT.Dist_biv)
-
-
-#PER versions
-log.reg_CENT.Dist.PER_biv <- glm(Rec.group ~ dis.cent.PER, 
-                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
-
-summary(log.reg_CENT.Dist.PER_biv)
-```
-
-
-```{r t.test_CENT.Dist, echo=FALSE}
-#CENT.DIST
-#mouse av
-t.test_mouse.av_Cent.dist <- t.test(
-  
-  Mouse.Table_BivData_4MM$mean.cent.dist[(Mouse.Table_BivData_4MM$Rec.group == 1)],
-  
-  Mouse.Table_BivData_4MM$mean.cent.dist[(Mouse.Table_BivData_4MM$sex == "male") & (Mouse.Table_BivData_4MM$subsp == "Musc") &(Mouse.Table_BivData_4MM$Rec.group == 0)] 
-  )
-
-
-#Single Biv Level
-single.biv_t.test_Cent.Dist <- t.test( 
-  
-  Curated_BivData$dis.cent[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 1)], 
- 
-   Curated_BivData$dis.cent[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 0)]
-  )
-   
-#Cent Dist PER
-single.biv_t.test_Cent.Dist_PER <- t.test( 
-  
-  Curated_BivData$dis.cent.PER[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 1)], 
- 
-   Curated_BivData$dis.cent.PER[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")& (Curated_BivData$Rec.group == 0)]
-  )
-   
-```
-
-
-
-The normalized centromere plots show that in Musc males, on 2CO bivalents the 1st CO is closer to the centromere end than in Dom males.
-
-Females have more overlap in the distributions of centromere distances across chromosome class compared to males.
-
-
-### Heterochiasmy Prediction
-
-> Is sex a significant effect for the 1CO normalized CO position? (as predicted)
-
-
-
-> is random strtain effect significant?
-
-The random strain effect seems very significant.
-
-remember to use the mouse average table **mouse.avs_4MM**  (I don't think I need the MELT data frame)
-
-
-
-```{r pos_t.test}
-#make point plots / boxplots which show differences in mean positions 
-
-#scatter + boxplot for t.tests
-```
-
-
-Dr. Broman suggested that the Smirnov K /(curve comparison) wasn't the best test to differences in general CO position. He suggested doing simple t-test for the positions
-
-
-
-```{r F1.by.F2}
-
-#try remaking the plot Megan suggested
-# for 2CO positions, Foci1, Position  on x and Foci 2 position on y
-
-CurBivData_2CO <- Curated_BivData[Curated_BivData$hand.foci.count == 2,]
-
-CurBivData_2CO <- CurBivData_2CO[!(is.na(CurBivData_2CO$Foci2) | CurBivData_2CO$Foci2==""), ]
-
-#isolate 2COs
-#facet by sex and subsp
-
-F1.x.F2 <- ggplot(CurBivData_2CO, aes(x=Foci1,y=Foci2, color=strain) ) + geom_point()+ facet_wrap(~sex)+ggtitle("test plot")
-F1.x.F2
-
-```
-
-
-```{r CO.pos.ANOVA, eval=FALSE}
-#what is the pattern of variance
-#run analyses for each subsp*sex
-#use non-melt DF
-
-#how is the variance partioned across
-#cell, mouse, strain
-
-female.Dom <- Curated_BivData[Curated_BivData$sex == "female",]
-female.Dom <- female.Dom[female.Dom$subsp == "Dom",]
-
-female.Dom$Foc1.PER <- female.Dom$Foci1 / female.Dom$chromosomeLength
-
-#unorder strain and mouse
-
-female.Dom$mouse <- as.factor(female.Dom$mouse)
-
-
-female.Dom$strain <- unclass(female.Dom$strain)
-female.Dom$strain <- as.factor(female.Dom$strain)
-
-female.Dom_1CO <- female.Dom[female.Dom$hand.foci.count == 1,]
-female.Dom_1CO <- female.Dom_1CO[(!is.na(female.Dom_1CO$hand.foci.count)),]
-
-#1CO first
-modo <- lm(Foc1.PER ~ fileName + mouse + strain, data=female.Dom_1CO)
-
-#can't get mouse and strain to have sum of square
-#residual size decreases with per.F1
-#residuals much larger than fileName, mouse and strain no 
-
-#model <- lm(breaks ~ wool * tension, 
-#            data = warpbreaks, 
-#            contrasts = list(wool = "contr.sum", tension = "contr.poly"))
-
-male.Dom <- Curated_BivData[Curated_BivData$sex == "male",]
-male.Dom <- male.Dom[male.Dom$subsp == "Dom",]
-
-male.Dom$mouse <- as.factor(male.Dom$mouse)
-
-male.Dom$strain <- unclass(male.Dom$strain)
-male.Dom$strain <- as.factor(male.Dom$strain)
-
-male.Dom <- male.Dom[male.Dom$hand.foci.count == 1,]
-male.Dom <- male.Dom[(!is.na(male.Dom$hand.foci.count)),]
-
-male.Dom$Foc1.PER <- male.Dom$Foci1 / male.Dom$chromosomeLength
-
-male.modo <- lm(Foc1.PER ~  fileName | mouse | strain, data=male.Dom)
-summary(aov(male.modo))
-
-#only file name is registering as effect
-#Review ANOVA frameworks
-#http://www.biostathandbook.com/nestedanova.html
-
-```
 
 
 ## Q2 Analysis Predictions, Male Polymorphism and (High vs Low Rec strains)
