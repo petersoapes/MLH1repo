@@ -151,7 +151,7 @@ add_strain <- function(dat){
                                                                                                                                                                "other"))))))))))))))))))))
   
   #the ordering factor below deletes all strain entries
-  dframe$strain<- factor(dframe$strain, ordered = TRUE, levels =c( "WSB", "G", "LEW", "PERC",
+  dframe$strain<- factor(dframe$strain, ordered = FALSE, levels =c( "WSB", "G", "LEW", "PERC",
                                                                    "PWD", "MSM", "MOLF","SKIVE", "KAZ", "TOM", "AST","CZECH",
                                                                    "CAST", "HMI",
                                                                    "SPRET", "SPIC", "CAROLI", "F1", "other") )
