@@ -75,6 +75,7 @@ SC.skel = read.csv("~./SC_skeletonize/data/SCskel_output_feb20.csv", header = TR
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 ```
 
+# Data set ups
 
 
 ```{r organizing.data, echo=FALSE }
@@ -157,7 +158,7 @@ colors_of_strains <- c('WSB'= "#56B4E9",'G' ='cadetblue','LEW'= 'lightblue','PER
 color_chrm_class <- c( '0' = "#00BFC4", '1' = "#7CAE00", '2' = "#F8766D", '3' = "#C77CFF", '4'= "#F564E3")
 #4!!
 
-show_col(hue_pal()(5))
+#show_col(hue_pal()(5))
 
 #add Rec group,
 #reclassified SKIVE as intermediate
@@ -341,34 +342,133 @@ MLH1.merge.Skel <- MLH1.merge.Skel  %>% filter(bin_size < 60000)
 
 ```{r tot.sc.viz4outliers, echo=FALSE}
 
+# -- EXAMINE the ggplot scatter plots for outliers
 tot.sc <- ggplot(data= MLH1.merge.Skel, aes(y = bin_size, x=strain))+ geom_jitter()+facet_wrap(~category, scales = "free")
 
-#seems like the outliers have been removed
+#round 1
+SC.skel.outliers_round1 <- c(
+  #MLH1.merge.Skel  %>% filter(category == "WSB male") %>% filter(skel_size > 2000)
+  "10apr15_31mar15_WSB_m3_sp1_4_rev.tif",
+  
+  #MLH1.merge.Skel  %>% filter(category == "WSB female") %>% filter(skel_size > 2700)       
+            "17nov16_3nov15_WSB_f1_sp3_4_rev.tif","1may16_3nov15_WSB_f1_sp2_6_rev.tif",
+                      
+    #MLH1.merge.Skel  %>% filter(category == "G male") %>% filter(skel_size > 20000) 
+                      "19oct15_12oct15_G_m1_sp1_17.1_rev.tif",
+  
+  #MLH1.merge.Skel  %>% filter(category == "G female") %>% filter(skel_size > 20000) 
+              "1mar16_20feb16_G_f3_sp1_8_rev.tif","21nov16_16jan16_G_f2_sp1_15_rev.tif",
+  
+  #MLH1.merge.Skel  %>% filter(category == "LEW male") %>% filter(skel_size < 1000)          
+          "6mar18_1feb18_LEW_m1_sp1_21.5_rev",
+  
+  #MLH1.merge.Skel  %>% filter(category == "LEW female") %>% filter(skel_size > 20000)   
+          "12jan17_4jan17_LEW_f1_sp1_32_rev.tif","20mar17_13jan17_LEW_f2_sp1_12_rev.tif","9apr18_1feb18_LEW_f1_sp1_23_rev.tif","9apr18_1feb18_LEW_f1_sp1_12_rev.tif", 
+                      
+       #MLH1.merge.Skel  %>% filter(category == "PWD male") %>% filter(skel_size > 20000)  
+                      "6mar15_1mar15_PWD_m1_sp4_6.1_rev.tif","7mar15_1mar15_PWD_m1_sp4_2_rev.tif","20jul15_18may15_PWD_m2_sp1_10.2_rev.tif",
+           
+   #MLH1.merge.Skel  %>% filter(category == "PWD female") %>% filter(skel_size > 20000)
+   "6may15_17apr15_PWD_f1_sp1_7_rev",  
+       
+      #MLH1.merge.Skel  %>% filter(category == "KAZ male") %>% filter(skel_size < 1000)
+            "6aug19_10jul19_KAZ_m1_sp1_7.1_rev.tif",
+            
+    # MLH1.merge.Skel  %>% filter(category == "KAZ female") %>% filter(skel_size > 30000)     
+    "16feb18_1feb18_KAZ_f4_sp1_20_rev.tif",  "8feb18_1feb18_KAZ_f1_sp1_24_rev.tif",  
+  "16feb18_1feb18_KAZ_f4_sp1_1_rev.tif",   "8feb18_1feb18_KAZ_f1_sp1_5_rev.tif",   
+ "16feb18_1feb18_KAZ_f4_sp1_17_rev.tif",  "1mar18_1feb18_KAZ_f3_sp1_8_rev.tif",   
+ "7feb18_11jan18_KAZ_f3_sp1_27_rev.tif",  "20apr18_11jan18_KAZ_f1_sp1_6_rev.tif", 
+ "16feb18_1feb18_KAZ_f2_sp1_5.2_rev.tif", "16feb18_1feb18_KAZ_f2_sp1_15_rev.tif", 
+"7feb18_11jan18_KAZ_f3_sp1_13_rev.tif",  "13apr18_1feb18_KAZ_f6_sp1_25_rev.tif" ,
+            
+  # MLH1.merge.Skel  %>% filter(category == "SKIVE female") %>% filter(skel_size > 10000)
+    "10jun19_31may19_SKIVE_f6_sp1_47_rev.tif","10jun19_31may19_SKIVE_f6_sp1_7_rev.tif",
 
-MLH1.merge.Skel.wsb.male <- MLH1.merge.Skel  %>% filter(category < "WSB male" ) 
+# MLH1.merge.Skel  %>% filter(category == "MOLF male") %>% filter(skel_size < 1200)
+"4jun19_28sep18_MOLF_m1_sp1_10.1_rev.tif",
 
-tot.sc.wsb.male <- ggplot(data= MLH1.merge.Skel.wsb.male, aes(y = bin_size, x=strain))+ geom_jitter()+facet_wrap(~category, scales = "free")
+#MLH1.merge.Skel  %>% filter(category == "AST male") %>% filter(skel_size > 2100)
+"16aug19_27aug18_AST_m1_sp1_23_rev.tif",
 
-tot.sc.single.male <- ggplot(data= MLH1.merge.Skel  %>% filter(category == "G female" ) , aes(y = bin_size, x=strain))+ geom_jitter()+facet_wrap(~category, scales = "free")
+#MLH1.merge.Skel  %>% filter(category == "MSM female") %>% filter(skel_size > 20000)
+"21nov17_16nov17_MSM_f3_sp1_24_rev.tif","21nov17_16nov17_MSM_f3_sp1_3_rev.tif", "21nov17_16nov17_MSM_f3_sp1_27_rev.tif","4dec17_16nov17_MSM_f2_sp1_10_rev.tif",
+"5aug17_14jul17_MSM_f1_sp1_25_rev.tif","24jan18_31dec17_MSM_f3_sp1_3_rev.tif", 
+"24jan18_31dec17_MSM_f3_sp1_22_rev.tif","21nov17_16nov17_MSM_f3_sp1_17_rev.tif",
 
+#tt <- MLH1.merge.Skel  %>% filter(category == "SPIC female") %>% filter(skel_size > 20000)
+"27dec17_4dec17_SPIC_f1_sp1_12_rev.tif",  "5apr18_31dec17_SPIC_f2_sp1_1_rev.tif",
+ "26sep18_30may18_SPIC_f4_sp1_14_rev.tif", "4feb18_31dec17_SPIC_f1_sp1_21_rev.tif", 
+ "5apr18_31dec17_SPIC_f2_sp1_22_rev.tif",  "27dec17_4dec17_SPIC_f1_sp1_40_rev.tif", 
+ "4jul18_30may18_SPIC_f1_sp1_6_rev.tif",   "26sep18_30may18_SPIC_f4_sp1_6_rev.tif", 
+ "29dec17_4dec17_SPIC_f2_sp1_10_rev.tif",  "5sep17_21aug17_SPI_f2_sp1_37_rev.tif" , 
+ "5sep17_21aug17_SPI_f2_sp1_15_rev.tif",   "26sep18_30may18_SPIC_f4_sp1_24_rev.tif",
+"29dec17_4dec17_SPIC_f2_sp1_16_rev.tif",  "5sep17_21aug17_SPI_f2_sp1_30_rev.tif",  
+"4feb18_31dec17_SPIC_f1_sp1_5_rev.tif",   "5apr18_31dec17_SPIC_f2_sp1_25_rev.tif", 
+ "26sep18_30may18_SPIC_f4_sp1_4_rev.tif",  "5sep17_21aug17_SPI_f2_sp1_22_rev.tif",  
+ "5sep17_21aug17_SPI_f2_sp1_19_rev.tif",   "5sep17_21aug17_SPI_f2_sp1_29_rev.tif",  
+ "26sep18_30may18_SPIC_f4_sp1_3_rev.tif",  "5sep17_21aug17_SPI_f2_sp1_5.2_rev.tif", 
+ "29dec17_4dec17_SPIC_f2_sp1_6_rev.tif",   "13oct17_21aug17_SPI_f1_sp1_13_rev.tif"  )
+
+
+MLH1.merge.Skel_2 <- MLH1.merge.Skel[!MLH1.merge.Skel$fileName %in% SC.skel.outliers_round1, ]#62 removed
+
+
+remove.mice_round2 <- c(
+    #MLH1.merge.Skel  %>% filter(category == "G male") %>% filter(skel_size > 2500)
+    "28jul15_22jun15_G_m2_sp1_5_rev.tif","12may15_30sep14_G_m5_sp1_26_rev.tif",  
+    
+    #MLH1.merge.Skel  %>% filter(category == "G female") %>% filter(skel_size > 20000)
+  "19oct15_12oct15_G_m1_sp1_17.1_rev.tif",
+  
+#MLH1.merge.Skel_2  %>% filter(category == "PWD male") %>% filter(skel_size > 2100)
+"20jul15_18may15_PWD_m1_sp1_10_rev.tif","22mar15_10mar15_PWD_m2_sp1_11.2_rev.tif","22mar15_10mar15_PWD_m1_sp1_4.1_rev.tif","20jul15_18may15_PWD_m1_sp1_7.2_rev.tif",  
+
+#MLH1.merge.Skel_2  %>% filter(category == "PWD female") %>% filter(skel_size > 20000)
+  "6may15_17apr15_PWD_f1_sp1_7_rev.tif",
+  
+  #MLH1.merge.Skel_2  %>% filter(category == "KAZ female") %>% filter(skel_size < 1000)
+  "8feb18_1feb18_KAZ_f1_sp1_19_rev.tif",
+
+#MLH1.merge.Skel_2  %>% filter(category == "LEW male") %>% filter(skel_size < 1000 | skel_size > 1750)
+"6mar18_1feb18_LEW_m1_sp1_10_rev.tif","3mar15_13jan17_LEW_m1_sp1_15_rev.tif", "4feb17_4jan17_LEW_m1_sp1_13_rev.tif","6mar18_1feb18_LEW_m1_sp1_21.5_rev.tif",
+
+#MLH1.merge.Skel_2  %>% filter(category == "LEW female") %>% filter(skel_size > 2750 ) 
+"20mar17_13jan17_LEW_f2_sp1_10_rev.tif",
+
+# MLH1.merge.Skel_2  %>% filter(category == "CAROLI male") %>% filter(skel_size < 1400 )
+"31aug18_1mar18_CAROLI_m1_sp3_29.2_rev.tif",
+
+#MLH1.merge.Skel_2  %>% filter(category == "MSM male") %>% filter(skel_size < 1200 )
+"16aug17_5jul17_MSM_m1_sp1_6.1_rev.tif",
+
+#tt <- MLH1.merge.Skel_2  %>% filter(category == "MSM female") %>% filter(skel_size > 2850 ) 
+"29nov17_16nov17_MSM_f1_sp1_10_rev.tif", "4dec17_16nov17_MSM_f2_sp1_24_rev.tif", "21nov17_16nov17_MSM_f3_sp1_26_rev.tif",
+#SPIC male  x
+#SPIC female  x
+#TOM x
+#AST x
+#CZECH male x 
+
+#MLH1.merge.Skel_2  %>% filter(category == "SPRET male") %>% filter(skel_size < 1900 ) 
+ "24may17_8may17_SPRET_m1_sp1_21.1_rev.tif",
+#SPRET female X
+#MLH1.merge.Skel_2  %>% filter(category == "HMI male") %>% filter(skel_size < 1000 ) 
+"29dec17_4dec17_HMI_m1_sp1_4.1_rev.tif"
+)
+#3remove.mice_round2
+
+
+MLH1.merge.Skel <- MLH1.merge.Skel[! (MLH1.merge.Skel$fileName %in% SC.skel.outliers_round1),]
+MLH1.merge.Skel <- MLH1.merge.Skel[! (MLH1.merge.Skel$fileName %in% remove.mice_round2),]
+
+all.remove <- paste( c(SC.skel.outliers_round1, remove.mice_round2 ) )
 
 ```
 
-Checking the outliers at category level, 
-
-WSB male,
-10apr15_31mar15_WSB_m3_sp1_4_rev.tif
-
-G outliers, 
-G 19oct15_12oct15_G_m1_sp1_17.1_rev.tif
-
-LEW, low outlier, 
-6mar18_1feb18_LEW_m1_sp1_21.5_rev
-
-PWD outliers, 6mar15_1mar15_PWD_m1_sp4_6.1_rev.tif, 7mar15_1mar15_PWD_m1_sp4_2_rev.tif, and 20jul15_18may15_PWD_m2_sp1_10.2_rev.tif
-
-G female; 1mar16_20feb16_G_f3_sp1_8_rev.tif and 21nov16_16jan16_G_f2_sp1_15_rev.tif
-
+<!-- 
+two round of removing outliers were done. in total 84 skel_bin potential outlier observations were removed 
+-->
 
 ```{r tot.skel.table, echo=FALSE}
 
@@ -391,11 +491,13 @@ totSC.mouse.av.table <- add_strain(totSC.mouse.av.table)
 totSC.mouse.av.table <- add_sex(totSC.mouse.av.table)
 totSC.mouse.av.table <- add_category(totSC.mouse.av.table)
 totSC.mouse.av.table <- add_subsp(totSC.mouse.av.table)
+totSC.mouse.av.table <- add_species(totSC.mouse.av.table)
 
 #unorder the factors
 totSC.mouse.av.table$subsp <- factor(totSC.mouse.av.table$subsp, ordered = FALSE)
 totSC.mouse.av.table$sex <- factor(totSC.mouse.av.table$sex, ordered = FALSE)
 totSC.mouse.av.table$strain <- factor(totSC.mouse.av.table$strain, ordered = FALSE)
+totSC.mouse.av.table$species <- factor(totSC.mouse.av.table$species, ordered = FALSE)
 
 #add rec group
 totSC.mouse.av.table$Rec.group <- ifelse(grepl("PWD male", totSC.mouse.av.table$category), 1, 
@@ -404,23 +506,13 @@ totSC.mouse.av.table$Rec.group <- ifelse(grepl("PWD male", totSC.mouse.av.table$
 
 OG.totSC.mouse.av.table <- totSC.mouse.av.table
 
-totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain !="F1"& strain !="SPIC" & strain !=  "CAROLI" & strain !="SPRET"& strain !="HMI"& strain !="PERC")
+totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain !="F1" & strain !="SPIC" & strain !=  "CAROLI" & strain !="SPRET"& strain !="HMI"& strain !="PERC")
 
-tot.sc99 <- ggplot(data= totSC.mouse.av.table, aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
-  facet_wrap(sex~subsp, scales="free")
+mouse.av_sc_female <- ggplot(data= OG.totSC.mouse.av.table[OG.totSC.mouse.av.table$sex == "female",], aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
+  facet_wrap(Rec.group~subsp, scales="free")+ theme(axis.title.x=element_blank(),        axis.text.x=element_blank(), axis.ticks.x=element_blank()) + ylim(c(1500,3000 ))+ggtitle("Female Mouse av. total SC area")
 
-tot.sc77 <- ggplot(data= OG.totSC.mouse.av.table[OG.totSC.mouse.av.table$sex == "male",], aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
-  facet_wrap(Rec.group~subsp, scales="free")+ylim(c(0, 800))+ theme(axis.title.x=element_blank(),        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank())
-
-
-
-tot.sc_bin <- ggplot(data= OG.totSC.mouse.av.table[OG.totSC.mouse.av.table$sex == "male",], aes(y = mean.bin, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
-  facet_wrap(Rec.group~subsp, scales="free")+ theme(axis.title.x=element_blank(),        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank())  +ylim(c(0, 3000))
-
-#there should be tom
-
+mouse.av_sc_male <- ggplot(data= OG.totSC.mouse.av.table[OG.totSC.mouse.av.table$sex == "male",], aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
+  facet_wrap(Rec.group~subsp, scales="free")+ theme(axis.title.x=element_blank(),        axis.text.x=element_blank(), axis.ticks.x=element_blank()) + ylim(c(1200,1850 ))+ggtitle("Mouse av. total SC area")
 
 ```
 From this figure of the male mouse average of total sc measures, Confirm the general pattern of more SC area for the higher rec strains, compared to the low. But there are some exceptions.
@@ -1613,8 +1705,6 @@ DMC1.bxlt_High.to.Low <- ggplot(DMC1.DF[DMC1.DF$stage != "P",], aes(x=rec_group,
   )+ggtitle("Comparison of DMC1 means across high and low recombing groups")+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
-
-
 #example for ggplot+ test from here
 #https://github.com/kassambara/ggpubr/issues/65
 
@@ -2411,6 +2501,36 @@ Q1.SC.length_Nested_boxplots_Mol <- ggplot(Curated_BivData99 %>% filter(strain =
 Q1.SC.length_Nested_boxplots_Mol
 
 ```
+
+
+```{r Q1.tot.SC_show, echo=FALSE}
+
+Q1.totSC.mouse.av.table <-  totSC.mouse.av.table ##%>% filter(species == "") 
+  
+Q1.totSC.mouse.av.table$strain <- factor(Q1.totSC.mouse.av.table$strain,levels =c(
+   "WSB","G","LEW","PERC", 
+  "PWD", "SKIVE",  "KAZ",
+  "MSM", "MOLF"), order=T )
+
+Q1.totSC.mouse.av.table <- with(Q1.totSC.mouse.av.table, Q1.totSC.mouse.av.table[order(sex, strain),])
+
+#order the strains
+Q1.totSC.mouse.av.table <- Q1.totSC.mouse.av.table %>%
+  arrange(strain) %>%
+  mutate(mouse = factor(mouse))
+
+Q1.totSC.mouse.av.table <- with(Q1.totSC.mouse.av.table, Q1.totSC.mouse.av.table[order(sex, strain),])
+
+#add category mean
+
+mouse.av_Tot.SC <- ggplot(data= Q1.totSC.mouse.av.table, aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
+  facet_wrap(sex~subsp, scales="free")+ 
+  theme(axis.title.x=element_blank(),        axis.text.x=element_blank(), axis.ticks.x=element_blank())+  ylim(c(0,3000 ))+ggtitle("Mouse av. total SC area")
+
+mouse.av_Tot.SC
+```
+
+<!-- can't figure out the ordering -->
 
 The full mFull data set of SC lengths shows that
 
@@ -4404,24 +4524,23 @@ We purpose -- we think that running the models for comparing SC means by chromos
 The null hypothesis is that these won't be highly significant strain effects.
 If there are still strain effects fo these models, that would be evidence that there has been eevolution for SC length compaction across these strains
 
-Total SC
+## Total SC
+
+`r length(OG.MLH1.merge.Skel$fileName)` total skelentonize measures were made from all of the MLH1 pachtyene cell images. X observations removed for having extra signal from other cells. `r length(unique( all.remove ) )` measures removed as potential outliers (by examining the category specific plots)
 
 
 ```{r show.tot.sc, echo=FALSE}
-totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain !="F1"& strain !="SPIC" & strain !=  "CAROLI" & strain !="SPRET"& strain !="HMI"& strain !="PERC")
 
-tot.sc99 <- ggplot(data= totSC.mouse.av.table, aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
-  facet_wrap(sex~subsp, scales="free")
+#totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain !="F1"& strain !="SPIC" & strain !=  "CAROLI" & strain !="SPRET"& strain !="HMI"& strain !="PERC")
 
-tot.sc77 <- ggplot(data= totSC.mouse.av.table[totSC.mouse.av.table$sex == "male",], aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
-  facet_wrap(Rec.group~subsp, scales="free")+ylim(c(150, 650))+ theme(axis.title.x=element_blank(),        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank())
-tot.sc77
+#MLH1_data <- MLH1_data %>%
+#  arrange(strain, sex, mouse) %>%
+#  mutate(file.name = factor(file.name))
 
+mouse.av_sc_male <- ggplot(data= OG.totSC.mouse.av.table[OG.totSC.mouse.av.table$sex == "male",], aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
+  facet_wrap(Rec.group~subsp, scales="free")+ theme(axis.title.x=element_blank(),        axis.text.x=element_blank(), axis.ticks.x=element_blank()) + ylim(c(1200,1850 ))+ggtitle("Mouse av. total SC area")
+mouse.av_sc_male
 
-tot.sc_bin <- ggplot(data= totSC.mouse.av.table[totSC.mouse.av.table$sex == "male",], aes(y = mean.bin, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
-  facet_wrap(Rec.group~subsp, scales="free")+ theme(axis.title.x=element_blank(),        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank())  +ylim(c(0, 3000))
 ```
 
 The skeletonized measures show that the general pattern holds for total SC and the high rec strains. However there are a few exceptions -- However in the molf strain, there might be strain specific evolution--the mol subsp all have more SC skel
