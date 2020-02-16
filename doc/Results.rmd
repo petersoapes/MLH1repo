@@ -880,7 +880,7 @@ and
 
 $$mouse \ av.\ MLH1\ foci\ per\ cell ~=~ sex * strain + \varepsilon$$
 
-```{r MixedModel.2, echo=FALSE,  digits = 3}
+```{r MLH1.glmM2, echo=FALSE,  digits = 3}
 #strain = fixed
 glm.strain.fixed.full <- glm(mean_co ~ subsp * sex * strain, data=DF.HetC.MixedModel.HQ)
 
@@ -893,7 +893,7 @@ summ <- summary(glm.strain.fixed.full)
 
 In the first glm, the fixed subspecies effects were not significant, so we only report for values for the second model which is limited to sex and strain fixed effects.
 
-```{r MixedModel.3, echo=FALSE, digits = 3}
+```{r MLH1.glm.M3, echo=FALSE, digits = 3}
 
 strain.fixed <- lm(mean_co ~ sex * strain, data=DF.HetC.MixedModel.HQ)
 
@@ -2348,8 +2348,6 @@ The same basic models from the MLH1 counts per cell will be used. In addition to
 
 
 
-
-
 ```{r Q1.biv.data_table.4MM.HetC, echo=FALSE, eval=FALSE}
 
 #this block should be in the data set up
@@ -2492,6 +2490,7 @@ Our data set provides an opportunity to test if the canonical pattern of females
 
 
 ```{r Q1.Short.Long_biv.setup, echo=FALSE}
+
 Q1.real.short_mouse_table <- ddply(real.short.bivData, c("mouse"), summarise,
                         n_obs = length(Obj.ID),
                          mean_SC = mean(chromosomeLength)
@@ -2500,6 +2499,14 @@ Q1.real.short_mouse_table <- ddply(real.short.bivData, c("mouse"), summarise,
 Q1.real.short_mouse_table <- add_strain(Q1.real.short_mouse_table)
 Q1.real.short_mouse_table <- add_sex(Q1.real.short_mouse_table)
 Q1.real.short_mouse_table <- add_subsp(Q1.real.short_mouse_table)
+Q1.real.short_mouse_table <- add_species(Q1.real.short_mouse_table)
+
+Q1.real.short_mouse_table$subsp <- factor(Q1.real.short_mouse_table$subsp, ordered = FALSE)
+Q1.real.short_mouse_table$sex <- factor(Q1.real.short_mouse_table$sex, ordered = FALSE)
+Q1.real.short_mouse_table$strain <- factor(Q1.real.short_mouse_table$strain, ordered = FALSE)
+Q1.real.short_mouse_table$species <- factor(Q1.real.short_mouse_table$species, ordered = FALSE)
+
+
 
 Q1.real.long_mouse_table <- ddply(real.long.bivData, c("mouse"), summarise,
                         n_obs = length(Obj.ID),
@@ -2646,119 +2653,13 @@ Some of the p values for PWD and MSM are much closer (less significant), ( p = `
 
 
 
-```{r Q1_SC.biv.short_ttest, echo=FALSE}
-
-#run t.tests for the mouse av. for reduced single bivalent datasets
-#WSB
-Q1_mus.av_shortSC_t.test.WSB <- t.test((Q1.real.short_mouse_table %>% filter(sex == "male") %>% filter(strain == "WSB") )$mean_SC,
-                           (Q1.real.short_mouse_table %>% filter(sex == "female") %>% filter(strain == "WSB") )$mean_SC)
-
-#G
-Q1_mus.av_shortSC_t.test.G <- t.test((Q1.real.short_mouse_table %>% filter(sex == "male") %>% filter(strain == "G") )$mean_SC,
-                           (Q1.real.short_mouse_table %>% filter(sex == "female") %>% filter(strain == "G") )$mean_SC)
-
-#LEW
-Q1_mus.av_shortSC_t.test.LEW <- t.test((Q1.real.short_mouse_table %>% filter(sex == "male") %>% filter(strain == "LEW") )$mean_SC,
-                           (Q1.real.short_mouse_table %>% filter(sex == "female") %>% filter(strain == "LEW") )$mean_SC)
-
-#PWD
-Q1_mus.av_shortSC_t.test.PWD <- t.test((Q1.real.short_mouse_table %>% filter(sex == "male") %>% filter(strain == "PWD") )$mean_SC,
-                           (Q1.real.short_mouse_table %>% filter(sex == "female") %>% filter(strain == "PWD") )$mean_SC)
-
-#KAZ
-Q1_mus.av_shortSC_t.test.KAZ <- t.test((Q1.real.short_mouse_table %>% filter(sex == "male") %>% filter(strain == "KAZ") )$mean_SC,
-                           (Q1.real.short_mouse_table %>% filter(sex == "female") %>% filter(strain == "KAZ") )$mean_SC)
-
-#SKIVE
-Q1_mus.av_shortSC_t.test.SKIVE <- t.test((Q1.real.short_mouse_table %>% filter(sex == "male") %>% filter(strain == "SKIVE") )$mean_SC,
-                           (Q1.real.short_mouse_table %>% filter(sex == "female") %>% filter(strain == "SKIVE") )$mean_SC)
-
-#MSM
-#Q1_mus.av_shortSC_t.test.MSM <- t.test((Q1.real.short_mouse_table %>% filter(sex #== "male") %>% filter(strain == "MSM") )$mean_SC,
-#                           (Q1.real.short_mouse_table %>% filter(sex == "female") #%>% filter(strain == "MSM") )$mean_SC)
-
-```
-
-
-the pattern is generally held for comparisons using the reduced single bivalent data sets (short bivlents are the most comparable set, sinceit is unlikely to include the XX in the female data
-
-with the mouse average for 'short' bivalents
-
-(t.test; p = `r Q1_mus.av_shortSC_t.test.WSB$p.value`, `r Q1_mus.av_shortSC_t.test.G$p.value`, and `r Q1_mus.av_shortSC_t.test.LEW$p.value`
-for WSB, G and LEW respectively.
-
-(t.test; p= `r Q1_mus.av_shortSC_t.test.PWD$p.value`, `r Q1_mus.av_shortSC_t.test.KAZ$p.value`, and `r Q1_mus.av_shortSC_t.test.SKIVE$p.value`
-
-for PWD, KAZ, SKIVE and MSM.
-
-<!--
-for the _mmdomesticues^WSB^ _, _mmdomesticues^G^ _, and _mmdomesticues^LEW^ _
--->
-
-
-```{r Q1_SC.biv.long_ttest, echo=FALSE}
-
-#Q1.real.long_mouse_table
-
-Q1_mus.av_longSC_t.test.WSB <- t.test((Q1.real.long_mouse_table %>% filter(sex == "male") %>% filter(strain == "WSB") )$mean_SC,
-                           (Q1.real.long_mouse_table %>% filter(sex == "female") %>% filter(strain == "WSB") )$mean_SC)
-
-#G
-Q1_mus.av_longSC_t.test.G <- t.test((Q1.real.long_mouse_table %>% filter(sex == "male") %>% filter(strain == "G") )$mean_SC,
-                           (Q1.real.long_mouse_table %>% filter(sex == "female") %>% filter(strain == "G") )$mean_SC)
-
-#LEW
-Q1_mus.av_longSC_t.test.LEW <- t.test((Q1.real.long_mouse_table %>% filter(sex == "male") %>% filter(strain == "LEW") )$mean_SC,
-                           (Q1.real.long_mouse_table %>% filter(sex == "female") %>% filter(strain == "LEW") )$mean_SC)
-
-#PWD
-Q1_mus.av_longSC_t.test.PWD <- t.test((Q1.real.long_mouse_table %>% filter(sex == "male") %>% filter(strain == "PWD") )$mean_SC,
-                           (Q1.real.long_mouse_table %>% filter(sex == "female") %>% filter(strain == "PWD") )$mean_SC)
-
-#KAZ
-Q1_mus.av_longSC_t.test.WSB <- t.test((Q1.real.long_mouse_table %>% filter(sex == "male") %>% filter(strain == "KAZ") )$mean_SC,
-                           (Q1.real.long_mouse_table %>% filter(sex == "female") %>% filter(strain == "KAZ") )$mean_SC)
-
-#SKIVE
-Q1_mus.av_longSC_t.test.SKIVE <- t.test((Q1.real.long_mouse_table %>% filter(sex == "male") %>% filter(strain == "SKIVE") )$mean_SC,
-                           (Q1.real.long_mouse_table %>% filter(sex == "female") %>% filter(strain == "SKIVE") )$mean_SC)
-
-#MSM
-#Q1_mus.av_longSC_t.test.MSM <- t.test((Q1.real.long_mouse_table %>% filter(sex #== "male") %>% filter(strain == "MSM") )$mean_SC,
-#                           (Q1.real.long_mouse_table %>% filter(sex == "female") #%>% filter(strain == "MSM") )$mean_SC)
-
-
-#run t.tests for the mouse av. for reduced single bivalent datasets
-
-```
-
-
-
-
-```{r show.short.biv, echo=FALSE}
-Q1.SC.short.mouse_scatter_boxplot <- ggplot( Q1.real.short_mouse_table, aes(y = mean_SC, x = sex, color=strain)) + geom_jitter()+ geom_boxplot(alpha=.2) +scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales="free")+ylim(c(20,115) )+ggtitle("Mouse average SC Length \n short bivalent dataset")
-
-Q1.SC.short.mouse_scatter_boxplot
-```
-
-
-```{r show.long.biv, echo=FALSE}
-#mouse av
-Q1.SC.long.mouse_scatter_boxplot <- ggplot( Q1.real.long_mouse_table, aes(y = mean_SC, x = sex, color=strain)) + geom_jitter()+ geom_boxplot(alpha=.2) +scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales="free")+ylim(c(75,150) )+ggtitle("Mouse average SC Length \n long bivalent dataset")
-
-Q1.SC.long.mouse_scatter_boxplot
-```
-
-
-mixed models and glms were donw to test for evolution
-
-
 $$mouse \ average \ total \ SC  \ length ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
 ```{r Q1.lmer_totalSC, echo=FALSE}
 
 Q1.lmer_totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain != "AST" & strain != "TOM" & strain != "CZECH" & strain != "MOLF")
-str(Q1.lmer_totSC.mouse.av.table)
+
+#str(Q1.lmer_totSC.mouse.av.table)
 
 #unorder factors
 Q1.lmer_totSC.mouse.av.table$subsp <- factor(Q1.lmer_totSC.mouse.av.table$subsp, ordered = FALSE)
@@ -2797,9 +2698,10 @@ Q1.lmer.totSC_results
 there are more significant effects for strain and subsp for the mixed model of mouse.av total sc
 
 
+
 $$mouse \ average \ total SC  \ area ~=~ sex * strain + \varepsilon $$
 
-```{r Q1.glm_totalSC, echo=FALSE}
+```{r Q1.glm_totalSC, echo=FALSE, }
 #total-SC
 
 #Q1.lmer_totSC.mouse.av.table
@@ -2815,8 +2717,205 @@ Q1.glm_totSC_M3 <- glm(mean.skel ~ strain * sex, data=Q1.lmer_totSC.mouse.av.tab
 summary(Q1.glm_totSC_M3)
 #LOT OF SIGNIFICant strain effects in this model
 
+```
 
 
+```{r show.short.biv, echo=FALSE}
+Q1.SC.short.mouse_scatter_boxplot <- ggplot( Q1.real.short_mouse_table, aes(y = mean_SC, x = sex, color=strain)) + geom_jitter()+ geom_boxplot(alpha=.2) +scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales="free")+ylim(c(20,115) )+ggtitle("Mouse average SC Length \n short bivalent dataset")
+
+Q1.SC.short.mouse_scatter_boxplot
+
+#ploting SKIVE alone, confirms the ranges overlap, KAZ also have close ranges
+skiveQ1.SC.short.mouse_scatter_boxplot <- ggplot( Q1.real.short_mouse_table %>% filter(strain == "SKIVE"), aes(y = mean_SC, x = sex, color=strain)) + geom_jitter()+ geom_boxplot(alpha=.2) +scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales="free")+ylim(c(20,115) )+ggtitle("Mouse average SC Length \n short bivalent dataset")
+#skiveQ1.SC.short.mouse_scatter_boxplot
+#there are 2 lowish female means, 
+
+```
+
+When skive is plotted alone it does have overlapping ranges.
+
+```{r Q1_SC.biv.short_ttest, echo=FALSE}
+
+#run t.tests for the mouse av. for reduced single bivalent datasets
+#WSB
+Q1_mus.av_shortSC_t.test.WSB <- t.test((Q1.real.short_mouse_table %>% filter(sex == "male") %>% filter(strain == "WSB") )$mean_SC,
+                           (Q1.real.short_mouse_table %>% filter(sex == "female") %>% filter(strain == "WSB") )$mean_SC)
+
+#G
+Q1_mus.av_shortSC_t.test.G <- t.test((Q1.real.short_mouse_table %>% filter(sex == "male") %>% filter(strain == "G") )$mean_SC,
+                           (Q1.real.short_mouse_table %>% filter(sex == "female") %>% filter(strain == "G") )$mean_SC)
+
+#LEW
+Q1_mus.av_shortSC_t.test.LEW <- t.test((Q1.real.short_mouse_table %>% filter(sex == "male") %>% filter(strain == "LEW") )$mean_SC,
+                           (Q1.real.short_mouse_table %>% filter(sex == "female") %>% filter(strain == "LEW") )$mean_SC)
+
+#PWD
+Q1_mus.av_shortSC_t.test.PWD <- t.test((Q1.real.short_mouse_table %>% filter(sex == "male") %>% filter(strain == "PWD") )$mean_SC,
+                           (Q1.real.short_mouse_table %>% filter(sex == "female") %>% filter(strain == "PWD") )$mean_SC)
+
+#KAZ
+Q1_mus.av_shortSC_t.test.KAZ <- t.test((Q1.real.short_mouse_table %>% filter(sex == "male") %>% filter(strain == "KAZ") )$mean_SC,
+                           (Q1.real.short_mouse_table %>% filter(sex == "female") %>% filter(strain == "KAZ") )$mean_SC)
+
+#SKIVE
+Q1_mus.av_shortSC_t.test.SKIVE <- t.test((Q1.real.short_mouse_table %>% filter(sex == "male") %>% filter(strain == "SKIVE") )$mean_SC,
+                           (Q1.real.short_mouse_table %>% filter(sex == "female") %>% filter(strain == "SKIVE") )$mean_SC)
+
+#MSM
+#Q1_mus.av_shortSC_t.test.MSM <-t.test( (Q1.real.short_mouse_table %>% filter(sex == "male") %>% filter(strain == "MSM") )$mean_SC, 
+#          (Q1.real.short_mouse_table %>% filter(sex == "female") %>% filter(strain == #"MSM"))$mean_SC )
+#1 male, 3 females measures
+#try to merge the manual - whole cell observations (at least 2 males)
+
+```
+
+
+The pattern is generally held for comparisons using the reduced single bivalent data sets (short bivlents are the most comparable set, sinceit is unlikely to include the XX in the female data
+
+with the mouse average for 'short' bivalents
+
+(t.test; p = `r Q1_mus.av_shortSC_t.test.WSB$p.value`, `r Q1_mus.av_shortSC_t.test.G$p.value`, and `r Q1_mus.av_shortSC_t.test.LEW$p.value`
+for WSB, G and LEW respectively.
+
+(t.test; p= `r Q1_mus.av_shortSC_t.test.PWD$p.value`, `r Q1_mus.av_shortSC_t.test.KAZ$p.value`, and `r Q1_mus.av_shortSC_t.test.SKIVE$p.value` for PWD, KAZ, SKIVE
+
+for the short bivalents are not significantly differen, for this strain there are 4 female and 4 male
+
+** there are more SKIVE female mouse observations -- but they are filtered out because I excluded them from the MLH1 dataset.  -- for low quality -- they might have good total SC spreads -- // but 
+
+* it think total sc only has 1 female observation but the short bivalent has 4 skive females
+
+<!--
+for the _mmdomesticues^WSB^ _, _mmdomesticues^G^ _, and _mmdomesticues^LEW^ _
+-->
+
+Mixed models for the sex differences in mouse averages for short bivalents (reduced dataset)
+
+
+$$mouse \ average \ short \ SC  \ length ~=~ subsp * sex + rand(strain) + \varepsilon $$
+
+```{r Q1_short_biv_lmer, echo=FALSE}
+
+
+lmer.Q1_SCLength_short_M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Q1.real.short_mouse_table, REML = TRUE) 
+
+lmer.Q1_SCLength_short_M1_R.sex <- lmer(mean_SC ~ subsp + (1|strain), data=Q1.real.short_mouse_table, REML = TRUE) 
+
+lmer.Q1_SCLength_short_M1_R.subsp <- lmer(mean_SC ~ sex + (1|strain), data=Q1.real.short_mouse_table, REML = TRUE) 
+
+Q1lmer.MM_SC_short_interaction  <-drop1(lmer.Q1_SCLength_short_M1, test="Chisq" )$`Pr(Chi)`[2]
+Q1lmer.MM_SC_short_sex  <-anova(lmer.Q1_SCLength_short_M1, lmer.Q1_SCLength_short_M1_R.sex)$`Pr(>Chisq)`[2]
+Q1lmer.MM_SC_short_subp  <- anova(lmer.Q1_SCLength_short_M1, lmer.Q1_SCLength_short_M1_R.subsp)$`Pr(>Chisq)`[2]
+Q1lmer.MM_SC_short_strain  <- exactRLRT(lmer.Q1_SCLength_short_M1)$p.value 
+
+#as.data.frame(round(summary(lmer.SCLength_all_MM.M1)$coefficients, 6))#these Dont return p values for the fixed effects
+
+Q1lmer.MM_SC_short_results <- data.frame(sub.sp = Q1lmer.MM_SC_short_subp, 
+sex.results =  Q1lmer.MM_SC_short_sex, 
+               interaction.pval = Q1lmer.MM_SC_short_interaction,  rand.pval = 
+Q1lmer.MM_SC_short_strain)
+Q1lmer.MM_SC_short_results
+
+```
+
+Sex is the most significant factor for the mixed model of mean short bivalents.
+
+
+$$mouse \ average \ short \ SC  \ length ~=~ subsp * sex * strain + \varepsilon $$
+
+```{r Q1.SC.Length_M2, echo=FALSE}
+
+
+Q1.real.short_mouse_table$subsp <- factor(Q1.real.short_mouse_table$subsp, ordered = FALSE)
+Q1.real.short_mouse_table$sex <- factor(Q1.real.short_mouse_table$sex, ordered = FALSE)
+Q1.real.short_mouse_table$strain <- factor(Q1.real.short_mouse_table$strain, ordered = FALSE)
+
+Q1.glm_short.SC_M2 <- glm(mean_SC ~ subsp * strain * sex, data=Q1.real.short_mouse_table)
+
+#summary(Q1.glm_short.SC_M2)
+
+summ.Q1.glm_short.SC_M2 <- summary(Q1.glm_short.SC_M2)
+
+round(summ.Q1.glm_short.SC_M2$coefficients[,c(1,4)],5)
+
+#skive strin very slight sign
+#male highly sig
+#skive * male slightly sig
+
+```
+
+skive strin very slight sign, male highly sig,  skive * male slightly sig
+
+$$mouse \ average \ short \ SC  \ length ~=~ sex * strain + \varepsilon $$
+
+```{r Q1.glm_short.SC_M3, echo=FALSE}
+
+Q1.glm_short.SC_M3 <- glm(mean_SC ~ strain * sex, data=Q1.real.short_mouse_table)
+
+summary(Q1.glm_short.SC_M3)
+
+summ.Q1.glm_short.SC_M3 <- summary(Q1.glm_short.SC_M3)
+
+round(summ.Q1.glm_short.SC_M3$coefficients[,c(1,4)],5)
+#sex male very sig -- only sig
+```
+
+male is the only significant p value from this model.
+
+
+<!--
+Because of confonding effects across chromsomes of different physical lenghts, we attempt to ... reduce the error from mixing chromosomes by constructing reduced bivalent sets, for the longest 5 and shortest 5 bivalents from the same cell. The mouse means for these two data sets were then calculated.
+-->
+
+Above are the p values for the components of the mixed models for the short and long biv mouse means. In both sets of models the sex effect is the most significant p value.
+
+
+Above are the mixed model results seperated by mouse averages for 1 crossover and 2 crossover bivalents respectively.
+
+The fixed sex effect is highly significant for the mouse means of SC length. The data sets tested were all pooled SC lengths, the long bivalents, 1CO and 2CO seperately.
+
+```{r show.long.biv, echo=FALSE, include=FALSE}
+#mouse av
+Q1.SC.long.mouse_scatter_boxplot <- ggplot( Q1.real.long_mouse_table, aes(y = mean_SC, x = sex, color=strain)) + geom_jitter()+ geom_boxplot(alpha=.2) +scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales="free")+ylim(c(75,150) )+ggtitle("Mouse average SC Length \n long bivalent dataset")
+
+```
+
+
+```{r JUNK.Q1.SC_short_t.test, echo=FALSE, include=FALSE}
+
+#t.tests for a
+Q1_short.sc_t.test.WSB <- t.test((Q1.real.short_mouse_table %>% filter(sex == "male") %>% filter(strain == "WSB") )$mean_SC,
+                           (Q1.real.short_mouse_table %>% filter(sex == "female") %>% filter(strain == "WSB") )$mean_SC)
+#sig
+
+
+#Using the full data set has strong signle but -- the interpertation is complicated
+#FULL SC t.test
+#run a t.test
+wsb.ttest  <- t.test(WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "female"], WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "male"])
+
+#run a t.test seperate out by the chrm classes
+LEW.ttest  <- t.test(LEW.Bivalents.DF$chromosomeLength[LEW.Bivalents.DF$sex == "female"], LEW.Bivalents.DF$chromosomeLength[LEW.Bivalents.DF$sex == "male"])
+#run a t.test seperate out by the chrm classes
+G.ttest  <- t.test(G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "female"], G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "male"])
+#run a t.test seperate out by the chrm classes
+PWD.ttest  <- t.test(PWD.Bivalents.DF$chromosomeLength[PWD.Bivalents.DF$sex == "female"], PWD.Bivalents.DF$chromosomeLength[PWD.Bivalents.DF$sex == "male"])
+
+#run a t.test seperate out by the chrm classes
+KAZ.ttest  <- t.test(KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "female"], KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "male"])
+#run a t.test seperate out by the chrm classes
+SKIVE.ttest  <- t.test(SKIVE.Bivalents.DF$chromosomeLength[SKIVE.Bivalents.DF$sex == "female"], SKIVE.Bivalents.DF$chromosomeLength[SKIVE.Bivalents.DF$sex == "male"])
+
+#run a t.test seperate out by the chrm classes
+MSM.ttest  <- t.test(MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "female"], MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "male"])
+
+#run a t.test seperate out by the chrm classes
+#MOLF.ttest  <- t.test(MOLF.Bivalents.DF$chromosomeLength[MOLF.Bivalents.DF$sex == "female"], #MOLF.Bivalents.DF$chromosomeLength[MOLF.Bivalents.DF$sex == "male"])
+
+```
+
+
+```{r Q1.strain.specific.junk, include=FALSE}
 
 #Dom.all
 #Q1glm_SCLength_M2.Dom <- glm(mean_SC ~ strain * sex, data=Q1.lmer_totSC.mouse.av.table[Q1.lmer_totSC.mouse.av.table$subsp == "Dom",])
@@ -2857,98 +2956,41 @@ summary(Q1.glm_totSC_M3)
 ```
 
 
+```{r Q1_SC.biv.long_ttest, echo=FALSE, include=FALSE}
+
+#Q1.real.long_mouse_table
+
+Q1_mus.av_longSC_t.test.WSB <- t.test((Q1.real.long_mouse_table %>% filter(sex == "male") %>% filter(strain == "WSB") )$mean_SC,
+                           (Q1.real.long_mouse_table %>% filter(sex == "female") %>% filter(strain == "WSB") )$mean_SC)
+
+#G
+Q1_mus.av_longSC_t.test.G <- t.test((Q1.real.long_mouse_table %>% filter(sex == "male") %>% filter(strain == "G") )$mean_SC,
+                           (Q1.real.long_mouse_table %>% filter(sex == "female") %>% filter(strain == "G") )$mean_SC)
+
+#LEW
+Q1_mus.av_longSC_t.test.LEW <- t.test((Q1.real.long_mouse_table %>% filter(sex == "male") %>% filter(strain == "LEW") )$mean_SC,
+                           (Q1.real.long_mouse_table %>% filter(sex == "female") %>% filter(strain == "LEW") )$mean_SC)
+
+#PWD
+Q1_mus.av_longSC_t.test.PWD <- t.test((Q1.real.long_mouse_table %>% filter(sex == "male") %>% filter(strain == "PWD") )$mean_SC,
+                           (Q1.real.long_mouse_table %>% filter(sex == "female") %>% filter(strain == "PWD") )$mean_SC)
+
+#KAZ
+Q1_mus.av_longSC_t.test.WSB <- t.test((Q1.real.long_mouse_table %>% filter(sex == "male") %>% filter(strain == "KAZ") )$mean_SC,
+                           (Q1.real.long_mouse_table %>% filter(sex == "female") %>% filter(strain == "KAZ") )$mean_SC)
+
+#SKIVE
+Q1_mus.av_longSC_t.test.SKIVE <- t.test((Q1.real.long_mouse_table %>% filter(sex == "male") %>% filter(strain == "SKIVE") )$mean_SC,
+                           (Q1.real.long_mouse_table %>% filter(sex == "female") %>% filter(strain == "SKIVE") )$mean_SC)
+
+#MSM
+#Q1_mus.av_longSC_t.test.MSM <- t.test((Q1.real.long_mouse_table %>% filter(sex #== "male") %>% filter(strain == "MSM") )$mean_SC,
+#                           (Q1.real.long_mouse_table %>% filter(sex == "female") #%>% filter(strain == "MSM") )$mean_SC)
 
 
-<!--
-Because of confonding effects across chromsomes of different physical lenghts, we attempt to ... reduce the error from mixing chromosomes by constructing reduced bivalent sets, for the longest 5 and shortest 5 bivalents from the same cell. The mouse means for these two data sets were then calculated.
--->
-
-
-```{r Q1.SC_short_t.test, echo=FALSE}
-
-#t.tests for a
-Q1_short.sc_t.test.WSB <- t.test((Q1.real.short_mouse_table %>% filter(sex == "male") %>% filter(strain == "WSB") )$mean_SC,
-                           (Q1.real.short_mouse_table %>% filter(sex == "female") %>% filter(strain == "WSB") )$mean_SC)
-#sig
-
-
-#Using the full data set has strong signle but -- the interpertation is complicated
-#FULL SC t.test
-#run a t.test
-wsb.ttest  <- t.test(WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "female"], WSB.Bivalents.DF$chromosomeLength[WSB.Bivalents.DF$sex == "male"])
-
-#run a t.test seperate out by the chrm classes
-LEW.ttest  <- t.test(LEW.Bivalents.DF$chromosomeLength[LEW.Bivalents.DF$sex == "female"], LEW.Bivalents.DF$chromosomeLength[LEW.Bivalents.DF$sex == "male"])
-#run a t.test seperate out by the chrm classes
-G.ttest  <- t.test(G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "female"], G.Bivalents.DF$chromosomeLength[G.Bivalents.DF$sex == "male"])
-#run a t.test seperate out by the chrm classes
-PWD.ttest  <- t.test(PWD.Bivalents.DF$chromosomeLength[PWD.Bivalents.DF$sex == "female"], PWD.Bivalents.DF$chromosomeLength[PWD.Bivalents.DF$sex == "male"])
-
-#run a t.test seperate out by the chrm classes
-KAZ.ttest  <- t.test(KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "female"], KAZ.Bivalents.DF$chromosomeLength[KAZ.Bivalents.DF$sex == "male"])
-#run a t.test seperate out by the chrm classes
-SKIVE.ttest  <- t.test(SKIVE.Bivalents.DF$chromosomeLength[SKIVE.Bivalents.DF$sex == "female"], SKIVE.Bivalents.DF$chromosomeLength[SKIVE.Bivalents.DF$sex == "male"])
-
-#run a t.test seperate out by the chrm classes
-MSM.ttest  <- t.test(MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "female"], MSM.Bivalents.DF$chromosomeLength[MSM.Bivalents.DF$sex == "male"])
-
-#run a t.test seperate out by the chrm classes
-#MOLF.ttest  <- t.test(MOLF.Bivalents.DF$chromosomeLength[MOLF.Bivalents.DF$sex == "female"], #MOLF.Bivalents.DF$chromosomeLength[MOLF.Bivalents.DF$sex == "male"])
+#run t.tests for the mouse av. for reduced single bivalent datasets
 
 ```
-
-
-
-
-```{r Q1_short_biv_lmer, echo=FALSE}
-#Mouse.Table_BivData_4MM #this one is the HetC table (all the Curated BivData)
-#Long.biv_mouse_table_HetC  (long biv data set for HetC models)
-
-#all pooled SC lengths
-lmer.Q1_SCLength_short_M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Q1.real.short_mouse_table, REML = TRUE) 
-lmer.Q1_SCLength_short_M1_R.sex <- lmer(mean_SC ~ subsp + (1|strain), data=Q1.real.short_mouse_table, REML = TRUE) 
-lmer.Q1_SCLength_short_M1_R.subsp <- lmer(mean_SC ~ sex + (1|strain), data=Q1.real.short_mouse_table, REML = TRUE) 
-
-Q1lmer.MM_SC_short_interaction  <-drop1(lmer.Q1_SCLength_short_M1, test="Chisq" )$`Pr(Chi)`[2]
-Q1lmer.MM_SC_short_sex  <-anova(lmer.Q1_SCLength_short_M1, lmer.Q1_SCLength_short_M1_R.sex)$`Pr(>Chisq)`[2]
-Q1lmer.MM_SC_short_subp  <- anova(lmer.Q1_SCLength_short_M1, lmer.Q1_SCLength_short_M1_R.subsp)$`Pr(>Chisq)`[2]
-Q1lmer.MM_SC_short_strain  <- exactRLRT(lmer.Q1_SCLength_short_M1)$p.value 
-
-#as.data.frame(round(summary(lmer.SCLength_all_MM.M1)$coefficients, 6))#these Dont return p values for the fixed effects
-
-Q1lmer.MM_SC_short_results <- data.frame(sub.sp = Q1lmer.MM_SC_short_subp, 
-sex.results =  Q1lmer.MM_SC_short_sex, 
-               interaction.pval = Q1lmer.MM_SC_short_interaction,  rand.pval = 
-Q1lmer.MM_SC_short_strain)
-Q1lmer.MM_SC_short_results
-
-```
-
-These plot above show that qualitatively, the average female bivalent SC length is significantly longer than the mean length for males from the same strain.
-
-
-```{r Q1_long_biv_lmer, echo=FALSE, message=FALSE, include=FALSE}
-###
-lmer.Q1_SCLength_long_M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Q1.real.long_mouse_table, REML = TRUE) 
-lmer.Q1_SCLength_long_M1_R.sex <- lmer(mean_SC ~ subsp + (1|strain), data=Q1.real.long_mouse_table, REML = TRUE) 
-lmer.Q1_SCLength_long_M1_R.subsp <- lmer(mean_SC ~ sex + (1|strain), data=Q1.real.long_mouse_table, REML = TRUE) 
-
-Q1lmer.MM_SC_long_interaction  <-drop1(lmer.Q1_SCLength_long_M1, test="Chisq" )$`Pr(Chi)`[2]
-Q1lmer.MM_SC_long_sex  <-anova(lmer.Q1_SCLength_long_M1, lmer.Q1_SCLength_long_M1_R.sex)$`Pr(>Chisq)`[2]
-Q1lmer.MM_SC_long_subp  <- anova(lmer.Q1_SCLength_long_M1, lmer.Q1_SCLength_long_M1_R.subsp)$`Pr(>Chisq)`[2]
-Q1lmer.MM_SC_long_strain  <- exactRLRT(lmer.Q1_SCLength_long_M1)$p.value
-
-
-Q1lmer.MM_SC_long_results <- data.frame(sub.sp = Q1lmer.MM_SC_long_subp, 
-sex.results =  Q1lmer.MM_SC_long_sex, 
-               interaction.pval = Q1lmer.MM_SC_long_interaction,  rand.pval = 
-Q1lmer.MM_SC_long_strain)
-
-
-```
-
-Above are the p values for the components of the mixed models for the short and long biv mouse means. In both sets of models the sex effect is the most significant p value.
-
 
 ```{r Q1other_SC_lmer, echo=FALSE, include=FALSE}
 
@@ -2990,60 +3032,6 @@ Q1.lmer_SCLength.2CO_strain)
 #as.data.frame(round(summary(SCLength_long.biv_MM.M1)$coefficients, 6))
 ```
 
-Above are the mixed model results seperated by mouse averages for 1 crossover and 2 crossover bivalents respectively.
-
-The fixed sex effect is highly significant for the mouse means of SC length. The data sets tested were all pooled SC lengths, the long bivalents, 1CO and 2CO seperately.
-
-
-$$mouse \ average \ SC  \ length ~=~ sex * strain + \varepsilon $$
-
-```{r Q1.SC.Length_M2, echo=FALSE}
-#feed these 2 DFs into M2
-#Mouse.Table_BivData_4MM #this one is the HetC table (all the Curated BivData)
-#Long.biv_mouse_table_HetC  (long biv data set for HetC models)
-#glm(metric ~ strain)  ---mean_SC
-
-Q1.glm_SCLength_M2 <- glm(mean_SC ~ strain * sex, data=Mouse.Table_BivData_4MM)
-#summary(Q1.glm_SCLength_M2)
-
-#Dom.all
-Q1glm_SCLength_M2.Dom <- glm(mean_SC ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Dom",])
-#summary(Q1glm_SCLength_M2.Dom)
-
-#Dom.1CO
-Q1glm_SCLength_M2.1CO.Dom <- glm(mean.SC_1CO ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Dom",])
-#summary(Q1glm_SCLength_M2.1CO.Dom)
-
-#Dom.2CO
-Q1glm_SCLength_M2.2CO.Dom <- glm(mean.SC_2CO ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Dom",])
-#summary(Q1glm_SCLength_M2.2CO.Dom)
-
-
-#Musc.all
-Q1glm_SCLength_M2.Musc <- glm(mean_SC ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Musc",])
-#summary(Q1glm_SCLength_M2.Musc)
-
-#Musc.1CO
-Q1glm_SCLength_M2.1CO.Musc <- glm(mean.SC_1CO ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Musc",])
-#summary(Q1glm_SCLength_M2.1CO.Musc)
-
-#Musc.2CO
-Q1glm_SCLength_M2.2CO.Musc <- glm(mean.SC_2CO ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Musc",])
-#summary(Q1glm_SCLength_M2.2CO.Musc)
-
-#Mol.all
-Q1glm_SCLength_M2.Mol <- glm(mean_SC ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Mol",])
-#summary(Q1glm_SCLength_M2.Mol)
-
-#Mol.1CO
-Q1glm_SCLength_M2.1CO.Mol <- glm(mean.SC_1CO ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Mol",])
-#summary(Q1glm_SCLength_M2.1CO.Mol)
-
-#Mol.2CO
-Q1glm_SCLength_M2.2CO.Mol <- glm(mean.SC_2CO ~ strain * sex, data=Mouse.Table_BivData_4MM[Mouse.Table_BivData_4MM$subsp == "Mol",])
-#summary(Q1glm_SCLength_M2.2CO.Mol)
-```
-
 
 ```{r Q1.SC.length.show_long.short, echo=FALSE, eval=FALSE}
 
@@ -3053,7 +3041,7 @@ Q1.SClength_Musc.BivData_plot <- ggplot( Q1.real.long_mouse_table, aes(y = chrom
 ```
 
 
-```{r Q1.SC.M2plot, echo=FALSE}
+```{r Q1.SC.M2plot, echo=FALSE, include=FALSE}
 
 #removing these plots for space
 
@@ -3070,20 +3058,15 @@ Musc_BivData <-  Curated_BivData %>%  filter(subsp == "Musc")
 
 Q1.SClength_Musc.BivData_plot <- ggplot( Musc_BivData, aes(y = chromosomeLength, x = strain, color=strain)) + geom_jitter(alpha=.3)+ geom_boxplot(alpha=.3)+scale_color_manual(values=colors_of_strains)+ggtitle("Musc av. SC Length \nBivData Level")+facet_wrap(~sex, scales="free")+ylim(c(30,225))
 
-
-
-
 #BivData Level
 Dom_BivData <-  Curated_BivData %>%  filter(subsp == "Dom") 
 
 Q1.SClength_Dom.BivData_plot <- ggplot( Dom_BivData, aes(y = chromosomeLength, x = strain, color=strain)) + geom_jitter(alpha=.3)+ geom_boxplot(alpha=.3)+scale_color_manual(values=colors_of_strains)+ggtitle("Dom SC Lengths \nBivData Level")+facet_wrap(~sex, scales="free")+ylim(c(30,225))
 
-
-
 ```
 
 
-```{r Q1.SC.long.biv_wacko, echo=FALSE}
+```{r Q1.SC.long.biv_wacko, echo=FALSE, include=FALSE}
 #removed these plots for space
 
 male.long.biv <- real.long.bivData %>% filter(sex== "male")
@@ -3134,23 +3117,26 @@ mouse.shoo.long.biv <- ggplot(mouse.av.long.biv.table, aes(y=mean.sc, x=strain, 
 ```
 
 
+```{r Q1_long_biv_lmer, echo=FALSE, message=FALSE, include=FALSE}
+###
+lmer.Q1_SCLength_long_M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Q1.real.long_mouse_table, REML = TRUE) 
+lmer.Q1_SCLength_long_M1_R.sex <- lmer(mean_SC ~ subsp + (1|strain), data=Q1.real.long_mouse_table, REML = TRUE) 
+lmer.Q1_SCLength_long_M1_R.subsp <- lmer(mean_SC ~ sex + (1|strain), data=Q1.real.long_mouse_table, REML = TRUE) 
 
-<!-- 
-lmr - sex is most significant effect
+Q1lmer.MM_SC_long_interaction  <-drop1(lmer.Q1_SCLength_long_M1, test="Chisq" )$`Pr(Chi)`[2]
+Q1lmer.MM_SC_long_sex  <-anova(lmer.Q1_SCLength_long_M1, lmer.Q1_SCLength_long_M1_R.sex)$`Pr(>Chisq)`[2]
+Q1lmer.MM_SC_long_subp  <- anova(lmer.Q1_SCLength_long_M1, lmer.Q1_SCLength_long_M1_R.subsp)$`Pr(>Chisq)`[2]
+Q1lmer.MM_SC_long_strain  <- exactRLRT(lmer.Q1_SCLength_long_M1)$p.value
 
 
-plots,
+Q1lmer.MM_SC_long_results <- data.frame(sub.sp = Q1lmer.MM_SC_long_subp, 
+sex.results =  Q1lmer.MM_SC_long_sex, 
+               interaction.pval = Q1lmer.MM_SC_long_interaction,  rand.pval = 
+Q1lmer.MM_SC_long_strain)
 
-- ranges overlap,
 
-- try the short and long mouse averages
+```
 
-
-G and MSM female?
-
-G male vs female
-
--->
 
 # Q1. General CO Positions
 
@@ -3358,7 +3344,6 @@ lmer.Q1.nrm1CO_M1reduce.subp <- lmer( norm.first.foci.pos ~ sex  +(1|strain), da
 
 anova(lmer.Q1.nrm1CO_M1, lmer.Q1.nrm1CO_M1reduce.sex)
 anova(lmer.Q1.nrm1CO_M1, lmer.Q1.nrm1CO_M1reduce.subp)
-
 
 drop1(lmer.Q1.nrm1CO_M1, test="Chisq" )
 
