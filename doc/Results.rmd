@@ -1580,7 +1580,7 @@ M.strain.table
 ```
 
 
-The same model framwrok was applied to the male specific data.
+The same model framework was applied to the male specific data.
 The male specific analysis was done to assess the variance across strains. The plots below illustrate mouse level means for MLH1 per cell serperated by subspecies.
 
  _M. m. domesticus^LEW^_
@@ -1677,22 +1677,6 @@ The strain average for  _M. m. musculus^PWD^_ , _M. m. molossinus^MSM^_ and  _M.
 
 # Variation in DSB number per cell
 
-<!--
-interpertation notes, 
-
-the number of DMC1 across stages (L and Z stages) are driven by different equations
-
-Leptoene the number / rate of DMC1 is primarily driven by the substrate -- number of DNA loops -- empty sites are being filled.
-
-Zygotene the number / rate of DMC1 foci are more variable across cells because it is driven by the rate / success of homolog pairing  / if this varies across cells (via the timing) - the there might be a different total number across cells
-
-*the repair decision can happen at both stages and remove DMC1. formation of new DSB -> DMC1 foci happens at both stages, but the are triggered by different events (L: cell wide signal to start the homolog pairing and Z: unpaired bivalent signal)
-
-back to CO number -- variation in CO number is best predicted by metrics/indicators placed BEFORE DSB formation starts.
-
-expectations, predictions if this is the case
-
--->
 
 ```{r DMC1.setup, echo=FALSE}
 #load DMC1 csv
@@ -1730,9 +1714,6 @@ DMC1.mean.table <- rbind(DMC1.mean.obs.L,DMC1.mean.obs.Z)
 #write.table(DMC1.mean.table, "~./MLH1repo/DMC1.mean.table.csv", sep=",",
 #            row.names = FALSE)
 
-DMC1.mean.table
-
-
 DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
                           ifelse(grepl("G",DMC1.DF$strain), "Low",
                                  
@@ -1743,29 +1724,7 @@ DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
 ```
 
 
-```{r normality, echo=FALSE, warning=FALSE, eval=FALSE}
-
-#these are histogram plots for testing Normality shape -- move to supplemenatry section
-
-
-#- check that distributions are close to normal
-#- check for equal variance.
-
-DMC1.histogram <- ggplot(DMC1.DF, aes(total.count, fill = stage)) + geom_histogram(alpha = 0.4)+facet_wrap(~strain)+ ggtitle("DMC1 histogram")
-
-DMC1.histogram
-#checking equal variance, https://www.statmethods.net/stats/anovaAssumptions.html
-#bartlet's test, Levine's test
-
-#The counts look close to normal.
-#Potentially figure 2. Using a function to #display the p-vales for mean comparison
-
-```
-
-In order to get a good idea on wether variation with mean CO number per cell is associated with the number of percursors upstream in prophase, we quantified DMC1 foci, a marker for DSBs. DMC1 foci were scored from X `r sum( (DMC1.mean.table %>%  filter(stage == "L") )$ncells)` leptotene and `r sum( (DMC1.mean.table %>%  filter(stage == "Z") )$ncells)` zygotene staged spermatocytes of juvenile mice (12-14-18 days). A subset of strains were quantified  _M. m. musculus^PWD^_, _M. m. molossinus^MSM^_, _M. m. musculus^KAZ^_ ,  _M. m. domesticus^WSB^_ , and _M. m. domesticus^G^_. Leptotene and zygotene cells were staged based on SC-AE and centromere morphology.
-
-
-```{r DMC1.plot, echo=FALSE, warning=FALSE}
+```{r MAIN.DMC1.plot, echo=FALSE, warning=FALSE}
 #think of better color scheme
 #make the jitter col thinner or make the stacked dots.
 #remember that box-plots add outlier dots.
@@ -1784,27 +1743,13 @@ DMC1.DF$strain<- factor(DMC1.DF$strain, levels =c("LEW",
 
 
 DMC1.boxplot <- ggplot(aes(x=strain, y=total.count, color=stage), data=DMC1.DF[DMC1.DF$stage != "P",])+
-  geom_boxplot(aes(alpha=.5))+geom_jitter()+ggtitle("DMC1 averages in juvenile mice")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  geom_boxplot(alpha=.5) +geom_jitter()+ggtitle("DMC1 averages in juvenile mice")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 DMC1.boxplot
 ```
 
-<!--
-(discription of the nice boxplot figure)
 
-- overall the range is very high (CO homeostasis, technical noise, process is noiser continous repair and new DSBs)
-
-- exclude KAZ?
-
-- expected difference between cell stages for all strains
-
-- pattern of musc strains being higher than the dom strains (subspe pooled t-test)
-
-- MSM is much higher
-
-- the ratios of DMC1 : MLH1 counts!!
--->
 ```{r plot.stage.ttest, echo=FALSE, warning=FALSE}
 
 anno_df_stage = compare_means(total.count ~ stage, group.by = "rec_group", data = DMC1.DF[DMC1.DF$stage != "P",],method = "t.test") %>% mutate(y_pos = 300)
@@ -1843,10 +1788,8 @@ ttest.ZtoL.Low <- t.test(DMC1.Low.goup$total.count[(DMC1.Low.goup$stage == "L")]
                DMC1.Low.goup$total.count[(DMC1.Low.goup$stage == "Z")]  )
 ```
 
-the pvalues for the differences between time points are  `r ttest.ZtoL$p.value`,  `r ttest.ZtoL.high$p.value` , and  `r ttest.ZtoL.Low$p.value` for all observations, the high rec group and the low group respectively.
 
-
-```{r plot.t.test, echo=FALSE}
+```{r plot.t.test, echo=FALSE, include=FALSE}
 
   #this will add neat bars, but still need to figure out what groups ect it's actually using
 #THE stat_compare function adds a arm thing and pvalue for 
@@ -1890,7 +1833,6 @@ DMC1.bxlt_High.to.Low <- ggplot(DMC1.DF[DMC1.DF$stage != "P",], aes(x=rec_group,
 
 ```
 
-
 ```{r DMC1_t.tests, echo=FALSE, warning=FALSE}
 #2. t-tests for the DMC1 counts 
 #need to account for sample sizes when comparing t.tests (KAZ and G don't have equal across )
@@ -1898,14 +1840,14 @@ DMC1.bxlt_High.to.Low <- ggplot(DMC1.DF[DMC1.DF$stage != "P",], aes(x=rec_group,
 
 
 #high vs low group (L)
-ttest.HighLow.L <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
-               DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )
+ttest.HighLow.L.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
 # p-value =  0.002145
 
 
 #high vs low group (Z)
-ttest.HighLow.Z <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
-               DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )
+ttest.HighLow.Z.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
 # p-value = 0.6628
 
 
@@ -1925,15 +1867,112 @@ ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.D
 #Kaz Z are higher than Dom
 ```
 
+```{r DMC1_anova, echo=FALSE, warning=FALSE}
+#1. ANOVA, is there a difference in DMC1 counts across strains?
+
+#unorder strain
+DMC1.DF$strain <- factor(DMC1.DF$strain, levels = c("G","WSB","KAZ","PWD","MSM"), ordered = FALSE )
+
+mod.L <- lm(total.count ~ strain, data = DMC1.DF[DMC1.DF$stage == "L",])
+mod.Z <- lm(total.count ~ strain, data = DMC1.DF[DMC1.DF$stage == "Z",])
+
+l.anova.pval <- anova(mod.L)$`Pr(>F)`[1] #0.0002701 ***
+z.anova.pval <- anova(mod.Z)$`Pr(>F)`[1] #NS
+```
+
+```{r DMC1_MLH1.MAIN_TABLE, echo=FALSE, warning = FALSE}
+#make category averages from AP_mouse_table.HQ
+mean.MLH1.obs <- ddply(.data=AP_mouse_table.HQ,
+                 .(category),
+                 summarize, 
+                 mean.MLH1 = mean(mean_co),
+                 var.MLH1 = var(mean_co)
+)
+
+DMC1.target.strains <- subset(mean.MLH1.obs, category == "G male" |
+                   category == "WSB male" |
+                     category == "KAZ male" |
+                  category == "MSM male" |
+                    category == "PWD male")
+#attach this mini DF to the DMC1 data
+
+
+DMC1.mean.obs.L$mean.count.L <- DMC1.mean.obs.L$mean.count
+DMC1.mean.obs.Z$mean.count.Z <- DMC1.mean.obs.Z$mean.count
+
+
+DMC1table <- merge(DMC1.mean.obs.L, DMC1.mean.obs.Z, by="category")
+
+DMC1table.main <- merge(DMC1.target.strains, DMC1table, by="category")
+
+MLH1.DMC1.L_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.L, method = c("pearson"))#MLH1.DMC1.Z_cor
+
+MLH1.DMC1.Z_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.Z, method = c("pearson"))#0.2793237
+
+##RATIOS
+DMC1table.main$MLH1.L_ratio <- DMC1table.main$mean.MLH1/ DMC1table.main$mean.count.L 
+DMC1table.main$MLH1.Z_ratio <- DMC1table.main$mean.MLH1 / DMC1table.main$mean.count.Z
+  
+#colnames(DMC1table.main) <- c("category", "mean.MLH1", "", "", "")
+
+#DMC1.mean.table
+DMC1.mean.table.99 <- subset(DMC1table.main, select= -c(var.MLH1,  mean.count.x,  mean.count.y, stage.x, stage.y))
+
+colnames(DMC1.mean.table.99) <- c("category","mean.MLH1","ncells.L","mean.L",
+                  "ncells.Z", "mean.Z", "MLH1.L_ratio", "MLH1.Z_ratio")
+
+DMC1.mean.table.99
+
+WSB_DMC1.Z_CO_ratio <-   ( DMC1table.main %>% filter(category == "WSB male") )$mean.count.L / (DMC1table.main %>% filter(category == "WSB male"))$mean.MLH1
+  
+G_DMC1.Z_CO_ratio <-   ( DMC1table.main %>% filter(category == "G male") )$mean.count.L / (DMC1table.main %>% filter(category == "G male"))$mean.MLH1
+
+MSM_DMC1.Z_CO_ratio <- ( DMC1table.main %>% filter(category == "MSM male") )$mean.count.L / (DMC1table.main %>% filter(category == "MSM male"))$mean.MLH1
+
+PWD_DMC1.Z_CO_ratio <-( DMC1table.main %>% filter(category == "PWD male") )$mean.count.L / (DMC1table.main %>% filter(category == "PWD male"))$mean.MLH1
+
+
+
+DMC1table.main$category <- factor(DMC1table.main$category, levels = c("WSB male","G male","KAZ male",               "PWD male","MSM male"), ordered = TRUE )
+
+DMC1table.main <- DMC1table.main[order(DMC1table.main$category),]
+as.data.frame(DMC1table.main)
+
+
+DMC1.Lratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G male" | category == "WSB male" | category == "KAZ male" ) ) )$MLH1.L_ratio, 
+                (DMC1table.main %>% filter(  ( category == "PWD male" | category == "MSM male") ) )$MLH1.L_ratio        )
+                               
+
+DMC1.Zratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G male" | category == "WSB male" | category == "KAZ male" ) ) )$MLH1.Z_ratio, 
+                (DMC1table.main %>% filter(  ( category == "PWD male" | category == "MSM male") ) )$MLH1.Z_ratio        )
+
+```
+
+
+In an attempt to locatize the above male specific crossoever number evolution within the meiotic pathway we quantified a marker for DSBs, DMC1, in early prophase meiocytes.
+
+DMC1 foci were scored from a total of `r sum( (DMC1.mean.table %>%  filter(stage == "L") )$ncells)` leptotene and `r sum( (DMC1.mean.table %>%  filter(stage == "Z") )$ncells)` zygotene staged spermatocytes of (X for each strain) juvenile mice (12 to 18 days). 
+
+A subset of strains were choosen to test for differences between the high and low recombination groups; _musculus^PWD^_, _molossinus^MSM^_, _ musculus^KAZ^_ ,  _domesticus^WSB^_ , and _domesticus^G^_. One mouse was sampled for each strain.
+
+
+As can be seen in the figure, the high recombining groups have significantly more DMC1 for for leptotene (t.test; `r ttest.HighLow.L.pval` , one-way-anova; `r round(l.anova.pval, 5)`), but not the zygotene cells (t.test; `r ttest.HighLow.Z.pval`, one-way-anova; `r z.anova.pval`).  
+
+
+The ratios for MLH1:DMC1^Leptotene^ and MLH1:DMC1^zygotene^ are shown in Table X, and can be used as a proxy for the CO:NCO ratio (instead CO:(CO+NCO) ratio). Notably there is not much variation and do not show a significant difference between the high and the low recombining groups (t.test; p = `r DMC1.Lratio_t.test$p.value` and `r DMC1.Zratio_t.test$p.value` for leptotene and zygotene based ratios respectively). These results indicate that the best predictor for CO number may be established before DSB formation (cite Baier et al 2014).
+
 
 <!--
-Subsampling code -- don't report
+The correlation with MLH1 and leptotene cells is `r MLH1.DMC1.L_cor`. The correlation with MLH1 and zygotene cells is `r MLH1.DMC1.Z_cor`. `r c(WSB_DMC1.Z_CO_ratio, G_DMC1.Z_CO_ratio, MSM_DMC1.Z_CO_ratio, PWD_DMC1.Z_CO_ratio )` for  _M. m. domesticus^WSB^_ , _M. m. domesticus^G^_, _M. m. molossinus^MSM^_, and  _M. m. musculus^PWD^_ respecitively. 
+-->
 
-The number of observations are not quite equal across strains and cell stages, so I ran permutations sampling 25 cells from the high and low recombining groups of cells. Below are the distributions of p values for permuted t-tests from sampling 25 cells from the pooled high and low recombining groups. Permutations were done for both cell stages. The actual p value is in red. 
+```{r DMC1.subsampling, echo=FALSE, eval = FALSE, include = FALSE}
 
-The observed p value does not fall outside of the permuted distribution with assumes equal cell sampling.
+#Subsampling code -- don't report
 
-```{r DMC1.subsampling, echo=FALSE}
+#The number of observations are not quite equal across strains and cell stages, so I ran permutations sampling 25 cells from the high and low recombining groups of cells. Below are the distributions of p values for permuted t-tests from sampling 25 cells from the pooled high and low recombining groups. Permutations were done for both cell stages. The actual p value is in red. 
+
+#The observed p value does not fall outside of the permuted distribution with assumes equal cell sampling.
 
 #recreate the DMC1 data by subsampling ~9 or lowest cell number from 
 # the 2 groups
@@ -1997,83 +2036,43 @@ replicated.Ttests <- cbind(bunchOpvals.L, bunchOpvals.Z)
 #https://www.statmethods.net/stats/ttest.html
 ```
 
--->
+```{r normality, echo=FALSE, warning=FALSE, eval=FALSE}
 
-```{r DMC1_MLH1.cor, echo=FALSE, warning = FALSE}
-#make category averages from AP_mouse_table.HQ
-mean.MLH1.obs <- ddply(.data=AP_mouse_table.HQ,
-                 .(category),
-                 summarize, 
-                 mean.MLH1 = mean(mean_co),
-                 var.MLH1 = var(mean_co)
-)
-
-DMC1.target.strains <- subset(mean.MLH1.obs, category == "G male" |
-                   category == "WSB male" |
-                     category == "KAZ male" |
-                  category == "MSM male" |
-                    category == "PWD male")
-#attach this mini DF to the DMC1 data
+#these are histogram plots for testing Normality shape -- move to supplemenatry section
 
 
-DMC1.mean.obs.L$mean.count.L <- DMC1.mean.obs.L$mean.count
-DMC1.mean.obs.Z$mean.count.Z <- DMC1.mean.obs.Z$mean.count
+#- check that distributions are close to normal
+#- check for equal variance.
 
+DMC1.histogram <- ggplot(DMC1.DF, aes(total.count, fill = stage)) + geom_histogram(alpha = 0.4)+facet_wrap(~strain)+ ggtitle("DMC1 histogram")
 
-DMC1table <- merge(DMC1.mean.obs.L, DMC1.mean.obs.Z, by="category")
+DMC1.histogram
+#checking equal variance, https://www.statmethods.net/stats/anovaAssumptions.html
+#bartlet's test, Levine's test
 
-DMC1table.main <- merge(DMC1.target.strains, DMC1table, by="category")
+#The counts look close to normal.
+#Potentially figure 2. Using a function to #display the p-vales for mean comparison
 
-MLH1.DMC1.L_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.L, method = c("pearson"))#MLH1.DMC1.Z_cor
-
-MLH1.DMC1.Z_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.Z, method = c("pearson"))#0.2793237
-
-##RATIOS
-DMC1table.main$MLH1.L_ratio <- (DMC1table.main$mean.count.L / DMC1table.main$mean.MLH1)
-DMC1table.main$MLH1.Z_ratio <- (DMC1table.main$mean.count.Z / DMC1table.main$mean.MLH1)
-  
-
-#DMC1.mean.table
-
-WSB_DMC1.Z_CO_ratio <-   ( DMC1table.main %>% filter(category == "WSB male") )$mean.count.L / (DMC1table.main %>% filter(category == "WSB male"))$mean.MLH1
-  
-G_DMC1.Z_CO_ratio <-   ( DMC1table.main %>% filter(category == "G male") )$mean.count.L / (DMC1table.main %>% filter(category == "G male"))$mean.MLH1
-
-MSM_DMC1.Z_CO_ratio <- ( DMC1table.main %>% filter(category == "MSM male") )$mean.count.L / (DMC1table.main %>% filter(category == "MSM male"))$mean.MLH1
-
-PWD_DMC1.Z_CO_ratio <-( DMC1table.main %>% filter(category == "PWD male") )$mean.count.L / (DMC1table.main %>% filter(category == "PWD male"))$mean.MLH1
-
-as.data.frame(DMC1table.main)
-
-```
-
-The table above indicates, there is not much variation across the MLH1 : DMC1 ratio (a proxy for the proportion of NCO).
-
-The correlation with MLH1 and leptotene cells is `r MLH1.DMC1.L_cor`. The correlation with MLH1 and zygotene cells is `r MLH1.DMC1.Z_cor`.
-
-`r c(WSB_DMC1.Z_CO_ratio, G_DMC1.Z_CO_ratio, MSM_DMC1.Z_CO_ratio, PWD_DMC1.Z_CO_ratio )` for  _M. m. domesticus^WSB^_ , _M. m. domesticus^G^_, _M. m. molossinus^MSM^_, and  _M. m. musculus^PWD^_ respecitively. 
-
-These are the DSB:CO ratios for the L means `r DMC1table.main$MLH1.L_ratio` and Z means `r DMC1table.main$MLH1.Z_ratio`.
-
-
-
-```{r DMC1_anova, echo=FALSE, warning=FALSE, eval=FALSE}
-#1. ANOVA, is there a difference in DMC1 counts across strains?
-mod.L <- lm(total.count ~ strain, data = DMC1.DF[DMC1.DF$stage == "L",])
-mod.Z <- lm(total.count ~ strain, data = DMC1.DF[DMC1.DF$stage == "Z",])
-
-l.anova <- anova(mod.L) #0.0002701 ***
-z.anova <- anova(mod.Z) #NS
-
-l.anova
-z.anova
 ```
 
 
 <!--
-Since there is evidence for non-equal variance across strains for zygotene cells, so don't rely on lm()s that estimate the effect of strains. 
+interpertation notes, 
+the number of DMC1 across stages (L and Z stages) are driven by different equations
 
-The p-values from the t.tests of the high vs low groups, indicate that the high recombining are significantly higher for the L cells (p value = `r ttest.HighLow.L$p.value`) while the zygotene cells, there is not a significant difference across the high and low groups (value = `r ttest.HighLow.Z$p.value`).
+Leptoene the number / rate of DMC1 is primarily driven by the substrate -- number of DNA loops -- empty sites are being filled.
+
+Zygotene the number / rate of DMC1 foci are more variable across cells because it is driven by the rate / success of homolog pairing  / if this varies across cells (via the timing) - the there might be a different total number across cells
+
+*the repair decision can happen at both stages and remove DMC1. formation of new DSB -> DMC1 foci happens at both stages, but the are triggered by different events (L: cell wide signal to start the homolog pairing and Z: unpaired bivalent signal)
+
+back to CO number -- variation in CO number is best predicted by metrics/indicators placed BEFORE DSB formation starts.
+
+expectations, predictions if this is the case -- more within mouse/group variation for DMC1 number in Z compared to L?
+OR 
+
+variance in L stage for DMC1 per cell would be proportional to the variation in the 'packing ratio' across pachtyene cells
+-Baier et al 2014 supports this model (Chmr axis / DNA loop model)
 -->
 
 
@@ -5509,9 +5508,6 @@ For the 2CO class of bivalents - all the SC are longer, the high group averages 
 
 
 ```{r male.show.plotsEXample, echo=FALSE, eval=FALSE}
-
-
-
 male_mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
                             subsp.y,subsp.x,
                     category.y,category.x, strain.x,
