@@ -3971,9 +3971,7 @@ In order to test if there are sex differences between crossover interfernce, a m
 
 
 -We focus on observations from two-crossover bivalents for more comparable observations.
-
 -comparisons of all IFDs of mulit crossover bivalents is also included
-
 Interference is a major determinant of the positioning of chromosomes
 
 <!-- 
@@ -3994,8 +3992,12 @@ ToDo: make a melt.DF with the IFD1, IFD2, IFD3 in a single cols
 explain the difference between the raw and PER measures. Why should I use /examine the IFD.PER?
 -->
 
+
+<!--  set up -->
+
+<!--  plots-->
  
-```{r show.IFD_99, echo=FALSE, warning=FALSE}
+```{r Q1.IFD_show.IFD_99, echo=FALSE, warning=FALSE}
 
 #first draft of the IFD comparisons
 #make the mouse boxplots -- instead of geom_points
@@ -4027,8 +4029,7 @@ first.IFD.plot_PER <- ggplot(Curated_BivData.22, aes(y = IFD1_PER, x= strain, co
 ```
 
 
-
-```{r IFD.old.plots, echo=FALSE, eval=FALSE}
+```{r Q1.IFD_IFD.old.plots, echo=FALSE, eval=FALSE}
 #long SC Long_biv_mouse.avs_4MM
 #real.long.bivData
 #Only use 2CO bivalents
@@ -4048,8 +4049,37 @@ long.biv_IFD_look_PER <- ggplot(real.long.bivData.22, aes(y = IFD1_PER, x= mouse
   scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+ylim(c(0,1))+theme(legend.position="none")+scale_color_manual(values=colors_of_strains)
 ```
 
+<!--t.tests -->
 
-Still working on the best way to display the general IFD patterns.
+
+```{r Q1.IFD_Ttests, echo=FALSE}
+
+#below are calq just from 2COs, have no fear
+#mean_IFD.2CO_ABS
+#mean_IFD.2CO_PER
+
+#FULL all strains
+Q1.IFD.raw_FULL_t.test <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "MOLF" )    )$mean_IFD.2CO_ABS,
+                           
+                                ( mouse.avs_4MM %>% filter(sex == "female") )$mean_IFD.2CO_ABS)
+#p-value = 0.07
+
+
+Q1.IFD.PER_FULL_t.test <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "MOLF" )    )$mean_IFD.2CO_PER,
+                           
+                                ( mouse.avs_4MM %>% filter(sex == "female") )$mean_IFD.2CO_PER)
+#p-value = 1e-12
+
+
+```
+
+
+The raw IFD measures for 2CO bivalents are slightly significant (t.test; p = `r Q1.IFD.raw_FULL_t.test$p.value`). While the normalized IFD measures are highly significant (t.test; p = `r Q1.IFD.PER_FULL_t.test$p.value`)
+
+(interpertation statement)  Males have stronger interference
+
+
+<!-- lmer/ glms-->
 
 
 ### Mixed Model Tests, Fixed Effects
@@ -4174,7 +4204,7 @@ For the normalized values in both M2 and M3, sex is a significant effect, increa
 Overall There's a low amount of significant effects across the 2CO IFD measures. This might be an indication that interference is conserved across these samples and/or that there is too much noise across from chromosome specific effects.
 
 
-## Strain Comparisons
+
 
 Dive deeper into the sex specific pattern for each strain.  Below are code chunks which show the unusual sex specific results for IFD measures. The general pattern is that, female raw IFD > male IFD and  female PER IFD < male PER IFD. The scatter plots show that female raw measures are longer than male and for the PER values, the female mean is brought down by an enrichment of short IFDs.   
 
@@ -4250,12 +4280,6 @@ entr_DF$sex.dif <- entr_DF$female.ratio - entr_DF$male.ratio
 Above is a table of the proportion of 2Co bivalents which have a norm IFD below 30%, For all strains but KAZ, the females have a greater proportion of these shorted IFD values.
 
 
-# Q2 Analysis Predictions, Male Polymorphism and (High vs Low Rec strains)
-
-<!-- keep blank for now 
--basic stats for the new dataset
-
---> 
 
 
 # Q2 SC Length
@@ -5539,18 +5563,80 @@ The t-tests for the high and low rec strains for the reduced bivalent datasets a
 mouse mean
 short bivalent
 
+
 So try using the bivalent sample levels
+
 
 
 ```{r Q2.1COpos_BIV_ttest, echo=FALSE}
 
-whoo.mama <-  t.test( (Curated_BivData  %>% filter(sex == "male") %>% filter(hand.foci.count == 1)  %>%  filter(Rec.group == "0"))$PER_Foci_1, 
-                      
+whoo.mama <-  t.test( (Curated_BivData %>% filter(sex == "male") %>% filter(hand.foci.count == 1)  %>%  filter(Rec.group == "0"))$PER_Foci_1, 
             (Curated_BivData  %>% filter(sex == "male") %>% filter(hand.foci.count == 1)   %>% filter(Rec.group == "1"))$PER_Foci_1   )
+#p-value = 0.2
 
+
+whoo.mama.rec.exc <-  t.test( (Curated_BivData  %>% filter(sex == "male") %>% filter(hand.foci.count == 1)  %>%  filter(Rec.group.exclu == "0"))$PER_Foci_1, 
+            (Curated_BivData  %>% filter(sex == "male") %>% filter(hand.foci.count == 1)   %>% filter(Rec.group.exclu == "1"))$PER_Foci_1   )
+
+#p-value = 0.4
 
 ```
 
+The t.test at the bivalent level is also NS (test; p = )
+
+
+```{r Q2.1COpos_within.subsp_ttest, echo=FALSE}
+
+#compare within subsp
+
+#Musc
+Q2.1COpos_mus.av_Musc_ttest  <-  t.test( (mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Musc") %>% filter(Rec.group == "0"))$norm.first.foci.pos, 
+            (mouse.avs_4MM  %>%  filter(sex == "male") %>% filter(subsp == "Musc") %>% filter(Rec.group == "1"))$norm.first.foci.pos   )
+
+# p-value = 0.4
+# exclusive rec group not sig
+```
+
+
+**Most all of the t.tests I've done indecate that there are no sig diff between the High and the low rec groups**
+
+The normalized 1CO position is not a good metric to distinguish the high and low rec groups.
+
+
+GLMs
+
+glms are constructed to test if there has been evolution between strains ... ect.
+I will use the full data set the reduced datasets have such low power
+
+```{r Q2.1COpos_mus.av.full_glm, echo=FALSE}
+
+#(mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Musc") %>% filter(Rec.group == "0"))$norm.first.foci.pos
+
+Q2.glm_mus.av_1COpos_M1 <- glm(norm.first.foci.pos ~ subsp * strain, data= mouse.avs_4MM %>% filter(sex == "male"))
+
+sum.Q2.glm_mus.av_1COpos_M1  <- summary(Q2.glm_mus.av_1COpos_M1)$coefficients
+
+
+#M2
+Q2.glm_mus.av_1COpos_M2 <- glm(norm.first.foci.pos ~ strain, data= mouse.avs_4MM %>% filter(sex == "male"))
+
+sum.Q2.glm_mus.av_1COpos_M2 <- summary(Q2.glm_mus.av_1COpos_M2)$coefficients
+
+```
+
+for M1
+Mol subsp is significant, strain G (LEW slight sig), strain MSM -- strain MOLF is NA
+
+for M2,
+
+G, LEW, PWD, MSM, MOLF, SKIVE, KAZ have significant effects
+
+put together, these glm's indeceate that MOLF is the most different in it's 1CO landscape (compared to other males). Is this a sampling issue
+
+For MOLF 326 1CO bivalents,  79, 126, 62, 59 1CO observations across the 4 MOLF mice
+
+there are only 77 MSM 1COs across 4 mice in MSM (MSM is less central than MOLF)
+(motivation for MOLF female observations and more male MSM biv measures)
 
 
 ```{r Q2.1CO.landscape, echo=FALSE}
