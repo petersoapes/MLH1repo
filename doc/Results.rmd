@@ -42,7 +42,7 @@ load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_1.31.20.RData")
 #load(file="C:/Users/April/Documents/MLH1repo/data/CleanBivData_1.27.20.RData")
 #load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/CleanBivData_1.27.20.RData")
 
-load(file="~./MLH1repo/data/CleanBivData_13.2.20.RData")
+load(file="~./MLH1repo/data/CleanBivData_19.2.20.RData")
 
 load(file="~./MLH1repo/data/total_SC_30.12.19.RData")
 
@@ -304,10 +304,34 @@ all.cell.MM.HQ <- ddply(.data=DF.HetC.MixedModel.HQ,
 
 ```
 
+
+
+```{r juvimice.list, echo=FALSE}
+juvi_mice <- c(
+  "30dec14_WSB_m2","30dec14_WSB_m4","30dec14_WSB_m1","30dec14_WSB_m3","30dec14_WSB_m5",
+  "30sep14_G_m1","30sep14_G_m2","30sep14_G_m3","30sep14_G_m4","30sep14_G_m5",
+  "12Feb17_LEW_m1","12Feb17_LEW_m2", "13sep17_LEW_m2", "13sep17_LEW_m1","13sep17_LEW_m3",
+ 
+  "12sep17_PWD_m1","12sep17_PWD_m2","12sep17_PWD_m3",
+   "30Dec16_MSM_m2","30Dec16_MSM_m3","30Dec16_MSM_m1"
+  )
+
+#REMOVE JUVI mice
+#juvi.mouse_CurBiv_table <- mouse.avs_4MM[mouse.avs_4MM$mouse  %in% juvi_mice, ]  
+#mouse.avs_4MM <- mouse.avs_4MM[! mouse.avs_4MM$mouse  %in% juvi_mice, ] 
+
+```
+
+
 ```{r CurBiv.Mouse.av.TABLE, echo=FALSE}
 
 #this block should be in the data set up
 #the mouse averages will be used
+
+
+#has 
+#18jul19_31may19_SKIVE_m2_sp1_13.2_rev_8 is missing the 1CO position -- remove for now
+Curated_BivData <- Curated_BivData %>% filter(fileName != "18jul19_31may19_SKIVE_m2_sp1_13.2_rev_8")
 
 mouse.avs_4MM <- ddply(Curated_BivData, c("mouse"), summarise,
                         Nmice = length(unique(mouse)),
@@ -363,13 +387,19 @@ mouse.avs_4MM$strain <- factor(mouse.avs_4MM$strain, ordered = FALSE)
 #MAKE the same version of the TABLE but for the longest_biv_Dataset (when I get around to making it)
 #code if males are high or low?
 
-#code intp chr
+#REMOVE JUVI mice
+juvi.mouse_CurBiv_table <- mouse.avs_4MM[mouse.avs_4MM$mouse  %in% juvi_mice, ]  
+mouse.avs_4MM <- mouse.avs_4MM[! mouse.avs_4MM$mouse  %in% juvi_mice, ]  
 
 #assign high and low
 #divide musc males into groups
 mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD male", mouse.avs_4MM$category), 1, 
                                 ifelse(grepl("MSM male", mouse.avs_4MM$category), 1,
                                  ifelse(grepl("SKIVE male", mouse.avs_4MM$category), 1, 0)))
+
+
+mouse.avs_4MM$Rec.group.exclu <- ifelse(grepl("PWD male", mouse.avs_4MM$category), 1, 
+                                ifelse(grepl("MSM male", mouse.avs_4MM$category), 1, 0))
 
 ```
 
@@ -433,7 +463,13 @@ male.av_4MM <- add_category(male.av_4MM)
 male.av_4MM$subsp <- factor(male.av_4MM$subsp, ordered = FALSE)
 male.av_4MM$sex <- factor(male.av_4MM$sex, ordered = FALSE)
 male.av_4MM$strain <- factor(male.av_4MM$strain, ordered = FALSE)
+
+#REMOVE JUVI mice
+juvi.from.male.biv_table <- male.av_4MM[male.av_4MM$mouse  %in% juvi_mice, ]  
+mouse.avs_4MM <- male.av_4MM[! male.av_4MM$mouse  %in% juvi_mice, ] 
+
 ```
+
 
 ```{r totSC_setup, echo=FALSE}
 #SC.skel
@@ -634,6 +670,11 @@ totSC.mouse.av.table$Rec.group <- ifelse(grepl("PWD male", totSC.mouse.av.table$
                                 ifelse(grepl("SKIVE male", totSC.mouse.av.table$category), 1, 0)))
 
 OG.totSC.mouse.av.table <- totSC.mouse.av.table
+
+#REMOVE JUVI mice
+tot.SC_juvi.male <- totSC.mouse.av.table[totSC.mouse.av.table$mouse  %in% juvi_mice, ]
+
+totSC.mouse.av.table <- totSC.mouse.av.table[! totSC.mouse.av.table$mouse  %in% juvi_mice, ] 
 
 totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain !="F1" & strain !="SPIC" & strain !=  "CAROLI" & strain !="SPRET"& strain !="HMI"& strain !="PERC")
 
@@ -4217,7 +4258,99 @@ Above is a table of the proportion of 2Co bivalents which have a norm IFD below 
 --> 
 
 
-# Q2 SC
+# Q2 SC Length
+
+
+<!-- place set ups for total SC, short biv and long biv here -->
+
+I made a sereies of plots which show that the expected / general pattern of bivalent SC length is positively associated with having more crossovers per chromsomes (possitive correlation of sc length and CO number).  Yet, given the complications from the chromsomes proportions outlined above, comparing the bivalents across chromosome classes is complecated
+
+
+```{r juvimice.list.copy, echo=FALSE}
+juvi_mice <- c(
+  "30dec14_WSB_m2","30dec14_WSB_m4","30dec14_WSB_m1","30dec14_WSB_m3","30dec14_WSB_m5",
+  "30sep14_G_m1","30sep14_G_m2","30sep14_G_m3","30sep14_G_m4","30sep14_G_m5",
+  "12Feb17_LEW_m1","12Feb17_LEW_m2", "13sep17_LEW_m2", "13sep17_LEW_m1","13sep17_LEW_m3",
+ 
+  "12sep17_PWD_m1","12sep17_PWD_m2","12sep17_PWD_m3",
+   "30Dec16_MSM_m2","30Dec16_MSM_m3","30Dec16_MSM_m1"
+  )
+
+ppmm <- OG.totSC.mouse.av.table[OG.totSC.mouse.av.table$mouse  %in% juvi_mice, ]   
+```
+
+```{r Q2.SC.short.long.setup, echo=FALSE}
+table(male.long.biv$strain)
+#the Long biv dataset is quite unbalance (esp MSM)
+male.long.biv <- real.long.bivData %>% filter(sex== "male")
+
+#mouse av for long biv
+cell.av.long.biv.table <- ddply(male.long.biv, c("fileName"), summarise,
+                             
+                        n_obs = length(Obj.ID),
+                         mean.SC = mean(chromosomeLength)
+                         )
+cell.av.long.biv.table <- add_mouse(cell.av.long.biv.table)
+cell.av.long.biv.table <- add_strain(cell.av.long.biv.table)
+cell.av.long.biv.table <- add_subsp(cell.av.long.biv.table)
+
+cell.av.long.biv.table$strain <- factor(cell.av.long.biv.table$strain, ordered = FALSE)
+cell.av.long.biv.table$strain <- factor(cell.av.long.biv.table$strain, ordered = FALSE)
+cell.av.long.biv.table$strain <- factor(cell.av.long.biv.table$strain, ordered = FALSE)
+
+
+Q2mouse.av.long.biv.table <- ddply(male.long.biv, c("mouse"), summarise,
+                        n_obs = length(Obj.ID),
+                         mean.SC = mean(chromosomeLength),
+                        
+                         #mean.first.1CO
+                        norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)])
+                         )
+
+Q2mouse.av.long.biv.table <- add_strain(Q2mouse.av.long.biv.table)
+Q2mouse.av.long.biv.table <- add_subsp(Q2mouse.av.long.biv.table)
+
+Q2mouse.av.long.biv.table$strain <- factor(Q2mouse.av.long.biv.table$strain, ordered = FALSE)
+Q2mouse.av.long.biv.table$subsp <- factor(Q2mouse.av.long.biv.table$subsp, ordered = FALSE)
+
+#divide musc males into groups
+Q2mouse.av.long.biv.table$Rec.group <- ifelse(grepl("PWD", Q2mouse.av.long.biv.table$strain), 1, 
+                                  ifelse(grepl("MSM", Q2mouse.av.long.biv.table$strain), 1,
+                                  ifelse(grepl("SKIVE", Q2mouse.av.long.biv.table$strain), 1,
+                                           0)))
+
+Q2mouse.av.long.biv.table$Rec.group.exclu <- ifelse(grepl("PWD", Q2mouse.av.long.biv.table$strain), 1, 
+                                ifelse(grepl("MSM", Q2mouse.av.long.biv.table$strain), 1, 0))
+
+
+male.short.biv <- real.short.bivData %>% filter(sex== "male")
+
+Q2mouse.av.short.biv.table <- ddply(male.short.biv, c("fileName"), summarise,
+                             
+                        n_obs = length(Obj.ID),
+                         mean.SC = mean(chromosomeLength),
+                        
+                        #mean.first.1CO
+                        norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)])
+                        
+                         )
+
+Q2mouse.av.short.biv.table <- add_mouse(Q2mouse.av.short.biv.table)
+Q2mouse.av.short.biv.table <- add_strain(Q2mouse.av.short.biv.table)
+Q2mouse.av.short.biv.table <- add_subsp(Q2mouse.av.short.biv.table)
+
+Q2mouse.av.short.biv.table$strain <- factor(Q2mouse.av.short.biv.table$strain, ordered = FALSE)
+Q2mouse.av.short.biv.table$subsp <- factor(Q2mouse.av.short.biv.table$subsp, ordered = FALSE)
+
+Q2mouse.av.short.biv.table$Rec.group <- ifelse(grepl("PWD", Q2mouse.av.short.biv.table$strain), 1, 
+ifelse(grepl("MSM", Q2mouse.av.short.biv.table$strain), 1,
+                                  ifelse(grepl("SKIVE", Q2mouse.av.short.biv.table$strain), 1,
+                                           0)))
+
+Q2mouse.av.short.biv.table$Rec.group.exclu <- ifelse(grepl("PWD", Q2mouse.av.short.biv.table$strain), 1, 
+                                ifelse(grepl("MSM", Q2mouse.av.short.biv.table$strain), 1, 0))
+```
+
 
 In order to test if sc lengths (sc area) is a predictor of genome wide recombination rate variation, we compared /analyzed the average length of bivalents between the high and low recombining strains.
 
@@ -4251,281 +4384,23 @@ Q2.SC.length_Nested_boxplots_Dom <- ggplot(Q2.SC_BivData[Q2.SC_BivData$subsp == 
 
 Q2.SC.length_Nested_boxplots_Dom2 <- ggplot(Q2.SC_BivData[Q2.SC_BivData$subsp == "Dom",], aes(y = chromosomeLength, x=as.factor(hand.foci.count), fill=as.factor(hand.foci.count) ))+geom_boxplot(aes(x=strain),alpha=0.5)+ geom_jitter(alpha = .1)+
   ggtitle("Bivalent SC Lengths by Chrm Class \nDom")+facet_wrap(subsp~sex, scales="free")+ylim(c(25,160))+theme(legend.position="none") +scale_color_manual(values=color_chrm_class)
-Q2.SC.length_Nested_boxplots_Dom2
+
 
 
 Q2.SC.length_Nested_boxplots_Musc2 <- ggplot(Q2.SC_BivData[Q2.SC_BivData$subsp == "Musc",], aes(y = chromosomeLength, x=as.factor(hand.foci.count), fill=as.factor(hand.foci.count) ))+geom_boxplot( aes(x=strain), alpha=0.5)+geom_jitter(alpha=.2)+
   ggtitle("Bivalent SC Lengths by Chrm Class \nMusc")+facet_wrap(subsp~sex, scales="free")+ylim(c(25,160))+theme(legend.position="none") +scale_color_manual(values=color_chrm_class)
-Q2.SC.length_Nested_boxplots_Musc2
+
 
 Q2.SC.length_Nested_boxplots_Mol <- ggplot(Q2.SC_BivData[Q2.SC_BivData$subsp == "Mol",], aes(y = chromosomeLength, x=as.factor(hand.foci.count), fill=as.factor(hand.foci.count) ))+geom_boxplot(aes(x=strain),alpha=0.5)+geom_jitter(alpha=.3)+  ggtitle("Bivalent SC Lengths by Chrm Class\n Mol")+facet_wrap(subsp~sex, scales="free")+ylim(c(25,160))+theme(legend.position="none")+scale_color_manual(values=color_chrm_class)
-Q2.SC.length_Nested_boxplots_Mol
+
 
 
 #+theme(legend.position="none") 
 ```
 
 
-**general pattern: SC lengths correlate with number of foci on single bivalents (the chromosome classes). Diviations within strains are due to low sample numbers.
+```{r Q2.SC.long.biv_plots, echo=FALSE}
 
-The positive correlation of sc lengths has a positive correlation with the number of COs on single chromosomes ,
-
-in the musculus and molossinus strains, the positive correlation is more 
-
-In Domisticus the -- postive correlation only holds for the first 3 classes of bivalents (0CO, 1CO, 2CO) -- this illustrates how the differences between proportions of chromosome classes across strains confonds comparisons of SC length across strains.
-
-
-The glm's for the full dataset across -- the coefficients are listed below 
-
-```{r Q2.male.Nrm1CO_strain, echo=FALSE, eval=FALSE}
-#isolate all musc
-#Curated_BivData_male <- Curated_BivData[Curated_BivData$sex == "male",]
-
-##long biv
-male.long.biv <- real.long.bivData %>% filter(sex== "male") %>% filter(species == "M.musculus") 
-#table( droplevels( male.long.biv$strain)  )
-
-
-mouse.av.long.biv.table <- ddply(male.long.biv, c("mouse"), summarise,
-                             
-                        n_obs = length(Obj.ID),
-                         mean_F1 = mean(Foci1, na.rm=TRUE),
-                        mean_F1.nrm = mean(PER_Foci_1,na.rm=TRUE),
-                        
-                        mean_SC = mean(chromosomeLength),
-
-                      mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                       mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                       mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                       mean.SC_4CO = mean(chromosomeLength[which(hand.foci.count == 4)], na.rm = TRUE)
-
-                                               )
-#add subsp
-
-mouse.av.long.biv.table <- add_strain(mouse.av.long.biv.table)
-mouse.av.long.biv.table <- add_subsp(mouse.av.long.biv.table)
-
-mouse.av.long.biv.table$strain <- factor(mouse.av.long.biv.table$strain, ordered = FALSE)
-mouse.av.long.biv.table$subsp <- factor(mouse.av.long.biv.table$subsp, ordered = FALSE)
-
-#add rec group
-mouse.av.long.biv.table$Rec.group <- ifelse(grepl("PWD", mouse.av.long.biv.table$strain), 1, 
-                            ifelse(grepl("MSM", mouse.av.long.biv.table$strain), 1,
-                             ifelse(grepl("SKIVE", mouse.av.long.biv.table$strain), 1, 0)) )
-```
-
-
-```{r wacky, echo=FALSE}
-
-real.long.bivData$bin <- "long"
-real.short.bivData$bin <- "short"
-
-lng.shrt <- rbind(real.long.bivData[,c(1:2, 17,19)], real.short.bivData[,c(1:2, 17,19)])
-
-uu <- ggplot(lng.shrt, aes(x=fileName, y=chromosomeLength) )  + geom_point()+facet_wrap(~strain, scales="free")
-
-```
-
-We purpose -- we think that running the models for comparing SC means by chromosome class and devided by rec group. (since the chromsome porportions are similar -- hopefully/we assume the the sets of chromosomes within each set are more similar )
-
-The null hypothesis is that these won't be highly significant strain effects.
-If there are still strain effects fo these models, that would be evidence that there has been eevolution for SC length compaction across these strains
-
-## Total SC
-
-`r length(OG.MLH1.merge.Skel$fileName)` total skelentonize measures were made from all of the MLH1 pachtyene cell images. X observations removed for having extra signal from other cells. `r length(unique( all.remove ) )` measures removed as potential outliers (by examining the category specific plots)
-
-
-```{r show.tot.sc, echo=FALSE}
-
-#totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain !="F1"& strain !="SPIC" & strain !=  "CAROLI" & strain !="SPRET"& strain !="HMI"& strain !="PERC")
-
-#MLH1_data <- MLH1_data %>%
-#  arrange(strain, sex, mouse) %>%
-#  mutate(file.name = factor(file.name))
-
-mouse.av_sc_male <- ggplot(data= OG.totSC.mouse.av.table[OG.totSC.mouse.av.table$sex == "male",], aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
-  facet_wrap(Rec.group~subsp, scales="free")+ theme(axis.title.x=element_blank(),        axis.text.x=element_blank(), axis.ticks.x=element_blank()) + ylim(c(1200,1850 ))+ggtitle("Mouse av. total SC area")
-mouse.av_sc_male
-
-```
-
-The skeletonized measures show that the general pattern holds for total SC and the high rec strains. However there are a few exceptions -- However in the molf strain, there might be strain specific evolution--the mol subsp all have more SC skel
-
-
--the SKIVE are within dom and kaz level -- so why does SKIVE have inntermediate CO proportions and gwRR
-
-24sep14_PWD_m1 is lower than the others
-5jul17_MSM_m1 is the low MSM
-
-The CZECH and AST are higher than KAZ
-
-```{r Q2.SC_class.rec.group_setup, echo=FALSE}
-
-#rerun the models for datasets -- deviding by chrm class and rec group
-Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
-                            ifelse(grepl("MSM male", Curated_BivData$category), 1,
-                             ifelse(grepl("SKIVE male", Curated_BivData$category), 1, 0)) )
-
-
-Q2.SC_BivData_low.rec <- Curated_BivData %>% filter(sex=="male") %>% filter( hand.foci.count < 5)%>% filter(Rec.group == 0 )
-Q2.SC_BivData_high.rec <- Curated_BivData %>% filter(sex=="male") %>% filter( hand.foci.count < 5) %>% filter(Rec.group == 1 )
-
-#calq_mouse av
-mouse.av.SC.low.rec <- ddply(Q2.SC_BivData_low.rec, c("mouse"), summarise,
-                        n_obs = length(Obj.ID),
-                        n_cells = length(unique(fileName) ),
-                        mean.SC.total = mean(chromosomeLength),
-
-                    mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
-                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
-                  
-                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
-                  
-                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
-                  
-                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
-                                                
-                         )
-
-mouse.av.SC.low.rec <- add_strain(mouse.av.SC.low.rec)
-mouse.av.SC.low.rec <- add_subsp(mouse.av.SC.low.rec)
-
-mouse.av.SC.low.rec$strain <- factor(mouse.av.SC.low.rec$strain, ordered = FALSE)
-mouse.av.SC.low.rec$subsp <- factor(mouse.av.SC.low.rec$subsp, ordered = FALSE)
-
-
-#calq_mouse av
-mouse.av.SC.high.rec <- ddply(Q2.SC_BivData_high.rec, c("mouse"), summarise,
-                        n_obs = length(Obj.ID),
-                         mean.SC = mean(chromosomeLength)
-                         )
-mouse.av.SC.high.rec <- add_mouse(mouse.av.SC.high.rec)
-mouse.av.SC.high.rec <- add_strain(mouse.av.SC.high.rec)
-mouse.av.SC.high.rec <- add_subsp(mouse.av.SC.high.rec)
-
-mouse.av.SC.high.rec$strain <- factor(mouse.av.SC.high.rec$strain, ordered = FALSE)
-mouse.av.SC.high.rec$add_subsp <- factor(mouse.av.SC.high.rec$subsp, ordered = FALSE)
-```
-
-The number of cells and mice is difference across the low group strains, 
--- permut the data, sample just 3 mice per category, which have similar numbers of cells represented (or down sample)
-
-
-```{r Q2.SC.Length.stuff, echo=FALSE}
-#all pooled SC lengths
-#WSB     G   LEW  MOLF   KAZ CZECH 
-#    5     9     5     4     3     3 
-
-
-#1apr16_G_m4, fewest obs and fewest cells, 12oct15_G_m1 7 cells, others have ~14
-
-#G sample 5 mice
-
-#break down of mice in the low rec dataset
-
-#glm.1CO
-Q2.glm_SCLength_low.rec_1CO <- glm(mean.SC_1CO ~ subsp * strain, data=mouse.av.SC.low.rec) 
-summry.Q2.glm_SCLength_low.rec_1CO <- summary(Q2.glm_SCLength_low.rec_1CO)
-round(summry.Q2.glm_SCLength_low.rec_1CO$coefficients[,c(1,4)],5)
-
-#glm.2CO
-Q2.glm_SCLength_low.rec_2CO <- glm(mean.SC_2CO ~ subsp * strain, data=mouse.av.SC.low.rec)
-summry.Q2.glm_SCLength_low.rec_2CO <- summary(Q2.glm_SCLength_low.rec_2CO)
-round(summry.Q2.glm_SCLength_low.rec_2CO$coefficients[,c(1,4)],5)
-#fewer significant differences
-
-Q2.glm_SCLength_low.rec.M2_2CO <- glm(mean.SC_2CO ~  strain, data=mouse.av.SC.low.rec)
-sum.Q2.glm_SCLength_low.rec.M2_2CO <- summary(Q2.glm_SCLength_low.rec.M2_2CO)
-round(sum.Q2.glm_SCLength_low.rec.M2_2CO$coefficients[,c(1,4)],5)
-#all but KAZ are slightly significant, G and CZECH more so
-
-
-#glm.3CO
-Q2.glm_SCLength_low.rec_3CO <- glm(mean.SC_3CO ~ subsp * strain, data=mouse.av.SC.low.rec) 
-#not sig differences
-summry.Q2.glm_SCLength_low.rec_3CO <- summary(Q2.glm_SCLength_low.rec_3CO)
-round(summry.Q2.glm_SCLength_low.rec_3CO$coefficients[,c(1,4)],5)
-
-#Q2.lmer_SCLength_low.rec_R.sex <- lmer(mean.SC ~ subsp + (1|strain), data=mouse.av.SC.low.rec, REML = TRUE) 
-
-
-
-#all pooled SC lengths
-lmer.Q1_SCLength_short_M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Q1.real.short_mouse_table, REML = TRUE) 
-lmer.Q1_SCLength_short_M1_R.sex <- lmer(mean_SC ~ subsp + (1|strain), data=Q1.real.short_mouse_table, REML = TRUE) 
-lmer.Q1_SCLength_short_M1_R.subsp <- lmer(mean_SC ~ sex + (1|strain), data=Q1.real.short_mouse_table, REML = TRUE) 
-
-Q1lmer.MM_SC_short_interaction  <-drop1(lmer.Q1_SCLength_short_M1, test="Chisq" )$`Pr(Chi)`[2]
-Q1lmer.MM_SC_short_sex  <-anova(lmer.Q1_SCLength_short_M1, lmer.Q1_SCLength_short_M1_R.sex)$`Pr(>Chisq)`[2]
-Q1lmer.MM_SC_short_subp  <- anova(lmer.Q1_SCLength_short_M1, lmer.Q1_SCLength_short_M1_R.subsp)$`Pr(>Chisq)`[2]
-Q1lmer.MM_SC_short_strain  <- exactRLRT(lmer.Q1_SCLength_short_M1)$p.value 
-
-#as.data.frame(round(summary(lmer.SCLength_all_MM.M1)$coefficients, 6))#these Dont return p values for the fixed effects
-
-Q1lmer.MM_SC_short_results <- data.frame(sub.sp = Q1lmer.MM_SC_short_subp, 
-sex.results =  Q1lmer.MM_SC_short_sex, 
-               interaction.pval = Q1lmer.MM_SC_short_interaction,  rand.pval = 
-Q1lmer.MM_SC_short_strain)
-Q1lmer.MM_SC_short_results
-
-
-
-```
-
-
-```{r Q2.SC.short.long.setup, echo=FALSE}
-table(male.long.biv$strain)
-#the Long biv dataset is quite unbalance (esp MSM)
-male.long.biv <- real.long.bivData %>% filter(sex== "male")
-
-#mouse av for long biv
-cell.av.long.biv.table <- ddply(male.long.biv, c("fileName"), summarise,
-                             
-                        n_obs = length(Obj.ID),
-                         mean.SC = mean(chromosomeLength)
-                         )
-cell.av.long.biv.table <- add_mouse(cell.av.long.biv.table)
-cell.av.long.biv.table <- add_strain(cell.av.long.biv.table)
-cell.av.long.biv.table <- add_subsp(cell.av.long.biv.table)
-
-cell.av.long.biv.table$strain <- factor(cell.av.long.biv.table$strain, ordered = FALSE)
-cell.av.long.biv.table$strain <- factor(cell.av.long.biv.table$strain, ordered = FALSE)
-cell.av.long.biv.table$strain <- factor(cell.av.long.biv.table$strain, ordered = FALSE)
-
-mouse.av.long.biv.table <- ddply(male.long.biv, c("mouse"), summarise,
-                        n_obs = length(Obj.ID),
-                         mean.SC = mean(chromosomeLength)
-                         )
-mouse.av.long.biv.table <- add_mouse(mouse.av.long.biv.table)
-mouse.av.long.biv.table <- add_strain(mouse.av.long.biv.table)
-mouse.av.long.biv.table <- add_subsp(mouse.av.long.biv.table)
-
-mouse.av.long.biv.table$strain <- factor(mouse.av.long.biv.table$strain, ordered = FALSE)
-mouse.av.long.biv.table$strain <- factor(mouse.av.long.biv.table$strain, ordered = FALSE)
-mouse.av.long.biv.table$strain <- factor(mouse.av.long.biv.table$strain, ordered = FALSE)
-
-male.short.biv <- real.short.bivData %>% filter(sex== "male")
-
-mouse.av.short.biv.table <- ddply(male.short.biv, c("fileName"), summarise,
-                             
-                        n_obs = length(Obj.ID),
-                         mean.SC = mean(chromosomeLength)
-                         )
-
-mouse.av.short.biv.table <- add_mouse(mouse.av.short.biv.table)
-mouse.av.short.biv.table <- add_strain(mouse.av.short.biv.table)
-mouse.av.short.biv.table <- add_subsp(mouse.av.short.biv.table)
-mouse.av.short.biv.table$strain <- factor(mouse.av.short.biv.table$strain, ordered = FALSE)
-mouse.av.short.biv.table$strain <- factor(mouse.av.short.biv.table$strain, ordered = FALSE)
-mouse.av.short.biv.table$strain <- factor(mouse.av.short.biv.table$strain, ordered = FALSE)
-```
-
-
-```{r Q2.SC.long.biv_2, echo=FALSE}
 shoo.long.biv <- ggplot(male.long.biv, aes(y=chromosomeLength, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Single Biv \nMale Long Biv SC Lengths")
 
 
@@ -4533,102 +4408,194 @@ cell.avlong.biv <- ggplot(cell.av.long.biv.table, aes(y=mean.sc, x=strain, color
 
 
 mouse.shoo.long.biv <- ggplot(mouse.av.long.biv.table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Mouse av. \nMale Long Biv SC Lengths")
+
                       
 cell.avlong.biv <- ggplot(cell.av.long.biv.table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Cell av. \nMale Long Biv SC Lengths")
+mouse.shoo.long.biv
+```
+
+```{r Q2.SCshort_plot, echo=FALSE}
+
+```
+
+```{r Q2_tot.sc_plot, echo=FALSE}
+
+#totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain !="F1"& strain !="SPIC" & strain !=  "CAROLI" & strain !="SPRET"& strain !="HMI"& strain !="PERC")
+
+#MLH1_data <- MLH1_data %>%
+#  arrange(strain, sex, mouse) %>%
+#  mutate(file.name = factor(file.name))
+
+mouse.av_totsc_male <- ggplot(data= totSC.mouse.av.table %>% filter(sex == "male"), aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
+  facet_wrap(Rec.group~subsp, scales="free")+ theme(axis.title.x=element_blank(),        axis.text.x=element_blank(), axis.ticks.x=element_blank()) + ylim(c(1200,1850 ))+ggtitle("Mouse av. total SC area")
+
+mouse.av_totsc_male
 
 ```
 
 
-```{r Q2.SC.ploy.male, echo=FALSE}
-# 1 way anova, is at least 1 strain different from the rest?
-# given a lm, how sig is the strain effect
-
-#1. determine which strain effects are sig
-#use mouse biv average
-#Male.poly.Mouse.Table_BivData_4MM
-
-glm1.SC.male.poly <- glm(mean_SC ~ subsp * strain, data= Male.poly.Mouse.Table_BivData_4MM)
-#summary(glm1.SC.male.poly) 
-#SC many strains are different (more than the gwRR)
-#subsps are sig
-
-glm2.SC.male.poly <- glm(mean_SC ~ strain, data= Male.poly.Mouse.Table_BivData_4MM)
-#summary(glm2.SC.male.poly) 
-
-#Dom
-glm_SC.male_Dom <- glm(mean_SC ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Dom",])
-#summary(glm_SC.male_Dom)  #ALL strain are sig
-#both G and LEW have significant mean.SC, doesn't meet predictions
-
-#Musc
-glm_SC.male_Musc <- glm(mean_SC ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",])
-#summary(glm_SC.male_Musc)
-
-#Mol
-glm_SC.male_Mol <- glm(mean_SC ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",])
-#summary(glm_SC.male_Mol)
-
-
-#Logistic regressions
-
-log.SC.male.poly <- glm(Rec.group ~ mean_SC, 
-              data=Male.poly.Mouse.Table_BivData_4MM,  family=binomial(link="logit"))
-
-                #Curated_BivData[(Curated_BivData$sex == "male") & (Curated_BivData$subsp == "Musc"),],
-
-#summary(log.SC.male.poly)
-
-
-log.SC.male.poly_musc <- glm(Rec.group ~ mean_SC, 
-              data=Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",],  family=binomial(link="logit"))
-
-#summary(log.SC.male.poly_musc)
-#not sig -- when just looking at Musc
-
-#significant in predicting group
-log.SC.male.poly_mol <- glm(Rec.group ~ mean_SC, 
-              data=Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",],  family=binomial(link="logit"))
-
-#summary(log.SC.male.poly_mol)
-#not sig -- when just looking at Mol
+```{r Q2_SC_ChrmClass_long.biv, echo=FALSE}
+#there might not be enough data 
+#
+ii <- as.data.frame( table(male.long.biv$hand.foci.count, male.long.biv$strain) )
 ```
+
+
+<!-- basic stats -->
+
+total SC for males (which ar)
+X additional cells were added to the male specifi total SC data set discirbed above
+
+-reduced bivalent dataset (long and short) is made up of bined bivalents from X cells and X mice
+
+
+<!-- tests below;  t.test(high low) OR logistic regression, mixed modlels, glm 
+remember the pairwise t.test
+Pwise.ttest_Dom.male <- pairwise.t.test(male.Dom.mouse.av$mean_SC, male.Dom.mouse.av$strain)
+G-WSB is sig, WSB-LEW are slightly sig
+
+-->
+
+
+```{r Q2.totSC.ttest, echo=FALSE}
+
+#totalSC high and low rec group
+
+#
+Q2tot.sc_t.test_High.Low <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %>% filter(Rec.group == "0") )$mean.skel,
+                           
+                               
+                               (totSC.mouse.av.table %>% filter(sex == "male") %>% filter(Rec.group == "1") )$mean.skel)
+#p-value = 0.007
+
+```
+
+
+```{r Q2.short.long.ttest, echo=FALSE}
+
+#long and short 
+#mouse.av.short.biv.table
+#Q2mouse.av.short.biv.table
+Q2short.biv_t.test_High.Low <- t.test((Q2mouse.av.short.biv.table %>% filter(Rec.group == "0") )$mean.SC,
+                                      (Q2mouse.av.short.biv.table %>% filter(Rec.group == "1") )$mean.SC)
+
+#p-value = 0.9
+
+#mouse.av.long.biv.table
+Q2long.biv_t.test_High.Low <- t.test((Q2mouse.av.long.biv.table  %>% filter(Rec.group == "0") )$mean.SC,
+                          (Q2mouse.av.long.biv.table  %>% filter(Rec.group == "1") )$mean.SC)
+#p-value = 0.2
+
+```
+
+**we ran t.tests on the SC based metrics to test is the high and low groups are significanly different**
+
+
+**mouse means of total SC area for Higher rec strains are significantly higher compared to low rec strains (ttest; p = 
+`r Q2tot.sc_t.test_High.Low$p.value`).**
+
+**The mouse means for the reduced bivalent datasets are not significantly different between the high and low rec strains (ttest; short p = `r Q2short.biv_t.test_High.Low$p.value` and long p = `r Q2long.biv_t.test_High.Low$p.value`). (the summary of mouse averages for this subset of ) **
+
+this might indicate -there's error in the total SC algorithm
+
+- mouse effects
+
+- low power / sampling bias in reduced data set
+
+- total SC is capturing differences in the XY signal which is excluded from the bivalent dataset
+
+glms
+
+```{r Q2.totSC.glm, echo=FALSE}
+
+#(totSC.mouse.av.table %>% filter(sex == "male") %>% filter(Rec.group == "0") )$mean.skel
+
+Q2.glm_mus.av_totSC_M1 <- glm(mean.skel ~ subsp * strain, data= totSC.mouse.av.table %>% filter(sex == "male"))
+
+sum.Q2.glm_mus.av_totSC_M1  <- summary(Q2.glm_mus.av_totSC_M1)$coefficients
+
+#sum.Q2.glm_mus.av_totSC_M1.coef <- 
+
+#sum.Q2.glm_mus.av_totSC_M1$coefficients[,4]   pvalues of all effects
+#sum.Q2.glm_mus.av_totSC_M1$coefficients[,1]  coefficients of all effects
+#round(sum.Q2.glm_mus.av_totSC_M1$coefficients[,c(1,4)], 6)
+
+Q2.glm_mus.av_totSC_M2 <- glm(mean.skel ~ strain, data= totSC.mouse.av.table %>% filter(sex == "male"))
+
+sum.Q2.glm_mus.av_totSC_M2  <- summary(Q2.glm_mus.av_totSC_M2)
+#round(summary(sum.Q2.glm_mus.av_totSC_M2)$coefficients[,c(1,4)], 6)
+```
+
+(the subspecis effect is tested in M1)
+For M2 (glm including subsp), the two subspecies effects are significant (glm; p= Musculus `r sum.Q2.glm_mus.av_totSC_M1[,4][2]` and Molossinus p= `r sum.Q2.glm_mus.av_totSC_M1[,4][3]`)   
+
+strain effects from M1; G, LEW, MSM, SKIVE and TOM
+
+strain effects  (basicall all strain effects are significant) (tech effects / error?)
+All strain effects were significant when tested in M2 (Supplemental table X)
+
+For M2 all
 
 
 ```{r Q2.glm.SC.long, echo=FALSE}
-glm.Q2.M2.SC.cell.av_long.biv <- glm(mean.SC ~ strain, data= cell.av.long.biv.table)
-round(summary(glm.Q2.M2.SC.cell.av_long.biv)$coefficients[,c(1,4)], 6)
 
-table(mouse.av.long.biv.table$mouse)
+#Q2.glm.M2.SC.cell.av_long.biv <- glm(mean.SC ~ strain, data= cell.av.long.biv.table)
+#round(summary(glm.Q2.M2.SC.cell.av_long.biv)$coefficients[,c(1,4)], 6)
+#table(mouse.av.long.biv.table$mouse)
+#Q2mouse.av.long.biv.table
 
-glmQ2.M2.SC.male_long.biv <- glm(mean.SC ~ strain, data= mouse.av.long.biv.table)
-round(summary(glmQ2.M2.SC.male_long.biv)$coefficients[,c(1,4)], 6)
+
+glmQ2_long.biv_M1 <- glm(mean.SC ~ subsp * strain, data= Q2mouse.av.long.biv.table)
+
+sum.glmQ2_long.biv_M1 <- summary(glmQ2_long.biv_M1)
+
+glmQ2_long.biv_M2 <- glm(mean.SC ~ strain, data= Q2mouse.av.long.biv.table)
+
+sum.glmQ2_long.biv_M2 <- summary(glmQ2_long.biv_M2)
+
+#round(sum.glmQ2_long.biv_M2$coefficients[,c(1,4)], 6)
 ```
-In the cell average Long biv data set, MSM G and CZECH strains have sig strain effects
 
-very few strains have significant values for the mouse
+**For the long bivalent dataset, In M1 where the subsp are tested, only Musc is significant (glm; Musc p= `r sum.glmQ2_long.biv_M1$coefficients[,4][2]`). The significant strain effects in M1 are slight just MSM (glm; MSM p= `r sum.glmQ2_long.biv_M1$coefficients[,4][7]`).**
+
+**For the long bivalent dataset, In M2 (limited to just the strain effects) a few strain effects are significant (glm; MSM p = `r sum.glmQ2_long.biv_M2$coefficients[,4][5]`, SKIVE `r sum.glmQ2_long.biv_M2$coefficients[,4][7]` and CZECH p = `r sum.glmQ2_long.biv_M2$coefficients[,4][9]`).**
+
 
 ```{r Q2.glm.SC.short, echo=FALSE}
-glmQ2_SC_mouse.av.short_biv <- glm(mean.SC ~ strain, data= mouse.av.short.biv.table)
+#Q2mouse.av.short.biv.table
+#mouse.av.short.biv.table
 
-round(summary(glmQ2_SC_mouse.av.short_biv)$coefficients[,c(1,4)], 6)
+glmQ2_short.biv_M1 <- glm(mean.SC ~ subsp*strain, data= Q2mouse.av.short.biv.table)
+sum.glmQ2_short.biv_M1 <- summary(glmQ2_short.biv_M1)
+
+#round(summary(sum.glmQ2_short.biv_M1)$coefficients[,c(1,4)], 6)
+
+glmQ2_short.biv_M2 <- glm(mean.SC ~ strain, data= Q2mouse.av.short.biv.table)
+glmQ2_short.biv_M2 <- summary(glmQ2_short.biv_M2)
+
 ```
-Basically all strains have a significant effect for the mouse.av of long biv
 
-```{r Q2.glm.SC.all.strain, echo=FALSE}
+In the short bivalent data set -- analyzed by M1, both subspeces are sig (glm; p= Musculus `r sum.glmQ2_short.biv_M1$coefficients[,4][2]` and Molossinus p= `r sum.glmQ2_short.biv_M1$coefficients[,4][3]`). And the strain effec for G is significant (glm; G p =`r sum.glmQ2_short.biv_M1$coefficients[,4][4]`).
+
+For the M2 modeanalyzing the mouse means short bivalents, all strains have significant effect but LEW
+G,PWD, MSM, MOLF, SKIVE, KAZ, CZECH.
+
+
+```{r Q2.SC.long.glm.bivglm, echo=FALSE}
 
 #Dom
 glm_SC.male_Dom_long.biv <- glm(mean_SC ~ strain, data= Long.biv_mouse_table[Long.biv_mouse_table$subsp == "Dom",])
-round(summary(glm_SC.male_Dom_long.biv)$coefficients[,c(1,4)], 6)
+#round(summary(glm_SC.male_Dom_long.biv)$coefficients[,c(1,4)], 6)
 
 #Musc
 glm_SC.male_Musc_long.biv <- glm(mean_SC ~ strain, data= Long.biv_mouse_table[Long.biv_mouse_table$subsp == "Musc",])
-round(summary(glm_SC.male_Musc_long.biv)$coefficients[,c(1,4)], 6)
+#round(summary(glm_SC.male_Musc_long.biv)$coefficients[,c(1,4)], 6)
 
 #summary(glm_SC.male_Musc_long.biv)
 
 #Mol
 glm_SC.male_Mol_long.biv <- glm(mean_SC ~ strain, data= Long.biv_mouse_table[Long.biv_mouse_table$subsp == "Mol",])
-round(summary(glm_SC.male_Mol_long.biv)$coefficients[,c(1,4)], 6)
+#round(summary(glm_SC.male_Mol_long.biv)$coefficients[,c(1,4)], 6)
 
 
 ## logistic regression for Rec group
@@ -4643,6 +4610,35 @@ log.SC.male.poly_musc <- glm(Rec.group ~ mean_SC,
 
 ```
 
+
+
+**general pattern: SC lengths correlate with number of foci on single bivalents (the chromosome classes). Diviations within strains are due to low sample numbers.**
+
+
+We purpose -- we think that running the models for comparing SC means by chromosome class and devided by rec group. (since the chromsome porportions are similar -- hopefully/we assume the the sets of chromosomes within each set are more similar )
+
+The null hypothesis is that these won't be highly significant strain effects.
+If there are still strain effects fo these models, that would be evidence that there has been eevolution for SC length compaction across these strains
+
+
+`r length(OG.MLH1.merge.Skel$fileName)` total skelentonize measures were made from all of the MLH1 pachtyene cell images. X observations removed for having extra signal from other cells. `r length(unique( all.remove ) )` measures removed as potential outliers (by examining the category specific plots)
+
+
+The skeletonized measures show that the general pattern holds for total SC and the high rec strains. However there are a few exceptions -- However in the molf strain, there might be strain specific evolution--the mol subsp all have more SC skel
+
+
+-the SKIVE are within dom and kaz level -- so why does SKIVE have inntermediate CO proportions and gwRR
+
+24sep14_PWD_m1 is lower than the others
+5jul17_MSM_m1 is the low MSM
+
+The CZECH and AST are higher than KAZ
+
+The number of cells and mice is difference across the low group strains, 
+-- permut the data, sample just 3 mice per category, which have similar numbers of cells represented (or down sample)
+
+
+
 abova are glm tables for mouse.av SC lengths for each strain.
 
 Using the mouse average SC lengths, in the full data set all strain effects are significant. This is an indication that there is more variation for the SC lengths than for gwRR / CO counts. 
@@ -4653,10 +4649,173 @@ The general pattern is that the high rec strain have a greater mean SC length fo
 The predicted pattern for SC length becomes more nuanced when the data are split up by Chromosome class. Mainly that 1CO are shorter in the high rec strains then low rec strains. This is likely due to the fact that more physically longer chromosomes have 1CO in the low rec strains, which pushes the mean SC length up. Where as in the High rec strains, physically longer chromosomes are more likely to be in the 2CO group.  This supports a general pattern of tighter clustering of SC lengths across chromosome classes in the high rec group. They have a lower probability of 2COs below a certain SC length threshold.
 
 
-I think these comparisons should be done with the **Bivalent observations**
-The logistic regression showed rec groups could be predicted by SC length - re-run them while separating out by chrm class
 
-```{r Q2.SC.Chrm.Class, echo=FALSE}
+
+<!--
+blocks of other male Q2 - SC lengths
+
+what are the pairwise t-test functions -- use pairwise.t.test(Ozone, Month, p.adj = "bonf")
+The mouse average and single bivalents are significantly longer in the high rec group p = r T.test_SC.Len_mouse.av$p.value and p=  r T.test_SC.Len_single.biv$p.value.
+
+
+```{r male.poly.test.MM, echo=FALSE, eval=FALSE}
+#I don't think the Mixed models fit well for the high vs low polymorphism tests.
+
+#t.test comparisons of PWD_SC vs (KAZ, SKIVE, )
+#MSM_SC vs MOLF_SC
+
+#2. logistic regression for sc length and chrm class?
+#if the prediction / significance 
+
+#isolate data
+#mouse.avs_4MM_male <- mouse.avs_4MM[mouse.avs_4MM$sex == "male",]
+#mouse.avs_4MM_M.male <- mouse.avs_4MM_male[mouse.avs_4MM_male$subsp == "Musc",]
+
+mouse.avs_4MM_M.male$mouse <- factor(mouse.avs_4MM_M.male$mouse, ordered = FALSE)
+
+#build and test MM
+lme_MM_SC_length_male.poly <- lme(mean_SC ~ mouse + 1|strain, data= mouse.avs_4MM_M.male)#this syntax not working
+as.data.frame( round(  summary(lme_MM_SC.length)$tTable, 6 ) )
+
+lmer_MM_SC_length_male.poly <- lmer(mean_SC ~ (1|strain), data=mouse.avs_4MM_M.male, REML = TRUE)
+
+anova(lmer_MM_SC_length_male.poly)
+
+rand_SC.Length_MM.male.poly <- exactRLRT(lmer_MM_SC_length_male.poly)#this won't work either...hmm
+
+```
+
+-->
+
+> **Summary**
+
+When the SC lengths are divided by co number / class, -- difference in direction of the logistic regression. I think the shorter 1CO bivalents in the high rec strain reflects the clustering of groups by SC length. (IE the scatter plots of SC length, binned by chrm class on the X).
+
+
+Each point is a mouse average SC. When all bivalents are pooled, the logistic regression SC lengths predict the groups. When the data is divided by CO number, 1CO's have a higher SC length in the low group - in the low group more chrms, including the longer ones have 1CO - whereas in the high group, only shorter chrms (SC) are in the 1CO class.
+For the 2CO class of bivalents - all the SC are longer, the high group averages were longer than the low.
+
+ and the mean 2COs SC are higher in the high strains
+(this must have something to do with the physical size effect)
+
+
+If I want to try to use mouse nested in strain -- I should use cell level metrics (but those have there own flaws)
+
+
+Ideas for the above 3 tests, 
+
+1. no difference in DOM
+- no sig logistic regression test
+- glm, strain effect?
+
+
+
+When all male mice are used, the predictive power is greater, than when just the Musc strains are used. When, just the Musc strain are used, The mouse mean SC is slightly significant in predicting if a mouse is in the high or low (should I consider running on female too?)
+
+
+> Is the prediction, high rec musc male strains have long SC met?  
+
+
+In a logistic regression, mouse average SC length is slightly predictive telling if a mouse is in a high or low Rec strain.  I couldn't get the Mixed models working for the male polymorphism predictions...
+
+
+
+<!-- junk chunks below -->
+
+
+```{r Q2.SC.logreg.chrmClass_BivData, echo=FALSE, include=FALSE, eval=FALSE}
+
+log.SC_male_chrm.class_all <- glm(chrm.class ~ chromosomeLength,
+              data=Bivalent_1o2,  family=binomial(link="logit"))
+
+summary(log.SC_male_chrm.class_all)
+
+
+#use the 1CO or 2CO DF
+Bivalent_1o2_WSB <-  Bivalent_1o2 %>% filter(strain == "WSB")
+
+log.SC_male_chrm.class.WSB <- glm(chrm.class ~ chromosomeLength,
+              data=Bivalent_1o2_WSB,  family=binomial(link="logit"))
+
+summary(log.SC_male_chrm.class.WSB)
+
+
+Bivalent_1o2_G <-  Bivalent_1o2 %>% filter(strain == "G") 
+log.SC_chrm.class.G <- glm(chrm.class ~ chromosomeLength,
+              data=Bivalent_1o2_G,  family=binomial(link="logit"))
+summary(log.SC_chrm.class.G)
+
+
+Bivalent_1o2_LEW <-  Bivalent_1o2 %>% filter(strain == "LEW") 
+log.SC_chrm.class.LEW <- glm(chrm.class ~ chromosomeLength,
+              data=Bivalent_1o2_LEW,  family=binomial(link="logit"))
+summary(log.SC_chrm.class.LEW)
+
+
+Bivalent_1o2_PWD <-  Bivalent_1o2 %>% filter(strain == "PWD") 
+log.SC_chrm.class.PWD <- glm(chrm.class ~ chromosomeLength,
+              data=Bivalent_1o2_PWD,  family=binomial(link="logit"))
+summary(log.SC_chrm.class.PWD)
+
+
+Bivalent_1o2_SKIVE <-  Bivalent_1o2 %>% filter(strain == "SKIVE") 
+log.SC_chrm.class.SKIVE <- glm(chrm.class ~ chromosomeLength,
+              data=Bivalent_1o2_SKIVE,  family=binomial(link="logit"))
+summary(log.SC_chrm.class.SKIVE)
+
+
+Bivalent_1o2_KAZ <-  Bivalent_1o2 %>% filter(strain == "KAZ") 
+log.SC_chrm.class.KAZ <- glm(chrm.class ~ chromosomeLength,
+              data=Bivalent_1o2_KAZ,  family=binomial(link="logit"))
+summary(log.SC_chrm.class.KAZ)
+
+
+Bivalent_1o2_CZECH <-  Bivalent_1o2 %>% filter(strain == "CZECH") 
+log.SC_chrm.class.CZECH <- glm(chrm.class ~ chromosomeLength,
+              data=Bivalent_1o2_CZECH,  family=binomial(link="logit"))
+summary(log.SC_chrm.class.CZECH)
+
+Bivalent_1o2_MSM <-  Bivalent_1o2 %>% filter(strain == "MSM") 
+log.SC_chrm.class.MSM <- glm(chrm.class ~ chromosomeLength,
+              data=Bivalent_1o2_MSM,  family=binomial(link="logit"))
+summary(log.SC_chrm.class.MSM)
+
+
+Bivalent_1o2_MOLF <-  Bivalent_1o2 %>% filter(strain == "MOLF")
+log.SC_chrm.class.MOLF <- glm(chrm.class ~ chromosomeLength,
+              data=Bivalent_1o2_MOLF,  family=binomial(link="logit"))
+summary(log.SC_chrm.class.MOLF)
+
+```
+
+
+```{r Q2.logreg.plots, echo=FALSE, include=FALSE, eval=FALSE}
+
+
+log.reg.chrm.class_all.strains <- ggplot(Bivalent_1o2,
+                          aes(x=chromosomeLength, y=chrm.class)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("Chrm Class prediction (1CO or 2CO)")+facet_wrap(subsp~ strain)
+log.reg.chrm.class_all.strains
+
+
+
+WSB.log.reg.chrm.class <- ggplot(Bivalent_1o2_WSB,
+                          aes(x=chromosomeLength, y=chrm.class)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("Chrm Class prediction (1CO or 2CO, WSB)")+facet_wrap(~subsp)
+
+
+MSMlog.reg.chrm.class <- ggplot(Bivalent_1o2_MSM,
+                          aes(x=chromosomeLength, y=chrm.class)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("MSM Chrm Class prediction (1CO or 2CO)")+facet_wrap(~subsp)
+
+
+PWDlog.reg.chrm.class <- ggplot(Bivalent_1o2_PWD,
+                          aes(x=chromosomeLength, y=chrm.class)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("PWD Chrm Class prediction (1CO or 2CO)")+facet_wrap(~subsp)
+
+
+```
+
+
+
+```{r Q2.SC.Chrm.Class, echo=FALSE, include=FALSE, eval=FALSE}
+#REMOVE COMPARES ACROSS FROM FULL BIVDAAT
 
 #1CO
 log.SC_male_1CO.poly <- glm(Rec.group ~ mean.SC_1CO,
@@ -4733,15 +4892,9 @@ summary(log.SC_male_chrm.class)
 ```
 
 
-```{r Q2_SC_ChrmClass_long.biv, echo=FALSE}
-#there might not be enough data 
-#
-ii <- as.data.frame( table(male.long.biv$hand.foci.count, male.long.biv$strain) )
-```
-
 These are the plots of the logistic regression.
 
-```{r Q2.SC.log.regression.show.plots, echo=FALSE}
+```{r Q2.SC.log.regression.show.plots, echo=FALSE, include=FALSE}
 
 plot.blah.mouse.av <- ggplot(Male.poly.Mouse.Table_BivData_4MM,
                           aes(x=mean_SC, y=Rec.group)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("Mouse av. SC (pooled) \nHigh vs low gwRR strains")+facet_wrap(~subsp)
@@ -4760,7 +4913,9 @@ plot.logReg.mouse.av_2CO <- ggplot(Male.poly.Mouse.Table_BivData_4MM,
 the plot of log regression for 1COs is wacky/reversed. Musc -- the mean SC lengths for 1COs are longer in the low group 
 
 
-```{r Q2.SClength.ttest, echo=FALSE}
+```{r Q2.SClength.ttest, echo=FALSE, include=FALSE}
+#COMPARISONS ACROSS ALL CLASSES
+
 #MOUSE AVE, all
 Rec.group.mouse.SC_Ttest <- t.test(Male.poly.Mouse.Table_BivData_4MM$mean_SC[Male.poly.Mouse.Table_BivData_4MM$Rec.group == 1], 
                                  Male.poly.Mouse.Table_BivData_4MM$mean_SC[Male.poly.Mouse.Table_BivData_4MM$Rec.group == 0])
@@ -4792,228 +4947,244 @@ Rec.group.mouse.SC.2CO_Ttest$p.value  #p-value = 0.03428
 ```
 
 
-The top t.tests indicate that when all the mice averages are pooled, there's a significant difference in SC lengths. But When the means are compared across chrm class, the mouse averages are no longer significant.
+
+```{r log.reg_SC.length, echo=FALSE, include=FALSE}
+#REMOVE THIS COMPARES FROM FULL BIV DATA
+
+#male_mouse.av
+#Male.poly.Mouse.Table_BivData_4MM
+
+Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
+                                ifelse(grepl("MSM male", Curated_BivData$category), 1,
+                                ifelse(grepl("SKIVE male", Curated_BivData$category), 1, 0)))
+
+#male poly shouldn't be here
+Male.poly.Mouse.Table_BivData_4MM$Rec.group <- ifelse(grepl("PWD male", Male.poly.Mouse.Table_BivData_4MM$category), 1, 
+                                ifelse(grepl("MSM male", Male.poly.Mouse.Table_BivData_4MM$category), 1,
+                                ifelse(grepl("SKIVE male", Male.poly.Mouse.Table_BivData_4MM$category), 1, 0)))
 
 
-How well does SC length predict chromosome class?  Prediction, High rec strains will have more significant p value, given the lower overlap in SC lengths across chrm class. (Note this test can only be done with bivalent level observations, because 1CO or 2CO)
+#All chrm
+log.reg_SC.length_mouse.av <- glm(Rec.group ~ mean_SC, 
+                            data=Male.poly.Mouse.Table_BivData_4MM[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc"),], family=binomial(link="logit"))
+#summary(log.reg_SC.length_mouse.av)
 
-
-
-```{r Q2.SC.logreg.chrmClass_BivData, echo=FALSE}
-
-log.SC_male_chrm.class_all <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2,  family=binomial(link="logit"))
-
-summary(log.SC_male_chrm.class_all)
-
-
-#use the 1CO or 2CO DF
-Bivalent_1o2_WSB <-  Bivalent_1o2 %>% filter(strain == "WSB")
-
-log.SC_male_chrm.class.WSB <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_WSB,  family=binomial(link="logit"))
-
-summary(log.SC_male_chrm.class.WSB)
-
-
-Bivalent_1o2_G <-  Bivalent_1o2 %>% filter(strain == "G") 
-log.SC_chrm.class.G <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_G,  family=binomial(link="logit"))
-summary(log.SC_chrm.class.G)
-
-
-Bivalent_1o2_LEW <-  Bivalent_1o2 %>% filter(strain == "LEW") 
-log.SC_chrm.class.LEW <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_LEW,  family=binomial(link="logit"))
-summary(log.SC_chrm.class.LEW)
-
-
-Bivalent_1o2_PWD <-  Bivalent_1o2 %>% filter(strain == "PWD") 
-log.SC_chrm.class.PWD <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_PWD,  family=binomial(link="logit"))
-summary(log.SC_chrm.class.PWD)
-
-
-Bivalent_1o2_SKIVE <-  Bivalent_1o2 %>% filter(strain == "SKIVE") 
-log.SC_chrm.class.SKIVE <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_SKIVE,  family=binomial(link="logit"))
-summary(log.SC_chrm.class.SKIVE)
-
-
-Bivalent_1o2_KAZ <-  Bivalent_1o2 %>% filter(strain == "KAZ") 
-log.SC_chrm.class.KAZ <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_KAZ,  family=binomial(link="logit"))
-summary(log.SC_chrm.class.KAZ)
-
-
-Bivalent_1o2_CZECH <-  Bivalent_1o2 %>% filter(strain == "CZECH") 
-log.SC_chrm.class.CZECH <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_CZECH,  family=binomial(link="logit"))
-summary(log.SC_chrm.class.CZECH)
-
-Bivalent_1o2_MSM <-  Bivalent_1o2 %>% filter(strain == "MSM") 
-log.SC_chrm.class.MSM <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_MSM,  family=binomial(link="logit"))
-summary(log.SC_chrm.class.MSM)
-
-
-Bivalent_1o2_MOLF <-  Bivalent_1o2 %>% filter(strain == "MOLF")
-log.SC_chrm.class.MOLF <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_MOLF,  family=binomial(link="logit"))
-summary(log.SC_chrm.class.MOLF)
-
-```
-
-
-```{r Q2.logreg.plots, echo=FALSE}
-
-
-log.reg.chrm.class_all.strains <- ggplot(Bivalent_1o2,
-                          aes(x=chromosomeLength, y=chrm.class)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("Chrm Class prediction (1CO or 2CO)")+facet_wrap(subsp~ strain)
-log.reg.chrm.class_all.strains
-
-
-
-WSB.log.reg.chrm.class <- ggplot(Bivalent_1o2_WSB,
-                          aes(x=chromosomeLength, y=chrm.class)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("Chrm Class prediction (1CO or 2CO, WSB)")+facet_wrap(~subsp)
-
-
-MSMlog.reg.chrm.class <- ggplot(Bivalent_1o2_MSM,
-                          aes(x=chromosomeLength, y=chrm.class)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("MSM Chrm Class prediction (1CO or 2CO)")+facet_wrap(~subsp)
-
-
-PWDlog.reg.chrm.class <- ggplot(Bivalent_1o2_PWD,
-                          aes(x=chromosomeLength, y=chrm.class)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("PWD Chrm Class prediction (1CO or 2CO)")+facet_wrap(~subsp)
-
-
-```
-
-
-<!--
-blocks of other male Q2 - SC lengths
-
-what are the pairwise t-test functions -- use pairwise.t.test(Ozone, Month, p.adj = "bonf")
-
-```{r SC.Length_t.test, echo=FALSE, eval=FALSE}
-
-#comparing all the strains
-
-T.test_SC.Len_mouse.av <- t.test(Male.poly.Mouse.Table_BivData_4MM$mean_SC[Male.poly.Mouse.Table_BivData_4MM$Rec.group == 1],
-       
-  Male.poly.Mouse.Table_BivData_4MM$mean_SC[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")&(Male.poly.Mouse.Table_BivData_4MM$Rec.group == 0)]
-)#p-value = 0.001567
-
+#considering seperating out by hand foci counts
 
 #1CO
-T.test_SC.Len_mouse.av_1CO <- t.test(mouse.avs_4MM$mean.SC_1CO[mouse.avs_4MM$Rec.group == 1],
-       
-  mouse.avs_4MM$mean.SC_1CO[(mouse.avs_4MM$subsp == "Musc") & (mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$Rec.group == 0)]
+log.reg_SC.length_mouse.av_1CO <- glm(Rec.group ~ mean.SC_1CO, 
+                            data=Male.poly.Mouse.Table_BivData_4MM[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc"),], family=binomial(link="logit"))
+#summary(log.reg_SC.length_mouse.av_1CO)
 
-  )
 
 #2CO
-T.test_SC.Len_mouse.av_2CO <- t.test(mouse.avs_4MM$mean.SC_2CO[mouse.avs_4MM$Rec.group == 1],
-       
-  mouse.avs_4MM$mean.SC_2CO[(mouse.avs_4MM$subsp == "Musc") & (mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$Rec.group == 0)]
+log.reg_SC.length_mouse.av_2CO <- glm(Rec.group ~ mean.SC_2CO, 
+                            data=Male.poly.Mouse.Table_BivData_4MM[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc"),], family=binomial(link="logit"))
 
-  )
+#summary(log.reg_SC.length_mouse.av_2CO)
+
 
 #3CO
-T.test_SC.Len_mouse.av_3CO <- t.test(mouse.avs_4MM$mean.SC_3CO[mouse.avs_4MM$Rec.group == 1],
-       
-  mouse.avs_4MM$mean.SC_3CO[(mouse.avs_4MM$subsp == "Musc") & (mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$Rec.group == 0)]
-
-  )
-
-#Single Biv level
-T.test_SC.Len_single.biv <- t.test(Curated_BivData$chromosomeLength[Curated_BivData$Rec.group == 1],
-  Curated_BivData$chromosomeLength[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")&(Curated_BivData$Rec.group == 0)] )
+log.reg_SC.length_mouse.av_3CO <- glm(Rec.group ~ mean.SC_3CO, 
+                            data=Male.poly.Mouse.Table_BivData_4MM[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc"),], family=binomial(link="logit"))
+#summary(log.reg_SC.length_mouse.av_3CO)
 
 
-#1CO
-T.test_SC.Len_single.biv_1CO <- t.test(
-  Curated_BivData$chromosomeLength[( Curated_BivData$Rec.group == 1) & (Curated_BivData$hand.foci.count == 1) ],
-  
-      Curated_BivData$chromosomeLength[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")&(Curated_BivData$Rec.group == 0) & (Curated_BivData$hand.foci.count == 1) ] 
-  )
+# bivalent level log regression
+
+log.reg_SC.length_BIV <- glm(Rec.group ~ chromosomeLength, 
+                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
+
+#summary(log.reg_SC.length_BIV)
+
+#1CO  (BIVDATA)
+log.reg_SC.length_BIV_1CO <- glm(Rec.group ~ chromosomeLength, 
+                            
+                data=Curated_BivData[(Curated_BivData$subsp == "Musc") & (Curated_BivData$hand.foci.count == 1) &(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
+#summary(log.reg_SC.length_BIV_1CO)
 
 
 #2CO
-T.test_SC.Len_single.biv_2CO <- t.test(Curated_BivData$chromosomeLength[(Curated_BivData$Rec.group == 1) & (Curated_BivData$hand.foci.count == 2)],
-  
-                                       Curated_BivData$chromosomeLength[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")&(Curated_BivData$Rec.group == 0)&(Curated_BivData$hand.foci.count == 2) ] 
-  )
+log.reg_SC.length_BIV_2CO <- glm(Rec.group ~ chromosomeLength, 
+                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$hand.foci.count == 2) & (Curated_BivData$sex == "male"),], family=binomial(link="logit"))
+#summary(log.reg_SC.length_BIV_2CO)
 
-  #3CO
-  T.test_SC.Len_single.biv_3CO <- t.test(Curated_BivData$chromosomeLength[(Curated_BivData$Rec.group == 1)&(Curated_BivData$hand.foci.count == 3) ],
-                                         
-  Curated_BivData$chromosomeLength[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")&(Curated_BivData$Rec.group == 0)&(Curated_BivData$hand.foci.count == 3) ]
-  )
+
+#3CO
+log.reg_SC.length_BIV_3CO <- glm(Rec.group ~ chromosomeLength, 
+                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$hand.foci.count == 3)&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
+
+#summary(log.reg_SC.length_BIV_3CO)
 ```
 
-The mouse average and single bivalents are significantly longer in the high rec group p = r T.test_SC.Len_mouse.av$p.value and p=  r T.test_SC.Len_single.biv$p.value.
+```{r Q2.SC_class.rec.group_setup, echo=FALSE, include=FALSE}
+#REMOVE THIS, IT uses total bivalent data
 
 
-```{r male.poly.test.MM, echo=FALSE, eval=FALSE}
-#I don't think the Mixed models fit well for the high vs low polymorphism tests.
+#rerun the models for datasets -- deviding by chrm class and rec group
+Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
+                            ifelse(grepl("MSM male", Curated_BivData$category), 1,
+                             ifelse(grepl("SKIVE male", Curated_BivData$category), 1, 0)) )
 
-#t.test comparisons of PWD_SC vs (KAZ, SKIVE, )
-#MSM_SC vs MOLF_SC
 
-#2. logistic regression for sc length and chrm class?
-#if the prediction / significance 
+Q2.SC_BivData_low.rec <- Curated_BivData %>% filter(sex=="male") %>% filter( hand.foci.count < 5)%>% filter(Rec.group == 0 )
+Q2.SC_BivData_high.rec <- Curated_BivData %>% filter(sex=="male") %>% filter( hand.foci.count < 5) %>% filter(Rec.group == 1 )
 
-#isolate data
-#mouse.avs_4MM_male <- mouse.avs_4MM[mouse.avs_4MM$sex == "male",]
-#mouse.avs_4MM_M.male <- mouse.avs_4MM_male[mouse.avs_4MM_male$subsp == "Musc",]
+#calq_mouse av
+mouse.av.SC.low.rec <- ddply(Q2.SC_BivData_low.rec, c("mouse"), summarise,
+                        n_obs = length(Obj.ID),
+                        n_cells = length(unique(fileName) ),
+                        mean.SC.total = mean(chromosomeLength),
 
-mouse.avs_4MM_M.male$mouse <- factor(mouse.avs_4MM_M.male$mouse, ordered = FALSE)
+                    mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
+                                                
+                         )
 
-#build and test MM
-lme_MM_SC_length_male.poly <- lme(mean_SC ~ mouse + 1|strain, data= mouse.avs_4MM_M.male)#this syntax not working
-as.data.frame( round(  summary(lme_MM_SC.length)$tTable, 6 ) )
+mouse.av.SC.low.rec <- add_strain(mouse.av.SC.low.rec)
+mouse.av.SC.low.rec <- add_subsp(mouse.av.SC.low.rec)
 
-lmer_MM_SC_length_male.poly <- lmer(mean_SC ~ (1|strain), data=mouse.avs_4MM_M.male, REML = TRUE)
+mouse.av.SC.low.rec$strain <- factor(mouse.av.SC.low.rec$strain, ordered = FALSE)
+mouse.av.SC.low.rec$subsp <- factor(mouse.av.SC.low.rec$subsp, ordered = FALSE)
 
-anova(lmer_MM_SC_length_male.poly)
 
-rand_SC.Length_MM.male.poly <- exactRLRT(lmer_MM_SC_length_male.poly)#this won't work either...hmm
+#calq_mouse av
+mouse.av.SC.high.rec <- ddply(Q2.SC_BivData_high.rec, c("mouse"), summarise,
+                        n_obs = length(Obj.ID),
+                         mean.SC = mean(chromosomeLength)
+                         )
+mouse.av.SC.high.rec <- add_mouse(mouse.av.SC.high.rec)
+mouse.av.SC.high.rec <- add_strain(mouse.av.SC.high.rec)
+mouse.av.SC.high.rec <- add_subsp(mouse.av.SC.high.rec)
 
+mouse.av.SC.high.rec$strain <- factor(mouse.av.SC.high.rec$strain, ordered = FALSE)
+mouse.av.SC.high.rec$add_subsp <- factor(mouse.av.SC.high.rec$subsp, ordered = FALSE)
 ```
 
 
+```{r Q2.SC.Length.stuff, echo=FALSE, include=FALSE}
+#REMOVE THIS, COMPARES FULL BIVDATA ACROSS CHRM CLASS
 
-```{r long.sc_log.res_meanSC, eval=FALSE}
-#Long Biv comparison
+#all pooled SC lengths
+#WSB     G   LEW  MOLF   KAZ CZECH 
+#    5     9     5     4     3     3 
 
-#hold off on reporting/ working with the long SC biv resutls
+
+#1apr16_G_m4, fewest obs and fewest cells, 12oct15_G_m1 7 cells, others have ~14
+
+#G sample 5 mice
+
+#break down of mice in the low rec dataset
+
+#glm.1CO
+Q2.glm_SCLength_low.rec_1CO <- glm(mean.SC_1CO ~ subsp * strain, data=mouse.av.SC.low.rec) 
+summry.Q2.glm_SCLength_low.rec_1CO <- summary(Q2.glm_SCLength_low.rec_1CO)
+round(summry.Q2.glm_SCLength_low.rec_1CO$coefficients[,c(1,4)],5)
+
+#glm.2CO
+Q2.glm_SCLength_low.rec_2CO <- glm(mean.SC_2CO ~ subsp * strain, data=mouse.av.SC.low.rec)
+summry.Q2.glm_SCLength_low.rec_2CO <- summary(Q2.glm_SCLength_low.rec_2CO)
+round(summry.Q2.glm_SCLength_low.rec_2CO$coefficients[,c(1,4)],5)
+#fewer significant differences
+
+Q2.glm_SCLength_low.rec.M2_2CO <- glm(mean.SC_2CO ~  strain, data=mouse.av.SC.low.rec)
+sum.Q2.glm_SCLength_low.rec.M2_2CO <- summary(Q2.glm_SCLength_low.rec.M2_2CO)
+round(sum.Q2.glm_SCLength_low.rec.M2_2CO$coefficients[,c(1,4)],5)
+#all but KAZ are slightly significant, G and CZECH more so
 
 
-long.SC.mouse.avs_4MM_male <- Long_biv_mouse.avs_4MM[Long_biv_mouse.avs_4MM$sex == "male",]
-long.SC.mouse.avs_4MM_Mmale <- long.SC.mouse.avs_4MM_male[long.SC.mouse.avs_4MM_male$subsp == "Musc",]
+#glm.3CO
+Q2.glm_SCLength_low.rec_3CO <- glm(mean.SC_3CO ~ subsp * strain, data=mouse.av.SC.low.rec) 
+#not sig differences
+summry.Q2.glm_SCLength_low.rec_3CO <- summary(Q2.glm_SCLength_low.rec_3CO)
+round(summry.Q2.glm_SCLength_low.rec_3CO$coefficients[,c(1,4)],5)
 
-#divide musc males into groups
-long.SC.mouse.avs_4MM_male$Rec.group <- ifelse(grepl("PWD male", long.SC.mouse.avs_4MM_male$category), 1, 
-                                    ifelse(grepl("MSM male", long.SC.mouse.avs_4MM_male$category), 1, 0))
+#Q2.lmer_SCLength_low.rec_R.sex <- lmer(mean.SC ~ subsp + (1|strain), data=mouse.av.SC.low.rec, REML = TRUE) 
 
-long.biv.log.reg <- glm(Rec.group ~ mean_SC, 
-                            data=long.SC.mouse.avs_4MM_male, family=binomial(link="logit"))
+#all pooled SC lengths
+lmer.Q1_SCLength_short_M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Q1.real.short_mouse_table, REML = TRUE) 
+lmer.Q1_SCLength_short_M1_R.sex <- lmer(mean_SC ~ subsp + (1|strain), data=Q1.real.short_mouse_table, REML = TRUE) 
+lmer.Q1_SCLength_short_M1_R.subsp <- lmer(mean_SC ~ sex + (1|strain), data=Q1.real.short_mouse_table, REML = TRUE) 
 
-summary(long.biv.log.reg)#NS effect (likelt underpowered)
+Q1lmer.MM_SC_short_interaction  <-drop1(lmer.Q1_SCLength_short_M1, test="Chisq" )$`Pr(Chi)`[2]
+Q1lmer.MM_SC_short_sex  <-anova(lmer.Q1_SCLength_short_M1, lmer.Q1_SCLength_short_M1_R.sex)$`Pr(>Chisq)`[2]
+Q1lmer.MM_SC_short_subp  <- anova(lmer.Q1_SCLength_short_M1, lmer.Q1_SCLength_short_M1_R.subsp)$`Pr(>Chisq)`[2]
+Q1lmer.MM_SC_short_strain  <- exactRLRT(lmer.Q1_SCLength_short_M1)$p.value 
+
+#as.data.frame(round(summary(lmer.SCLength_all_MM.M1)$coefficients, 6))#these Dont return p values for the fixed effects
+
+Q1lmer.MM_SC_short_results <- data.frame(sub.sp = Q1lmer.MM_SC_short_subp, 
+sex.results =  Q1lmer.MM_SC_short_sex, 
+               interaction.pval = Q1lmer.MM_SC_short_interaction,  rand.pval = 
+Q1lmer.MM_SC_short_strain)
+Q1lmer.MM_SC_short_results
 ```
 
--->
 
-> **Summary**
+```{r Q2.SC.ploy.male, echo=FALSE, include=FALSE}
+#REMOVE THIS< COMARES FROM FULL BIVDATA set
 
-When the SC lengths are divided by co number / class, -- difference in direction of the logistic regression. I think the shorter 1CO bivalents in the high rec strain reflects the clustering of groups by SC length. (IE the scatter plots of SC length, binned by chrm class on the X).
+# 1 way anova, is at least 1 strain different from the rest?
+# given a lm, how sig is the strain effect
+
+#1. determine which strain effects are sig
+#use mouse biv average
+#Male.poly.Mouse.Table_BivData_4MM
+
+glm1.SC.male.poly <- glm(mean_SC ~ subsp * strain, data= Male.poly.Mouse.Table_BivData_4MM)
+#summary(glm1.SC.male.poly) 
+#SC many strains are different (more than the gwRR)
+#subsps are sig
+
+glm2.SC.male.poly <- glm(mean_SC ~ strain, data= Male.poly.Mouse.Table_BivData_4MM)
+#summary(glm2.SC.male.poly) 
+
+#Dom
+glm_SC.male_Dom <- glm(mean_SC ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Dom",])
+#summary(glm_SC.male_Dom)  #ALL strain are sig
+#both G and LEW have significant mean.SC, doesn't meet predictions
+
+#Musc
+glm_SC.male_Musc <- glm(mean_SC ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",])
+#summary(glm_SC.male_Musc)
+
+#Mol
+glm_SC.male_Mol <- glm(mean_SC ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",])
+#summary(glm_SC.male_Mol)
 
 
-Each point is a mouse average SC. When all bivalents are pooled, the logistic regression SC lengths predict the groups. When the data is divided by CO number, 1CO's have a higher SC length in the low group - in the low group more chrms, including the longer ones have 1CO - whereas in the high group, only shorter chrms (SC) are in the 1CO class.
-For the 2CO class of bivalents - all the SC are longer, the high group averages were longer than the low.
+#Logistic regressions
 
- and the mean 2COs SC are higher in the high strains
-(this must have something to do with the physical size effect)
+log.SC.male.poly <- glm(Rec.group ~ mean_SC, 
+              data=Male.poly.Mouse.Table_BivData_4MM,  family=binomial(link="logit"))
+
+                #Curated_BivData[(Curated_BivData$sex == "male") & (Curated_BivData$subsp == "Musc"),],
+
+#summary(log.SC.male.poly)
+
+
+log.SC.male.poly_musc <- glm(Rec.group ~ mean_SC, 
+              data=Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",],  family=binomial(link="logit"))
+
+#summary(log.SC.male.poly_musc)
+#not sig -- when just looking at Musc
+
+#significant in predicting group
+log.SC.male.poly_mol <- glm(Rec.group ~ mean_SC, 
+              data=Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",],  family=binomial(link="logit"))
+
+#summary(log.SC.male.poly_mol)
+#not sig -- when just looking at Mol
+```
 
 
 ```{r male.show.plotsEXample, echo=FALSE, eval=FALSE}
@@ -5064,7 +5235,7 @@ Dom.male.plot
 ```
 
 
-```{r SC.length.male_tests, echo=FALSE}
+```{r SC.length.male_tests, echo=FALSE, include=FALSE}
 
 
 ## run the tests to check following expectations
@@ -5142,7 +5313,9 @@ ggboxplot(data = male.Dom.mouse.av, x = "strain", y = "mean.SC_2CO",
 ```
 
 
-```{r SC.length.pairwise.T, echo=FALSE}
+```{r SC.length.pairwise.T, echo=FALSE, include=FALSE}
+
+#REMOVE RUNS COMPARISONS ACROSS FULL DATASET
 #male.Dom.mouse.av, male.Mol.mouse.av, male.Musc.mouse.av
 
 male.Musc.mouse.av <- Male.poly.Mouse.Table_BivData_4MM[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc"),]
@@ -5184,146 +5357,62 @@ Pwise.ttest_Mol.male.2CO <- pairwise.t.test(male.Mol.mouse.av$mean.SC_2CO, male.
 ```
 
 
-If I want to try to use mouse nested in strain -- I should use cell level metrics (but those have there own flaws)
-
-
-Ideas for the above 3 tests, 
-
-1. no difference in DOM
-- no sig logistic regression test
-- glm, strain effect?
-
-
-> Is sex a significant effect for SC length? (as predicted)
-
-- Sex is a significant effect for SC length
-The results seem to indicate that sex is a significant factor. Consider writing a sub sampling approach (randomize / permute a data set of BivData)  
-
-
-- According to anova, sex effect explains most of the variance in single bivalent SC lengths.  
-
-- The Long Biv Data set largely agrees with the full curated dataset
-
-- I caveat I haven't addressed yet, is the XX in the female Biv data averages --- 
-
-
-
-```{r log.reg_SC.length, echo=FALSE}
-#male_mouse.av
-#Male.poly.Mouse.Table_BivData_4MM
-
-Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
-                                ifelse(grepl("MSM male", Curated_BivData$category), 1,
-                                ifelse(grepl("SKIVE male", Curated_BivData$category), 1, 0)))
-
-#male poly shouldn't be here
-Male.poly.Mouse.Table_BivData_4MM$Rec.group <- ifelse(grepl("PWD male", Male.poly.Mouse.Table_BivData_4MM$category), 1, 
-                                ifelse(grepl("MSM male", Male.poly.Mouse.Table_BivData_4MM$category), 1,
-                                ifelse(grepl("SKIVE male", Male.poly.Mouse.Table_BivData_4MM$category), 1, 0)))
-
-
-#All chrm
-log.reg_SC.length_mouse.av <- glm(Rec.group ~ mean_SC, 
-                            data=Male.poly.Mouse.Table_BivData_4MM[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc"),], family=binomial(link="logit"))
-#summary(log.reg_SC.length_mouse.av)
-
-#considering seperating out by hand foci counts
-
-#1CO
-log.reg_SC.length_mouse.av_1CO <- glm(Rec.group ~ mean.SC_1CO, 
-                            data=Male.poly.Mouse.Table_BivData_4MM[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc"),], family=binomial(link="logit"))
-#summary(log.reg_SC.length_mouse.av_1CO)
-
-
-#2CO
-log.reg_SC.length_mouse.av_2CO <- glm(Rec.group ~ mean.SC_2CO, 
-                            data=Male.poly.Mouse.Table_BivData_4MM[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc"),], family=binomial(link="logit"))
-
-#summary(log.reg_SC.length_mouse.av_2CO)
-
-
-#3CO
-log.reg_SC.length_mouse.av_3CO <- glm(Rec.group ~ mean.SC_3CO, 
-                            data=Male.poly.Mouse.Table_BivData_4MM[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc"),], family=binomial(link="logit"))
-#summary(log.reg_SC.length_mouse.av_3CO)
-
-
-# bivalent level log regression
-
-log.reg_SC.length_BIV <- glm(Rec.group ~ chromosomeLength, 
-                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
-
-#summary(log.reg_SC.length_BIV)
-
-#1CO  (BIVDATA)
-log.reg_SC.length_BIV_1CO <- glm(Rec.group ~ chromosomeLength, 
-                            
-                data=Curated_BivData[(Curated_BivData$subsp == "Musc") & (Curated_BivData$hand.foci.count == 1) &(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
-#summary(log.reg_SC.length_BIV_1CO)
-
-
-#2CO
-log.reg_SC.length_BIV_2CO <- glm(Rec.group ~ chromosomeLength, 
-                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$hand.foci.count == 2) & (Curated_BivData$sex == "male"),], family=binomial(link="logit"))
-#summary(log.reg_SC.length_BIV_2CO)
-
-
-#3CO
-log.reg_SC.length_BIV_3CO <- glm(Rec.group ~ chromosomeLength, 
-                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$hand.foci.count == 3)&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
-
-#summary(log.reg_SC.length_BIV_3CO)
-```
-
-The mean SC logistic regression model for mouse averages 
-
-`r log.reg_SC.length_mouse.av$coefficients`  
-
-and for the single bivalent levels  
-
-`r log.reg_SC.length_BIV$coefficients`
-
-
-When all male mice are used, the predictive power is greater, than when just the Musc strains are used. When, just the Musc strain are used, The mouse mean SC is slightly significant in predicting if a mouse is in the high or low (should I consider running on female too?)
-
-
-> Is the prediction, high rec musc male strains have long SC met?  
-
-
-In a logistic regression, mouse average SC length is slightly predictive telling if a mouse is in a high or low Rec strain.  I couldn't get the Mixed models working for the male polymorphism predictions...
-
-
-
 
 
 # Q2 Normalized CO positions
 
-A main / biggish cavest to address for this section is the chromosome size effect, use real.long.bivData. 
+In order to test / 
 
-or have chromosome lenght as a effect? would only work for models using the single bivalents, not mouse averages.
+We tested another aspect of the rec landscape -- focuing on differences between the high and the low rec strains.
 
-<!-- 
-Main DFs for this section:
-Male.poly.Mouse.Table_BivData_4MM
-male.bivdata.1CO
+To detect if there are significant differences between the high and the low rec strains we performed t.tests across the two groups 
 
-**Polymorphism**
-C.1) It's unknown if **1CO normalized positions** between high and low musc strains, will differ. (no good predictions come to mind)
-C.2) sis-co-ten metric will be maximized in higher recombining strains .. because.  
-C.3) telomere and centromere distances will be shorter in low rec strains
+(and logistic regressions?)
+
+<!-- set up chunks here 
 
 -->
 
-Since there aren't many good predictions for how the 1CO normalized landscape relates to gwRR variation, these will be the main questions
 
-- Has there been evolution in the 1CO pattern?  
+```{r Q2.male.Nrm1CO_strain, echo=FALSE, eval=FALSE}
+#isolate all musc
+#Curated_BivData_male <- Curated_BivData[Curated_BivData$sex == "male",]
 
-- Is there a consistent pattern with the high rec strains?
+##long biv
+male.long.biv <- real.long.bivData %>% filter(sex== "male") %>% filter(species == "M.musculus") 
+#table( droplevels( male.long.biv$strain)  )
 
-Normalized 1CO foci positions will be used. (F1_PER). Check fixed effects of subsp and strains.
 
-sis-co-ten, telomere and centromere distance of foci are metrics which draw from a wider pool of samples. (So maybe I will use them... but avoiding focus on them)
+mouse.av.long.biv.table <- ddply(male.long.biv, c("mouse"), summarise,
+                             
+                        n_obs = length(Obj.ID),
+                         mean_F1 = mean(Foci1, na.rm=TRUE),
+                        mean_F1.nrm = mean(PER_Foci_1,na.rm=TRUE),
+                        
+                        mean_SC = mean(chromosomeLength),
 
+                      mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                       mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                       mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                       mean.SC_4CO = mean(chromosomeLength[which(hand.foci.count == 4)], na.rm = TRUE)
+
+                                               )
+#add subsp
+
+mouse.av.long.biv.table <- add_strain(mouse.av.long.biv.table)
+mouse.av.long.biv.table <- add_subsp(mouse.av.long.biv.table)
+
+mouse.av.long.biv.table$strain <- factor(mouse.av.long.biv.table$strain, ordered = FALSE)
+mouse.av.long.biv.table$subsp <- factor(mouse.av.long.biv.table$subsp, ordered = FALSE)
+
+#add rec group
+mouse.av.long.biv.table$Rec.group <- ifelse(grepl("PWD", mouse.av.long.biv.table$strain), 1, 
+                            ifelse(grepl("MSM", mouse.av.long.biv.table$strain), 1,
+                             ifelse(grepl("SKIVE", mouse.av.long.biv.table$strain), 1, 0)) )
+```
+
+
+<!-- plots /figures below-->
 
 ```{r Q2.show.nrmF1, echo=FALSE}
 #Curated_BivData_male
@@ -5371,14 +5460,97 @@ Mouse.av.Long.biv <- add_subsp(Mouse.av.Long.biv)
 Q2.shoooo   <- ggplot(Mouse.av.Long.biv, aes(x=strain, y=mean.1CO_PER, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= mean.1CO_PER ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("mouse ave \nNormalized 1CO Foci pos \nLong Biv")
 
 Q2.shoooo
+```
+
+
+A main / biggish cavest to address for this section is the chromosome size effect, use real.long.bivData. 
+
+or have chromosome lenght as a effect? would only work for models using the single bivalents, not mouse averages.
+
+<!-- 
+Main DFs for this section:
+Male.poly.Mouse.Table_BivData_4MM
+male.bivdata.1CO
+-->
+
+
+```{r Q2.1COpos_mouse.av.t.test_all, echo=FALSE}
+
+#mouse.avs_4MM
+#31may19_SKIVE_m2  has NA for norm.first.foci.pos
+
+
+#High = MSM, PWD, SKIVE
+Q2.1COpos_Ttest <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "0"))$norm.first.foci.pos, 
+            (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "1"))$norm.first.foci.pos )
+#p-value = 1
+
+#high = PWD and MSM
+Q2.1COpos_Ttest.HL.ex <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group.exclu == "0"))$norm.first.foci.pos, 
+            (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group.exclu == "1"))$norm.first.foci.pos )
+#p-value = 1
+
+
+#single biv level
+Rec.group_BivData_F1post_Ttest <- t.test(male.bivdata.1CO$PER_Foci_1[male.bivdata.1CO$Rec.group == 1], 
+                                 male.bivdata.1CO$PER_Foci_1[male.bivdata.1CO$Rec.group == 0])
+ 
+#Rec.group_BivData_F1post_Ttest$p.value 
+#p-value = 0.238
+
+```
+
+The t.tests are not significant for normalized foci position comparing all bivalets
+
+The normalized Foci Positions are not significantly different between the high and low rec groups (full data set, mouse av and single bivalent level).
+
+```{r Q2.1CO_mouse.av.short.long_t.test, echo=FALSE}
+#these don't have mean.first.foci
+
+#short
+Q2.1COpos_short_ttest_HL <- t.test( (Q2mouse.av.short.biv.table  %>% filter(Rec.group == "0"))$norm.first.foci.pos, 
+            (Q2mouse.av.short.biv.table %>% filter(Rec.group == "1"))$norm.first.foci.pos   )
+#p-value = 0.06
+
+#remove SKIVE
+Q2.1COpos_short_ttest_HL.ex <- t.test( (Q2mouse.av.short.biv.table  %>% filter(Rec.group.exclu == "0"))$norm.first.foci.pos, 
+            (Q2mouse.av.short.biv.table %>% filter(Rec.group.exclu == "1"))$norm.first.foci.pos   )
+#p-value = 0.4
+
+
+#long
+Q2mouse.av.long.biv.table_HL  <-  t.test( (Q2mouse.av.long.biv.table  %>% filter(Rec.group == "0"))$norm.first.foci.pos, 
+            (Q2mouse.av.long.biv.table %>% filter(Rec.group == "1"))$norm.first.foci.pos   )
+#p-value = 0.5
+
+#long exclude skive  Q2mouse.av.long.biv.table
+Q2mouse.av.long.biv.table_HL.ex  <-  t.test( (Q2mouse.av.long.biv.table  %>% filter(Rec.group.exclu == "0"))$norm.first.foci.pos, 
+            (Q2mouse.av.long.biv.table %>% filter(Rec.group.exclu == "1"))$norm.first.foci.pos   )
+#p-value = 0.08
+
+#they kinda have ooposite effects
+
+```
+
+
+
+The t-tests for the high and low rec strains for the reduced bivalent datasets are mostly NS
+
+mouse mean
+short bivalent
+
+So try using the bivalent sample levels
+
+
+```{r Q2.1COpos_BIV_ttest, echo=FALSE}
+
+whoo.mama <-  t.test( (Curated_BivData  %>% filter(sex == "male") %>% filter(hand.foci.count == 1)  %>%  filter(Rec.group == "0"))$PER_Foci_1, 
+                      
+            (Curated_BivData  %>% filter(sex == "male") %>% filter(hand.foci.count == 1)   %>% filter(Rec.group == "1"))$PER_Foci_1   )
 
 
 ```
 
-So the plot for the long bivs, shows that the PWD, SKIVE and MSM have on average more centrally placed F1 positions. It's kinda werid that the glms/models suggest that WSB has the most terminal F1 -- but, out of all the strains, for the long bivs, WSB has the lowest mean.
-
-
-But there are v few observations. I think the plot shows that there are fewer 1CO for the High Rec group. not sure there would be enough for feeding into models/
 
 
 ```{r Q2.1CO.landscape, echo=FALSE}
@@ -5466,38 +5638,13 @@ Log.Q2.F1_PER_Mol <- glm(Rec.group ~ PER_Foci_1,
 
 
 
-```{r Q2.t.test_COlandscape,echo=FALSE}
-
-#MOUSE AVE
-Rec.group.mouse.F1pos_Ttest <- t.test(Male.poly.Mouse.Table_BivData_4MM$norm.first.foci.pos[Male.poly.Mouse.Table_BivData_4MM$Rec.group == 1], 
-                                 Male.poly.Mouse.Table_BivData_4MM$norm.first.foci.pos[Male.poly.Mouse.Table_BivData_4MM$Rec.group == 0])
- 
-Rec.group.mouse.F1pos_Ttest$p.value
-#p-value = 0.9098
-
-
-#single biv level
-Rec.group_BivData_F1post_Ttest <- t.test(male.bivdata.1CO$PER_Foci_1[male.bivdata.1CO$Rec.group == 1], 
-                                 male.bivdata.1CO$PER_Foci_1[male.bivdata.1CO$Rec.group == 0])
- 
-Rec.group_BivData_F1post_Ttest$p.value 
-#p-value = 0.238
-
-```
-
-The normalized Foci Positions are not significantly different between the high and low rec groups (full data set, mouse av and single bivalent level).
-
-#### Summary
-
-Not really a clear summary for the normalized 1CO position and rec groups.
+## JUNK Section
 
 
 # Q2 IFD
 
+<!-- set up chunks here-->
 
-this is the Q2 prediction for IFD / interference
-
-> prediction A, Is the Male polymorphism Prediction met? High rec strains have shorter IFDs?
 
 
 B.1) **Interfernce/IFD** will be shorter in high Rec strains. Use IFD_PER to account for SC length differences.  

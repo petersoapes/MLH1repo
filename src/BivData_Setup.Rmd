@@ -214,6 +214,16 @@ Curated_BivData$telo_dist_PER <- Curated_BivData$telo_dist / Curated_BivData$chr
 #sis.co.ten
 Curated_BivData <- add_SisCoTen(Curated_BivData)
 
+#add rec.group
+#divide musc males into groups
+Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
+                                  ifelse(grepl("MSM male", Curated_BivData$category), 1,
+                                  ifelse(grepl("SKIVE male", Curated_BivData$category), 1,
+                                           0)))
+
+Curated_BivData$Rec.group.exclu <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
+                                ifelse(grepl("MSM male", Curated_BivData$category), 1, 0))
+
 ```
 
 Curated_BivData will be the master DF with most observations. DFs for mixed models and tests need to subsetted from this one.  
@@ -355,7 +365,7 @@ exmice.Curated_BivData <- Curated_BivData[ Curated_BivData$mouse %in% exclude_mi
 
 ```
 
-<!--
+
 I'm considering removing the same mice from the MLH1 counts, from the BivData, but this might -- limit the comparisons -- might be too stict. IF foci are bright and clear, SC/bivalents intact -- include.
 
 If it seems like primary reason for excluding is low cell number include bivalents
@@ -367,7 +377,7 @@ Pro remove:
 Con remove:
 
 - the reasons for poor quality of the exclude mice in above list, might be from 2-3 bad bivalents -- which are removed from the biv data during the curation process. 
--->
+
 
 
 
@@ -693,6 +703,10 @@ SC.Length.male_table <- ddply(Curated_BivData_male, c("strain"), summarise,
                   n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
                           
 )
+
+#add all the other calculations 
+
+
 ```
 
 
@@ -1381,7 +1395,7 @@ cell.total_skel, cell.total_binary
 ```{r save.file}
 
 #save Rdata
-save.image("~./MLH1repo/data/CleanBivData_13.2.20.RData")
+save.image("~./MLH1repo/data/CleanBivData_19.2.20.RData")
 #save.image("data/BivData_4_PCA.RData")
 
 ```
