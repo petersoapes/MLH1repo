@@ -2560,8 +2560,8 @@ The plots below show the distributions of mouse average total SC area.
 
 ```{r Q1.show.SC.length, echo=FALSE, warning=FALSE}
 
-#Curated_BivData99 <- Curated_BivData[Curated_BivData$hand.foci.count < 5,]
-#Curated_BivData99 <- Curated_BivData99[(!is.na(Curated_BivData99$sex)),]
+Curated_BivData99 <- Curated_BivData[Curated_BivData$hand.foci.count < 5,]
+Curated_BivData99 <- Curated_BivData99[(!is.na(Curated_BivData99$sex)),]
 
 #CLEAN UP THE FULL DATA SET
 
@@ -2677,15 +2677,15 @@ Q1_tot.sc_t.test.MSM <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %
 The full data set of SC lengths illustrates the general pattern than females have longer SC-AE.
 
 The most averages for total SC (skeletonizes) are significantly longer in females for all strains (p=
-`r format(Q1_tot.sc_t.test.WSB$p.value, scientific = F )`, `r format(Q1_tot.sc_t.test.G$p.value, scientific=F )`, and `r Q1_tot.sc_t.test.LEW$p.value`
-for the _mmdomesticues^WSB^ _, _mmdomesticues^G^ _, and _mmdomesticues^LEW^ _ respectively).
+`r format(Q1_tot.sc_t.test.WSB$p.value, scientific = F )`, `r format(Q1_tot.sc_t.test.G$p.value, scientific= F )`, and `r format(Q1_tot.sc_t.test.LEW$p.value, scientific= F )`
+for the _domesticues^WSB^ _, _domesticues^G^ _, and _domesticues^LEW^ _ respectively).
 
-Some of the p values for PWD and MSM are much closer (less significant), ( p = `r Q1_tot.sc_t.test.PWD$p.value`, `r Q1_tot.sc_t.test.KAZ$p.value`, and `r Q1_tot.sc_t.test.MSM$p.value` for the _M. m. musculus^PWD^ _, _M. m. musculus^KAZ^ _, and _M. m. molossinus^MSM^_ respectively)
+Some of the p values for PWD and MSM are much closer (less significant), ( p = `r format(Q1_tot.sc_t.test.PWD$p.value,scientific = F )`, `r format(Q1_tot.sc_t.test.KAZ$p.value, scientific = F )`, and `r format(Q1_tot.sc_t.test.MSM$p.value, scientific = F )` for the _musculus^PWD^ _, _musculus^KAZ^ _, and _molossinus^MSM^_ respectively)
 
 
 $$mouse \ average \ total \ SC  \ length ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
-```{r Q1.lmer_totalSC, echo=FALSE}
+```{r Q1.lmer_totalSC, echo=FALSE, warning=FALSE}
 
 Q1.lmer_totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain != "AST" & strain != "TOM" & strain != "CZECH" & strain != "MOLF")
 
@@ -2721,15 +2721,23 @@ sex.results =  lmer.Q1_mus.av_totSC_sex,
                interaction.pval = lmer.Q1_mus.av_totSC_interaction,  rand.pval = 
 lmer.Q1_mus.av_totSC_strain)
 
-Q1.lmer.totSC_results
+#Q1.lmer.totSC_results
 
 #G
 ```
+
 there are more significant effects for strain and subsp for the mixed model of mouse.av total sc
 
+the 3 fixed effects and one random effect were significant (LTR; subsp p= `r Q1.lmer.totSC_results$sub.sp`, 
+sex p = `r Q1.lmer.totSC_results$sex.results`, and interaction p = `r Q1.lmer.totSC_results$interaction.pval`, (random LRT; strain p = `r Q1.lmer.totSC_results$rand.pval`)
 
 
-$$mouse \ average \ total SC  \ area ~=~ sex * strain + \varepsilon $$
+These effects were followed up the glms
+
+
+**M2.** $$mouse \ average \ total SC  \ area ~=~ sex * strain + \varepsilon $$
+
+**M3.** $$mouse \ average \ total SC  \ area ~=~ sex * strain + \varepsilon $$
 
 ```{r Q1.glm_totalSC, echo=FALSE, }
 #total-SC
@@ -2740,7 +2748,7 @@ Q1.glm_totSC_M2 <- glm(mean.skel ~ subsp*strain * sex, data=Q1.lmer_totSC.mouse.
 #summary(Q1.glm_totSC_M2)
 #subsp effect, many strain, #male
 
-#G * malev.sig and G*LEW
+#G * male v.sig and male*LEW
 
 
 Q1.glm_totSC_M3 <- glm(mean.skel ~ strain * sex, data=Q1.lmer_totSC.mouse.av.table)
@@ -2748,6 +2756,16 @@ Q1.glm_totSC_M3 <- glm(mean.skel ~ strain * sex, data=Q1.lmer_totSC.mouse.av.tab
 #LOT OF SIGNIFICant strain effects in this model
 
 ```
+
+The results from those models was that there were 
+...lots of significant effects.  (G male, )
+
+The summary for the total SC area comparison is...
+
+
+<!-- transition to short-->
+
+The short bivalent dataset was used -- because there are no confounding factors of the XX -- so makes hapier comparisons across male and females
 
 
 ```{r show.short.biv, echo=FALSE}
@@ -2762,7 +2780,6 @@ skiveQ1.SC.short.mouse_scatter_boxplot <- ggplot( Q1.real.short_mouse_table %>% 
 
 ```
 
-When skive is plotted alone it does have overlapping ranges.
 
 ```{r Q1_SC.biv.short_ttest, echo=FALSE}
 
@@ -2804,10 +2821,10 @@ The pattern is generally held for comparisons using the reduced single bivalent 
 
 with the mouse average for 'short' bivalents
 
-(t.test; p = `r Q1_mus.av_shortSC_t.test.WSB$p.value`, `r Q1_mus.av_shortSC_t.test.G$p.value`, and `r Q1_mus.av_shortSC_t.test.LEW$p.value`
+(t.test; p = `r Q1_mus.av_shortSC_t.test.WSB$p.value`, `r format(Q1_mus.av_shortSC_t.test.G$p.value, scientific = F)`, and `r format(Q1_mus.av_shortSC_t.test.LEW$p.value, scientific = F)`
 for WSB, G and LEW respectively.
 
-(t.test; p= `r Q1_mus.av_shortSC_t.test.PWD$p.value`, `r Q1_mus.av_shortSC_t.test.KAZ$p.value`, and `r Q1_mus.av_shortSC_t.test.SKIVE$p.value` for PWD, KAZ, SKIVE
+(t.test; p= `r format(Q1_mus.av_shortSC_t.test.PWD$p.value, scientific = F)`, `r Q1_mus.av_shortSC_t.test.KAZ$p.value`, and `r  format(Q1_mus.av_shortSC_t.test.SKIVE$p.value, scientific = F)` for PWD, KAZ, SKIVE
 
 for the short bivalents are not significantly differen, for this strain there are 4 female and 4 male
 
@@ -2822,9 +2839,32 @@ for the _mmdomesticues^WSB^ _, _mmdomesticues^G^ _, and _mmdomesticues^LEW^ _
 Mixed models for the sex differences in mouse averages for short bivalents (reduced dataset)
 
 
-$$mouse \ average \ short \ SC  \ length ~=~ subsp * sex + rand(strain) + \varepsilon $$
+**M2.** $$mouse \ average \ short \ SC  \ length ~=~ subsp * sex * strain + \varepsilon $$
 
-```{r Q1_short_biv_lmer, echo=FALSE}
+```{r Q1.SC.Length_M2, echo=FALSE, warning=FALSE}
+
+Q1.real.short_mouse_table$subsp <- factor(Q1.real.short_mouse_table$subsp, ordered = FALSE)
+Q1.real.short_mouse_table$sex <- factor(Q1.real.short_mouse_table$sex, ordered = FALSE)
+Q1.real.short_mouse_table$strain <- factor(Q1.real.short_mouse_table$strain, ordered = FALSE)
+
+Q1.glm_short.SC_M2 <- glm(mean_SC ~ subsp * strain * sex, data=Q1.real.short_mouse_table)
+
+#summary(Q1.glm_short.SC_M2)
+
+summ.Q1.glm_short.SC_M2 <- summary(Q1.glm_short.SC_M2)
+
+#round(summ.Q1.glm_short.SC_M2$coefficients[,c(1,4)],5)
+
+#skive strin very slight sign
+#male highly sig
+#skive * male slightly sig
+```
+
+skive strin very slight sign, male highly sig,  skive * male slightly sig
+
+**M3.** $$mouse \ average \ short \ SC  \ length ~=~ subsp * sex + rand(strain) + \varepsilon $$
+
+```{r Q1_short_biv_lmer, echo=FALSE, warning=FALSE}
 lmer.Q1_SCLength_short_M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Q1.real.short_mouse_table, REML = TRUE) 
 
 lmer.Q1_SCLength_short_M1_R.sex <- lmer(mean_SC ~ subsp + (1|strain), data=Q1.real.short_mouse_table, REML = TRUE) 
@@ -2842,36 +2882,16 @@ Q1lmer.MM_SC_short_results <- data.frame(sub.sp = Q1lmer.MM_SC_short_subp,
 sex.results =  Q1lmer.MM_SC_short_sex, 
                interaction.pval = Q1lmer.MM_SC_short_interaction,  rand.pval = 
 Q1lmer.MM_SC_short_strain)
-Q1lmer.MM_SC_short_results
+
+
+#Q1lmer.MM_SC_short_results
 
 ```
 
-Sex is the most significant factor for the mixed model of mean short bivalents.
+Sex is the most significant factor for the mixed model of mean short bivalents (LTR; p =`r Q1lmer.MM_SC_short_results$sex.results`). interaction effect also significant (p = `r Q1lmer.MM_SC_short_results$interaction.pval`)
 
 
-$$mouse \ average \ short \ SC  \ length ~=~ subsp * sex * strain + \varepsilon $$
-
-```{r Q1.SC.Length_M2, echo=FALSE}
-Q1.real.short_mouse_table$subsp <- factor(Q1.real.short_mouse_table$subsp, ordered = FALSE)
-Q1.real.short_mouse_table$sex <- factor(Q1.real.short_mouse_table$sex, ordered = FALSE)
-Q1.real.short_mouse_table$strain <- factor(Q1.real.short_mouse_table$strain, ordered = FALSE)
-
-Q1.glm_short.SC_M2 <- glm(mean_SC ~ subsp * strain * sex, data=Q1.real.short_mouse_table)
-
-#summary(Q1.glm_short.SC_M2)
-
-summ.Q1.glm_short.SC_M2 <- summary(Q1.glm_short.SC_M2)
-
-round(summ.Q1.glm_short.SC_M2$coefficients[,c(1,4)],5)
-
-#skive strin very slight sign
-#male highly sig
-#skive * male slightly sig
-```
-
-skive strin very slight sign, male highly sig,  skive * male slightly sig
-
-$$mouse \ average \ short \ SC  \ length ~=~ sex * strain + \varepsilon $$
+**M3.** $$mouse \ average \ short \ SC  \ length ~=~ sex * strain + \varepsilon $$
 
 ```{r Q1.glm_short.SC_M3, echo=FALSE}
 
@@ -2897,6 +2917,9 @@ Above are the p values for the components of the mixed models for the short and 
 Above are the mixed model results seperated by mouse averages for 1 crossover and 2 crossover bivalents respectively.
 
 The fixed sex effect is highly significant for the mouse means of SC length. The data sets tested were all pooled SC lengths, the long bivalents, 1CO and 2CO seperately.
+
+In summary .... females (oocytes) have different chromatin compaction patterns compared to males.
+
 
 ```{r show.long.biv, echo=FALSE, include=FALSE}
 #mouse av
@@ -3121,14 +3144,14 @@ To quantify one of the major -- patterns that is different between male and fema
 In order to test for evolution -- and examine sex differences in the recombination landscape (crossover position bias)
 -->
 
-we focus on the foci positions from one crossover (1CO) bivalents since the landscape patterns for multi crossover bivalents will be highly influences by crossover interference. We use the normalized foci positions (smaller meaning closer to the centromere and larger being cloerse to the telomere ). (all chromosomes in house mouse are acrocentric)
+We focus on the foci positions from one crossover (1CO) bivalents since the landscape patterns for multi crossover bivalents will be highly influences by crossover interference. We use the normalized foci positions (smaller meaning closer to the centromere and larger being cloerse to the telomere ). (all chromosomes in house mouse are acrocentric)
 
 Chromosome size effects are a confonding factor for CO position, with shorter chromosomes having a more uniform landscape compared to larger chromosomes (cite). To account for this we again use the reduct bivalent sets (long.biv and short.biv)
 
 Below are the general patterns / plots -- short and long bivalent groups are shown to try and account for the chromsomes size effect.
 
 
-```{r CO.positions.figs, echo=FALSE, include=FALSE}
+```{r CO.positions.figs, echo=FALSE, include=FALSE, warning=FALSE}
 #main figure of density plots,
 
 MELT_Curated_BivData <- add_sex(MELT_Curated_BivData)
