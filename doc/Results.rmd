@@ -304,7 +304,6 @@ all.cell.MM.HQ <- ddply(.data=DF.HetC.MixedModel.HQ,
 ```
 
 
-
 ```{r juvimice.list, echo=FALSE}
 juvi_mice <- c(
   "30dec14_WSB_m2","30dec14_WSB_m4","30dec14_WSB_m1","30dec14_WSB_m3","30dec14_WSB_m5",
@@ -629,6 +628,99 @@ MLH1.merge.Skel <- MLH1.merge.Skel[! (MLH1.merge.Skel$fileName %in% remove.mice_
 
 all.remove <- paste( c(SC.skel.outliers_round1, remove.mice_round2 ) )
 ```
+
+```{r LONG.SHORT.biv_setup, echo=FALSE}
+
+#FROM q1
+#Q1.long.biv_1CO <-  real.long.bivData %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1) %>% filter(strain != "MOLF") %>% filter(strain != "CZECH")
+#Q1.short.biv_1CO <-  real.short.bivData %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1)%>% filter(strain != "MOLF") %>% filter(strain != "CZECH")
+#from Q2 IFD
+#male.long.biv.2CO_IFD <- real.long.bivData %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 2)
+##long biv
+#male.long.biv <- real.long.bivData %>% filter(sex== "male") %>% filter(species == "M.musculus") 
+#table( droplevels( male.long.biv$strain)  )
+
+#FROM q1 
+REAL.short_mouse_table <- ddply(real.short.bivData, c("mouse"), summarise,
+                        n_obs = length(Obj.ID),
+                        ncells = length(unique(fileName)),
+                         mean_SC = mean(chromosomeLength),
+                        
+                      mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                       mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                       mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                       mean.SC_4CO = mean(chromosomeLength[which(hand.foci.count == 4)], na.rm = TRUE),
+                        
+                      #make sure 1CO  
+                       #IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE
+                    mean_F1pos_ABS =  mean(Foci1[which(hand.foci.count == 1)]),
+                    mean_F1pos_PER =  mean(PER_Foci_1[which(hand.foci.count == 1)]),
+                           
+                      meanIFD2CO_raw = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                     meanIFD2CO_norm = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE)
+                                            
+                         )
+
+REAL.short_mouse_table <- add_sex(REAL.short_mouse_table)
+REAL.short_mouse_table <- add_strain(REAL.short_mouse_table)
+REAL.short_mouse_table <- add_subsp(REAL.short_mouse_table)
+REAL.short_mouse_table <- add_category(REAL.short_mouse_table)
+
+REAL.short_mouse_table$sex <- factor(REAL.short_mouse_table$sex, ordered = FALSE)
+REAL.short_mouse_table$strain <- factor(REAL.short_mouse_table$strain, ordered = FALSE)
+REAL.short_mouse_table$subsp <- factor(REAL.short_mouse_table$subsp, ordered = FALSE)
+
+#divide musc males into groups
+REAL.short_mouse_table$Rec.group <- ifelse(grepl("PWD male", REAL.short_mouse_table$category), 1, 
+                                  ifelse(grepl("MSM male", REAL.short_mouse_table$category), 1,
+                                  ifelse(grepl("SKIVE male", REAL.short_mouse_table$category), 1,
+                                           0)))
+
+REAL.short_mouse_table$Rec.group.exclu <- ifelse(grepl("PWD male", REAL.short_mouse_table$category), 1, 
+                                ifelse(grepl("MSM male", REAL.short_mouse_table$category), 1, 0))
+
+###LONG BIV
+
+REAL.long_mouse_table <- ddply(real.long.bivData, c("mouse"), summarise,
+                       n_obs = length(Obj.ID),
+                        ncells = length(unique(fileName)),
+                         mean_SC = mean(chromosomeLength),
+                        
+                      mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                       mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                       mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                       mean.SC_4CO = mean(chromosomeLength[which(hand.foci.count == 4)], na.rm = TRUE),
+                        
+                      #make sure 1CO,  #IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE
+                    mean_F1pos_ABS =  mean(Foci1[which(hand.foci.count == 1)]),
+                    mean_F1pos_PER =  mean(PER_Foci_1[which(hand.foci.count == 1)]),
+                           
+                      meanIFD2CO_raw = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                     meanIFD2CO_norm = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE)
+                         )
+
+REAL.long_mouse_table <- add_sex(REAL.long_mouse_table)
+REAL.long_mouse_table <- add_strain(REAL.long_mouse_table)
+REAL.long_mouse_table <- add_subsp(REAL.long_mouse_table)
+REAL.long_mouse_table <- add_category(REAL.long_mouse_table)
+
+REAL.long_mouse_table$sex <- factor(REAL.long_mouse_table$sex, ordered = FALSE)
+REAL.long_mouse_table$strain <- factor(REAL.long_mouse_table$strain, ordered = FALSE)
+REAL.long_mouse_table$subsp <- factor(REAL.long_mouse_table$subsp, ordered = FALSE)
+
+#divide musc males into groups
+REAL.long_mouse_table$Rec.group <- ifelse(grepl("PWD male", REAL.long_mouse_table$category), 1, 
+                                  ifelse(grepl("MSM male", REAL.long_mouse_table$category), 1,
+                                  ifelse(grepl("SKIVE male", REAL.long_mouse_table$category), 1,
+                                           0)))
+
+REAL.long_mouse_table$Rec.group.exclu <- ifelse(grepl("PWD male", REAL.long_mouse_table$category), 1, 
+                                ifelse(grepl("MSM male", REAL.long_mouse_table$category), 1, 0))
+
+
+#find which one 
+```
+
 
 <!-- 
 two round of removing outliers were done. in total 84 skel_bin potential outlier observations were removed 
@@ -2536,31 +2628,14 @@ Comparing the means of single bivalents is complicated by the fact we can't iden
 
 ```{r Q1.Short.Long_biv.setup, echo=FALSE}
 
-Q1.real.short_mouse_table <- ddply(real.short.bivData, c("mouse"), summarise,
-                        n_obs = length(Obj.ID),
-                        ncells = length(unique(fileName)),
-                         mean_SC = mean(chromosomeLength)
-                         )
+#REAL.long_mouse_table
+#REAL.short_mouse_table
 
-Q1.real.short_mouse_table <- add_strain(Q1.real.short_mouse_table)
-Q1.real.short_mouse_table <- add_sex(Q1.real.short_mouse_table)
-Q1.real.short_mouse_table <- add_subsp(Q1.real.short_mouse_table)
-Q1.real.short_mouse_table <- add_species(Q1.real.short_mouse_table)
+#make the Q1 strain list
+Q1.real.short_mouse_table <- REAL.short_mouse_table %>% filter( (strain != "CZECH") & (strain != "MOLF") )
 
-Q1.real.short_mouse_table$subsp <- factor(Q1.real.short_mouse_table$subsp, ordered = FALSE)
-Q1.real.short_mouse_table$sex <- factor(Q1.real.short_mouse_table$sex, ordered = FALSE)
-Q1.real.short_mouse_table$strain <- factor(Q1.real.short_mouse_table$strain, ordered = FALSE)
-Q1.real.short_mouse_table$species <- factor(Q1.real.short_mouse_table$species, ordered = FALSE)
+Q1.real.long_mouse_table <- REAL.long_mouse_table %>% filter( (strain != "CZECH") & (strain != "MOLF") )
 
-
-Q1.real.long_mouse_table <- ddply(real.long.bivData, c("mouse"), summarise,
-                        n_obs = length(Obj.ID),
-                         mean_SC = mean(chromosomeLength)
-                         )
-
-Q1.real.long_mouse_table <- add_strain(Q1.real.long_mouse_table)
-Q1.real.long_mouse_table <- add_sex(Q1.real.long_mouse_table)
-Q1.real.long_mouse_table <- add_subsp(Q1.real.long_mouse_table)
 ```
 
 For this reason we use a reduced bivalent data set made up of chromsomes (below the 2nd quartile for SC length of single cells). A total of `r sum(Q1.real.short_mouse_table$n_obs)` 'short' bivalents were isolated from `r sum(Q1.real.short_mouse_table$ncells)` oocytes and spermatocytes.
@@ -3051,25 +3126,12 @@ Q1.SClength_Dom.BivData_plot <- ggplot( Dom_BivData, aes(y = chromosomeLength, x
 ```
 
 
-```{r Q1.SC.long.biv_wacko, echo=FALSE, include=FALSE}
+```{r Q1.SC.long.biv_wacko, echo=FALSE, include=FALSE, eval=FALSE}
+
+#REAL.long_mouse_table
+
 #removed these plots for space
-
-male.long.biv <- real.long.bivData %>% filter(sex== "male")
-
-Q1.long.biv_cell_table <- ddply(real.long.bivData, c("fileName"), summarise,
-                             
-                        n_obs = length(Obj.ID),
-                         mean.sc = mean(chromosomeLength)
-                         )
-Q1.long.biv_cell_table <- add_mouse(Q1.long.biv_cell_table)
-Q1.long.biv_cell_table <- add_strain(Q1.long.biv_cell_table)
-Q1.long.biv_cell_table <- add_sex(Q1.long.biv_cell_table)
-Q1.long.biv_cell_table <- add_subsp(Q1.long.biv_cell_table)
-
-
-Q1_cell_long.biv <- ggplot(Q1.long.biv_cell_table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(sex~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,200))+geom_boxplot(alpha=.2) + ggtitle("Cell averages for Long Bivs")+theme(legend.position="none")
-
-
+Q1_cell_long.biv <- ggplot(REAL.long_mouse_table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(sex~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,200))+geom_boxplot(alpha=.2) + ggtitle("Cell averages for Long Bivs")+theme(legend.position="none")
 
 #mouse av for long biv
 cell.av.long.biv.table <- ddply(male.long.biv, c("fileName"), summarise,
@@ -3082,27 +3144,21 @@ cell.av.long.biv.table <- add_mouse(cell.av.long.biv.table)
 cell.av.long.biv.table <- add_strain(cell.av.long.biv.table)
 cell.av.long.biv.table <- add_subsp(cell.av.long.biv.table)
 
-cell.avlong.biv <- ggplot(cell.av.long.biv.table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Cell av. \nMale Long Biv SC Lengths")
+#cell.avlong.biv <- ggplot( (REAL.long_mouse_table %>% filter(sex == "male")), aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Cell av. \nMale Long Biv SC Lengths")
   
-
-
-
 #mouse av for long biv
-mouse.av.long.biv.table <- ddply(male.long.biv, c("mouse"), summarise,
-                             
-                        n_obs = length(Obj.ID),
-                         mean.sc = mean(chromosomeLength)
-                         )
 
-mouse.av.long.biv.table <- add_strain(mouse.av.long.biv.table)
-mouse.av.long.biv.table <- add_subsp(mouse.av.long.biv.table)
-                        
-mouse.shoo.long.biv <- ggplot(mouse.av.long.biv.table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Mouse av. \nMale Long Biv SC Lengths")
+mouse.show.long.biv <- ggplot((REAL.long_mouse_table %>% filter(sex == "male")), aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Mouse av. \nMale Long Biv SC Lengths")
+
+mouse.show.long.biv
  
 ```
 
 
 ```{r Q1_long_biv_lmer, echo=FALSE, message=FALSE, include=FALSE}
+
+Q1.real.long_mouse_table <- REAL.long_mouse_table
+
 ###
 lmer.Q1_SCLength_long_M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Q1.real.long_mouse_table, REML = TRUE) 
 lmer.Q1_SCLength_long_M1_R.sex <- lmer(mean_SC ~ subsp + (1|strain), data=Q1.real.long_mouse_table, REML = TRUE) 
@@ -3135,32 +3191,11 @@ Q1lmer.MM_SC_long_strain)
 
 ```{r Q1.F1pos_long.short_setup, echo=FALSE}
 
+#REAL.short_mouse_table
+#REAL.long_mouse_table
+
 Q1.long.biv_1CO <-  real.long.bivData %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1) %>% filter(strain != "MOLF") %>% filter(strain != "CZECH")
 
-Q1.long.1COpos_mouse.av <-  ddply(Q1.long.biv_1CO, c("mouse"), summarise,
-                        n_obs = length(Obj.ID),
-                         mean_SC = mean(chromosomeLength), 
-                        mean_F1pos_PER =  mean(PER_Foci_1),
-                         mean_F1pos_ABS =  mean(Foci1)
-                         )
-Q1.long.1COpos_mouse.av <- add_strain(Q1.long.1COpos_mouse.av)
-Q1.long.1COpos_mouse.av <- add_sex(Q1.long.1COpos_mouse.av)
-Q1.long.1COpos_mouse.av <- add_subsp(Q1.long.1COpos_mouse.av)
-
-
-Q1.short.biv_1CO <-  real.short.bivData %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1)%>% filter(strain != "MOLF") %>% filter(strain != "CZECH")
-  
-Q1.short.1COpos_mouse.av <-  ddply(Q1.short.biv_1CO, c("mouse"), summarise,
-                        n_obs = length(Obj.ID),
-                         mean_SC = mean(chromosomeLength),
-                        mean_F1pos_PER =  mean(PER_Foci_1),
-                         mean_F1pos_ABS =  mean(Foci1)
-                         )
-
-Q1.short.1COpos_mouse.av <- add_strain(Q1.short.1COpos_mouse.av)
-Q1.short.1COpos_mouse.av <- add_sex(Q1.short.1COpos_mouse.av)
-Q1.short.1COpos_mouse.av <- add_subsp(Q1.short.1COpos_mouse.av)
-    
 ```
 
 <!-- motivating
@@ -3360,38 +3395,35 @@ The male effects were the most significant (glm M2; p =`r summry.Q1.glm_F1pos_M2
 
 (these results will be explored more fully in the Q2 section). The general pattern that emerges across these models is the sex effect being the most significant, (with the male single foci position being more telomeric compared to females). 
 
-
 <we don't explore the effects on the redcued bivalent data sets! The main expected pattern is confirmed>
 
 Chromosome size effects are a confounding factor for CO position, with the expectation that shorter chromosomes will have a more uniform landscape compared to larger/longer chromosomes (cite). To account for this we again use the reduced bivalent sets (long.biv and short.biv)
 
-
-
 ```{r Q1.F1.pos.LONG.SHORT.BIV_scatter, echo=FALSE}
-Q1.short.biv_scatr_box   <- ggplot(Q1.short.biv_1CO, aes(x=sex, y=PER_Foci_1, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= PER_Foci_1 ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nShort Biv")
+
+#real.long.bivData
 
 
+Q1.short.biv_scatr_box   <- ggplot( (real.short.bivData %>% filter(hand.foci.count == 1) ), aes(x=sex, y=PER_Foci_1, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= PER_Foci_1 ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nShort Biv")
+Q1.short.biv_scatr_box
 
-Q1.long.biv_scatr_box   <- ggplot(Q1.long.biv_1CO, aes(x=sex, y=PER_Foci_1, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= PER_Foci_1 ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nLong Biv")
-
+Q1.long.biv_scatr_box   <- ggplot((real.long.bivData %>% filter(hand.foci.count == 1) ), aes(x=sex, y=PER_Foci_1, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= PER_Foci_1 ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nLong Biv")
+Q1.long.biv_scatr_box
 ```
 
 
 ```{r Q1.mouse.av.F1.pos.LONG.BIV_scatter, echo=FALSE}
 
-#make the same plots as above but with the long biv data set
-
+#REAL.short_mouse_table
+#REAL.long_mouse_table
 #mouse.av.long.biv.table
-Q1.av.long.biv_scatr_box   <- ggplot(Q1.long.1COpos_mouse.av, aes(x=sex, y=mean_F1pos_PER, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= mean_F1pos_PER ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nLong Biv")
 
+Q1.av.long.biv_scatr_box   <- ggplot(REAL.long_mouse_table  , aes(x=sex, y=mean_F1pos_PER, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= mean_F1pos_PER ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nLong Biv")
 
-Q1.av.short.biv_scatr_box   <- ggplot(Q1.short.1COpos_mouse.av, aes(x=sex, y=mean_F1pos_PER, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= mean_F1pos_PER ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nShort Biv")
-
+Q1.av.short.biv_scatr_box   <- ggplot(REAL.short_mouse_table, aes(x=sex, y=mean_F1pos_PER, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= mean_F1pos_PER ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nShort Biv")
 ```
 
-
 These box plot show that females have a much more medial position of single foci bivalents, (much closer to 50% compared to males). They also show that Musc males' Foci1 position is slightly more central / medial compared to the same type of positions in the Dom male strains. MOLF males have much more medial positions than other strains.
-
 
 <!--
 ### Siscoten
@@ -3455,15 +3487,12 @@ Males have much clearer separation of siscoten across chrm classes. This is emph
 To formally test the differences in sis-co-ten I plan to write a sub sampling / permutation loop to compare the mean(sis.co.ten) of the same numbers of bivalents of the same class.
 BUT females have a greater range -- so maybe it's just a scale issue.  
 
-
 ```{r show.norm.siscoten, echo=FALSE}
-
 Curated_BivData$nrm.siscoten <- Curated_BivData$SisCoTen/Curated_BivData$chromosomeLength
 
 Nrm.sis.co.ten.plot_WSB <- ggplot(data = Curated_BivData[Curated_BivData$strain == "WSB",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
   geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n WSB")+theme(legend.position="none")
 Nrm.sis.co.ten.plot_WSB
-
 
 Nrm.sis.co.ten.plot_G <- ggplot(data = Curated_BivData[Curated_BivData$strain == "G",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
   geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n G")+theme(legend.position="none")
@@ -3498,19 +3527,15 @@ Nrm.sis.co.ten.plot_MSM
 
 I think the the normalized sis.co.ten plots also show that the there is more clustering of the sis.co.ten for the males.
 
-
 ```{r sis.co.ten.test_HetC, echo=FALSE, eval=FALSE}
 
 #glm for siscoten
-
 #mouse.avs_4MM  - mouse averages with mean sis.co.ten
-
 #MM
 lme_MM_siscoten <- lme(mean.siscoten ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
 as.data.frame( round(  summary(lme_MM_siscoten)$tTable, 6 ) )
 
 #sex and sex*subsp interaction effect are significant for mean sis.co.ten
-
 lmer_MM_siscoten <- lmer(mean.siscoten ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
 #anova(lmer_MM_siscoten) 
 
@@ -3523,13 +3548,6 @@ rand_siscoten_MM
 ```
 
 
-The fixed effects, sex and sex*subsp are significant. The random strain effect is also significant.
-
-> Is the heterochiasmy prediction met?
-
-Yes, model  predicting the mouse average siscoten, sex and sex-subp interaction are significant factors. The Random strain effect is also significant.  
-
-
 ```{r siscoten.test.poly, echo=FALSE, eval=FALSE}
 
 #move this to the set up blocks
@@ -3540,7 +3558,6 @@ mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD", mouse.avs_4MM$strain), 1,
 
 #test high vs low Musc strains
 #mouse.avs_4MM
-
 ```
 
 
@@ -3628,19 +3645,14 @@ mouse.avs_4MM$mean.siscoten_2CO
 
 All the sis.co.ten tests are highly significant. Maybe I should consider running a normalized sis.co.ten? I think nrm_siscoten would still reflect the differing cohesion structure/outcome.
 
-
-
 ### Telomere and centromere Distance
 
 My metric for telomere and centromere distance measure the distance of the nearest foci to the ends of the bivalent (SC). In the plots below each point is a single bivalent. I choose not to use the mark for centromere because it seems noisy and inconsistent... 
-
 
 ```{r telo.dist, echo=FALSE}
 
 sis.co.ten.plot_WSB_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
   geom_point()+facet_wrap(sex~strain)
-
-
 
 Curated_BivData <- Curated_BivData[Curated_BivData$hand.foci.count < 5,]
 Curated_BivData <- Curated_BivData[!(is.na(Curated_BivData$hand.foci.count) | Curated_BivData$hand.foci.count==""), ]
@@ -3657,7 +3669,6 @@ nrm.telo_jitter <- ggplot(Curated_BivData, aes(x= strain, y=telo_dist_PER, color
 nrm.telo_jitter
 
 #why do a different number of rows removed each time??
-
 ```
 
 Males on average have much lower raw telomere distance (reflects the telomere bias) compared to females. In Males, 2CO bivalents have very low telomere distances, while the 1CO bivalents have a greater range. In females the ranges of telomere distances have much more overlap.   
@@ -3666,9 +3677,7 @@ Males on average have much lower raw telomere distance (reflects the telomere bi
 #HetC
 
 lme_MM_telo.dist <- lmer(mean.telo.dist ~ subsp * sex + (1|strain), data= Mouse.Table_BivData_4MM )
-
 drop1(lme_MM_telo.dist, test="Chisq")
-
 as.data.frame( round(  summary(lme_MM_telo.dist)$coefficients, 6 ) )
 
 #sex and sex*subsp interaction effect are significant for mean sis.co.ten
@@ -3680,11 +3689,9 @@ lmer_MM_telo.dist <- lmer(mean.telo.dist ~ subsp * sex + (1|strain), data=Mouse.
 drop1(lmer_MM_telo.dist, test="Chisq") 
 rand_telo.dist_MM <- exactRLRT(lmer_MM_telo.dist)
 rand_telo.dist_MM
-
 ```
 
 Mixed model result summary:
-
 
 ```{r log.reg_telo.dist, echo=FALSE}
 
@@ -3715,7 +3722,6 @@ log.reg_Telo.Dist.PER_biv <- glm(Rec.group ~ telo_dist_PER,
 summary(log.reg_Telo.Dist.PER_biv)
 ```
 
-
 ```{r t.test_Telo.Dist, echo=FALSE}
 
 #mouse av
@@ -3745,7 +3751,6 @@ single.biv_t.test_Telo.Dist_PER <- t.test(
    
 ```
 
-
 ```{r cent.dist_show, echo=FALSE}
 cent.dist_boxplots <- ggplot(Curated_BivData, aes(x= strain, y=dis.cent ) )+ geom_boxplot(aes( fill=hand.foci.count, group=strain), alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("raw centromere distance")+ ylim(c(0, 150))
 
@@ -3757,7 +3762,6 @@ norm.cent.dist_jitter <- ggplot(Curated_BivData, aes(x= strain, y=dis.cent.PER, 
 norm.cent.dist_jitter
 
 ```
-
 
 ```{r MM.cent.dist, echo=FALSE, eval=FALSE}
 
@@ -3823,7 +3827,6 @@ single.biv_t.test_Cent.Dist_PER <- t.test(
 ```
 
 The normalized centromere plots show that in Musc males, on 2CO bivalents the 1st CO is closer to the centromere end than in Dom males. Females have more overlap in the distributions of centromere distances across chromosome class compared to males.-->
-
 
 
 ```{r Q1.CO1_foci_pos_boxplot, echo=FALSE, eval=FALSE}
@@ -4023,6 +4026,7 @@ first.IFD.plot_PER
 #long SC Long_biv_mouse.avs_4MM
 #real.long.bivData
 #Only use 2CO bivalents
+
 real.long.bivData.22 <- real.long.bivData[real.long.bivData$hand.foci.count == 2,]
 real.long.bivData.22 <- real.long.bivData.22[(!is.na(real.long.bivData.22$hand.foci.count)),]
 
@@ -4213,8 +4217,6 @@ Q1.IFD.raw_BIV.short.ttest_KAZ <-  t.test( (real.short.bivData %>% filter(sex ==
 
 
 ```{r Q1.show.IFD.things, echo=FALSE}
-
-
 nrm.IFD_KAZ_long <- ggplot( (Q1.IFD.long %>% filter(strain =="KAZ" ) ) , aes(y = meanIFD2CO_norm, x= sex,color=mouse))+geom_point()+ggtitle("Interfocal Distances, ABS KAZ")
 
 nrm.IFD_KAZ_BIV.long <- ggplot( (real.long.bivData %>% filter(strain =="KAZ" ) %>%  filter(hand.foci.count == "2")  ) , aes(y = IFD1_PER, x= sex, color=mouse))+geom_point()+ggtitle("Interfocal Distances, ABS KAZ")
@@ -4554,8 +4556,10 @@ juvi_mice <- c(
 ppmm <- OG.totSC.mouse.av.table[OG.totSC.mouse.av.table$mouse  %in% juvi_mice, ]   
 ```
 
+
 ```{r Q2.SC.short.long.setup, echo=FALSE}
-table(male.long.biv$strain)
+
+#table(male.long.biv$strain)
 #the Long biv dataset is quite unbalance (esp MSM)
 male.long.biv <- real.long.bivData %>% filter(sex== "male")
 
@@ -4607,7 +4611,7 @@ Q2mouse.av.short.biv.table <- ddply(male.short.biv, c("fileName"), summarise,
                         
                         #mean.first.1CO
                         norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)]
-                         )
+                         ) ) 
 
 Q2mouse.av.short.biv.table <- add_mouse(Q2mouse.av.short.biv.table)
 Q2mouse.av.short.biv.table <- add_strain(Q2mouse.av.short.biv.table)
@@ -4663,16 +4667,23 @@ Q2.SC.length_Nested_boxplots_Mol <- ggplot(Q2.SC_BivData[Q2.SC_BivData$subsp == 
 
 ```{r Q2.SC.long.biv_plots, echo=FALSE}
 
-shoo.long.biv <- ggplot(male.long.biv, aes(y=chromosomeLength, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Single Biv \nMale Long Biv SC Lengths")
+#REAL.long_mouse_table
+#REAL.short_mouse_table
+
+#real.long.bivData
+#real.short.bivData
+
+shoo.long.biv <- ggplot( (real.long.bivData %>% filter(sex == "male") ), aes(y=chromosomeLength, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Single Biv \nMale Long Biv SC Lengths")
 
 
-cell.avlong.biv <- ggplot(cell.av.long.biv.table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Cell av. \nMale Long Biv SC Lengths")
+#cell.avlong.biv <- ggplot(cell.av.long.biv.table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Cell av. \nMale Long Biv SC Lengths")
 
 
-mouse.shoo.long.biv <- ggplot(mouse.av.long.biv.table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Mouse av. \nMale Long Biv SC Lengths")
+mouse.shoo.long.biv <- ggplot( REAL.long_mouse_table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Mouse av. \nMale Long Biv SC Lengths")
 
                       
-cell.avlong.biv <- ggplot(cell.av.long.biv.table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Cell av. \nMale Long Biv SC Lengths")
+#cell.avlong.biv <- ggplot( cell.av.long.biv.table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + #ggtitle("Cell av. \nMale Long Biv SC Lengths")
+
 ```
 
 ```{r Q2_tot.sc_plot, echo=FALSE}
@@ -5660,7 +5671,7 @@ Q2.shoooo
 ```
 
 
-<!-- t test -->
+<!-- t tests -->
 
 
 ```{r Q2.1COpos_mouse.av.t.test_all, echo=FALSE}
@@ -5699,7 +5710,7 @@ Q2.1COpos_short_ttest_HL <- t.test( (Q2mouse.av.short.biv.table  %>% filter(Rec.
 #p-value = 0.06
 
 #remove SKIVE
-Q2.1COpos_short_ttest_HL.ex <- t.test( (Q2mouse.av.short.biv.table  %>% filter(Rec.group.exclu == "0"))$norm.first.foci.pos, 
+Q2.1COpos_short_ttest_HL.sansSKVIE <- t.test( (Q2mouse.av.short.biv.table  %>% filter(Rec.group.exclu == "0"))$norm.first.foci.pos, 
             (Q2mouse.av.short.biv.table %>% filter(Rec.group.exclu == "1"))$norm.first.foci.pos   )
 #p-value = 0.4
 
@@ -5718,8 +5729,6 @@ Q2mouse.av.long.biv.table_HL.ex  <-  t.test( (Q2mouse.av.long.biv.table  %>% fil
 
 ```
 
-
-
 ```{r Q2.1COpos_BIV_ttest, echo=FALSE}
 
 whoo.mama <-  t.test( (Curated_BivData %>% filter(sex == "male") %>% filter(hand.foci.count == 1)  %>%  filter(Rec.group == "0"))$PER_Foci_1, 
@@ -5734,7 +5743,6 @@ whoo.mama.rec.exc <-  t.test( (Curated_BivData  %>% filter(sex == "male") %>% fi
 
 ```
 
-
 ```{r Q2.1COpos_within.subsp_ttest, echo=FALSE}
 
 #compare within subsp
@@ -5746,6 +5754,15 @@ Q2.1COpos_mus.av_Musc_ttest  <-  t.test( (mouse.avs_4MM %>%  filter(sex == "male
 # p-value = 0.4
 # exclusive rec group not sig
 ```
+
+t.tests for high and Low rec strains
+
+long 
+Q2.1COpos_short_ttest_HL
+
+short
+
+
 
 The t.tests are not significant for normalized foci position comparing all bivalets
 The normalized Foci Positions are not significantly different between the high and low rec groups (full data set, mouse av and single bivalent level).
