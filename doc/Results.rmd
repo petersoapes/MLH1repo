@@ -77,7 +77,6 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
 # Data Set Up Notes
 
-
 ```{r organizing.data, echo=FALSE }
 #set the order of another column, based on another variable. consistant order for ploting
 
@@ -133,7 +132,6 @@ var.plot <- ggplot(AP_mouse_table.HQ_target, aes(y=var, x = sex, color=sex))+geo
 
 ```
 
-
 ```{r misc.setup, echo=FALSE}
 
 colors_of_strains <- c('WSB'= "#56B4E9",'G' ='cadetblue','LEW'= 'lightblue','PERC'= 'blue',
@@ -181,7 +179,6 @@ Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category),
 
 
 ```
-
 
 ```{r MLH1.FEMALE.TABLE, echo=FALSE}
 
@@ -303,7 +300,6 @@ all.cell.MM.HQ <- ddply(.data=DF.HetC.MixedModel.HQ,
 
 ```
 
-
 ```{r juvimice.list, echo=FALSE}
 juvi_mice <- c(
   "30dec14_WSB_m2","30dec14_WSB_m4","30dec14_WSB_m1","30dec14_WSB_m3","30dec14_WSB_m5",
@@ -320,18 +316,18 @@ juvi_mice <- c(
 
 ```
 
-
 ```{r CurBiv.Mouse.av.TABLE, echo=FALSE}
 
 #this block should be in the data set up
 #the mouse averages will be used
 
-
-#has 
 #18jul19_31may19_SKIVE_m2_sp1_13.2_rev_8 is missing the 1CO position -- remove for now
-Curated_BivData <- Curated_BivData %>% filter(fileName != "18jul19_31may19_SKIVE_m2_sp1_13.2_rev_8")
+cleanCurated_BivData <- cleanCurated_BivData %>% filter(fileName != "18jul19_31may19_SKIVE_m2_sp1_13.2_rev_8")
 
-mouse.avs_4MM <- ddply(Curated_BivData, c("mouse"), summarise,
+#cleanCurated_BivData
+#removed the no hand foci count
+
+mouse.avs_4MM <- ddply(cleanCurated_BivData, c("mouse"), summarise,
                         Nmice = length(unique(mouse)),
                         Ncells  = length(Obj.ID),
                        
@@ -411,7 +407,7 @@ mouse.avs_4MM$Rec.group.exclu <- ifelse(grepl("PWD male", mouse.avs_4MM$category
 
 #Curated_BivData_male
 
-male.av_4MM <- ddply(Curated_BivData_male, c("mouse"), summarise,
+male.av_4MM <- ddply(cleanCurated_BivData, c("mouse"), summarise,
                         Nmice = length(unique(mouse)),
                         Ncells  = length(Obj.ID),
                        
@@ -2232,7 +2228,6 @@ proportion_stats_category  <- ddply(.data=chrm.class.DF,
 #write.table(proportion_stats_category, "~./MLH1repo/prop_category.csv", sep=",", row.names = FALSE)
 ```
 
-
 ```{r plot.chrm.prop.melt, echo=FALSE, warning=FALSE}
 
 #add subspecies to these values
@@ -2262,7 +2257,6 @@ chrm.class.barplot <- ggplot(data = melt.Chrm.Prop.table, aes(y = value, x = str
 
 #chrm.class.barplot
 ```
-
 
 ```{r test.Chrm.Prop, echo=FALSE, eval=TRUE, warning=FALSE}
 
@@ -2423,7 +2417,6 @@ PWD.KAZ.2CO.prop.test <- prop.test( (chrm.prop.strain.male %>% filter( (strain =
 
 
 ```
-
 
 ```{r Chrm.props.plot2, echo=FALSE}
 
@@ -3207,7 +3200,7 @@ In order to test for evolution -- and examine sex differences in the recombinati
 We focus on the foci positions from one crossover (1CO n= 
 ) bivalents since the landscape patterns for multi crossover bivalents will be highly influences by crossover interference.
 
-We anchor the position measures at the centromere (and normalize by deviding the position by the length of the chromosome. The foci positions then have a range of 0-1, with smaller values representing positions closer to the centromere end of the bivalent, and larger values meaning foci positions closer to the opposite end (refered here as telomeric position).
+We anchor the position measures at the centromere (and normalize by deviding the position by the length of the chromosome, so the value range from 0 to 1, with smaller values representing positions closer to the centromere end of the bivalent, and larger values meaning foci positions closer to the opposite end (refered here as terminal or telomeric position).
 
 We plot the mouse averages across all of the single bivalent measures, with the strain averages shown as boxplots...
 
@@ -3295,8 +3288,11 @@ Q1_1CO.pos_t.test.MSM <- t.test((mouse.avs_4MM %>% filter(sex == "male") %>% fil
 #t.tests for mous.av_nrm.1CO.pos 
 ```
 
-In the domesticus strains the mouse averages for normalized single foci positions were significantly sexually dimorphic (with female)
-are highly significantly more medially placed (t.test; p = `r Q1_1CO.pos_t.test.WSB$p.value`, `r Q1_1CO.pos_t.test.G$p.value`, and `r Q1_1CO.pos_t.test.LEW$p.value` for WSB, G and LEW respectively). With the musculus and molossinus strains displaying a similar pattern (t.test p = `r Q1_1CO.pos_t.test.PWD$p.value` and `r Q1_1CO.pos_t.test.MSM$p.value`) PWD and MSM. Two musculus  strains had a weaker signal, but it was still in the same direction (t.test; p =  `r Q1_1CO.pos_t.test.KAZ$p.value`, and `r Q1_1CO.pos_t.test.SKIVE$p.value` for KAZ and SKIVE respectively). 
+In the domesticus strains the mouse averages for normalized single foci positions were significantly sexually dimorphic (fitting the predictions/pattern of the 'typical recombination landscape' (Sardell)). The single CO positions are medially placed in females and terminall placed in males. 
+
+The pavlues across the strains are; (t.test; p = `r Q1_1CO.pos_t.test.WSB$p.value`, `r Q1_1CO.pos_t.test.G$p.value`, and `r Q1_1CO.pos_t.test.LEW$p.value` for WSB, G and LEW respectively).
+
+With the musculus and molossinus strains displaying a similar pattern (t.test p = `r Q1_1CO.pos_t.test.PWD$p.value` and `r Q1_1CO.pos_t.test.MSM$p.value`) PWD and MSM. Two musculus  strains had a weaker signal, but it was still in the same direction (t.test; p =  `r Q1_1CO.pos_t.test.KAZ$p.value`, and `r Q1_1CO.pos_t.test.SKIVE$p.value` for KAZ and SKIVE respectively). 
 
 After confirming the significan sex differences for 1CO position, we apply the familiar models
 
@@ -5571,18 +5567,322 @@ Pwise.ttest_Mol.male.2CO <- pairwise.t.test(male.Mol.mouse.av$mean.SC_2CO, male.
 
 the different lack of predictive power of SC length to predict CO number -- indicates that there might be different patterns of 'SC usage' / different patterns in the layout of the recombination landscape /  these patterns could stem from placement or spacing of foci.
 
-# Q2 Normalized CO positions
+# Q2 Normalized Single CO positions
 
 <!-- motivation / background of the sex differences, males more terminall in CO placement compared to females, now we ask if there are significant differences in the placement of single foci along bivalents  -->
-
-We tested another aspect of the rec landscape -- focusing on differences between the high and the low rec strains.
-
-To detect if there are significant differences between the high and the low rec strains we performed t.tests across the two groups 
-
-(and logistic regressions?)
-
 <!-- set up chunks here -->
+<!-- plots /figures below-->
 
+```{r Q2.1CO.show_plots, echo=FALSE,  warning=FALSE}
+#Curated_BivData_male
+
+#boxplots of nrm F1
+male.bivdata.1CO <- Curated_BivData_male %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1)
+  
+Q2.show.nrmF1 <- ggplot(male.bivdata.1CO, aes(x=strain, y=PER_Foci_1, color=strain) )+geom_jitter(alpha=.5 )+ geom_boxplot(aes(y= PER_Foci_1), alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Normalized 1CO Foci pos All bivalents")
+Q2.show.nrmF1
+
+nrmF1_mouse_level <- ggplot(Male.poly.Mouse.Table_BivData_4MM, aes(x=strain, y=norm.first.foci.pos, color=strain) )+geom_jitter(alpha=.5 )+ geom_boxplot(aes(y= norm.first.foci.pos), alpha=.5 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse Level, \nNormalized 1CO Foci pos")
+
+```
+
+<not sure what the beenfit is to test for chrm effectss>
+
+```{r Q2.1COpos.LONG.BIV_plot, echo=FALSE, warning=FALSE}
+#make the same plots as above but with the long biv data set
+male.long.biv.1CO <- real.long.bivData %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1)
+
+#mouse.av.long.biv.table
+
+Q2.show.nrmF1_long.biv <- ggplot(male.long.biv.1CO, aes(x=strain, y=PER_Foci_1, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= PER_Foci_1 ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Normalized 1CO Foci pos \nLong Biv")
+
+Mouse.av.Long.biv <- ddply(male.long.biv.1CO, c("mouse"), summarise,
+                        Nmice = length(unique(mouse)),
+                        Nbiv  = length(Obj.ID),
+                       mean.1CO_PER = mean(PER_Foci_1)
+                      # mean_CO = mean()
+                       )
+
+Mouse.av.Long.biv <- add_strain(Mouse.av.Long.biv)
+Mouse.av.Long.biv <- add_subsp(Mouse.av.Long.biv)
+
+
+Q2.shoooo   <- ggplot(Mouse.av.Long.biv, aes(x=strain, y=mean.1CO_PER, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= mean.1CO_PER ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("mouse ave \nNormalized 1CO Foci pos \nLong Biv")
+
+```
+
+The previous section found that the single crossover landscape is significantly different between males and females.
+In this section -- we focus on differences between the high and the low rec male strains
+In order to test if if there are distinguishing meterics for these two groups.
+
+<!-- t tests mouse.avs_4MM, REAL.short_mouse_table-->
+
+```{r Q2.1COpos_mouse.av.t.test_all, echo=FALSE}
+#mouse.avs_4MM, #31may19_SKIVE_m2  has NA for norm.first.foci.pos
+
+#High = MSM, PWD, SKIVE
+Q2.1COpos_Ttest <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "0"))$norm.first.foci.pos, 
+            (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "1"))$norm.first.foci.pos )
+#p-value = 1
+
+#high = PWD and MSM
+Q2.1COpos_Ttest.HL.ex <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group.exclu == "0"))$norm.first.foci.pos, 
+            (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group.exclu == "1"))$norm.first.foci.pos )
+#p-value = 1
+
+```
+
+```{r Q2.1COpos_within.subsp_ttest, echo=FALSE}
+
+#Dom (predicted no difference) -- can't DO a t.test for DOM across groups..
+
+#Musc
+Q2.1COpos_mus.av_Musc_ttest  <-  t.test( (mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Musc") %>% filter(Rec.group == "0"))$norm.first.foci.pos, 
+                                         
+            (mouse.avs_4MM  %>%  filter(sex == "male") %>% filter(subsp == "Musc") %>% filter(Rec.group == "1"))$norm.first.foci.pos )
+# p-value = 0.4
+
+
+#Mol
+Q2.1COpos_mus.av_Mol_ttest  <-  t.test( (mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Mol") %>% filter(Rec.group == "0"))$norm.first.foci.pos, 
+            
+              (mouse.avs_4MM  %>%  filter(sex == "male") %>% filter(subsp == "Mol") %>% filter(Rec.group == "1"))$norm.first.foci.pos   )
+# p-value = 0.07
+# exclusive rec group not sig
+```
+
+```{r Q2.1CO_mouse.av.short.long_t.test, echo=FALSE}
+#these don't have mean.first.foci
+
+#short -- real.long.bivData -- REAL.short_mouse_table
+Q2.1COposABS_short_ttest_HL <- t.test( (REAL.short_mouse_table %>% filter(sex == "male") %>%  filter(Rec.group == "0"))$mean_F1pos_ABS, 
+      
+      (REAL.short_mouse_table %>% filter(sex == "male")  %>% filter(Rec.group == "1"))$mean_F1pos_ABS   )
+#p-value = 0.3
+
+
+Q2.1COpos.PER_short_ttest_HL <- t.test( (REAL.short_mouse_table %>% filter(sex == "male") %>% filter(Rec.group == "0"))$mean_F1pos_PER, 
+      (REAL.short_mouse_table %>% filter(sex == "male")  %>% filter(Rec.group == "1"))$mean_F1pos_PER   )
+# p-value = 0.1
+
+#remove SKIVE??
+```
+
+```{r Q2.1CO.pos_short.long.ttest, echo=FALSE}
+
+#real.long.bivData
+#single biv level
+Rec.group_LONG.BivData_F1post_Ttest <- t.test(
+  (real.long.bivData %>% filter(sex == "male") %>% filter(hand.foci.count == 1) %>% filter(Rec.group == "0") )$PER_Foci_1, 
+(real.long.bivData %>% filter(sex == "male") %>% filter(hand.foci.count == 1) %>% filter(Rec.group == "1"))$PER_Foci_1  )
+#p-value = 0.5 
+
+Rec.group_BivData_F1post_Ttest <- t.test(
+  (Curated_BivData %>% filter(sex == "male") %>% filter(hand.foci.count == 1) %>% filter(Rec.group == "0") )$PER_Foci_1, 
+(Curated_BivData %>% filter(sex == "male") %>% filter(hand.foci.count == 1) %>% filter(Rec.group == "1"))$PER_Foci_1  )
+#p-value = 0.2
+
+#
+#whoo.mama <-  t.test( (Curated_BivData %>% filter(sex == "male") %>% filter(hand.foci.count #== 1)  %>%  filter(Rec.group == "0"))$PER_Foci_1, 
+#            (Curated_BivData  %>% filter(sex == "male") %>% filter(hand.foci.count == 1)   #%>% filter(Rec.group == "1"))$PER_Foci_1   )
+#p-value = 0.2
+
+
+#whoo.mama.rec.exc <-  t.test( (Curated_BivData  %>% filter(sex == "male") %>% #filter(hand.foci.count == 1)  %>%  filter(Rec.group.exclu == "0"))$PER_Foci_1, 
+#            (Curated_BivData  %>% filter(sex == "male") %>% filter(hand.foci.count == 1)   #%>% filter(Rec.group.exclu == "1"))$PER_Foci_1   )
+#p-value = 0.4
+
+```
+
+
+**The figure above shows, WSB has significantly more terminal positioning, while MOLF has significantly more medial position.**
+
+The first use t.tests to test if there are significant differences in the single CO landscapes between the high and low rec groups. 
+
+T tests of the single crossover positions reveal that the normalized 1 foci positions are not significantly different between the total pooled high and low rec male strains (t.test; p = `r Rec.group_BivData_F1post_Ttest$p.value`). 
+
+further tests -- within the subspecies, musculus and molossinus, 
+
+The high rec musc strains, _musculus^PWD^_ and _musculus^SKVIE^_, do not have signifcantly different single foci landscapes from the other musc low rec strains (ttest; p = `r Q2.1COpos_mus.av_Musc_ttest$p.value`).
+
+While _molossinus^MOLF^_ is significantly more centrally positioned compared to _molossinus^MSM^_ (t.test; p = `r Q2.1COpos_mus.av_Mol_ttest$p.value`). This result is somewhat puzzeling and it doesn't match up with the strains with high recombination rates.
+
+ -- BUT this might be due to sampling for MSM -- but it doesn't seem to be the case in MOLF, 
+ 
+(MSM and MOLF have different proportions of chromosome classes -- (MSM has the smallest propotion of 1COs, across the strains, BUT the mean and distributions for MSM of single foci positions are equivilent across all the strains.
+
+Where as something is 
+
+
+<long p = `r Rec.group_LONG.BivData_F1post_Ttest$p.value` short 1CO, male, p = `r Q2.1COpos.PER_short_ttest_HL$p.value`> 
+<!-- GLMs because there's no difference 
+toal data set, short and long biv. There's only a difference between MSM and MOKF
+test ppredictions, Dom = NULL,  -->
+
+```{r Q2.1COpos_mus.av.full_glm, echo=FALSE}
+
+#(mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Musc") %>% filter(Rec.group == "0"))$norm.first.foci.pos
+
+Q2.glm_mus.av_1COpos_M1 <- glm(norm.first.foci.pos ~ subsp * strain, data= mouse.avs_4MM %>% filter(sex == "male"))
+sum.Q2.glm_mus.av_1COpos_M1  <- summary(Q2.glm_mus.av_1COpos_M1)$coefficients
+#summary(Q2.glm_mus.av_1COpos_M1)$coefficients[,4]
+
+#with.chrm.legth  ?
+Q2.glm_mus.av_1COpos_M1 <- glm(norm.first.foci.pos ~ subsp * strain, data= mouse.avs_4MM %>% filter(sex == "male"))
+
+
+#M2
+Q2.glm_mus.av_1COpos_M2 <- glm(norm.first.foci.pos ~ strain, data= mouse.avs_4MM %>% filter(sex == "male"))
+sum.Q2.glm_mus.av_1COpos_M2 <- summary(Q2.glm_mus.av_1COpos_M2)$coefficients
+
+```
+
+
+in the above chunk I tried making another glm's which uses the single bivalent measures and include chromosome size for the switching the model to include interaction (instead of additive), all of the pvalues get lower. .. the chromosome length has the most significant effect, LEW by chrm effect are significant
+
+In the reduced model, chrm length is the most significant, strain SKIVE, MOLF, G and LEW are significant strain effects
+
+
+**For the M2 (subsp)**
+There are differences for the dom strains: G strain(p = `r summary(Q2.glm_mus.av_1COpos_M1)$coefficients[,4][4]`).
+
+
+LEW (slight) (p =`r summary(Q2.glm_mus.av_1COpos_M1)$coefficients[,4][5]`).  
+
+But big effects from Mol (p = `r summary(Q2.glm_mus.av_1COpos_M1)$coefficients[,4][3]`).  
+
+and MSM strain (p = `r summary(Q2.glm_mus.av_1COpos_M1)$coefficients[,4][7]`)  
+
+
+**For M3 (all strains)**
+
+strain G (p = `r sum.Q2.glm_mus.av_1COpos_M2[,4][2]`).
+
+strain Lew (p = `r sum.Q2.glm_mus.av_1COpos_M2[,4][3]`).
+
+strain PWD ( p = `r sum.Q2.glm_mus.av_1COpos_M2[,4][4]`).
+
+slight strain MSM  (p = `r sum.Q2.glm_mus.av_1COpos_M2[,4][5]`).
+
+very sig strain MOLF (p = `r sum.Q2.glm_mus.av_1COpos_M2[,4][6]`).
+
+strain SKIVE (p = `r sum.Q2.glm_mus.av_1COpos_M2[,4][7]`).
+
+strain KAZ (p = `r sum.Q2.glm_mus.av_1COpos_M2[,4][8]`).
+
+from the main figure above, you can see that G and MOLF 1CO foci positions are the most different
+
+<no prediction for the strains within subspecies>
+
+For MOLF 326 1CO bivalents,  79, 126, 62, 59 1CO observations across the 4 MOLF mice
+
+there are only 77 MSM 1COs across 4 mice in MSM (MSM is less central than MOLF)
+(motivation for MOLF female observations and more male MSM biv measures)
+
+
+```{r Q2.1COpos.show.MOL, echo=FALSE}
+
+(mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Mol") %>% filter(Rec.group == "0"))$norm.first.foci.pos
+
+mus.av1COpos.plot <- ggplot(data= mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Mol"),
+                      aes(x= mouse, y = norm.first.foci.pos))+geom_point()
+
+
+#+facet_wrap(~mouse, scales = "free")
+
+single.biv_1COpos.plot_Mol <- ggplot(data= Curated_BivData %>%  filter(sex == "male") %>%  filter(subsp == "Mol") %>%  filter(hand.foci.count == "1") %>%  filter(chromosomeLength < 100),
+                      aes(x= fileName, y = PER_Foci_1, color=chromosomeLength))+geom_point()+facet_wrap(~mouse, scales = "free") + ylim(c(0,1))
+
+#+scale_color_manual(values=colors_of_strains)
+
+
+single.biv_1COpos.plot_Dom <- ggplot(data= Curated_BivData %>% filter(sex == "male") %>%filter(subsp == "Dom") %>%  filter(hand.foci.count == "1"),
+                      aes(x= fileName, y = PER_Foci_1, color=strain ))+geom_point()+facet_wrap(~mouse, scales = "free") + ylim(c(0,1))+scale_color_manual(values=colors_of_strains)
+
+
+
+#CHRM.length is very significant-- some of the same subsp and strains are sig                      
+
+
+```
+
+
+I ran another model that used the single bivalents observations to predict the normalize foci position with fixed effects of chromosome length, subspecies, strian and the interaction effects.
+
+
+**M.X. Linear Model** $$1CO \ Normalized \ Position ~=~ chromosomeLength * subsp * strain + \varepsilon $$
+ 
+
+```{r Q2.1CO.pos_glm.chrm.Length, echo=FALSE}
+#remove this cell, 
+
+Curated_BivData <- Curated_BivData %>% filter(Obj.ID != "13sep18_28jun18_MOLF_m1_sp1_18.1_rev_14")
+
+Curated_BivData.Mol <- Curated_BivData %>% filter(Foci1 != "")
+
+#making new models 
+
+Curated_BivData$subsp <- factor(Curated_BivData$subsp , ordered = F)
+Curated_BivData$strain <- factor(Curated_BivData$strain , ordered = F)
+
+chrm.1CO.pos.chrmLength <- glm(PER_Foci_1 ~ chromosomeLength * subsp * strain, data= Curated_BivData.Mol %>% filter(sex == "male")  %>%  filter(hand.foci.count == "1") )
+
+sum.chrm.1CO.pos.chrmLength <- summary(chrm.1CO.pos.chrmLength)$coefficients
+#summary(Q2.glm_mus.av_1COpos_M1)$coefficients[,4]
+
+
+chrm.1CO.pos.chrmLength_strain <- glm(PER_Foci_1 ~ chromosomeLength *  strain, data= Curated_BivData.Mol %>% filter(sex == "male")  %>%  filter(hand.foci.count == "1") )
+
+#summary(chrm.1CO.pos.chrmLength_strain)
+
+```
+
+for the first model, 
+
+chromosome length `r summary(chrm.1CO.pos.chrmLength)$coefficients[,4][2]`  
+
+
+subsp MOL `r summary(chrm.1CO.pos.chrmLength)$coefficients[,4][4]`  
+the mol obj above isn't showing the reight value. 
+
+strain G   `r summary(chrm.1CO.pos.chrmLength)$coefficients[,4][5]`  
+
+
+strain LEW   `r summary(chrm.1CO.pos.chrmLength)$coefficients[,4][6]`  
+
+
+Strain MSM `r summary(chrm.1CO.pos.chrmLength)$coefficients[,4][8]`  
+
+
+chrm * LEW `r summary(chrm.1CO.pos.chrmLength)$coefficients[,4][14]`  
+
+
+chrm *MSM  `r summary(chrm.1CO.pos.chrmLength)$coefficients[,4][16]`
+
+
+M2 / for the second model ... 
+
+-chromosome length, `r summary(chrm.1CO.pos.chrmLength_strain)$coefficients[,4][2]`  
+
+
+-strain G, `r summary(chrm.1CO.pos.chrmLength_strain)$coefficients[,4][3]`  
+
+
+-strain LEW, `r summary(chrm.1CO.pos.chrmLength_strain)$coefficients[,4][4]`  
+
+
+-strain MOLF, `r summary(chrm.1CO.pos.chrmLength_strain)$coefficients[,4][7]`  
+
+
+-strain SKIVE, `r summary(chrm.1CO.pos.chrmLength_strain)$coefficients[,4][8]`  
+
+
+-chrm length LEW, `r summary(chrm.1CO.pos.chrmLength_strain)$coefficients[,4][12]`  
+
+
+**males from WSB and MOLF strains have 'strang'/unique patterns for the single foci positions, which don't fit with predicted patterns from the genome wide recombination rate variation**
+
+**There are significant difference across the 1CO positions, yet they don't match /fit any of the predictions. there are also complications due to the chromsome class proportions that **
 
 ```{r Q2.1COpos_strain, echo=FALSE, eval=FALSE}
 #isolate all musc
@@ -5622,240 +5922,7 @@ mouse.av.long.biv.table$Rec.group <- ifelse(grepl("PWD", mouse.av.long.biv.table
 ```
 
 
-<!-- plots /figures below-->
-
-```{r Q2.1CO.show_plots, echo=FALSE}
-#Curated_BivData_male
-
-#boxplots of nrm F1
-male.bivdata.1CO <- Curated_BivData_male %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1)
-
-  
-Q2.show.nrmF1 <- ggplot(male.bivdata.1CO, aes(x=strain, y=PER_Foci_1, color=strain) )+geom_jitter(alpha=.5 )+ geom_boxplot(aes(y= PER_Foci_1), alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Normalized 1CO Foci pos")
-
-Q2.show.nrmF1
-
-
-nrmF1_mouse_level <- ggplot(Male.poly.Mouse.Table_BivData_4MM, aes(x=strain, y=norm.first.foci.pos, color=strain) )+geom_jitter(alpha=.5 )+ geom_boxplot(aes(y= norm.first.foci.pos), alpha=.5 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse Level, \nNormalized 1CO Foci pos")
-
-nrmF1_mouse_level
-```
-
-
-```{r Q2.1COpos.LONG.BIV, echo=FALSE}
-
-#make the same plots as above but with the long biv data set
-male.long.biv.1CO <- real.long.bivData %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1)
-
-#mouse.av.long.biv.table
-
-Q2.show.nrmF1_long.biv <- ggplot(male.long.biv.1CO, aes(x=strain, y=PER_Foci_1, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= PER_Foci_1 ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Normalized 1CO Foci pos \nLong Biv")
-
-Q2.show.nrmF1_long.biv
-
-
-Mouse.av.Long.biv <- ddply(male.long.biv.1CO, c("mouse"), summarise,
-                        Nmice = length(unique(mouse)),
-                        Nbiv  = length(Obj.ID),
-                       mean.1CO_PER = mean(PER_Foci_1)
-                      # mean_CO = mean()
-                       )
-
-Mouse.av.Long.biv <- add_strain(Mouse.av.Long.biv)
-Mouse.av.Long.biv <- add_subsp(Mouse.av.Long.biv)
-
-
-Q2.shoooo   <- ggplot(Mouse.av.Long.biv, aes(x=strain, y=mean.1CO_PER, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= mean.1CO_PER ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("mouse ave \nNormalized 1CO Foci pos \nLong Biv")
-
-Q2.shoooo
-```
-
-
-<!-- t tests -->
-
-
-```{r Q2.1COpos_mouse.av.t.test_all, echo=FALSE}
-
-#mouse.avs_4MM
-#31may19_SKIVE_m2  has NA for norm.first.foci.pos
-
-
-#High = MSM, PWD, SKIVE
-Q2.1COpos_Ttest <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "0"))$norm.first.foci.pos, 
-            (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "1"))$norm.first.foci.pos )
-#p-value = 1
-
-#high = PWD and MSM
-Q2.1COpos_Ttest.HL.ex <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group.exclu == "0"))$norm.first.foci.pos, 
-            (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group.exclu == "1"))$norm.first.foci.pos )
-#p-value = 1
-
-
-#single biv level
-Rec.group_BivData_F1post_Ttest <- t.test(male.bivdata.1CO$PER_Foci_1[male.bivdata.1CO$Rec.group == 1], 
-                                 male.bivdata.1CO$PER_Foci_1[male.bivdata.1CO$Rec.group == 0])
- 
-#Rec.group_BivData_F1post_Ttest$p.value 
-#p-value = 0.238
-
-```
-
-
-```{r Q2.1CO_mouse.av.short.long_t.test, echo=FALSE}
-#these don't have mean.first.foci
-
-#short
-Q2.1COpos_short_ttest_HL <- t.test( (Q2mouse.av.short.biv.table  %>% filter(Rec.group == "0"))$norm.first.foci.pos, 
-            (Q2mouse.av.short.biv.table %>% filter(Rec.group == "1"))$norm.first.foci.pos   )
-#p-value = 0.06
-
-#remove SKIVE
-Q2.1COpos_short_ttest_HL.sansSKVIE <- t.test( (Q2mouse.av.short.biv.table  %>% filter(Rec.group.exclu == "0"))$norm.first.foci.pos, 
-            (Q2mouse.av.short.biv.table %>% filter(Rec.group.exclu == "1"))$norm.first.foci.pos   )
-#p-value = 0.4
-
-
-#long
-Q2mouse.av.long.biv.table_HL  <-  t.test( (Q2mouse.av.long.biv.table  %>% filter(Rec.group == "0"))$norm.first.foci.pos, 
-            (Q2mouse.av.long.biv.table %>% filter(Rec.group == "1"))$norm.first.foci.pos   )
-#p-value = 0.5
-
-#long exclude skive  Q2mouse.av.long.biv.table
-Q2mouse.av.long.biv.table_HL.ex  <-  t.test( (Q2mouse.av.long.biv.table  %>% filter(Rec.group.exclu == "0"))$norm.first.foci.pos, 
-            (Q2mouse.av.long.biv.table %>% filter(Rec.group.exclu == "1"))$norm.first.foci.pos   )
-#p-value = 0.08
-
-#they kinda have ooposite effects
-
-```
-
-```{r Q2.1COpos_BIV_ttest, echo=FALSE}
-
-whoo.mama <-  t.test( (Curated_BivData %>% filter(sex == "male") %>% filter(hand.foci.count == 1)  %>%  filter(Rec.group == "0"))$PER_Foci_1, 
-            (Curated_BivData  %>% filter(sex == "male") %>% filter(hand.foci.count == 1)   %>% filter(Rec.group == "1"))$PER_Foci_1   )
-#p-value = 0.2
-
-
-whoo.mama.rec.exc <-  t.test( (Curated_BivData  %>% filter(sex == "male") %>% filter(hand.foci.count == 1)  %>%  filter(Rec.group.exclu == "0"))$PER_Foci_1, 
-            (Curated_BivData  %>% filter(sex == "male") %>% filter(hand.foci.count == 1)   %>% filter(Rec.group.exclu == "1"))$PER_Foci_1   )
-
-#p-value = 0.4
-
-```
-
-```{r Q2.1COpos_within.subsp_ttest, echo=FALSE}
-
-#compare within subsp
-
-#Musc
-Q2.1COpos_mus.av_Musc_ttest  <-  t.test( (mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Musc") %>% filter(Rec.group == "0"))$norm.first.foci.pos, 
-            (mouse.avs_4MM  %>%  filter(sex == "male") %>% filter(subsp == "Musc") %>% filter(Rec.group == "1"))$norm.first.foci.pos   )
-
-# p-value = 0.4
-# exclusive rec group not sig
-```
-
-t.tests for high and Low rec strains
-
-long 
-Q2.1COpos_short_ttest_HL
-
-short
-
-
-
-The t.tests are not significant for normalized foci position comparing all bivalets
-The normalized Foci Positions are not significantly different between the high and low rec groups (full data set, mouse av and single bivalent level).
-
-
-The t-tests for the high and low rec strains for the reduced bivalent datasets are mostly NS
-
-**Most all of the t.tests I've done indecate that there are no sig diff between the High and the low rec groups**
-
-For normalized position of 1CO. 
-The normalized 1CO position is not a good metric to distinguish the high and low rec groups.
-
-
-<!-- GLMs -->
-
-<toal data set, short and long biv>
-
-
-```{r Q2.1COpos_mus.av.full_glm, echo=FALSE}
-
-#(mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Musc") %>% filter(Rec.group == "0"))$norm.first.foci.pos
-
-Q2.glm_mus.av_1COpos_M1 <- glm(norm.first.foci.pos ~ subsp * strain, data= mouse.avs_4MM %>% filter(sex == "male"))
-
-sum.Q2.glm_mus.av_1COpos_M1  <- summary(Q2.glm_mus.av_1COpos_M1)$coefficients
-
-
-#M2
-Q2.glm_mus.av_1COpos_M2 <- glm(norm.first.foci.pos ~ strain, data= mouse.avs_4MM %>% filter(sex == "male"))
-
-sum.Q2.glm_mus.av_1COpos_M2 <- summary(Q2.glm_mus.av_1COpos_M2)$coefficients
-
-```
-
-
-```{r Q2.1COpos.glm, echo=FALSE}
-#Male.poly.Mouse.Table_BivData_4MM
-#Curated_BivData_male
-
-#glm1.SC.male.poly <- glm(mean_SC ~ subsp * strain, data= Male.poly.Mouse.Table_BivData_4MM)
-#summary(glm1.SC.male.poly) 
-#glm2.SC.male.poly <- glm(mean_SC ~ strain, data= Male.poly.Mouse.Table_BivData_4MM)
-#summary(glm2.SC.male.poly) 
-
-#M1
-glm.M1_Q2.1COnrm <- glm(norm.first.foci.pos ~ subsp * strain, data= Male.poly.Mouse.Table_BivData_4MM)
-#summary(glm.M1_Q2.1COnrm) 
-
-#M2
-glm.M2_Q2.1COnrm <- glm(norm.first.foci.pos ~ strain, data= Male.poly.Mouse.Table_BivData_4MM)
-#summary(glm.M2_Q2.1COnrm) 
-
-
-#Dom
-glmQ2_M2.1COnrm_Dom <- glm(norm.first.foci.pos ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Dom",])
-#summary(glmQ2_M2.1COnrm_Dom)
-
-#Musc
-glmQ2_M2.1COnrm_Musc <- glm(norm.first.foci.pos ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",])
-#summary(glmQ2_M2.1COnrm_Musc)
-
-#Mol
-glmQ2_M2.1COnrm_Mol <- glm(norm.first.foci.pos ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",])
-#summary(glmQ2_M2.1COnrm_Mol)
-
-
-#m3 (log)
-Male.poly.Mouse.Table_BivData_4MM$Rec.group <- ifelse(grepl("PWD", Male.poly.Mouse.Table_BivData_4MM$strain), 1, 
-                                    ifelse(grepl("MSM", Male.poly.Mouse.Table_BivData_4MM$strain), 1, 
-                                            ifelse(grepl("SKIVE", Male.poly.Mouse.Table_BivData_4MM$strain), 1, 0)))
-
-Log.glmQ2_M2.1COnrm <- glm(Rec.group ~ norm.first.foci.pos,
-              data=Male.poly.Mouse.Table_BivData_4MM,  family=binomial(link="logit"))
-#summary(Log.glmQ2_M2.1COnrm)
-
-#Musc
-Log.glmQ2_M2.1COnrm_Musc <- glm(Rec.group ~ norm.first.foci.pos,
-              data=Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",], 
-              family=binomial(link="logit"))
-#summary(Log.glmQ2_M2.1COnrm_Musc)
-
-
-#Mol
-Log.glmQ2_M2.1COnrm_Mol <- glm(Rec.group ~ norm.first.foci.pos,
-              data=Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",],
-              family=binomial(link="logit"))
-#summary(Log.glmQ2_M2.1COnrm_Mol)
-
-
-#biv level logistic regression
-#Curated_BivData_male
-#male.bivdata.1CO
-
+```{r Q2.1COpos.glm, echo=FALSE, eval=FALSE}
 male.bivdata.1CO$Rec.group <- ifelse(grepl("PWD", male.bivdata.1CO$strain), 1, 
                                     ifelse(grepl("MSM", male.bivdata.1CO$strain), 1, 
                                             ifelse(grepl("SKIVE", male.bivdata.1CO$strain), 1, 0)))
@@ -5877,29 +5944,8 @@ Log.Q2.F1_PER_Mol <- glm(Rec.group ~ PER_Foci_1,
               family=binomial(link="logit"))
 
 #summary(Log.glmQ2_M2.1COnrm_Mol)
-
-
 ```
 
-
-<no prediction for the strains within subspecies>
-
-glms are constructed to test if there has been evolution between strains ... ect.
-I will use the full data set the reduced datasets have such low power
-
-for M1
-Mol subsp is significant, strain G (LEW slight sig), strain MSM -- strain MOLF is NA
-
-for M2,
-
-G, LEW, PWD, MSM, MOLF, SKIVE, KAZ have significant effects
-
-put together, these glm's indeceate that MOLF is the most different in it's 1CO landscape (compared to other males). Is this a sampling issue
-
-For MOLF 326 1CO bivalents,  79, 126, 62, 59 1CO observations across the 4 MOLF mice
-
-there are only 77 MSM 1COs across 4 mice in MSM (MSM is less central than MOLF)
-(motivation for MOLF female observations and more male MSM biv measures)
 
 
 # Q2 IFD
