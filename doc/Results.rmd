@@ -2920,8 +2920,8 @@ Q1lmer.MM_SC_short_strain)
 
 ```
 
-<and the short biv>
-Mixed models for the sex differences in mouse averages for short bivalents Sex is the most significant factor for the mixed model of mean short bivalents (LTR; p =`r Q1lmer.MM_SC_short_results$sex.results`). interaction (subspecies by sex) effect also significant (p = `r Q1lmer.MM_SC_short_results$interaction.pval`).
+
+Mixed models for the sex differences in mouse averages for short bivalents Sex is the most significant factor for the mixed model of mean short bivalents (LTR; p =`r Q1lmer.MM_SC_short_results$sex.results`). The interaction (subspecies by sex) effect also significant (p = `r Q1lmer.MM_SC_short_results$interaction.pval`).
 
 These effects were followed up the glms, again applied to both mouse means for short biv SC lengths and total sc area per cell.
 
@@ -2929,7 +2929,7 @@ These effects were followed up the glms, again applied to both mouse means for s
 
 **M3. Linear Model** $$mouse \ average \ SC \ metric ~=~ sex * strain + \varepsilon $$
 
-```{r Q1.glm_totalSC, echo=FALSE, message=FALSE}
+```{r Q1.glm_totalSC_M2.M3, echo=FALSE, message=FALSE}
 #total-SC
 #Q1.lmer_totSC.mouse.av.table
 
@@ -2945,7 +2945,7 @@ sum.Q1.glm_totSC_M3 <- summary(Q1.glm_totSC_M3)
 ```
 
 
-```{r Q1.SC.Length_M2, echo=FALSE, warning=FALSE, message=FALSE}
+```{r Q1.SC_short_M2, echo=FALSE, warning=FALSE, message=FALSE}
 
 Q1.real.short_mouse_table$subsp <- factor(Q1.real.short_mouse_table$subsp, ordered = FALSE)
 Q1.real.short_mouse_table$sex <- factor(Q1.real.short_mouse_table$sex, ordered = FALSE)
@@ -2974,37 +2974,36 @@ summ.Q1.glm_short.SC_M3 <- summary(Q1.glm_short.SC_M3)
 #sex male very sig -- only sig
 ```
 
-The following effects had significant p values given the above model
+The following effects had significant p values for the **total SC** from the above model
 
 subspecies musc p = `r sum.Q1.glm_totSC_M2$coefficients[,4][2]`, subspecies mol p =`r sum.Q1.glm_totSC_M2$coefficients[,4][3]`, sex male  p =`r sum.Q1.glm_totSC_M2$coefficients[,4][8]`, strain lew p =`r sum.Q1.glm_totSC_M2$coefficients[,4][5]`, strain g  p =`r sum.Q1.glm_totSC_M2$coefficients[,4][4]`,
 <this is the smallest p vale, elevated female total, driven by the high means in females>
 
 (subsp*sex) mol.male  p =`r sum.Q1.glm_totSC_M2$coefficients[,4][10]`, sex.g  p =`r sum.Q1.glm_totSC_M2$coefficients[,4][11]`, lew.male p =`r sum.Q1.glm_totSC_M2$coefficients[,4][12]`
 
-
 <!--
 for the _mmdomesticues^WSB^ _, _mmdomesticues^G^ _, and _mmdomesticues^LEW^ _
 -->
 
-From this (M2) model sex effect, male is most significant (glm; p =`r summ.Q1.glm_short.SC_M2$coefficients[,4][8]`).
+Fr the **short bivalent** sc the model results are listed below. From this (M2) model sex effect, male is most significant (glm; p =`r summ.Q1.glm_short.SC_M2$coefficients[,4][8]`).
 
 while the skive strain effect (glm; p=`r summ.Q1.glm_short.SC_M2$coefficients[,4][7]`) and and SKIVE*male (glm; p =`r summ.Q1.glm_short.SC_M2$coefficients[,4][16]`) are slightly significant.
 
-In the M2 model, the Sex effect (male) is the only significant p value from this model (glm; p= `r summ.Q1.glm_short.SC_M3$coefficients[,4][14]`).
+In the M3 model (strains and sex as fixed effects), the Sex effect (male) is the only significant p value from this model (glm; p= `r summ.Q1.glm_short.SC_M3$coefficients[,4][14]`).
 
+<SUMMARY, ttests and models indicate female have strongest effect -- longer AC-A >
 
+<In summary, females (oocytes) have loser different chromatin compaction patterns compared to males. There are suggestions of evolution for this trait across the domesticus and musculus subspecies.>
 
-
-<SUMMARY, ttests and models indicate female have strongest effect -- longer AC-AE.  >
-
-In summary, females (oocytes) have loser different chromatin compaction patterns compared to males. There are suggestions of evolution for this trait across the domesticus and musculus subspecies.
+<1. the longer female sc's is consistant and seen across all strains,
+even in the high rec strains, suggest a decoupling of sc and gwRR - when comparing across sexes -- or the sc area is used differently for CO in oocytes and spermatocytes.
+2. when the total sc per cell is compared, domesticus males have significantly lower SC arae compared to molossinus and musculus strains.Except in Q2 I Say this isn't true.>
 
 ```{r show.long.biv, echo=FALSE, include=FALSE}
 #mouse av
 Q1.SC.long.mouse_scatter_boxplot <- ggplot( Q1.real.long_mouse_table, aes(y = mean_SC, x = sex, color=strain)) + geom_jitter()+ geom_boxplot(alpha=.2) +scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales="free")+ylim(c(75,150) )+ggtitle("Mouse average SC Length \n long bivalent dataset")
 
 ```
-
 
 ```{r Q1_SC.biv.long_ttest, echo=FALSE, include=FALSE}
 
@@ -3040,7 +3039,6 @@ Q1_mus.av_longSC_t.test.SKIVE <- t.test((Q1.real.long_mouse_table %>% filter(sex
 
 #run t.tests for the mouse av. for reduced single bivalent datasets
 ```
-
 
 ```{r Q1other_SC_lmer, echo=FALSE, include=FALSE}
 
@@ -3082,13 +3080,6 @@ Q1.lmer_SCLength.2CO_strain)
 #as.data.frame(round(summary(SCLength_long.biv_MM.M1)$coefficients, 6))
 ```
 
-
-```{r Q1.SC.length.show_long.short, echo=FALSE, eval=FALSE}
-
-Q1.SClength_Musc.BivData_plot <- ggplot( Q1.real.long_mouse_table, aes(y = chromosomeLength, x = strain, color=strain)) + geom_jitter(alpha=.3)+ geom_boxplot(alpha=.3)+scale_color_manual(values=colors_of_strains)+ggtitle("Musc av. SC Length \nBivData Level")+facet_wrap(~sex, scales="free")+ylim(c(30,225))
-```
-
-
 ```{r Q1.SC.M2plot, echo=FALSE, include=FALSE}
 
 #removing these plots for space
@@ -3096,10 +3087,6 @@ Q1.SClength_Musc.BivData_plot <- ggplot( Q1.real.long_mouse_table, aes(y = chrom
 Musc.mouse.av <-  Mouse.Table_BivData_4MM %>%  filter(subsp == "Musc") 
 #Musc.all
 Q1glm_SCLength_M2.Musc <- glm(mean_SC ~ strain * sex, data = Musc.mouse.av)
-
-#mouse av
-Q1.SClength_Musc_plot <- ggplot( Musc.mouse.av, aes(y = mean_SC, x = strain, color=strain)) + geom_jitter()+ geom_boxplot(alpha=.2) +scale_color_manual(values=colors_of_strains)+ggtitle("Musc av. SC Length")+facet_wrap(~sex)+ylim(c(75,125) )
-
 
 #BivData Level
 Musc_BivData <-  Curated_BivData %>%  filter(subsp == "Musc") 
@@ -3113,56 +3100,6 @@ Q1.SClength_Dom.BivData_plot <- ggplot( Dom_BivData, aes(y = chromosomeLength, x
 
 ```
 
-
-```{r Q1.SC.long.biv_wacko, echo=FALSE, include=FALSE, eval=FALSE}
-
-#REAL.long_mouse_table
-
-#removed these plots for space
-Q1_cell_long.biv <- ggplot(REAL.long_mouse_table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(sex~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,200))+geom_boxplot(alpha=.2) + ggtitle("Cell averages for Long Bivs")+theme(legend.position="none")
-
-#mouse av for long biv
-cell.av.long.biv.table <- ddply(male.long.biv, c("fileName"), summarise,
-                             
-                        n_obs = length(Obj.ID),
-                         mean.sc = mean(chromosomeLength)
-                         )
-
-cell.av.long.biv.table <- add_mouse(cell.av.long.biv.table)
-cell.av.long.biv.table <- add_strain(cell.av.long.biv.table)
-cell.av.long.biv.table <- add_subsp(cell.av.long.biv.table)
-
-#cell.avlong.biv <- ggplot( (REAL.long_mouse_table %>% filter(sex == "male")), aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Cell av. \nMale Long Biv SC Lengths")
-  
-#mouse av for long biv
-
-mouse.show.long.biv <- ggplot((REAL.long_mouse_table %>% filter(sex == "male")), aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Mouse av. \nMale Long Biv SC Lengths")
-
-mouse.show.long.biv
- 
-```
-
-
-```{r Q1_long_biv_lmer, echo=FALSE, message=FALSE, include=FALSE}
-
-Q1.real.long_mouse_table <- REAL.long_mouse_table
-
-###
-lmer.Q1_SCLength_long_M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Q1.real.long_mouse_table, REML = TRUE) 
-lmer.Q1_SCLength_long_M1_R.sex <- lmer(mean_SC ~ subsp + (1|strain), data=Q1.real.long_mouse_table, REML = TRUE) 
-lmer.Q1_SCLength_long_M1_R.subsp <- lmer(mean_SC ~ sex + (1|strain), data=Q1.real.long_mouse_table, REML = TRUE) 
-
-Q1lmer.MM_SC_long_interaction  <-drop1(lmer.Q1_SCLength_long_M1, test="Chisq" )$`Pr(Chi)`[2]
-Q1lmer.MM_SC_long_sex  <-anova(lmer.Q1_SCLength_long_M1, lmer.Q1_SCLength_long_M1_R.sex)$`Pr(>Chisq)`[2]
-Q1lmer.MM_SC_long_subp  <- anova(lmer.Q1_SCLength_long_M1, lmer.Q1_SCLength_long_M1_R.subsp)$`Pr(>Chisq)`[2]
-Q1lmer.MM_SC_long_strain  <- exactRLRT(lmer.Q1_SCLength_long_M1)$p.value
-
-
-Q1lmer.MM_SC_long_results <- data.frame(sub.sp = Q1lmer.MM_SC_long_subp, 
-sex.results =  Q1lmer.MM_SC_long_sex, 
-               interaction.pval = Q1lmer.MM_SC_long_interaction,  rand.pval = 
-Q1lmer.MM_SC_long_strain)
-```
 
 # short transition
 
@@ -4511,11 +4448,13 @@ we tested the sex differences -- now we focus on the largest aspect of variation
 
 # Q2 SC Length
 
-motivation:
-the positive correlation, Our prediction for this metric is that the high rec strain will have longer sc lengths (axis lengths)
+<motivation:
+the positive correlation, Our prediction for this metric is that the high rec strain will have longer sc lengths (axis lengths)>
 
 <pattern for the single bivalent, pos correlation>
 The predicted pattern for SC length becomes more nuanced when the data are split up by Chromosome class. Mainly that 1CO are shorter in the high rec strains then low rec strains. This is likely due to the fact that more physically longer chromosomes have 1CO in the low rec strains, which pushes the mean SC length up. Where as in the High rec strains, physically longer chromosomes are more likely to be in the 2CO group.  This supports a general pattern of tighter clustering of SC lengths across chromosome classes in the high rec group. They have a lower probability of 2COs below a certain SC length threshold.
+
+while testing the sex differences, there were results (the significant subspecies effect) which suggest that the musculus and molossinus strains had longer SC compared to the domesticus strains - these two strains also contain the high rec strains - motivating a model/hypothesis that sc length / chromatin compaction evolution may proceed - facilitate the rapid male specific evolution in gwRR
 
 <!-- basic stats -->
 
@@ -4526,26 +4465,11 @@ The predicted pattern for SC length becomes more nuanced when the data are split
 this section / these tests follow up with those made in Q1 which found that the male musc and mol total-SC were signifcantly higher compared to the male Dom total SC measures.
 These test include additional measues from strains which only had male observations.
 
-In order to test if SC lengths (SC area) is a predictor of genome wide recombination rate variation, we compared /analyzed the average length of bivalents between the high and low recombining strains.
 
-total SC for males (which are), X additional cells were added to the male specific total SC data set described above
-
--reduced bivalent data set (long and short) is made up of binned bivalents from X cells and X mice
+-reduced bivalent data set (long and short) is made up of binned bivalents from X cells and X mice. (Since comparing within sex, there are no sex chromosomes differences and the long bivalent dataset can be used.
 
 <!-- place set ups for total SC, short biv and long biv here -->
 
-```{r Q2.SC.juvimice.list.copy, echo=FALSE}
-juvi_mice <- c(
-  "30dec14_WSB_m2","30dec14_WSB_m4","30dec14_WSB_m1","30dec14_WSB_m3","30dec14_WSB_m5",
-  "30sep14_G_m1","30sep14_G_m2","30sep14_G_m3","30sep14_G_m4","30sep14_G_m5",
-  "12Feb17_LEW_m1","12Feb17_LEW_m2", "13sep17_LEW_m2", "13sep17_LEW_m1","13sep17_LEW_m3",
- 
-  "12sep17_PWD_m1","12sep17_PWD_m2","12sep17_PWD_m3",
-   "30Dec16_MSM_m2","30Dec16_MSM_m3","30Dec16_MSM_m1"
-  )
-
-ppmm <- OG.totSC.mouse.av.table[OG.totSC.mouse.av.table$mouse  %in% juvi_mice, ]   
-```
 
 
 ```{r Q2.SC.short.long.setup, echo=FALSE}
@@ -4734,7 +4658,46 @@ Q2long.biv_t.test_High.Low <- t.test((Q2mouse.av.long.biv.table  %>% filter(Rec.
                           (Q2mouse.av.long.biv.table  %>% filter(Rec.group == "1") )$mean.SC)
 #p-value = 0.2
 
+
+#mUSC-short
+Q2.short_t.test_High.Low.musc <- t.test((Q2mouse.av.short.biv.table  %>% filter(Rec.group == "0") %>% filter(subsp == "Musc") )$mean.SC,
+                          (Q2mouse.av.short.biv.table  %>% filter(Rec.group == "1") %>% filter(subsp == "Musc"))$mean.SC)
+
+#mol-short
+#Q2.short_t.test_High.Low.mol <- t.test((Q2mouse.av.short.biv.table  %>% filter(Rec.group == "0") %>% filter(subsp == "Mol") )$mean.SC,
+#                          (Q2mouse.av.short.biv.table  %>% filter(Rec.group == "1") %>% filter(subsp == "Mol"))$mean.SC)
+
+
+#musc-long
+Q2.long_t.test_High.Low.musc <- t.test((Q2mouse.av.long.biv.table  %>% filter(Rec.group == "0") %>% filter(subsp == "Musc") )$mean.SC,
+                          (Q2mouse.av.long.biv.table  %>% filter(Rec.group == "1") %>% filter(subsp == "Musc"))$mean.SC)
+
+#mol-long
+#Q2.long_t.test_High.Low.mol <- t.test((Q2mouse.av.long.biv.table  %>% filter(Rec.group == "0") %>% filter(subsp == "Mol") )$mean.SC,
+#                          (Q2mouse.av.long.biv.table  %>% filter(Rec.group == "1") %>% filter(subsp =="Mol"))$mean.SC)
+
+#not enought observations 
+
 ```
+
+```{r Q2.SC_HvL_allBiv, echo=FALSE}
+
+#High-Low_All-BivData
+
+Q2.all.BIV_t.test_HL <- t.test((Curated_BivData %>%filter(sex == "male")%>%filter(Rec.group == "0") )$chromosomeLength,
+              (Curated_BivData %>%filter(sex == "male")%>%filter(Rec.group == "1"))$chromosomeLength)
+
+
+#short
+Q2.BIV_short_t.test_HL <- t.test((real.short.bivData %>%filter(sex == "male")%>%filter(Rec.group == "0") )$chromosomeLength,
+              (real.short.bivData %>%filter(sex == "male")%>%filter(Rec.group == "1"))$chromosomeLength)
+
+#long
+Q2.BIV_long_t.test_HL <- t.test((real.long.bivData %>%filter(sex == "male")%>%filter(Rec.group == "0") )$chromosomeLength,
+              (real.long.bivData %>%filter(sex == "male")%>%filter(Rec.group == "1"))$chromosomeLength)
+
+```
+
 
 The average SC lengths increase with the number of MLH1 foci / chromosome classes for all strains, but grouping bivalent observations by chromosome class (foci number) is confounded by the different proportions across strains.
 
@@ -4744,12 +4707,108 @@ total SC t test
 `r Q2tot.sc_t.test_High.Low$p.value`).**
 
 musc and mol ttests
-p = 
-p= 
+mol p = `r Q2tot.sc_t.test_High.Low_Mol$p.value` Mole have significant difference between mouse means 
+
+musc p= `r Q2tot.sc_t.test_High.Low_Musc$p.value`
+the total sc mouse means are not significant for the high and low strains in musc
 
 Additionally we ran similar tests using the short and long bivalent data sets which help to alimeorate potential chromosome size effects. 
 
-**The mouse means for the reduced bivalent datasets are not significantly different between the high and low rec strains (ttest; short p = `r Q2short.biv_t.test_High.Low$p.value` and long p = `r Q2long.biv_t.test_High.Low$p.value`). (the summary of mouse averages for this subset of ) **
+**The mouse means for the reduced bivalent datasets are not significantly different between the high and low rec strains (for the total pooled data) (ttest; short p = `r Q2short.biv_t.test_High.Low$p.value` and long p = `r Q2long.biv_t.test_High.Low$p.value`). (the summary of mouse averages for this subset of ) **
+
+within subspecies
+
+musc-short
+
+musc-long
+
+mol-short
+
+mol-long
+
+```{r Q2.SC_across.subsp_tot.SC, echo=FALSE}
+
+#Dom-Musc
+Q2.totSC_t.test_DomMusc <- t.test((totSC.mouse.av.table  %>% filter(subsp == "Dom") )$mean.skel,
+                          (totSC.mouse.av.table  %>%  filter(subsp == "Musc"))$mean.skel)
+#p-value = 0.5
+
+#Dom-Mol
+Q2.totSC_t.test_DomMol <- t.test((totSC.mouse.av.table  %>% filter(subsp == "Dom") )$mean.skel,
+                          (totSC.mouse.av.table  %>%  filter(subsp == "Mol"))$mean.skel)
+#p-value = 0.1
+```
+
+
+```{r Q2.SC_across.subsp_short.long.mus.av, echo=FALSE}
+
+#DOM-musc-long
+Q2.long_t.test_DomMusc <- t.test((Q2mouse.av.long.biv.table  %>% filter(subsp == "Dom") )$mean.SC,
+                          (Q2mouse.av.long.biv.table %>% filter(subsp == "Musc"))$mean.SC)
+#p-value = 0.08
+
+#DOM-musc-short
+Q2.short_t.test_DomMusc <- t.test((Q2mouse.av.short.biv.table  %>% filter(subsp == "Dom") )$mean.SC,
+                          (Q2mouse.av.short.biv.table %>% filter(subsp == "Musc"))$mean.SC)
+#p-value = 0.8
+
+#DOM-mol-long
+Q2.long_t.test_DomMol <- t.test((Q2mouse.av.long.biv.table  %>% filter(subsp == "Dom") )$mean.SC,
+                          (Q2mouse.av.long.biv.table %>% filter(subsp == "Mol"))$mean.SC)
+#p-value = 0.4
+
+#DOM-mol-short
+Q2.short_t.test_DomMol <- t.test((Q2mouse.av.short.biv.table  %>% filter(subsp == "Dom") )$mean.SC,
+                          (Q2mouse.av.short.biv.table %>% filter(subsp == "Mol"))$mean.SC)
+#p-value = 0.09
+
+```
+
+
+
+```{r Q2.SC_across.subsp_short.long_biv, echo=FALSE}
+
+#DOM-MUSC-ALL
+Q2.all.BIV_t.test_DomMusc <- t.test((Curated_BivData %>%filter(subsp == "Dom")%>%filter(sex == "male") )$chromosomeLength,
+              (Curated_BivData %>% filter(subsp == "Musc")%>%filter(sex == "male"))$chromosomeLength)
+#p-value = 4e-13
+
+#DOM-MOL-ALL
+Q2.all.BIV_t.test_DomMol <- t.test((Curated_BivData%>%filter(subsp == "Dom")%>%filter(sex == "male") )$chromosomeLength,
+              (Curated_BivData %>% filter(subsp == "Mol")%>%filter(sex == "male"))$chromosomeLength)
+#p-value = 6e-10
+
+#DOM-musc-long
+Q2.longBIV_t.test_DomMusc <- t.test((real.long.bivData%>%filter(subsp == "Dom")%>%filter(sex == "male") )$chromosomeLength,
+              (real.long.bivData %>% filter(subsp == "Musc")%>%filter(sex == "male"))$chromosomeLength)
+#p-value = 0.2
+
+#DOM-musc-short
+Q2.shortBIV_t.test_DomMusc <- t.test((real.short.bivData  %>% filter(subsp == "Dom")%>%filter(sex == "male") )$chromosomeLength,
+              (real.short.bivData %>% filter(subsp == "Musc")%>%filter(sex == "male"))$chromosomeLength)
+#p-value = 0.8
+
+
+#DOM-mol-long
+Q2.longBIV_t.test_DomMol <- t.test((real.long.bivData  %>% filter(subsp == "Dom")%>%filter(sex == "male") )$chromosomeLength,
+                          (real.long.bivData %>% filter(subsp == "Mol")%>%filter(sex == "male"))$chromosomeLength)
+#p-value = 0.4
+
+#DOM-mol-short
+Q2.shortBIV_t.test_DomMol <- t.test((real.short.bivData  %>% filter(subsp == "Dom")%>%filter(sex == "male") )$chromosomeLength,
+                          (real.short.bivData %>% filter(subsp == "Mol")%>%filter(sex == "male"))$chromosomeLength)
+#p-value = 0.06
+
+```
+
+
+
+across subspecies:
+
+dom - musc
+
+dom-mol
+
 
 <this might indicate -there's error in the total SC algorithm
 - mouse effect
