@@ -4705,7 +4705,7 @@ total SC t tests
 `r Q2tot.sc_t.test_High.Low$p.value`).**
 
 musc and mol ttests
-mol p = `r Q2tot.sc_t.test_High.Low_Mol$p.value` Mole have significant difference between mouse means 
+mol p = `r Q2tot.sc_t.test_High.Low_Mol$p.value` Mole have significant difference between mouse means for total sc, between the high and low srains 
 
 musc p= `r Q2tot.sc_t.test_High.Low_Musc$p.value`
 the total sc mouse means are not significant for the high and low strains in musc
@@ -4879,7 +4879,7 @@ log.SC.male.poly_musc <- glm(Rec.group ~ mean_SC,
 
 **For the total SC glm**
 
-Thse are our prediction for the glm models based on the variation of the gwRR's
+Thse are our prediction for the M3 glm (just straint) models based on the variation of the gwRR's
 
 1. no difference in DOM strains (for SC lengths (CONFIRM IF THERE ARE DIFFERENECES FOR GWRR))
 
@@ -4941,6 +4941,8 @@ The mouse average and single bivalents are significantly longer in the high rec 
 - for the M2 models of the mouse av, musc - mol are significant fixed effects
 
 - many strain effects, complications in the SC meterics; short/long single bivalents have lower sample size and the total SC might have noise due to the algorithm / differences in the imaging
+
+- th predictions for M3 (strain) differencs (motivated by the gwrr variation are not met,  (correlation of SC means and CO means?))
 
 <Each point is a mouse average SC. When all bivalents are pooled, the logistic regression SC lengths predict the groups. When the data is divided by CO number, 1CO's have a higher SC length in the low group - in the low group more chrms, including the longer ones have 1CO - whereas in the high group, only shorter chrms (SC) are in the 1CO class. For the 2CO class of bivalents - all the SC are longer, the high group averages were longer than the low.>
 
@@ -5441,7 +5443,7 @@ Pwise.ttest_Mol.male.2CO <- pairwise.t.test(male.Mol.mouse.av$mean.SC_2CO, male.
 
 # brief transition, rec landscape
 
-the different lack of predictive power of SC length to predict CO number -- indicates that there might be different patterns of 'SC usage' / different patterns in the layout of the recombination landscape /  these patterns could stem from placement or spacing of foci.
+the lack of predictive power of SC length to predict CO number indicates that there might be different patterns of 'SC usage' / different patterns in the layout of the recombination landscape /  these patterns could stem from placement or spacing of foci.
 
 # Q2 Normalized Single CO positions
 
@@ -5488,7 +5490,7 @@ Q2.shoooo   <- ggplot(Mouse.av.Long.biv, aes(x=strain, y=mean.1CO_PER, color=str
 ```
 
 The previous section found that the single crossover landscape is significantly different between males and females.
-In this section -- we focus on differences between the high and the low rec male strains
+In this section we focus on differences between the high and the low rec male strains
 In order to test if if there are distinguishing meterics for these two groups.
 
 <!-- t tests mouse.avs_4MM, REAL.short_mouse_table-->
@@ -5573,22 +5575,16 @@ Rec.group_BivData_F1post_Ttest <- t.test(
 
 **The figure above shows, WSB has significantly more terminal positioning, while MOLF has significantly more medial position.**
 
-The first use t.tests to test if there are significant differences in the single CO landscapes between the high and low rec groups. 
+T tests of the single crossover positions reveal that the normalized single foci positions are not significantly different between the total pooled high and low rec male strains (t.test; p = `r Rec.group_BivData_F1post_Ttest$p.value`). 
 
-T tests of the single crossover positions reveal that the normalized 1 foci positions are not significantly different between the total pooled high and low rec male strains (t.test; p = `r Rec.group_BivData_F1post_Ttest$p.value`). 
-
-further tests -- within the subspecies, musculus and molossinus, 
+<further tests -- within the subspecies, musculus and molossinus?
 
 The high rec musc strains, _musculus^PWD^_ and _musculus^SKVIE^_, do not have signifcantly different single foci landscapes from the other musc low rec strains (ttest; p = `r Q2.1COpos_mus.av_Musc_ttest$p.value`).
 
 While _molossinus^MOLF^_ is significantly more centrally positioned compared to _molossinus^MSM^_ (t.test; p = `r Q2.1COpos_mus.av_Mol_ttest$p.value`). This result is somewhat puzzeling and it doesn't match up with the strains with high recombination rates.
 
- -- BUT this might be due to sampling for MSM -- but it doesn't seem to be the case in MOLF, 
- 
-(MSM and MOLF have different proportions of chromosome classes -- (MSM has the smallest propotion of 1COs, across the strains, BUT the mean and distributions for MSM of single foci positions are equivilent across all the strains.
-
-Where as something is 
-
+ <BUT this might be due to sampling for MSM -- but it doesn't seem to be the case in MOLF, 
+ (MSM and MOLF have different proportions of chromosome classes -- (MSM has the smallest propotion of 1COs, across the strains, BUT the mean and distributions for MSM of single foci positions are equivilent across all the strains.>
 
 <long p = `r Rec.group_LONG.BivData_F1post_Ttest$p.value` short 1CO, male, p = `r Q2.1COpos.PER_short_ttest_HL$p.value`> 
 <!-- GLMs because there's no difference 
@@ -5613,6 +5609,8 @@ sum.Q2.glm_mus.av_1COpos_M2 <- summary(Q2.glm_mus.av_1COpos_M2)$coefficients
 
 ```
 
+
+in addition models which use mouse average of foci position as a dependat variable, we decided to run models for the single bivalent level, and which include chromosome length as a fixed effect.
 
 in the above chunk I tried making another glm's which uses the single bivalent measures and include chromosome size for the switching the model to include interaction (instead of additive), all of the pvalues get lower. .. the chromosome length has the most significant effect, LEW by chrm effect are significant
 
