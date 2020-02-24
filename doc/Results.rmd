@@ -5673,11 +5673,7 @@ single.biv_1COpos.plot_Mol <- ggplot(data= Curated_BivData %>%  filter(sex == "m
 single.biv_1COpos.plot_Dom <- ggplot(data= Curated_BivData %>% filter(sex == "male") %>%filter(subsp == "Dom") %>%  filter(hand.foci.count == "1"),
                       aes(x= fileName, y = PER_Foci_1, color=strain ))+geom_point()+facet_wrap(~mouse, scales = "free") + ylim(c(0,1))+scale_color_manual(values=colors_of_strains)
 
-
-
-#CHRM.length is very significant-- some of the same subsp and strains are sig                      
-
-
+#CHRM.length is very significant-- some of the same subsp and strains are sig     
 ```
 
 
@@ -5711,10 +5707,9 @@ chrm.1CO.pos.chrmLength_strain <- glm(PER_Foci_1 ~ chromosomeLength *  strain, d
 
 ```
 
-for the first model, 
+<for the first model, 
 
 chromosome length `r summary(chrm.1CO.pos.chrmLength)$coefficients[,4][2]`  
-
 
 subsp MOL `r summary(chrm.1CO.pos.chrmLength)$coefficients[,4][4]`  
 the mol obj above isn't showing the reight value. 
@@ -5751,7 +5746,7 @@ M2 / for the second model ...
 -strain SKIVE, `r summary(chrm.1CO.pos.chrmLength_strain)$coefficients[,4][8]`  
 
 
--chrm length LEW, `r summary(chrm.1CO.pos.chrmLength_strain)$coefficients[,4][12]`  
+-chrm length LEW, `r summary(chrm.1CO.pos.chrmLength_strain)$coefficients[,4][12]`>  
 
 
 **males from WSB and MOLF strains have 'strang'/unique patterns for the single foci positions, which don't fit with predicted patterns from the genome wide recombination rate variation**
@@ -5838,15 +5833,13 @@ Long.biv.IFDs_PER_by.group <- ggplot(male.long.biv.2CO_IFD, aes(y = IFD1_PER, x=
   ggtitle("Normalized Interfocal Distances, Long BivData\nLow Rec group =0, High Rec group =1")+
   scale_color_manual(values=colors_of_strains)+ facet_wrap(subsp~Rec.group, scales = "free")+theme(legend.position="none")+ylim(c(0,1.1))
 
-Long.biv.IFDs_PER_by.group
-
 ```
 
 
 <!-- set up chunks here-->
 
 
-```{r Q2.show.IFD, echo=FALSE}
+```{r Q2.show.IFD, echo=FALSE, warning = FALSE}
 
 #subset
 male.biv.2CO <- Curated_BivData %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 2)
@@ -5869,49 +5862,24 @@ biv.IFDs_PER_by.group <- ggplot(male.biv.2CO, aes(y = IFD1_PER, x= mouse, color=
 biv.IFDs_PER_by.group
 ```
 
+<Instead of the long and short biva data, the total 2CO bivalent dataset is used to make models.>
 
-<motivation background / fit more COs along a chromsome>
+<Previous prediction for differences in the long and short bivalent dataset. Examine the pattern in the Long bivalent data set to get a feel for if the chromosome size effect skews the pattern. In the long bivalent data set, the longest bivalents (top 25%) from each cell are isolated, so they are more likely to be the same chromosome identities (Chrm1 to Chrm5). The section on IFD only looks at the 2CO bivalents.>
 
-t.test, are the high and low rec strains different?
-
--glms -- are predictions based on the gwRR met for interference
-
-1. glm across subsp
-
-2. anova within subsp
-
-3. logistic regression for musc (or all males)
-
-The above plots are not the best at showing the pattern of higher rec group having slightly higher raw IFD - because their SC are longer on average. 
- The normalized plot displays the pattern of higher rec group having slightly higher longer IFDs.
-
-Full_2CO dataset
-- short biv data
-- long bivdata
-
-Examine the pattern in the Long bivalent data set to get a feel for if the chromosome size effect skews the pattern. In the long bivalent data set, the longest bivalents (top 25%) from each cell are isolated, so they are more likely to be the same chromosome identities (Chrm1 to Chrm5). The section on IFD only looks at the 2CO bivalents.
-
-```{r Q2.t.test_IFD_mouse.av, echo=FALSE, eval=FALSE}
+```{r Q2.t.test_IFD_mouse.av, echo=FALSE}
 
 #t.test for IFD
 #mouse.av - the mouse average IFD is from just 2CO
-t.test_mouse.av.IFD_ABS <- t.test(
-  mouse.avs_4MM$mean_IFD.2CO_ABS[(mouse.avs_4MM$Rec.group == 1)],
+t.test_mouse.av.IFD_ABS <- t.test(  (mouse.avs_4MM %>% filter(Rec.group == "1") %>% filter(sex == "male") )$mean_IFD.2CO_ABS,
+   (mouse.avs_4MM %>% filter(Rec.group == "0") %>% filter(sex == "male") )$mean_IFD.2CO_ABS   )
   
-  mouse.avs_4MM$mean_IFD.2CO_ABS[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc") &(mouse.avs_4MM$Rec.group == 0)] 
-  )
-  
-t.test_mouse.av.IFD_PER <- t.test(
-  
-  mouse.avs_4MM$mean_IFD.2CO_PER[(mouse.avs_4MM$Rec.group == 1)],
-  
-  mouse.avs_4MM$mean_IFD.2CO_PER[(mouse.avs_4MM$sex == "male") & (mouse.avs_4MM$subsp == "Musc") &(mouse.avs_4MM$Rec.group == 0)] 
-  )
+t.test_mouse.av.IFD_PER <- t.test(  (mouse.avs_4MM %>% filter(Rec.group == "1") %>% filter(sex == "male") )$mean_IFD.2CO_PER,
+   (mouse.avs_4MM %>% filter(Rec.group == "0") %>% filter(sex == "male") )$mean_IFD.2CO_PER   )
 
 ```
 
 
-```{r Q2.t.test_IFD,echo=FALSE}
+```{r Q2.t.test_IFD,echo=FALSE, eval=FALSE}
 
 #already made
 #subset
@@ -5931,88 +5899,150 @@ Rec.group.BivData_IFD.PER_Ttest <- t.test(male.bivdata.2CO_IFD$IFD1_PER[male.biv
 Rec.group.BivData_IFD.PER_Ttest$p.value
 #p-value < 2.2e-16
 
-#MOUSE AVE
-Rec.group_IFD.PER_Ttest <- t.test(Male.poly.Mouse.Table_BivData_4MM$mean_IFD.2CO_PER[Male.poly.Mouse.Table_BivData_4MM$Rec.group == 1], 
-                                 Male.poly.Mouse.Table_BivData_4MM$mean_IFD.2CO_PER[Male.poly.Mouse.Table_BivData_4MM$Rec.group == 0])
+#MOUSE AVE  -- replace with mouse    mouse.avs_4MM,   male.av_4MM
+Rec.group_IFD.PER_Ttest <- t.test(  (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "1"))$mean_IFD.2CO_PER, 
+                                (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "0"))$mean_IFD.2CO_PER )
  
 Rec.group_IFD.PER_Ttest$p.value 
 #p-value = 6.872e-07
 
 ```
 
-
-The t.tests return very significant p values for the normalized IFD between the high and low rec groups (for both mouse av and single bivalent observations levels).
-
-
-The t.tests for IFD1s at the bivalent level for the high and low musc males are significant.
+The mouse averages for IFDs were significantly longer in the high rec groups ( p = `r t.test_mouse.av.IFD_PER$p.value` for IFD^PER^ and p = `r t.test_mouse.av.IFD_ABS$p.value` for IFD^raw^). The pattern is confirmed with t.test comparing groups within the same subepcies. **IFD metreics are a significant predictors of rapid genome wide recombination rate evolution.** 
 
 <glms>
 
+The following model framework was applied to further investigate these patterns using mouse averages of IFD^raw^ and IFD^PER^.
+
+**model M1 ** $$mouse \ average \ IFD ~=~ subsp * strain + \varepsilon $$
+
+**model M2 ** $$mouse \ average \ IFD ~=~ strain + \varepsilon $$
+
 
 ```{r Q2.IFD.glm.test, echo=FALSE}
-#glm --
-#mouse aver
+#REPLACE Male.poly with ..
+#(mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "1")
 
 #M1.ABS
-glm.M1.Q2_IFD.raw <- glm(mean_IFD.2CO_ABS ~ subsp * strain, data= Male.poly.Mouse.Table_BivData_4MM)
-summary(glm.M1.Q2_IFD.raw) 
+Q2.M1glm_IFD.raw <- glm(mean_IFD.2CO_ABS ~ subsp * strain, data= mouse.avs_4MM %>% filter(sex == "male")    )
+#summary(Q2.M1glm_IFD.raw) 
+
 #M1.PER
-glm.M1.Q2_IFD.PER <- glm(mean_IFD.2CO_PER ~ subsp * strain, data= Male.poly.Mouse.Table_BivData_4MM)
-summary(glm.M1.Q2_IFD.PER) 
+Q2.M1glm_IFD.PER <- glm(mean_IFD.2CO_PER ~ subsp * strain, data= mouse.avs_4MM %>% filter(sex == "male") )
+
+sum.Q2.M1glm_IFD.PER <- summary(Q2.M1glm_IFD.PER)
+#summary(Q2.M1glm_IFD.PER) 
 
 
 #M2.raw
-glm.M2_Q2.1COnrm <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM)
-summary(glm.M2_Q2.1COnrm)
+Q2.M2glm_IFD.raw <- glm(mean_IFD.2CO_ABS ~ strain, data= mouse.avs_4MM %>% filter(sex == "male"))
+#summary(Q2.M2glm_IFD.raw)
 
+Q2.M2glm_IFD.PER <- glm(mean_IFD.2CO_PER ~ strain, data= mouse.avs_4MM %>% filter(sex == "male"))
+sum.Q2.M2glm_IFD.PER <- summary(Q2.M2glm_IFD.PER)
+#  MSM strain effect for 2CO PER not significant
+
+
+
+#within subspecies
 #Dom
 Q2.glm.M2_IFD_Dom <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Dom",])
-summary(Q2.glm.M2_IFD_Dom)
+#summary(Q2.glm.M2_IFD_Dom)
 
 #Musc
 Q2.glm.M2_IFD_Musc <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",])
-summary(Q2.glm.M2_IFD_Musc)
-
+#summary(Q2.glm.M2_IFD_Musc)
 
 #Mol
 Q2.glm.M2_IFD_Mol <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",])
-summary(Q2.glm.M2_IFD_Mol)
+#summary(Q2.glm.M2_IFD_Mol)
 
-
-#M2.PER
-glm.M2_Q2.IFD.PER <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM)
-summary(glm.M2_Q2.IFD.PER) 
 
 #Dom
 Q2.glm.M2_IFD.PER_Dom <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Dom",])
-summary(Q2.glm.M2_IFD.PER_Dom) 
+#summary(Q2.glm.M2_IFD.PER_Dom) 
 
 #Musc
 Q2.glm.M2_IFD.PER_Musc <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",])
-summary(Q2.glm.M2_IFD.PER_Musc) 
+#summary(Q2.glm.M2_IFD.PER_Musc) 
 
 #Mol
 Q2.glm.M2_IFD.PER_Mol <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",])
-summary(Q2.glm.M2_IFD.PER_Mol)
+#summary(Q2.glm.M2_IFD.PER_Mol)
 ```
 
+In M1, the model build on the mouse averages of IFD metrics with subspecies and strain as fixed effects, the high rec strains had significant strain effects (glm; p = `r sum.Q2.M1glm_IFD.PER$coefficients[,4][6]`, p = `r sum.Q2.M1glm_IFD.PER$coefficients[,4][7]` and p = `r sum.Q2.M1glm_IFD.PER$coefficients[,4][8]`  for PWD, MSM and SKIVE respectively). In M2, the mouse average for normalzied IFD is modeled with only strain effects. Only PWD and SKIVE IFD^PER^ had significant strain effects (glm; p = `r sum.Q2.M2glm_IFD.PER$coefficients[,4][4]` and p = `r sum.Q2.M2glm_IFD.PER$coefficients[,4][7]` for PWD and SKIVE respectively).
 
-```{r Q2.IFD.PER.glm, echo=FALSE}
+<when the M2 model was run within subspecies, the results generally confirmed our predictions; no sig values for Dom, PWD and SKIVE have longer IFDs than other musc strains and MSM is longer than MOLF>
+
+We ran similar models using 2CO bivalent observations to examine what effects the SC length might have on IFD^PER^ length. 
+
+**model BivLen.M1 ** $$Single bivalent\ IFD ~=~ subsp * strain * chromosomeLength + \varepsilon $$
+
+**model BivLen.M2 ** $$Single bivalent\ IFD ~=~ strain * chromosomeLength + \varepsilon $$
+
+```{r Q2.IFD.glm.chrmLength, echo=FALSE}
+
+#repeating chrm models with chromsome length
+#FOR BIVALENT LEVEL MODELS
+
+Curated_BivData$subsp  <- factor(Curated_BivData$subsp, ordered = FALSE)
+
+#M.Len.ABS
+Q2.BIV.LEN.glm_IFD.raw <- glm(IFD1_ABS ~ subsp * strain * chromosomeLength, data= Curated_BivData %>% filter(sex == "male")%>% filter(hand.foci.count == "2")    )
+#summary(Q2.BIV.LEN.glm_IFD.raw)
+
+#M.Len.PER
+Q2.BIV.LEN.glm_IFD.PER <- glm(IFD1_PER ~ subsp * strain * chromosomeLength, data= Curated_BivData %>% filter(sex == "male")%>% filter(hand.foci.count == "2")    )
+#summary(Q2.BIV.LEN.glm_IFD.PER)
+
+
+#M.Len.raw
+Q2.BIV.LEN.M2glm_IFD.ABS <- glm(IFD1_ABS ~ strain* chromosomeLength, data= Curated_BivData %>% filter(sex == "male")%>% filter(hand.foci.count == "2"))
+#summary(Q2.BIV.LEN.M2glm_IFD.ABS)
+
+##M.Len PER
+Q2.BIV.LEN.M2glm_IFD.PER <- glm(IFD1_PER ~ strain* chromosomeLength, data= Curated_BivData %>% filter(sex == "male")%>% filter(hand.foci.count == "2"))
+#summary(Q2.BIV.LEN.M2glm_IFD.PER)
+#  MSM strain effect for 2CO PER not significant
+
+```
+
+For the first version of the bivalent level model (which has subspecies effect), the most significant effect is chromosome length, is slight positive direction (both for raw and normalized IFDs). Molossinus subspecies and Mol\*chrm length effect for IFD^Normalized^ and IFD^raw^. The Mol\*chrmLength is negative (IN MOL as chrm length got longer - IFD gets smaller -- also in SKIVE\*chrm
+
+For the strain only model,  
+
+- PWD, MSM, MOLF, SKIVE are the only significant strain effects.
+
+- all of the strin\*chrm lengths effects are negative, PWD, MSM, MOLF, SKIVE significant effects (for IFD.ABS and IFD.PER)
+
+
+The general chromsome Length effect is that
+
+The single fixed effects can be interperted as, with each unit increase in SC length, the IFD^PER^ also increases (for the high rec strains + MOLF). All of the high rec strains and MOLF have significantly longer IFD^PER^.
+
+
+There are also significant interaction effect of strain and chromsome length, in the high rec strains and MOLF, with each increase in bivalent length, the IFD^PER^ decreases slightly.
+
+
+```{r Q2.IFD.PER.logreg, echo=FALSE, eval=FALSE}
+
+#Log regression all show significant prediction
 
 #IFD.PER
 log.reg.Q2.IFD.PER <- glm(Rec.group ~ mean_IFD.2CO_PER,
               data=Male.poly.Mouse.Table_BivData_4MM,  family=binomial(link="logit"))
-summary(log.reg.Q2.IFD.PER)
+#summary(log.reg.Q2.IFD.PER)
 
 #MUSC
 log.reg.Q2.IFD.PER.Musc <- glm(Rec.group ~ mean_IFD.2CO_PER,
               data=Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",],  family=binomial(link="logit"))
-summary(log.reg.Q2.IFD.PER.Musc)
+#summary(log.reg.Q2.IFD.PER.Musc)
 
 #Mol
 log.reg.Q2.IFD.PER.Mol <- glm(Rec.group ~ mean_IFD.2CO_PER,
               data=Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",],  family=binomial(link="logit"))
-summary(log.reg.Q2.IFD.PER.Mol)
+#summary(log.reg.Q2.IFD.PER.Mol)
 
 
 
@@ -6020,25 +6050,24 @@ summary(log.reg.Q2.IFD.PER.Mol)
 
 Log.Q2.IFD.per_bivdata <- glm(Rec.group ~ IFD1_PER,
               data=male.bivdata.2CO_IFD,  family=binomial(link="logit"))
-summary(Log.Q2.IFD.per_bivdata)
+#summary(Log.Q2.IFD.per_bivdata)
 
 #Musc
 Log.Q2.IFD.per_bivdata.Musc <- glm(Rec.group ~ IFD1_PER,
               data=male.bivdata.2CO_IFD[male.bivdata.2CO_IFD$subsp == "Musc",],  family=binomial(link="logit"))
 
-summary(Log.Q2.IFD.per_bivdata.Musc)
+#summary(Log.Q2.IFD.per_bivdata.Musc)
 
 #Mol
 Log.Q2.IFD.per_bivdata.Mol <- glm(Rec.group ~ IFD1_PER,
               data=male.bivdata.2CO_IFD[male.bivdata.2CO_IFD$subsp == "Mol",],  family=binomial(link="logit"))
 
-summary(Log.Q2.IFD.per_bivdata.Mol)
-
+#summary(Log.Q2.IFD.per_bivdata.Mol)
 
 ```
 
 
-```{r Q2IFD_logreg, echo=FALSE}
+```{r Q2IFD_logreg, echo=FALSE, eval=FALSE}
 
 Male.poly.Mouse.Table_BivData_4MM$Rec.group <- ifelse(grepl("PWD", Male.poly.Mouse.Table_BivData_4MM$strain), 1, 
                                     ifelse(grepl("MSM", Male.poly.Mouse.Table_BivData_4MM$strain), 1, 
@@ -6095,8 +6124,6 @@ male.long.biv.2CO_IFD$strain <- factor(male.long.biv.2CO_IFD$strain, ordered = F
 Q2.glm_long.biv_M2.IFD.PER <- glm(IFD1_PER ~ strain, data= male.long.biv.2CO_IFD)
 #summary(Q2.glm_long.biv_M2.IFD.PER)
 #The PER.IFDs don't have significant strain effects
-
-
 ```
 
 
@@ -6115,47 +6142,8 @@ Since the majority of cells from the Automated BivData set do not have the compl
 Each point is a bivalent plotted by cell on the x axis. X's are the 4th quartile, big point is the mean and smaller black point is the median. I'm using these to compare the patterns of these statistics in the automated data set which is missing some bivalent data. (the extra stats are not correctly mapped)>
 
 
-```{r SC.distb_manual_Auto, echo=FALSE}
-
-#calq the mouse means
-manual_summary_stats <- ddply(whole.cell.data_manual, c("fileName"), summarise,
-
-                        mean_SC = as.numeric(format(round(  mean(SC.length, na.rm = TRUE), 3 ), nsmall=3) ),
-                        median_SC = median(SC.length, na.rm = TRUE),
-                        Qar.4 = quantile(SC.length, na.rm = TRUE)[[4]]
-#                        var_SC = format(round(   as.numeric(var(SC.length)),3), nsmall=3)
-                   
-)
-
-manual_summary_stats <- add_mouse(manual_summary_stats)
-manual_summary_stats <- add_strain(manual_summary_stats)
-manual_summary_stats <- add_sex(manual_summary_stats)
-manual_summary_stats <- add_subsp(manual_summary_stats)
-
-###
-#calq the mouse means
-Biv_Data_mean_table <- ddply(almost_whole_cell_BivData, c("fileName"), summarise,
-
-                        mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
-                        median_SC = median(chromosomeLength),
-                        Qar.4 = quantile(chromosomeLength)[[4]],
-                        
-                        var_SC = format(round(   as.numeric(var(chromosomeLength)),3), nsmall=3)
-                        
-)
-Biv_Data_mean_table <- add_mouse(Biv_Data_mean_table)
-Biv_Data_mean_table <- add_strain(Biv_Data_mean_table)
-Biv_Data_mean_table <- add_sex(Biv_Data_mean_table)
-Biv_Data_mean_table <- add_subsp(Biv_Data_mean_table)
-
-#colors_of_strains
-#scale_color_manual(values=colors_of_strains)
-
-#un-order these factors
-```
-
 <below chunk goes with the above chunk>
-```{r long.biv.plots, echo=FALSE}
+```{r long.biv.plots, echo=FALSE, eval=FALSE}
 
 show.the.cells_females_dom <- ggplot(whole.cell.data_manual[(whole.cell.data_manual$sex == "female") & (whole.cell.data_manual$subsp == "Dom"),], aes(x=fileName, y= SC.length, color=strain))+geom_point()+
   
@@ -6270,31 +6258,71 @@ almost_cells_Musc_m <- ggplot(almost_whole_cell_BivData[(almost_whole_cell_BivDa
 #`r data.frame(table(droplevels(real.long.bivData$category)))`.  
 ```
 
-All the plots above show the distributions of manually whole cell measured SC lengths compared to the SC length distributions from the automated bivalent data. It shows the amount of within cell variance across strains. There is a bit of variance across the SC length distributions in the PWD females.   
-
+<All the plots above show the distributions of manually whole cell measured SC lengths compared to the SC length distributions from the automated bivalent data. It shows the amount of within cell variance across strains. There is a bit of variance across the SC length distributions in the PWD females.
 This data set might be noisy, given the amount of variance in the SC length distributions across cells (PWD females, WSB females).
-
 The DF **real.long.bivData** contains `r length(real.long.bivData$Obj.ID)` bivalent measures. The full data set is `r length(Curated_BivData$Obj.ID)`. This is the breakdown of bivalent observations by category for this long dataset are 
 
 **- Try to merge this DF with the whole.cell manual measures.**  
-
 - Try estimating which 'loose' bivalent observations might be within the long class of bivalents.  
+in code chunk above I ran the mouse averages for the longest bivalents. (680 bivalents, from 54 mice.  10202 bivalents from 86 mice.>
 
-in code chunk above I ran the mouse averages for the longest bivalents. (680 bivalents, from 54 mice.  10202 bivalents from 86 mice.
 
 
-```{r show.long.SC, echo=FALSE}
+```{r show.long.SC, echo=FALSE, eval=FALSE}
 
 female_long_biv_plot <- ggplot(real.long.bivData[real.long.bivData$sex == "female",], aes(x=fileName, y=chromosomeLength, color=strain))+geom_point()+facet_wrap(~category, scales="free")+ylim(c(30,200))+ggtitle("Long Bivalent Dataset, \nFemale")+scale_color_manual(values=colors_of_strains)
-female_long_biv_plot
+
 
 
 male_long_biv_plot <- ggplot(real.long.bivData[real.long.bivData$sex == "male",], aes(x=fileName, y=chromosomeLength, color=strain))+geom_point()+facet_wrap(~category, scales="free")+ylim(c(30,200))+ggtitle("Long Bivalent Dataset, \nmale")+scale_color_manual(values=colors_of_strains)
-male_long_biv_plot
+
 
 ```
 
-These plots show the SC lengths for the 'long SC data set'. They are supposed to be the longest 4-5 SC from cells where I could get good measures. These longer bivalents are useful because their patterns shouldn't be affect by chromosome size effect (which effects, CO position). Hopefully this data set will have less noise from chromosome identity, but there was still data missing (they don't come from whole cell measures).
+<ABOVE plots show the SC lengths for the 'long SC data set'. They are supposed to be the longest 4-5 SC from cells where I could get good measures. These longer bivalents are useful because their patterns shouldn't be affect by chromosome size effect (which effects, CO position). Hopefully this data set will have less noise from chromosome identity, but there was still data missing (they don't come from whole cell measures).>
+
+
+<!-- unused chunkcs -->
+
+```{r SC.distb_manual_Auto, echo=FALSE, eval=FALSE}
+
+#calq the mouse means
+manual_summary_stats <- ddply(whole.cell.data_manual, c("fileName"), summarise,
+
+                        mean_SC = as.numeric(format(round(  mean(SC.length, na.rm = TRUE), 3 ), nsmall=3) ),
+                        median_SC = median(SC.length, na.rm = TRUE),
+                        Qar.4 = quantile(SC.length, na.rm = TRUE)[[4]]
+#                        var_SC = format(round(   as.numeric(var(SC.length)),3), nsmall=3)
+                   
+)
+
+manual_summary_stats <- add_mouse(manual_summary_stats)
+manual_summary_stats <- add_strain(manual_summary_stats)
+manual_summary_stats <- add_sex(manual_summary_stats)
+manual_summary_stats <- add_subsp(manual_summary_stats)
+
+###
+#calq the mouse means
+Biv_Data_mean_table <- ddply(almost_whole_cell_BivData, c("fileName"), summarise,
+
+                        mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
+                        median_SC = median(chromosomeLength),
+                        Qar.4 = quantile(chromosomeLength)[[4]],
+                        
+                        var_SC = format(round(   as.numeric(var(chromosomeLength)),3), nsmall=3)
+                        
+)
+Biv_Data_mean_table <- add_mouse(Biv_Data_mean_table)
+Biv_Data_mean_table <- add_strain(Biv_Data_mean_table)
+Biv_Data_mean_table <- add_sex(Biv_Data_mean_table)
+Biv_Data_mean_table <- add_subsp(Biv_Data_mean_table)
+
+#colors_of_strains
+#scale_color_manual(values=colors_of_strains)
+
+#un-order these factors
+```
+
 
 
 # Adjusting for XX
@@ -7078,7 +7106,7 @@ CurBivData_2CO <- CurBivData_2CO[!(is.na(CurBivData_2CO$Foci2) | CurBivData_2CO$
 #facet by sex and subsp
 
 F1.x.F2 <- ggplot(CurBivData_2CO, aes(x=Foci1,y=Foci2, color=strain) ) + geom_point()+ facet_wrap(~sex)+ggtitle("test plot")
-F1.x.F2
+
 
 ```
 
