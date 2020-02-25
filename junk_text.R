@@ -3,7 +3,34 @@
 
 
 
+#from sex specific plots
 
+musc.female.plot <- ggplot(Musc.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc female of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,34))
+
+#Mol
+Mol.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Mol")
+
+Mol.female.plot <- ggplot(Mol.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Mol female of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,33))
+
+
+#Dom version 
+Dom.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Dom")
+
+Dom.female.plot <- ggplot(Dom.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Dom female of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,33))
+
+
+
+#make the Mol and
+Mol.male_mouse.av <-  just.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Mol")
+
+Mol.male.plot <- ggplot(Mol.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Mol male of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,33))
+
+
+
+#Dom version 
+Dom.male_mouse.av <-  just.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Dom")
+
+Dom.male.plot <- ggplot(Dom.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Dom male of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,33))
 
 
 
