@@ -1,6 +1,45 @@
 #
 # junk text -- dumping the junk text
 
+<!--While in two of the subspecies, the means for males show a greater range across means, notable in the molossinus strains `r (main.table  %>% filter(sex == "male") %>% filter(subsp == "Mol")  )$mean_co` for _molossinus^MSM^_ and  _molossinus^MOLF^_ respectively. In the musculus the strain means are `r (main.table  %>% filter(sex == "male") %>% filter(subsp == "Musc")  )$mean_co` for _musculus^PWD^_, _musculus^SKIVE^_, _musculus^KAZ^_, _musculus^TOM^_, _musculus^AST^_, and _musculus^CZECH^_ respectively. In the male Dom strains the means for MLH1 count per cell are `r (main.table  %>% filter(sex == "male") %>% filter(subsp == "Dom")  )$mean_co`  for  _domesticus^WSB^_, _domesticus^G^_, _domesticus^LEW^_ and _domesticus^PERC^_ respectively.-->
+
+
+from the intro / first part
+
+<!-- _domesticus^LEW^_  (`r round(LEW.female.diff,4)`),
+and _musculus^MSM^_  (`r MSM.female.diff` ),-->
+  
+  <!-- male variation is a greater magnitude, but divides into 2 groups, magjority of strain means are around 23, while PWD and MSM are near 30, skive is intermediate
+
+Examinations of the sex specific data revealed that greater variety in across the strain means in males compared to females.  (exceptions to the general patterns of heterochiasmy)
+
+In females the strains with the greatest difference
+in mean gwnome wide recombiantion rate was `r G.female.diff` ( _domesticus^G^_) more compared to other strains. The genome wide recombination rate for had a much larger range, up to `r (mean(MSM_male$mean_co, na.rm = TRUE) / mean(sans_LewRec_male$mean_co, na.rm = TRUE) )` ( _molossinus^MSM^_ ). _musculus^PWD^_ ,and  _musculus^SKIVE^_ are  `r mean(PWD_male$mean_co, na.rm = TRUE) /mean(sans_LewRec_male$mean_co, na.rm = TRUE)`,  and `r mean(SKIVE_male$mean_co, na.rm = TRUE) / mean(sans_LewRec_male$mean_co, na.rm = TRUE)` higher than the other strain means. 
+
+notabley these strains come from Musc and Mol -- Mol natural hybrid of musculus and castaneus. this comments out text?
+  
+  <The _musculus_ and _molossinus_ subspecies have a much larger amount of variance across means with the range in mouse means being `r min( ( male_mouse.av %>% filter(subsp  == "Musc"))$mean_co,na.rm = TRUE  )` to `r max( ( male_mouse.av %>% filter(subsp  == "Musc"))$mean_co,na.rm = TRUE  )` in Musc and `r min( ( male_mouse.av %>% filter(subsp  == "Mol"))$mean_co,na.rm = TRUE  )` to `r max( ( male_mouse.av %>% filter(subsp  == "Mol"))$mean_co, na.rm = TRUE )` and Molossinus.>
+  dom, low variation and close to the expected in
+within the male means, there is a low degree of strain varaince in _Domesticus_ subspecies with the range of mouse means `r min( ( male_mouse.av %>% filter(subsp  == "Dom"))$mean_co, na.rm=TRUE  )` to `r max( ( male_mouse.av %>% filter(subsp  == "Dom"))$mean_co, na.rm=TRUE )`
+-->
+  
+  <!-- ranges of mouse means
+In the _domesticus_ subspecies the ranges of mouse means are 
+`r min( ( female_mouse.avs_for.analysis %>% filter(strain  == "WSB"))$mean_co, na.rm=TRUE  )` to `r max( ( female_mouse.avs_for.analysis %>% filter(strain  == "WSB"))$mean_co, na.rm=TRUE  )` in _domesticus^WSB^_ , `r min( ( female_mouse.avs_for.analysis %>% filter(strain  == "G"))$mean_co, na.rm=TRUE  )` to `r max( ( female_mouse.avs_for.analysis %>% filter(strain  == "G"))$mean_co, na.rm=TRUE  )` 
+in _domesticus^G^_ `r min( ( female_mouse.avs_for.analysis %>% filter(strain  == "LEW"))$mean_co, na.rm=TRUE  )` to `r max( ( female_mouse.avs_for.analysis %>% filter(strain  == "LEW"))$mean_co, na.rm=TRUE  )` in _domesticus^LEW^_. 
+
+In the musc subspecies the ranges of mouse means are `r min( ( female_mouse.avs_for.analysis %>% filter(strain  == "PWD"))$mean_co  )` to `r max( ( female_mouse.avs_for.analysis %>% filter(strain  == "PWD"))$mean_co, na.rm=TRUE  )` in  _musculus^PWD^_ the range is `r min( ( female_mouse.avs_for.analysis %>% filter(strain  == "KAZ"))$mean_co, na.rm=TRUE  )` to `r max( ( female_mouse.avs_for.analysis %>% filter(strain  == "KAZ"))$mean_co, na.rm=TRUE  )` in _musculus^KAZ^_
+
+The range is `r min( ( female_mouse.avs_for.analysis %>% filter(strain  == "MSM"))$mean_co, na.rm=TRUE  )` to `r max( ( female_mouse.avs_for.analysis %>% filter(strain  == "MSM"))$mean_co, na.rm=TRUE  )` in  _molossinus^MSM^_. 
+-->
+  
+  <!--
+  $$mouse\ variance\ in \ CO \ per cell  ~=~ sex * strain + \varepsilon$$ -->
+  
+  
+  <!--
+  The strain means for females were pretty similar. For female Domesticus strains the means are `r (main.table  %>% filter(sex == "female") %>% filter(subsp == "Dom")  )$mean_co` for _domesticus^WSB^_, _domesticus^G^_, and _domesticus^LEW^_ respectively. In the three Musculus strains the means are `r (main.table  %>% filter(sex == "female") %>% filter(subsp == "Musc")  )$mean_co` for _musculus^PWD^_, _musculus^SKIVE^_, and _musculus^KAZ^_ respectively. In the molossinus strains the means are `r (main.table  %>% filter(sex == "female") %>% filter(subsp == "Mol")  )$mean_co` for _molossinus^MSM^_ and _molossinus^MOLF^_ respectively. 
+-->
 
 
 #from sex specific plots
