@@ -31,9 +31,10 @@ library(reshape2)
 
 options(digits=2)
 
-setwd("~.")
+setwd("~.")#switch over to here()
 
-load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_1.31.20.RData")
+#MLH1_data_setup_2.24.20.RData
+load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_2.24.20.RData")
 
 #load(file = "C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.31.20.RData")
 
@@ -159,12 +160,12 @@ color_chrm_class <- c( '0' = "#00BFC4", '1' = "#7CAE00", '2' = "#F8766D", '3' = 
 #show_col(hue_pal()(5))
 
 #add Rec group,
-#reclassified SKIVE as intermediate
-Curated_BivData$Rec.group_alt <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
+
+Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
                               ifelse(grepl("MSM male", Curated_BivData$category), 1,
                                 ifelse(grepl("SKIVE male", Curated_BivData$category), 1, 0)))
 
-Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
+Curated_BivData$Rec.group_alt <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
                               ifelse(grepl("MSM male", Curated_BivData$category), 1, 0))
 
 
@@ -215,17 +216,17 @@ Dom.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female")
 ```
 
 ```{r MLH1.MALE.TABLE, echo=FALSE}
-male_mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
+male_MLH1mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
                             subsp.y,subsp.x,
                     category.y,category.x, strain.x,
                     strain.y, mouse.1  )  )
 
-male_mouse.av <- add_sex(male_mouse.av)
-male_mouse.av <- add_strain(male_mouse.av)
-male_mouse.av <- add_subsp(male_mouse.av)
-male_mouse.av <- add_species(male_mouse.av)
+male_MLH1mouse.av <- add_sex(male_MLH1mouse.av)
+male_MLH1mouse.av <- add_strain(male_MLH1mouse.av)
+male_MLH1mouse.av <- add_subsp(male_MLH1mouse.av)
+male_MLH1mouse.av <- add_species(male_MLH1mouse.av)
 
-fomo.male_mouse.av <-  male_mouse.av %>% filter(sex== "male") %>% filter(species == "M.musculus") 
+fomo.male_mouse.av <-  male_MLH1mouse.av %>% filter(sex== "male") %>% filter(species == "M.musculus") 
 
 fomo.male_mouse.av$subsp <- factor(fomo.male_mouse.av$subsp, ordered = FALSE)
 fomo.male_mouse.av$sex <- factor(fomo.male_mouse.av$sex, ordered = FALSE)
@@ -242,6 +243,8 @@ Dom.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(sub
 ```{r MLH1.MIXED.MODEL.setup, echo=FALSE, warning=FALSE, eval=TRUE}
 #DF.HetC.MixedModel.HQ
 
+#this blck is duplicated in setupData.rm
+
 #https://rcompanion.org/handbook/G_03.html
 #testing random effects within lme
 
@@ -250,44 +253,46 @@ Dom.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(sub
 #DF.HetC.MixedModel   <- only Mmusculus
 #DF.HetC.MixedModel.HQ <- only mice of certain age, Q5 excluded
 
-
 #variance is still chr
-AP_mouse_table_w.Ages$var <- as.numeric(AP_mouse_table_w.Ages$var)
+#AP_mouse_table_w.Ages$var <- as.numeric(AP_mouse_table_w.Ages$var)
 
 #use the merged DF to filter by age 
-AP_mouse_table_w.Ages$strain <- AP_mouse_table_w.Ages$strain.x
-AP_mouse_table_w.Ages$sex <- AP_mouse_table_w.Ages$sex.x
-AP_mouse_table_w.Ages$subsp <- AP_mouse_table_w.Ages$subsp.x
+#AP_mouse_table_w.Ages$strain <- AP_mouse_table_w.Ages$strain.x
+#AP_mouse_table_w.Ages$sex <- AP_mouse_table_w.Ages$sex.x
+#AP_mouse_table_w.Ages$subsp <- AP_mouse_table_w.Ages$subsp.x
 #main file, make everything unordered factors
-AP_mouse_table_w.Ages <- add_species(AP_mouse_table_w.Ages)
+#AP_mouse_table_w.Ages <- add_species(AP_mouse_table_w.Ages)
 
 DF.HetC.MixedModel <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$species == "M.musculus",]
 
 #remove the extra merged cols
-DF.HetC.MixedModel <- subset(DF.HetC.MixedModel, select= -c(sex.y,sex.x,
-                            subsp.y,subsp.x,
-                    category.y,category.x, strain.x,
-                    strain.y, mouse.1  )  )
-#DONT NEED CATEGORY
+#DF.HetC.MixedModel <- subset(DF.HetC.MixedModel, select= -c(sex.y,sex.x,
+#                            subsp.y,subsp.x,
+#                    category.y,category.x, strain.x,
+#                    strain.y, mouse.1  )  )
 
 
 #REMOVE EXTRA STRAINS
-DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$subsp != "Cast",]
+#DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$subsp != "Cast",]
 #remove musc strains
-DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "AST",]
-DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "TOM",]
+#DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "AST",]
+#DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "TOM",]
 #remove PERC, MOLF, CZECH, (no females)
-DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "CZECH",]
-DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "PERC",]
+#DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "CZECH",]
+#DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "PERC",]
 
-DF.HetC.MixedModel <- droplevels(DF.HetC.MixedModel)#remove levels not used
+#DF.HetC.MixedModel <- droplevels(DF.HetC.MixedModel)#remove levels not used
 
+#AP_mouse_table excluide Qual5 cells
+DF.HetC.MixedModel.HQ <- AP_mouse_table.MLH1_HQ
+
+DF.HetC.MixedModel.HQ <- add_species(DF.HetC.MixedModel.HQ)
 
 #main df with variables coded as chr
 DF.HetC.MixedModel.HQ$subsp <- factor(DF.HetC.MixedModel.HQ$subsp, ordered = FALSE)
 DF.HetC.MixedModel.HQ$sex <- factor(DF.HetC.MixedModel.HQ$sex, ordered = FALSE)
 DF.HetC.MixedModel.HQ$strain <- factor(DF.HetC.MixedModel.HQ$strain, ordered = FALSE)
-DF.HetC.MixedModel.HQ$species <- factor(DF.HetC.MixedModel.HQ$species, ordered = FALSE)
+#DF.HetC.MixedModel.HQ$species <- factor(DF.HetC.MixedModel.HQ$species, ordered = FALSE)
 
 #kable(table(DF.HetC.MixedModel.HQ$sex, DF.HetC.MixedModel.HQ$strain))
 
@@ -3821,15 +3826,12 @@ anova(Sardell.mo.PWD_R.dis.cent, Sardell.mo.PWD_R.dis.telo) #p = 1
 #for strain, sex -- Curated_BivData
 #or (Mouse.Table_BivData_4MM)
 #norm.first.foci.pos
-
-
 Q1.normF1.pos_table <- ddply(Mouse.Table_BivData_4MM, c("strain","sex"), summarise,
                   
                     mean_1CO_nrm.pos = mean(norm.first.foci.pos, na.rm = TRUE), 
                   n1CO = sum(n1CO )
 
-                          )
-
+)
 
 ```
 
@@ -4448,26 +4450,18 @@ we tested the sex differences -- now we focus on the largest aspect of variation
 
 # Q2 SC Length
 
+<put in plot for total SC and mean gwRR count>
+
 <motivation: the positive correlation, Our prediction for this metric is that the high rec strain will have longer sc lengths (axis lengths)>
 
-<pattern for the single bivalent, pos correlation>
-The predicted pattern for SC length becomes more nuanced when the data are split up by Chromosome class. Mainly that 1CO are shorter in the high rec strains then low rec strains. This is likely due to the fact that more physically longer chromosomes have 1CO in the low rec strains, which pushes the mean SC length up. Where as in the High rec strains, physically longer chromosomes are more likely to be in the 2CO group.  This supports a general pattern of tighter clustering of SC lengths across chromosome classes in the high rec group. They have a lower probability of 2COs below a certain SC length threshold.
+<pattern for the single bivalent, pos correlation, The predicted pattern for SC length becomes more nuanced when the data are split up by Chromosome class. Mainly that 1CO are shorter in the high rec strains then low rec strains. This is likely due to the fact that more physically longer chromosomes have 1CO in the low rec strains, which pushes the mean SC length up. Where as in the High rec strains, physically longer chromosomes are more likely to be in the 2CO group.  This supports a general pattern of tighter clustering of SC lengths across chromosome classes in the high rec group. They have a lower probability of 2COs below a certain SC length threshold.>
 
 while testing the sex differences, there were results (the significant subspecies effect) which suggest that the musculus and molossinus strains had longer SC compared to the domesticus strains - these two strains also contain the high rec strains - motivating a model/hypothesis that sc length / chromatin compaction evolution may proceed - facilitate the rapid male specific evolution in gwRR
 
-<!-- basic stats -->
-
+<!-- basic stats
 `r length(OG.MLH1.merge.Skel$fileName)` total skelentonize measures were made from all of the MLH1 pachtyene cell images. X observations removed for having extra signal from other cells. `r length(unique( all.remove ) )` measures removed as potential outliers (by examining the category specific plots)
 
-<NEW STRAINS INTRODUCED NOT IN PREV DATA>
-
-this section / these tests follow up with those made in Q1 which found that the male musc and mol total-SC were signifcantly higher compared to the male Dom total SC measures.
-These test include additional measues from strains which only had male observations.
-
-
--reduced bivalent data set (long and short) is made up of binned bivalents from X cells and X mice. (Since comparing within sex, there are no sex chromosomes differences and the long bivalent dataset can be used.
-
-<!-- place set ups for total SC, short biv and long biv here -->
+ place set ups for total SC, short biv and long biv here -->
 
 ```{r Q2.SC.short.long.setup, echo=FALSE}
 
@@ -4598,7 +4592,7 @@ mouse.shoo.long.biv <- ggplot( REAL.long_mouse_table, aes(y=mean.sc, x=strain, c
 
 ```
 
-```{r Q2_tot.sc_plot, echo=FALSE}
+```{r Q2_tot.sc_plot, echo=FALSE, warning=FALSE}
 
 #totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain !="F1"& strain !="SPIC" & strain !=  "CAROLI" & strain !="SPRET"& strain !="HMI"& strain !="PERC")
 
@@ -4612,9 +4606,30 @@ mouse.av_totsc_male <- ggplot(data= totSC.mouse.av.table %>% filter(sex == "male
 mouse.av_totsc_male
 ```
 
-I made a series of plots which show that the expected / general pattern of bivalent SC length is positively associated with having more crossovers per chromosome (positive correlation of SC length and CO number).  Yet, given the complications from the chromosome proportions outlined above, comparing the bivalents across chromosome classes is complicated
 
-<!-- t tests-->
+```{r Q2.SC_MLH1.by.totalSC, echo=FALSE}
+
+#make plot of mouse averages for MLH1 and total SC
+
+bep <- merge(  fomo.male_mouse.av,   totSC.mouse.av.table)
+
+X.by.texas <- ggplot(bep, aes(x=mean.skel, y=mean_co, color=strain))+geom_point()+
+  scale_color_manual(values=colors_of_strains)+ggtitle("Total SC by mean CO\nMouse Means")
+
+X.by.texas
+
+
+Neg.control <- ggplot(bep, aes(x=mean.skel, y=mean.bin, color=strain))+geom_point()+
+  scale_color_manual(values=colors_of_strains)+ggtitle("Total SC by mean CO\nMouse Means")
+#not sure what my expectations for this plot are, 
+
+#there might be an issue with the algorithm performance 
+#given the parrelle diagonal lines -- 
+#this might be due to the dates imaged
+
+```
+
+
 <!-- tests below;  t.test(high low) OR logistic regression, mixed modlels, glm 
 remember the pairwise t.test
 Pwise.ttest_Dom.male <- pairwise.t.test(male.Dom.mouse.av$mean_SC, male.Dom.mouse.av$strain)
@@ -4695,24 +4710,10 @@ Q2.BIV_long_t.test_HL <- t.test((real.long.bivData %>%filter(sex == "male")%>%fi
 
 ```
 
-
-The average SC lengths increase with the number of MLH1 foci / chromosome classes for all strains, but grouping bivalent observations by chromosome class (foci number) is confounded by the different proportions across strains.
-
 **mouse means of total SC area for Higher rec strains are significantly higher compared to low rec strains (ttest; p = 
 `r Q2tot.sc_t.test_High.Low$p.value`).**
 
 Molossinus have significant difference between mouse means for total sc, between the high and low strains (mol p = `r Q2tot.sc_t.test_High.Low_Mol$p.value`). The total sc mouse means are not significant for the high and low strains in musc (musc p= `r Q2tot.sc_t.test_High.Low_Musc$p.value`).
-
-<Additionally we ran similar tests using the short and long bivalent data sets which help to alimeorate potential chromosome size effects.>
-
-<within subspecies
-musc-short
-
-musc-long
-
-mol-short
-mol-long
-very few significant effects>
 
 ```{r Q2.SC_across.subsp_tot.SC, echo=FALSE}
 
@@ -4875,25 +4876,16 @@ log.SC.male.poly_musc <- glm(Rec.group ~ mean_SC,
 3. Msm > mol>
 
 
-For total SC in M2 (glm including subsp), the two subspecies effects are significant (glm; p= Musculus `r sum.Q2.glm_mus.av_totSC_M1[,4][2]` and Molossinus p= `r sum.Q2.glm_mus.av_totSC_M1[,4][3]`)   
-
+For total SC in M1 (glm including subsp), the two subspecies effects are significant (glm; p= Musculus `r sum.Q2.glm_mus.av_totSC_M1[,4][2]` and Molossinus p= `r sum.Q2.glm_mus.av_totSC_M1[,4][3]`)   
 
 In the short bivalent data set, analyzed by M1, both subspecies are sig (glm; p= Musculus `r sum.glmQ2_short.biv_M1$coefficients[,4][2]` and Molossinus p= `r sum.glmQ2_short.biv_M1$coefficients[,4][3]`). 
+
 <And the strain effect for G is significant (glm; G p =`r sum.glmQ2_short.biv_M1$coefficients[,4][4]`).>
 
 <For the M2 model analyzing the mouse means short bivalents, all strains have significant effect but LEW, G,PWD, MSM, MOLF, SKIVE, KAZ, CZECH.>
 
-The skeletonized measures show that the general pattern holds for total SC and the high rec strains. However there are a few exceptions.
-
-<-the SKIVE are within dom and kaz level -- so why does SKIVE have intermediate CO proportions and gwRR>
 
 <!--24sep14_PWD_m1 is lower than the others, 5jul17_MSM_m1 is the low MSM-->
-
-<The CZECH and AST are higher than KAZ (the first 2 strains drive the lack of difference)>
-
-
-<lots of variation across SC lengths -- doesn't fit clean expectation or signal>
-<balancing the interpertation of general positive correlation of CO number and SC length (SC length drives CO number) --- yet the pattern breaks down -it's not completely predictive -- /at finer levels?>  <noise/mouse effects/chromosome identity effects>
 
 <just like the sex differences in SC area -- this points to differential usage of the SC for placing CO -- investigate the recombination landscape>
 
@@ -5637,7 +5629,7 @@ there are only 77 MSM 1COs across 4 mice in MSM (MSM is less central than MOLF)
 
 ```{r Q2.1COpos.show.MOL, echo=FALSE}
 
-(mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Mol") %>% filter(Rec.group == "0"))$norm.first.foci.pos
+#(mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Mol") %>% filter(Rec.group == #"0"))$norm.first.foci.pos
 
 mus.av1COpos.plot <- ggplot(data= mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Mol"),
                       aes(x= mouse, y = norm.first.foci.pos))+geom_point()
@@ -5709,7 +5701,7 @@ chrm * LEW `r summary(chrm.1CO.pos.chrmLength)$coefficients[,4][14]`
 chrm *MSM  `r summary(chrm.1CO.pos.chrmLength)$coefficients[,4][16]`
 
 
-M2 / for the second model ... 
+M2
 
 -chromosome length, `r summary(chrm.1CO.pos.chrmLength_strain)$coefficients[,4][2]`  
 
@@ -5729,9 +5721,9 @@ M2 / for the second model ...
 -chrm length LEW, `r summary(chrm.1CO.pos.chrmLength_strain)$coefficients[,4][12]`>  
 
 
-**males from WSB and MOLF strains have 'strang'/unique patterns for the single foci positions, which don't fit with predicted patterns from the genome wide recombination rate variation**
+males from WSB and MOLF strains have 'strang'unique patterns for the single foci positions, which don't fit with predicted patterns from the genome wide recombination rate variation
 
-**There are significant difference across the 1CO positions, yet they don't match /fit any of the predictions. there are also complications due to the chromsome class proportions that **
+There are significant difference across the 1CO positions, yet they don't match fit any of the predictions. there are also complications due to the chromsome class proportions that
 
 ```{r Q2.1COpos_strain, echo=FALSE, eval=FALSE}
 #isolate all musc
@@ -5793,11 +5785,13 @@ Log.Q2.F1_PER_Mol <- glm(Rec.group ~ PER_Foci_1,
               family=binomial(link="logit"))
 
 #summary(Log.glmQ2_M2.1COnrm_Mol)
+
 ```
 
 
 
-# Q2 IFD
+# Q2 Evolution of interference is associated with genome wide recombination rate evolution
+
 
 ```{r Q2.IFD.long.short.setup, echo=FALSE}
 #long BivData
@@ -5838,11 +5832,12 @@ biv.IFDs_by_group <- ggplot(male.biv.2CO, aes(y = IFD1_ABS, x= mouse, color=stra
 biv.IFDs_PER_by.group <- ggplot(male.biv.2CO, aes(y = IFD1_PER, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
   geom_jitter(alpha=.2)+
   ggtitle("Normalized Interfocal Distances,\n Low Rec group =0, High Rec group =1")+
-  scale_color_manual(values=colors_of_strains)+ facet_wrap(subsp~Rec.group, scales = "free")+theme(legend.position="none")+ylim(c(0,1.1))
+  scale_color_manual(values=colors_of_strains)+ facet_wrap(subsp~Rec.group, scales = "free")+theme(legend.position="none", axis.text.x = element_blank())+ylim(c(0,1.1))
+
 biv.IFDs_PER_by.group
+
 ```
 
-<Instead of the long and short biva data, the total 2CO bivalent dataset is used to make models.>
 
 <Previous prediction for differences in the long and short bivalent dataset. Examine the pattern in the Long bivalent data set to get a feel for if the chromosome size effect skews the pattern. In the long bivalent data set, the longest bivalents (top 25%) from each cell are isolated, so they are more likely to be the same chromosome identities (Chrm1 to Chrm5). The section on IFD only looks at the 2CO bivalents.>
 
@@ -5888,15 +5883,15 @@ Rec.group_IFD.PER_Ttest$p.value
 
 ```
 
-The mouse averages for IFDs were significantly longer in the high rec groups ( p = `r t.test_mouse.av.IFD_PER$p.value` for IFD^PER^ and p = `r t.test_mouse.av.IFD_ABS$p.value` for IFD^raw^). The pattern is confirmed with t.test comparing groups within the same subepcies.
+The mouse averages for IFDs were significantly longer in the high rec groups (t.test; p = `r t.test_mouse.av.IFD_PER$p.value` for IFD^PER^ and p = `r t.test_mouse.av.IFD_ABS$p.value` for IFD^raw^). The pattern is confirmed with t.test comparing groups within the same subepcies.
 
 <glms>
 
 The following model framework was applied to further investigate these patterns using mouse averages of IFD^raw^ and IFD^PER^.
 
-**model M1 ** $$mouse \ average \ IFD ~=~ subsp * strain + \varepsilon $$
+**Linear model M1 ** $$mouse \ average \ IFD ~=~ subsp * strain + \varepsilon $$
 
-**model M2 ** $$mouse \ average \ IFD ~=~ strain + \varepsilon $$
+**Linear model M2 ** $$mouse \ average \ IFD ~=~ strain + \varepsilon $$
 
 
 ```{r Q2.IFD.glm.test, echo=FALSE}
@@ -5955,7 +5950,8 @@ In M1, the model build on the mouse averages of IFD metrics with subspecies and 
 
 <when the M2 model was run within subspecies, the results generally confirmed our predictions; no sig values for Dom, PWD and SKIVE have longer IFDs than other musc strains and MSM is longer than MOLF>
 
-We ran similar models using 2CO bivalent observations to examine what effects the SC length might have on IFD^PER^ length. 
+
+<!-- we ran similar models using 2CO bivalent observations to examine what effects the SC length might have on IFD^PER^ length. 
 
 **model BivLen.M1 ** $$Single bivalent\ IFD ~=~ subsp * strain * chromosomeLength + \varepsilon $$
 
@@ -5989,17 +5985,76 @@ Q2.BIV.LEN.M2glm_IFD.PER <- glm(IFD1_PER ~ strain* chromosomeLength, data= Curat
 ```
 
 For the first version of the bivalent level model (which has subspecies effect), the most significant effect is chromosome length, is slight positive direction (both for raw and normalized IFDs). Molossinus subspecies and Mol\*chrm length effect for IFD^Normalized^ and IFD^raw^. The Mol\*chrmLength is negative 
-
-<IN MOL as chrm length got longer - IFD gets smaller -- also in SKIVE x chrm>
-
-For the strain only model (M2),  
-
-- PWD, MSM, MOLF, SKIVE are the only significant strain effects.
-
+<PWD, MSM, MOLF, SKIVE are the only significant strain effects.
 - all of the strin\*chrm lengths effects are negative, PWD, MSM, MOLF, SKIVE significant effects (for IFD.ABS and IFD.PER)
-
-
 With each unit increase in SC length, the IFD^PER^ also increases (for the high rec strains + MOLF). All of the high rec strains and MOLF have significantly longer IFD^PER^. There are also significant interaction effect of strain and chromsome length, in the high rec strains and MOLF, with each increase in bivalent length, the IFD^PER^ decreases slightly.
+-->
+
+```{r Q2.IFD_rate.shortIFD, echo=FALSE, warning = FALSE}
+
+#calculate the rates of 'close foci' (<30%)
+#examine the changes in the distribution closer.
+
+
+#for the relevant data, by strain, calcu the number of observations of 2CO above and below 30%
+
+close.IFD.rates.mus.rate <- ddply(Curated_BivData %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 2), 
+                         c("mouse"), summarise,
+                        N.obs  = length(Obj.ID),
+
+                      #  mean_SC = as.numeric(format(round(  mean(chromosomeLength, na.rm = TRUE), 3 ), nsmall=3) ),
+                        mean.per.IFD = mean(IFD1_PER, na.rm=TRUE),
+                        var.IFD = var(IFD1_PER, na.rm=TRUE),
+                        
+                      inverse.close.foci = length(which(IFD1_PER >= .31)),  
+                      n.close.foci = length(which(IFD1_PER <= .3)),
+                      
+                      off.by = (N.obs - sum(c(inverse.close.foci,n.close.foci)) ),
+                      
+                      rate.close.foci = n.close.foci / N.obs
+)
+
+close.IFD.rates.mus.rate <- add_strain(close.IFD.rates.mus.rate)
+close.IFD.rates.mus.rate <- add_category(close.IFD.rates.mus.rate)
+close.IFD.rates.mus.rate <- add_subsp(close.IFD.rates.mus.rate)
+
+
+close.IFD.rates_strain <- ddply(Curated_BivData %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 2), 
+                         c("strain"), summarise,
+                        N.obs  = length(Obj.ID),
+
+                        mean_SC = as.numeric(format(round(  mean(chromosomeLength, na.rm = TRUE), 3 ), nsmall=3) ),
+                        mean.per.IFD = mean(IFD1_PER, na.rm=TRUE),
+                        var.IFD = var(IFD1_PER),
+                        
+                      inverse.close.foci = length(which(IFD1_PER > .3)),  
+                      n.close.foci = length(which(IFD1_PER < .3)),
+                      rate.close.foci = n.close.foci / N.obs,
+                     
+                       off.by = (N.obs - sum(c(inverse.close.foci,n.close.foci)) )
+                      
+)
+#the 
+ 
+
+show.close.IFD.rate <- ggplot(close.IFD.rates_strain, aes(y=rate.close.foci, x=strain, color=strain))+geom_jitter()+scale_color_manual(values=colors_of_strains)
+
+#add rec.group
+close.IFD.rates_strain$Rec.group <- ifelse(grepl("PWD", close.IFD.rates_strain$strain), 1, 
+                                ifelse(grepl("MSM", close.IFD.rates_strain$strain), 1,
+                                 ifelse(grepl("SKIVE", close.IFD.rates_strain$strain), 1, 0)))
+
+#POOL all short and 
+#chi square test
+high.rec.props <- prop.test( ( close.IFD.rates_strain %>% filter(Rec.group == 1) )$n.close.foci,
+                              ( close.IFD.rates_strain %>% filter(Rec.group == 1) )$N.obs)     
+#p-value = 0.03, slight dif tween 3 high rec strains
+
+#don't need to run chi square for this pattern, since it's enough to 
+
+```
+
+We determined that the main difference in IFD disbribution across these groups is an enrichment of 'close foci', IFD^PER^s less than 30% of the total SC length in low rec strains. The rate of these close foci range from 8.2% (G) to 16% (KAZ) in the low rec strains, while the high strains all had rates under 5% (0%, 1.3%, and 3.3% for skive, MSM and PWD respectively). <no chi sqaure test see above>
 
 
 ```{r Q2.IFD.PER.logreg, echo=FALSE, eval=FALSE}
@@ -6042,7 +6097,6 @@ Log.Q2.IFD.per_bivdata.Mol <- glm(Rec.group ~ IFD1_PER,
 #summary(Log.Q2.IFD.per_bivdata.Mol)
 
 ```
-
 
 ```{r Q2IFD_logreg, echo=FALSE, eval=FALSE}
 
@@ -6091,7 +6145,7 @@ Log.Q2.IFD.raw_bivdata.Mol <- glm(Rec.group ~ IFD1_ABS,
 #summary(Log.Q2.IFD.raw.PER_bivdata.Mol)
 ```
 
-```{r Q2.IFD.longbiv_glm, echo=FALSE}
+```{r Q2.IFD.longbiv_glm, echo=FALSE, eval=FALSE}
 
 #Full dataset
 
@@ -6104,7 +6158,7 @@ Q2.glm_long.biv_M2.IFD.PER <- glm(IFD1_PER ~ strain, data= male.long.biv.2CO_IFD
 ```
 
 
- **IFD metreics are a significant predictors of rapid genome wide recombination rate evolution.** 
+ **(unlike total SC length and 1CO pattern, IFD metreics are a significant predictors of rapid genome wide recombination rate evolution. However, they go agaisnt a standard perdiction for the relationship between the chromosome level recombination landscape and genome wide recombiantion rate.** 
 
 <!-- 
 Since the majority of cells from the Automated BivData set do not have the complete complement of bivalents this subset is much smaller and might have 'smaller' bivalents from cells missing the longer bivalents. But assuming the algorithm's identification of bivalents in random, with a large enough sample size, hopefully this error would be minimized.
