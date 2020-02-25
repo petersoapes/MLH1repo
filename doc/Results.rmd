@@ -182,7 +182,6 @@ Curated_BivData$Rec.group_alt <- ifelse(grepl("PWD male", Curated_BivData$catego
 ```
 
 ```{r MLH1.FEMALE.TABLE, echo=FALSE}
-
 female_mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
                             subsp.y,subsp.x,
                     category.y,category.x, strain.x,
@@ -216,10 +215,10 @@ Dom.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female")
 ```
 
 ```{r MLH1.MALE.TABLE, echo=FALSE}
-male_MLH1mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
-                            subsp.y,subsp.x,
-                    category.y,category.x, strain.x,
-                    strain.y, mouse.1  )  )
+#AP_mouse_table.MLH1_HQ
+
+#find the table that includes the las image data
+male_MLH1mouse.av <- AP_mouse_table_w.Ages
 
 male_MLH1mouse.av <- add_sex(male_MLH1mouse.av)
 male_MLH1mouse.av <- add_strain(male_MLH1mouse.av)
@@ -4619,13 +4618,24 @@ X.by.texas <- ggplot(bep, aes(x=mean.skel, y=mean_co, color=strain))+geom_point(
 X.by.texas
 
 
+#investigating potential skew / technical effects in the algorithm
+
 Neg.control <- ggplot(bep, aes(x=mean.skel, y=mean.bin, color=strain))+geom_point()+
   scale_color_manual(values=colors_of_strains)+ggtitle("Total SC by mean CO\nMouse Means")
 #not sure what my expectations for this plot are, 
 
+median(bep$oldest.image.date) #"2017-08-03"
 #there might be an issue with the algorithm performance 
 #given the parrelle diagonal lines -- 
-#this might be due to the dates imaged
+#this might be due to the dates imaged  2017-02-07
+
+bep$date.cut.off <- ifelse( bep$oldest.image.date < "2017-02-07", 0, 1 )
+
+Neg.control.find.date <- ggplot(bep, aes(x=mean.skel, y=mean.bin, color=strain))+geom_point()+
+  scale_color_manual(values=colors_of_strains)+ggtitle("Total SC by mean CO\nMouse Means")+facet_wrap(~date.cut.off)
+
+#there's evidence that the algorithm might have some biased effects -- 
+#that will be investigated later.
 
 ```
 
