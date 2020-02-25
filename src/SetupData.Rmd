@@ -8,7 +8,7 @@ output: html_document
 
 to Do
 
--rm Peromycus data BivData!!
+- rm Peromycus data BivData!!
 
 - code Mol as discint subsp
 
@@ -18,6 +18,7 @@ to Do
 
 - rm all of BD data?
 
+- try coding i) date image for each cell image, ii) most recent image date for each mouse
 
 
 ```{r setup, include=FALSE}
@@ -27,26 +28,30 @@ library(raster)#for cV
 library(ggplot2)
 library(knitr)
 library(kableExtra)
-setwd("~./MLH1repo/")
-source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+library(here)
 
-#forgot why I'm reading in this metadata file
-meta.data = read.csv("data/clean.Meta.Data.txt",sep = "\t", header=TRUE)
+#knitr::opts_chunk$set(echo = FALSE)
+
+#opts_knit$set(root.dir = "~./MLH1repo/")
+#setwd("~./MLH1repo/")
+
+meta.data = read.csv(here("data", "/clean.Meta.Data.txt"),sep = "\t", header=TRUE)
+
 #remove all MAD (peromyscus) from meta.data
 meta.data <- meta.data[ !grepl("MAD", meta.data$mouse) , ]
 
-MLH1_data = read.csv("data/MLH1/AnonData.csv", header=TRUE)
+MLH1_data = read.csv(here("data", "/MLH1/AnonData.csv"), header=TRUE)
 
-knitr::opts_chunk$set(echo = FALSE)
+source(here("src", "/CommonFunc_MLH1repo.R") )
+
 ```
-
-
 
 ```{r MLH1.DF.setup, warning=FALSE, echo=FALSE}
 
 original_DF = MLH1_data
 original_DF$fileName <- (original_DF$Original.Name)
 
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 original_DF <- add_mouse(original_DF)
 original_DF <- add_strain(original_DF)
 original_DF <- add_category(original_DF)
@@ -74,8 +79,6 @@ original_DF <- original_DF %>% distinct(Original.Name, .keep_all = TRUE)#5216 to
 
 ```
 
-
-
 ```{r clean_MLH1_data, echo=FALSE}
 #Clean up main DF, MLH1_data
 #remove duplicated data from MLH1 -- remove 1 or the two rows
@@ -85,6 +88,8 @@ MLH1_data <- MLH1_data %>% distinct(Original.Name, .keep_all = TRUE)#5216 to 498
 
 MLH1_data$Original.Name <- as.character(MLH1_data$Original.Name)
 MLH1_data$fileName <- (MLH1_data$Original.Name)
+
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
 #these introduce NAs
 MLH1_data$n <- as.character(MLH1_data$n)
@@ -111,7 +116,6 @@ MLH1_data <- add_subsp(MLH1_data)
 #add species
 MLH1_data <- add_species(MLH1_data)
 ```
-
 
 ```{r exclude.mice, echo=FALSE}
 #remove mice -- 18nov17_WSB_f5 (only 1 cell)
@@ -190,7 +194,6 @@ MLH1_data$adj_nMLH1.foci <- ifelse(MLH1_data$sex=="male", MLH1_data$nMLH1.foci+1
 MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
 ```
 
-
 ```{r reorder.DF, echo=FALSE}
 #this is most important for plotting
 
@@ -201,7 +204,6 @@ MLH1_data <- MLH1_data %>%
 
 #order the batches in MLH1 and original
 ```
-
 
 ```{r kable.table, echo=FALSE}
 #table comparing number of images in quantification batches
@@ -234,6 +236,40 @@ Take out mice from the exclude list based on the output from Mouse level quality
 
 Mouse specific plots of CO count and quality were examined for general quality from single mice. Mice which produced few cells of low quality were excluded to the 'HQ' (high quality) dataset. (The full dataset was used to look at some patterns)
 
+```{r Date.imaged, echo=FALSE}
+
+#for issues with the total SC metrics, code in date imaged
+#use the add_mouse function
+
+#mini <- MLH1_data[1:500,]
+
+count=1
+for(i in MLH1_data$Original.Name){
+   # print(i)
+    templist= strsplit(i, split="_")[[1]]
+    c = (templist[1])
+    MLH1_data$image.string[count] <-  c
+    #mini$image.date[count] <-  as.Date(c, format='%d%b%y')  #"%d%b%y")
+    count= count +1
+}
+#works better if dat is converted out of image
+MLH1_data$date.imaged <- as.Date(MLH1_data$image.string,  format='%d%b%y')
+
+#MLH1_data <- add_mouse2(MLH1_data)
+
+mini.MLH1_datamouse.table <- ddply(MLH1_data, c("mouse"), summarise,
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(Random.Name),
+                        #most recent date
+                        oldest = min(date.imaged),
+                        newest = max(date.imaged)
+
+)
+
+
+```
+
+
 
 # Mouse Data
 
@@ -258,22 +294,24 @@ FULL_mouse_table_MLH1 <- ddply(MLH1_data, c("mouse"), summarise,
 ```
 
 
-```{r mouse.table, echo=FALSE, warning=FALSE}
-
-#remove juvi mice
-
-#Make a mouse level table -- why are there many old mice without any MLH1 (bc these are mice which were dissected, but not imaged/quantified)
+```{r mouse.table, echo=FALSE}
+#Make a mouse level table 
 
 AP_mouse_table.MLH1_HQ <- ddply(MLH1_data[MLH1_data$quality < 5,], c("mouse"), summarise,
                         Nmice = length(unique(mouse)),
                         Ncells  = length(adj_nMLH1.foci),
-                        mean_co = as.numeric(format(round(  mean(adj_nMLH1.foci), 3 ), nsmall=3) ),
-                        cV = cv(adj_nMLH1.foci),
-                        var = as.numeric(format(round(   var(adj_nMLH1.foci),3), nsmall=3)),
+                        mean_co = as.numeric(format(round(  mean(adj_nMLH1.foci, na.rm=TRUE), 3 ), nsmall=3) ),
+                        cV = cv(adj_nMLH1.foci, na.rm=TRUE),
+                        var = as.numeric(format(round(   var(adj_nMLH1.foci, na.rm=TRUE),3), nsmall=3)),
                         sd   = round(sd(adj_nMLH1.foci), 3),
-                        se   = round(sd / sqrt(Ncells), 3)
+                        se   = round(sd / sqrt(Ncells), 3),
+                        
+                        oldest.image.date = min(date.imaged),
+                        newest.image.date = max(date.imaged)
                         #quality?
 )
+
+#source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
 AP_mouse_table.MLH1_HQ <- add_strain(AP_mouse_table.MLH1_HQ)
 AP_mouse_table.MLH1_HQ <- add_subsp(AP_mouse_table.MLH1_HQ)
@@ -281,7 +319,7 @@ AP_mouse_table.MLH1_HQ <- add_sex(AP_mouse_table.MLH1_HQ)
 AP_mouse_table.MLH1_HQ <- add_category(AP_mouse_table.MLH1_HQ)
 
 #add DOB to this table?
-mice.frm.meta <- AP_mouse_table.MLH1_HQ[(AP_mouse_table.MLH1_HQ$mouse %in% meta.data$mouse),]
+mice.frm.meta <- AP_mouse_table.MLH1_HQ[as.character(AP_mouse_table.MLH1_HQ$mouse) %in% as.character(meta.data$mouse),]
 
 batch.mouse.count <- table(original_DF$mouse,original_DF$Batch) #mouse count by batch
 batch.mouse.count.DF <- as.data.frame(batch.mouse.count)#this has a dif str, 3 cols -- like it was melted
@@ -293,19 +331,20 @@ meta.data <- add_subsp(meta.data)
 meta.data <- add_sex(meta.data)
 meta.data <- add_category(meta.data)
 
-
 #during merging -- try to just merge a few cols: 
-AP_mouse_table_w.Ages <- merge(AP_mouse_table.MLH1_HQ, meta.data, by.y = "mouse", by.x = "mouse", all = TRUE)
+AP_mouse_table_w.Ages <- merge(AP_mouse_table.MLH1_HQ, meta.data)
+#don't use by, that makes duplicate cols
+# by.y = "mouse", by.x = "mouse", all = TRUE)
 #what are the differences between these two
 
 #remove mice without MLH1 obs
 AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[!(is.na(AP_mouse_table_w.Ages$Nmice) | AP_mouse_table_w.Ages$Nmice == ""), ]
 
 #remove cols with bad suffix
-AP_mouse_table_w.Ages <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
-                            subsp.y,subsp.x,
-                    category.y,category.x, strain.x, strain.y,
-                    mouse.1  )  )
+#AP_mouse_table_w.Ages <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
+#                            subsp.y,subsp.x,
+#                    category.y,category.x, strain.x, strain.y,
+#                    mouse.1  )  )
 
 #add all the cols back
 AP_mouse_table_w.Ages <- add_strain(AP_mouse_table_w.Ages)
@@ -314,16 +353,18 @@ AP_mouse_table_w.Ages <- add_sex(AP_mouse_table_w.Ages)
 AP_mouse_table_w.Ages <- add_category(AP_mouse_table_w.Ages)
 AP_mouse_table_w.Ages <- add_species(AP_mouse_table_w.Ages)  
 
-#make sure they are all factors
-AP_mouse_table.HQ$mouse <- as.factor(AP_mouse_table.HQ$mouse)
-AP_mouse_table.HQ$sex <- as.factor(AP_mouse_table.HQ$sex)
-AP_mouse_table.HQ$strain <- as.factor(AP_mouse_table.HQ$strain)
-AP_mouse_table.HQ$subsp <-  as.factor(AP_mouse_table.HQ$subsp)
-
+#make sure they are all factors - this was breaking the kniting
+#AP_mouse_table.HQ$mouse <- as.factor(AP_mouse_table.HQ$mouse)
+#AP_mouse_table.HQ$sex <- as.factor(AP_mouse_table.HQ$sex)
+#AP_mouse_table.HQ$strain <- as.factor(AP_mouse_table.HQ$strain)
+#AP_mouse_table.HQ$subsp <-  as.factor(AP_mouse_table.HQ$subsp)
 
 old.mice.df <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$age.weeks > 25),]
 #remove the NAs
 old.mice.df <- old.mice.df[!(is.na(old.mice.df$mouse) | old.mice.df$mouse==""), ]
+
+
+#remove juvi mice via the list
 
 #remove bad ages
 #AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[( (AP_mouse_table_w.Ages$age.weeks < 25) &  (AP_mouse_table_w.Ages$age.days != 13) ) | #is.na(AP_mouse_table_w.Ages$age.weeks), ]
@@ -447,8 +488,8 @@ Below I format the DF's for the models;
 
 i) HetC models: mouse averages, only strains with both sexes, no juvi males, only M.musculus. start with **AP_mouse_table**
 
-
 ```{r HetC.DF.4MM, echo=FALSE}
+#this block has so many fing errors
 
 #for the DF for use in the HetC Mixed Model
 #Which Start with the AP_mouse_table
@@ -457,35 +498,39 @@ i) HetC models: mouse averages, only strains with both sexes, no juvi males, onl
 AP_mouse_table_w.Ages$var <- as.numeric(AP_mouse_table_w.Ages$var)
 
 #use the merged DF to filter by age 
-AP_mouse_table_w.Ages$strain <- AP_mouse_table_w.Ages$strain.x
-AP_mouse_table_w.Ages$sex <- AP_mouse_table_w.Ages$sex.x
-AP_mouse_table_w.Ages$subsp <- AP_mouse_table_w.Ages$subsp.x
+#AP_mouse_table_w.Ages$strain <- AP_mouse_table_w.Ages$strain.x
+#AP_mouse_table_w.Ages$sex <- AP_mouse_table_w.Ages$sex.x
+#AP_mouse_table_w.Ages$subsp <- AP_mouse_table_w.Ages$subsp.x
 #main file, make everything unordered factors
+
+#setwd("~./MLH1repo/src/")
+
+source(here("src","CommonFunc_MLH1repo.R") )
 AP_mouse_table_w.Ages <- add_species(AP_mouse_table_w.Ages)
-
-DF.HetC.MixedModel <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$species == "M.musculus",]
-
+DF.HetC.MixedModel <- AP_mouse_table_w.Ages %>% filter(species == "M.musculus")
+  
 #remove the extra merged cols
-DF.HetC.MixedModel <- subset(DF.HetC.MixedModel, select= -c(sex.y,sex.x,
-                            subsp.y,subsp.x,
-                    category.y,category.x, strain.x,
-                    strain.y, mouse.1  )  )
-
+#DF.HetC.MixedModel <- subset(DF.HetC.MixedModel, select= -c(sex.y,sex.x,
+#                            subsp.y,subsp.x,
+#                    category.y,category.x, strain.x,
+#                    strain.y, mouse.1  )  )
 
 
 #REMOVE STRAINS WITHOUT FEMALES
-DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$subsp != "Cast",]
-#remove musc strains
-DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "AST",]
-DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "TOM",]
-#remove PERC, MOLF, CZECH, (no females)
-DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "CZECH",]
-DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "PERC",]
+#DF.HetC.MixedModel <- DF.HetC.MixedModel %>% filter( subsp != "Cast") %>% filter(strain != "AST")
 
-DF.HetC.MixedModel <- droplevels(DF.HetC.MixedModel)#remove levels not used
+# These are removed in the analysis
+#DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$subsp != "Cast",]
+#remove musc strains
+#DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "AST",]
+#DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "TOM",]
+#remove PERC, MOLF, CZECH, (no females)
+#DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "CZECH",]
+#DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "PERC",]
+#F.HetC.MixedModel <- droplevels(DF.HetC.MixedModel)#remove levels not used
 
 #Only us the righ age window
-DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel[( (DF.HetC.MixedModel$age.weeks < 25) &  (DF.HetC.MixedModel$age.days != 13) ) | is.na(DF.HetC.MixedModel$age.weeks), ] #keeps mice without ages, and removes juvinilles
+#DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel[( (DF.HetC.MixedModel$age.weeks < 25) &  #(DF.HetC.MixedModel$age.days != 13) ) | is.na(DF.HetC.MixedModel$age.weeks), ] #keeps mice without ages, and removes juvinilles
 
 #table(DF.HetC.MixedModel.HQ$strain, DF.HetC.MixedModel.HQ$sex)
 
@@ -494,15 +539,12 @@ DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel[( (DF.HetC.MixedModel$age.weeks < 25
 #151 mice, no rows with nas for values
 
 #main df with variables coded as chr
-DF.HetC.MixedModel.HQ$subsp <- factor(DF.HetC.MixedModel.HQ$subsp, ordered = FALSE)
-DF.HetC.MixedModel.HQ$sex <- factor(DF.HetC.MixedModel.HQ$sex, ordered = FALSE)
-DF.HetC.MixedModel.HQ$strain <- factor(DF.HetC.MixedModel.HQ$strain, ordered = FALSE)
-DF.HetC.MixedModel.HQ$species <- factor(DF.HetC.MixedModel.HQ$species, ordered = FALSE)
+#DF.HetC.MixedModel.HQ$subsp <- factor(DF.HetC.MixedModel.HQ$subsp, ordered = FALSE)
+#DF.HetC.MixedModel.HQ$sex <- factor(DF.HetC.MixedModel.HQ$sex, ordered = FALSE)
+#DF.HetC.MixedModel.HQ$strain <- factor(DF.HetC.MixedModel.HQ$strain, ordered = FALSE)
+#DF.HetC.MixedModel.HQ$species <- factor(DF.HetC.MixedModel.HQ$species, ordered = FALSE)
 
 #kable(table(DF.HetC.MixedModel.HQ$sex, DF.HetC.MixedModel.HQ$strain))
-
-
-
 #only female male reps
 
 ```
@@ -512,8 +554,7 @@ DF.HetC.MixedModel.HQ$species <- factor(DF.HetC.MixedModel.HQ$species, ordered =
 
 #AP_mouse_table_w.Ages
 #use the above table to pull the male mouse levels
-male_mouse.av <-  AP_mouse_table_w.Ages %>% filter(sex== "male")
-
+mlh1male_mouse.av <-  AP_mouse_table_w.Ages %>% filter(sex== "male")
 
 #add the Rec.group markers
 
@@ -542,12 +583,13 @@ Testes were collected from mice at various ages. For some poor breeding mice, I 
 
 Is there a detectable age effect?
 
+
 ```{r Age.Hists, echo=FALSE, warning=FALSE}
 #age.weeks col is missing
 
-male_mouse_table_w.Ages <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$sex.x == "male") &(AP_mouse_table_w.Ages$category.x != "other"),]
+male_mouse_table_w.Ages <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$sex == "male") &(AP_mouse_table_w.Ages$category != "other"),]
 
-all.ages_plot <- ggplot(AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$sex.x == "male",], aes(age.weeks))+geom_histogram(binwidth = 3)+facet_wrap(~category.x)+ggtitle("Male Age Distributions")
+all.ages_plot <- ggplot(AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$sex == "male",], aes(age.weeks))+geom_histogram(binwidth = 3)+facet_wrap(~category)+ggtitle("Male Age Distributions")
 all.ages_plot
 
 #male_mouse_table_w.good.ages <- male_mouse_table_w.Ages[male_mouse_table_w.Ages$age.weeks < 20,]
@@ -601,7 +643,11 @@ work on cleaning up all other df with bad names
 
 ```{r save.RData, echo=FALSE}
 
-save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_2.2.20.RData")
+#remove non relevant files -- not sure where they load from
+#BD data and Peromyscus data
+#rm(c(BD_MLH1_data, BDmouse_level_table, MLH1_data.hq) )
+
+save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_2.24.20.RData")
 
 #  OutPut: big large MLH1_data (AP's) df, big DF of BD with just the mice I want.
 #  MLH1_data_table, means and variance of AP and BD MLH1 values. made from seperate tables from AP and BD data.
