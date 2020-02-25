@@ -2696,8 +2696,8 @@ chrm.prop.male.low <-  chrm.prop.strain.male %>%  filter(Rec.group == 0)
 chrm.prop.male.low2 <-  chrm.prop.strain.male  %>%  filter(Rec.group == 0 | strain == "SKIVE") #cool this worked
 
 
-chrm.prop.male.high1 <-  chrm.prop.strain.male %>%  filter(Rec.group == 1) %>%  filter(strain != "SKIVE")
-chrm.prop.male.high2 <-  chrm.prop.strain.male %>%  filter(Rec.group == 1)
+chrm.prop.male.high2 <-  chrm.prop.strain.male %>%  filter(Rec.group == 1) %>%  filter(strain != "SKIVE")
+chrm.prop.male.high1 <-  chrm.prop.strain.male %>%  filter(Rec.group == 1)
 
 
 Low_male.0CO.prop.test <- prop.test(chrm.prop.male.low$n0CO, chrm.prop.male.low$nbiv )
@@ -2831,6 +2831,16 @@ total.biv.all <- sum( MELT_Chrm.Proportion$n0CO, MELT_Chrm.Proportion$n1CO, MELT
 #sum( MELT_Chrm.Proportion$n1CO) / total.biv.all
 #sum( MELT_Chrm.Proportion$n2CO) / total.biv.all
 
+#MELT_Chrm.Proportion$Rec.group <- ifelse(grepl("PWD male", MELT_Chrm.Proportion$category), 1, 
+#                              ifelse(grepl("MSM male", MELT_Chrm.Proportion$category), 1,
+#                                ifelse(grepl("SKIVE male", MELT_Chrm.Proportion$category), 1, 0)))
+  
+#Chrm.prop.male.low <- MELT_Chrm.Proportion %>% filter(sex=="male") %>% filter(Rec.group == 0)
+#Chrm.prop.male.HIGH <- MELT_Chrm.Proportion %>% filter(sex=="male") %>% filter(Rec.group == 1)
+
+#strain av tables
+#chrm.prop.male.high1
+#chrm.prop.male.low
 ```
 
 <!--
@@ -2845,49 +2855,26 @@ MSM 60% PWD 50% SKIVE 30% 20 - 10% remaining (low) strains
 
 <from the means the expected number of COs per chroosomes ranges from X to X we confirm these numbers Can't have fractions of COs>
 
-We distill the variance observed in the mean MLH1 foci counts per cell to number of MLH1 foci per chromosomes (bivalent). 
+We distill the variance observed in the mean MLH1 foci counts per cell to number of MLH1 foci per chromosomes (bivalent).  Because our observations of MLH1 foci are made in pachtyene cells, our chromosome opbservations are fully synapsesed paired homologous chromosomes (i.e. 4n copies of each chromsomes). Additionally we can distinguish the idenetiy of indiviual chromsomes (Chromsome 1 or Chromsome 2)
+for these reasons we use the term bivalent. 
 
-Because our observations of MLH1 foci are made in pachtyene cells, our chromosome opbservations are fully synapsesed paired homologous chromosomes (i.e. 4n copies of each chromsomes) -- additionally we can distinguish the idenetiy of indiviual chromsomes (Chromsome 1 or Chromsome 2)
-for these reasons we use the term bivalent.
- 
-Of the pooled dataset of `r total.biv.all` single bivalents, 96% of bivalents had either one or two crossovers. <these results fit with previous observations on the number of crossovers per chromosome (Stapley 2019)>
+Of the pooled dataset of `r total.biv.all` single bivalents, 96% of bivalents had either one or two crossovers (Figure X). <these results fit with previous observations on the number of crossovers per chromosome (Stapley 2019)>. The proportion of 1CO:2CO distinguishes the high and low rec males (Figure X). Confirming the intuitive interpertation that high recombination strains have more 2CO bivalents at the expense of 1CO bivalents. Across the female observations the propotions of chromsome classes are not notably different. Most of the low rec strains range from `r min(chrm.prop.male.low$n2CO / chrm.prop.male.low$nbiv)` _musculus^KAZ^_ to `r max(chrm.prop.male.low$n2CO / chrm.prop.male.low$nbiv)` ( _molossinus^MOLF^_ ). In the high rec strains the 2CO proportions are `r chrm.prop.male.high1$n2CO[chrm.prop.male.high1$strain == "SKIVE"] / chrm.prop.male.high1$nbiv[chrm.prop.male.high1$strain == "SKIVE"]` ( _musculus^SKIVE^_ ), `r chrm.prop.male.high1$n2CO[chrm.prop.male.high1$strain == "PWD"] / chrm.prop.male.high1$nbiv[chrm.prop.male.high1$strain == "PWD"]` ( _musculus^PWD^_ ), and `r chrm.prop.male.high1$n2CO[chrm.prop.male.high1$strain == "MSM"] / chrm.prop.male.high1$nbiv[chrm.prop.male.high1$strain == "MSM"]` (_molossinus^MSM^_ ).
 
-The proportion of 1CO:2CO (are displayed in figure X) --
+While the proportions are significantly different, PWD male and MSM male proportions are more similar to each other than strains from the same subspcies ( _musculus^PWD^_ and _musculus^KAZ^_ chi-square test; 1CO p =`r PWD.KAZ.1CO.prop.test$p.value`, 2CO p=`r PWD.KAZ.2CO.prop.test$p.value`) and _molossinus^MSM^_ and _molossinus^MOLF^_ chi-square test; 1CO p = `r MSM.MOLF.1CO.prop.test$p.value`, 2CO p=`r MSM.MOLF.2CO.prop.test$p.value`).
 
--- distinguishes -- the high and low rec males
+These results confirm the intuitive conclusion that the rapid male specific evolution in gwRR proceeds though the chromosome level/though increasing the number of 2CO bivalents at the expense of 1CO bivalents.
 
-
-
-Most of the bivalents are 1CO and 2CO class bivalents -- and the proportion of these two classes distinguish high and low rec male strains. (distinguish the high rec males from minimal rec groups)
-
-(A previously reported for house mouse, the most prevelent class of chromosomes is the 1CO class. The high rec group of males are the exception indicating, which fits with the conclusion that higher cell wide CO counts are due to more chromosomes(bivalents) have 2 instead of 1 CO.  *(much smaller proportions and variation in the fringe classes*
-
-
-**2. most of the male proportions are 2/3's 1CO and 1/3 2COs. but The high rec strains are distinguishable by having more 2COs at the cost of 1COs, with closer to 1:1**
-
-**MSM 60%  PWD 50%  SKIVE 30%   20 - 10% remaining (low) strains**
-
-PWD and MSM have slightly different proportions of 1CO and 2CO, (with MSM having more 2COs) (chi-square test; 1CO p =`r High1_male.1CO.prop.test$p.value` and 2CO p = `r High1_male.2CO.prop.test$p.value` ). 
-
-While the proportions are significantly different, PWD male and MSM male proportions are more similar to each other than strains from the same subspcies (PWD and KAZ chi-square test; 1CO p =`r PWD.KAZ.1CO.prop.test$p.value`, 2CO p=`r PWD.KAZ.2CO.prop.test$p.value`)
- and MSM and MOLF chi-square test; 1CO p = `r MSM.MOLF.1CO.prop.test$p.value`, 2CO p=`r MSM.MOLF.2CO.prop.test$p.value`).
-
-
-**3. these results confirm the intuitive conclusion/result that the rapid male specific evolution in gwRR proceeds though the chromosome level/though increasing the number of 2CO bivalents at the expense of 1CO bivalents**
-
-The general pattern is that most of the chromosom classes are from 1CO (`r sum( MELT_Chrm.Proportion$n1CO) / total.biv.all`) and 2CO (`r sum( MELT_Chrm.Proportion$n2CO) / total.biv.all`). <This relpicates what has been notice in the literature (cite stapley).> 
-
-Six strain have been designated low rec groups, WSB, LEW, G, KAZ, CZECH, and MOLF.
+<(Also comparing the low group together ... Six strain have been designated low rec groups, WSB, LEW, G, KAZ, CZECH, and MOLF.
 They have significantly different proportions for 1CO and 2CO (chi-square; 1CO p = `r Low_male.1CO.prop.test$p.value` and 2CO p= `r Low_male.2CO.prop.test$p.value`). This significant p value indicates that at least one of the six strains had significant differences).>
-
-Breif conclusion: the evolution of genome wide recombiantion rates proceeds through the chromosome level.
-
-<something about the female results>
 
 <SUMMARY the / TRANSITION to single bivalen measures>
 
-
 # Single Bivalent Level Results
+
+
+-- Confirmation that it's the increase in 2CO bivalents -- that comprises a higher cell wide number of COs (total number)
+
+Let's look at the Rec landscape -- 
 
 In order to better deconstruct the genome wide recombiation rate, we decided to deconstruct cell wide average by examining features of the recombiantion landscape at the single bivalent level. recombination landscape refers to the i) total length of the SC-AE (potential area for COs), ii) the position of single crossovers along bivalents and iii) the spacing between multiple COs on the same bivalent.
 
