@@ -3024,10 +3024,11 @@ For all but one strain, _musculus^SKIVE^_, the mouse mean for the short bivalent
 (t.test; p = `r Q1_mus.av_shortSC_t.test.WSB$p.value`, p =`r format(Q1_mus.av_shortSC_t.test.G$p.value, scientific = F)`, and p=`r format(Q1_mus.av_shortSC_t.test.LEW$p.value, scientific = F)` for _domesticus^WSB^_, _domesticus^G^_ and _domesticus^LEW^_ respectively.
 This pattern is also true for the musculus strins (t.test; p= `r format(Q1_mus.av_shortSC_t.test.PWD$p.value, scientific = F)`, `r Q1_mus.av_shortSC_t.test.KAZ$p.value`, and `r  format(Q1_mus.av_shortSC_t.test.SKIVE$p.value, scientific = F)` for _musculus^PWD^_ , _musculus^KAZ^_ , _musculus^SKIVE^_  respectively. 
 
-An additional measure of the SC-AE we tested is the total SC area per cell (the whole genome).**to get a comparison of the SC-AE area for the whole genome (not just a subset of chromosomes)** We apply a skeletonizing image analysis algorithm to all MLH1 meiocyte spreads. A total of X images were run trhought the image analysis pipeline, and after outliers removed, X remained. / cell based measures were left. Mouse means were calculated for their total SC-AE area and are displayed in figure X with the strain means shown as horizontal lines (below).
+An additional measure of a smaller subset of single bivalents (which excludes the sex chromsoomes), we tested/compared a measure of the SC lengths for the whole genome (whole cells) using a image nalysis algorithm which measures the skeletonized bivalent and provides an acurate measure of the lengths of single SC/bivalents (ref RWang)
 
-The comparison of this metric is somewhat complicated across sexes due to the sex chromosomes. (simply put, the oocytes have an additional autosome, and the spermatocytes have mroe mostly non-recombinationly active SC-AE area, the XY).  <But we use this metric anyways>
+We apply a skeletonizing image analysis algorithm to all MLH1 meiocyte spreads. A total of X images were run trhought the image analysis pipeline, and after outliers removed, X remained. Mouse means were calculated for their total SC area per cell and are displayed in figure X.
 
+The comparison of this metric is somewhat complicated across sexes due to the sex chromosomes. Breifly/in effect the oocytes have an additional autosome, and the spermatocytes have a mostly recombinationly inactive unit of SC (the XY).
 
 ```{r Q1.tot.SC_show, echo=FALSE, warning=FALSE}
 
@@ -3088,7 +3089,7 @@ Tot.SC_mouse.av_Mol <- ggplot(data= totsc.mol, aes(y = mean.skel, x=mouse, color
 Tot.SC_mouse.av_Mol
 ```
 
-<these are the number of mice for each of the categories r as.data.frame( table(droplevels( totSC.mouse.av.table$category) ) )
+<these are the number of mice for each of the categories r as.data.frame( table(droplevels( totSC.mouse.av.table$category) ) )>
 
 ```{r Q1.total.SC_t.test, echo=FALSE}
 
@@ -3153,10 +3154,7 @@ Q1.male.Dom.Mol.t.test <- t.test( ( totSC.mouse.av.table %>% filter(sex == "male
 (totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Mol") )$mean.skel)
 ```
 
-In all of the strains, the female mouse mean total SC per cell was significantly greater in females than males (ttest; WSB p = `r format(Q1_tot.sc_t.test.WSB$p.value, scientific = F )`, G p = `r format(Q1_tot.sc_t.test.G$p.value, scientific= F )`, LEW p = `r format(Q1_tot.sc_t.test.LEW$p.value, scientific= F )`,  PWD p = `r format(Q1_tot.sc_t.test.PWD$p.value,scientific = F )`, KAZ p = `r format(Q1_tot.sc_t.test.KAZ$p.value, scientific = F )`, MSM `r format(Q1_tot.sc_t.test.MSM$p.value, scientific = F )` 
-
-for the _domesticues^WSB^ _, _domesticues^G^ _, and _domesticues^LEW^ _ respectively), for the _musculus^PWD^ _, _musculus^KAZ^ _, and _molossinus^MSM^_ respectively)
-
+In all of the strains the means of total SC per cell was significantly greater in females than males (ttest; _domesticues^WSB^ _ p = `r format(Q1_tot.sc_t.test.WSB$p.value, scientific = F )`, _domesticues^G^ _  p = `r format(Q1_tot.sc_t.test.G$p.value, scientific= F )`, _domesticues^LEW^ _ p = `r format(Q1_tot.sc_t.test.LEW$p.value, scientific= F )`, _musculus^PWD^ _ p = `r format(Q1_tot.sc_t.test.PWD$p.value,scientific = F )`, KAZ p = `r format(Q1_tot.sc_t.test.KAZ$p.value, scientific = F )`, _molossinus^MSM^ _ `r format(Q1_tot.sc_t.test.MSM$p.value, scientific = F )` 
 
 <We estimate the effect of the sex chromosomes from hand measured data...the XX (3rd longest chromsomes) in females is ~10% of total the summed SC area, the average propotion of the XY in spermatocytes is XX%?  however the morphology of the XY is highly variable across cells>
 
@@ -3169,9 +3167,10 @@ Dom (F vs M) -- (ttest; p=`r Q1_tot.sc_t.test.DOM$p.value`)
 Musc (F vs M) -- (ttest; p=`r Q1_tot.sc_t.test.MUSC$p.value`)  (note, missing SKIVE, not enough female measures)  
 MSM (F vs M) -- (ttest; p= `r Q1_tot.sc_t.test.MSM$p.value`)>
 
+<explain why I'm applying models>
 
-<explain why applying models.  We then use models to examine/ think about the evolution>
-The above t.tests were done to establish the sex differences for SC-AE (chromatin condensation), we now apply models (for understanding within an evolutionary framework) -- we apply the same models to both mouse mean short bivalent length and mean mouse total SC.
+We follow up the general result of females have longer SC lengths -- by applying the same model frameworks which we used to analyze the mean MLH1 foci per cell -- to understsand the evolutionary framework.
+
 
 **M1. Mixed Model** $$mouse \ average \ SC \ metric ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
@@ -3220,7 +3219,6 @@ lmer.Q1_mus.av_totSC_strain)
 #G
 ```
 
-
 ```{r Q1.M1_short_biv_lmer, echo=FALSE, warning=FALSE, message=FALSE}
 lmer.Q1_SCLength_short_M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Q1.real.short_mouse_table, REML = TRUE) 
 
@@ -3245,11 +3243,9 @@ Q1lmer.MM_SC_short_strain)
 
 ```
 
-Mixed models for the sex differences in mouse in the mixed models using mean **short bivalents** length as the dependant variable, sex is the most significant effect (LTR; p =`r Q1lmer.MM_SC_short_results$sex.results`). The interaction (subspecies by sex) effect was also slightly significant (p = `r Q1lmer.MM_SC_short_results$interaction.pval`).  
+In the mixed models for the sex differences mean **short bivalents** length as the dependant variable, sex is the most significant effect (LTR; p =`r Q1lmer.MM_SC_short_results$sex.results`). The interaction (subspecies by sex) effect was also slightly significant (p = `r Q1lmer.MM_SC_short_results$interaction.pval`).  
 
-Subsp and sex had the most significant p values, --- For the mixed model run on the total sc metric, there are more significant effects for strain and subsp for the mixed modelusing mean **total sc** per cell as the dependant variable, the three fixed effects and one random effect were significant (LTR; subsp p= `r Q1.lmer.totSC_results$sub.sp`, sex p = `r Q1.lmer.totSC_results$sex.results`, and interaction p = `r Q1.lmer.totSC_results$interaction.pval`, (random LRT; strain p = `r Q1.lmer.totSC_results$rand.pval`).
-
-(these results from the mixed models -- are similar to the mean MLH1 per cell results -- so we follow up -- with tests of significant strain effects).
+For the mixed model run on the mean total SC metric, there are more significant effects for strain and subsp for the mixed model using mean **total sc** per cell as the dependant variable, the three fixed effects and one random effect were significant (LTR; subsp p= `r Q1.lmer.totSC_results$sub.sp`, sex p = `r Q1.lmer.totSC_results$sex.results`, and interaction p = `r Q1.lmer.totSC_results$interaction.pval`, (random LRT; strain p = `r Q1.lmer.totSC_results$rand.pval`).
 
 ```{r Q1.glm_totalSC_M2.M3, echo=FALSE, message=FALSE}
 #total-SC
@@ -3297,13 +3293,10 @@ summ.Q1.glm_short.SC_M3 <- summary(Q1.glm_short.SC_M3)
 In linear models (M2 and M3) for **mean short bivalent length**, male is most significant (M2 glm; p =`r summ.Q1.glm_short.SC_M2$coefficients[,4][8]` and M3 glm; p = `r summ.Q1.glm_short.SC_M3$coefficients[,4][8]`). In the linear model M2 the skive strain and strain by sex effects are slightly significant (glm; p=`r summ.Q1.glm_short.SC_M2$coefficients[,4][7]`, p =`r summ.Q1.glm_short.SC_M2$coefficients[,4][14]` respectively), however these could be due to low sampling of skive females.
 
 
-The following effects had significant p values for the **total SC** from the above model (for the linear models M2 and M3), 
-subspecies _musculus_ (glm M2; p = `r sum.Q1.glm_totSC_M2$coefficients[,4][2]`), subspecies _molossinus_ (glm M2; p =`r sum.Q1.glm_totSC_M2$coefficients[,4][3]`), sex male (glm M2; p =`r sum.Q1.glm_totSC_M2$coefficients[,4][8]`), strain lew p =`r sum.Q1.glm_totSC_M2$coefficients[,4][5]`, strain g  p =`r sum.Q1.glm_totSC_M2$coefficients[,4][4]`,
+The following effects had significant p values for the **total SC** from the above model (for the linear models M2 and M3), subspecies _musculus_ (glm M2; p = `r sum.Q1.glm_totSC_M2$coefficients[,4][2]`), subspecies _molossinus_ (glm M2; p =`r sum.Q1.glm_totSC_M2$coefficients[,4][3]`), sex male (glm M2; p =`r sum.Q1.glm_totSC_M2$coefficients[,4][8]`), strain lew p =`r sum.Q1.glm_totSC_M2$coefficients[,4][5]`, strain g  p =`r sum.Q1.glm_totSC_M2$coefficients[,4][4]`,
 
-For M3 -- many strain effects are significant, but the largest are sex (glm M3; p = `r sum.Q1.glm_totSC_M3$coefficients[,4][8]`)
-but also some strain effects, G strain (glm M3; p = `r sum.Q1.glm_totSC_M3$coefficients[,4][2]`), LEW strain (glm M3; p = `r sum.Q1.glm_totSC_M3$coefficients[,4][3]`), PWD strain (glm M3; p = `r sum.Q1.glm_totSC_M3$coefficients[,4][4]`).
-
-Supporting the strong sex difference and also indicating that SC length has evolved across strains within this panel. when chromatin condensation is summarized / quantified at this level. (can't exclude the possibility that the XY morphology is different between these strains)
+For M3 in the mean total SC lengths there were many strain effects are significant, but the largest are sex (glm M3; p = `r sum.Q1.glm_totSC_M3$coefficients[,4][8]`)
+but also some strain effects, G strain (glm M3; p = `r sum.Q1.glm_totSC_M3$coefficients[,4][2]`), LEW strain (glm M3; p = `r sum.Q1.glm_totSC_M3$coefficients[,4][3]`), PWD strain (glm M3; p = `r sum.Q1.glm_totSC_M3$coefficients[,4][4]`). (this means...). Supporting the strong sex difference and also indicating that SC length has evolved across strains within this panel, when chromatin condensation is summarized / quantified at this level. 
 
 <!--
 (subsp*sex) mol.male  p =`r sum.Q1.glm_totSC_M2$coefficients[,4][10]`, sex.g  p =`r sum.Q1.glm_totSC_M2$coefficients[,4][11]`, lew.male p =`r sum.Q1.glm_totSC_M2$coefficients[,4][12]`
@@ -3312,10 +3305,9 @@ for the _mmdomesticues^WSB^ _, _mmdomesticues^G^ _, and _mmdomesticues^LEW^ _
 
 <SUMMARY, ttests and models indicate female have strongest effect -- longer AC-A >
 
-<In summary, females (oocytes) have loser different chromatin compaction patterns compared to males. There are suggestions of evolution for this trait across the domesticus and musculus subspecies.>
+<In summary, females (oocytes) have different chromatin compaction patterns compared to males. There are suggestions of evolution for this trait across the domesticus and musculus subspecies.>
 
-<1. the longer female sc's is consistant and seen across all strains,
-even in the high rec strains, suggest a decoupling of sc and gwRR - when comparing across sexes -- or the sc area is used differently for CO in oocytes and spermatocytes.
+<1. the longer female sc's is consistant and seen across all strains, even in the high rec strains, suggest a decoupling of sc and gwRR - when comparing across sexes -- or the sc area is used differently for CO in oocytes and spermatocytes.
 2. when the total sc per cell is compared, domesticus males have significantly lower SC arae compared to molossinus and musculus strains.Except in Q2 I Say this isn't true.>
 
 ```{r Q1.SC.Q12, echo=FALSE}
@@ -3393,7 +3385,6 @@ totSC_Q12_strain.av.table$species <- factor(totSC_Q12_strain.av.table$species, o
 
 ```
 
-
 ```{r Q1.SC_showQ12Tot.SC, echo=FALSE, warning=FALSE}
 
 Q12.Tot.SC_mouse.av_Dom <- ggplot(data= totSC_Q12_mouse.av.table %>% filter(subsp == "Dom"), aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
@@ -3429,7 +3420,7 @@ Tot.SC_mouse.av_Mol
 
 ```
 
-<Q12 total SC mouse means!! In Dom when running the Q12 SC lengths, the sex difference seems to get larger (male mean total SC gets lower).  In Musc the female mean total sc gets lower (maybe fewer cells (SKIVE is removed)). For Mol / MSM female mean stays about the same, MSM and MOLF means converge around 1600.>
+<Q12 total SC mouse means! In Dom when running the Q12 SC lengths, the sex difference seems to get larger (male mean total SC gets lower).  In Musc the female mean total sc gets lower (maybe fewer cells (SKIVE is removed)). For Mol / MSM female mean stays about the same, MSM and MOLF means converge around 1600.>
 
 
 ```{r show.long.biv, echo=FALSE, include=FALSE}
@@ -3535,6 +3526,7 @@ Q1.SClength_Dom.BivData_plot <- ggplot( Dom_BivData, aes(y = chromosomeLength, x
 
 ## Adjusting for XX
 
+Summarize for now, refine this section later.
 
 1. illustrate problem(affects mostly SC length)  
 2. Expected impact on sex comparisons, estimated effect size of the X  
@@ -3542,15 +3534,15 @@ Q1.SClength_Dom.BivData_plot <- ggplot( Dom_BivData, aes(y = chromosomeLength, x
 4. permutations of 19 female, 19male, 20female 20 male
 
 
-<
-- Of all female single bivalents observations, 5% are XX (1 of 20). 
+<Of all female single bivalents observations, 5% are XX (1 of 20). 
 - The XX is large, likely within the top 25% longest bivalents of the cell (3rd largest by Mb).
 - The average % of XX for whole cell SC (sum(all bivalents)) can be calculated from the whole.cell data set. Lets guess 12% of a cell's total SC area is XX.
 - rate of bivalent segmentation /* rate of XX, 5% /* mean SC length for 3rd longest bivalent / total SC area (by bivalent) = proportion of SC area due to XX>
 
 # short transition
 
-<transition>  -- following up on SC area - with how COs are place --- placement and number of COs on single bivalents
+<transition>  
+-following up on SC area - with how COs are place - placement and number of COs on single bivalents
 
 1. Transition, --- the SC-AE area can be thought of as the 'area / available real-estate for COs
 -- these results suggest that this area is 'utilized' in different ways across sexes and strains - so we next investigate the recombination landscape - (ie the relationship between the placement and number of COs along chromosomes).
