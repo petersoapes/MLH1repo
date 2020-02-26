@@ -3566,14 +3566,9 @@ To quantify one of the major -- patterns that is different between male and fema
 In order to test for evolution -- and examine sex differences in the recombination landscape (crossover position bias)
 -->
 
-We focus on the foci positions from one crossover (1CO n= 
-) bivalents since the landscape patterns for multi crossover bivalents will be highly influences by crossover interference.
+We focus on the foci positions from one crossover (1CO n= `r `) bivalents since the landscape patterns for multi crossover bivalents (2COs) will be highly influenced by crossover interference.
 
-We anchor the position measures at the centromere (and normalize by deviding the position by the length of the chromosome, so the value range from 0 to 1, with smaller values representing positions closer to the centromere end of the bivalent, and larger values meaning foci positions closer to the opposite end (refered here as terminal or telomeric position).
-
-We plot the mouse averages across all of the single bivalent measures, with the strain averages shown as boxplots...
-
-in order to get a better picture of the sex differences in this foci-position metric
+The CO positions are normalized by the SC length and anchored at the centromere with the normalized position values ranging from 0 to 1, (refered here as terminal or telomeric position).
 
 ```{r CO.positions.figs, echo=FALSE, include=FALSE, warning=FALSE}
 #main figure of density plots,
@@ -3657,18 +3652,24 @@ Q1_1CO.pos_t.test.MSM <- t.test((mouse.avs_4MM %>% filter(sex == "male") %>% fil
 #t.tests for mous.av_nrm.1CO.pos 
 ```
 
-In the domesticus strains the mouse averages for normalized single foci positions were significantly sexually dimorphic (fitting the predictions/pattern of the 'typical recombination landscape' (Sardell)). The single CO positions are medially placed in females and terminall placed in males. 
-
-The pavlues across the strains are; (t.test; p = `r Q1_1CO.pos_t.test.WSB$p.value`, `r Q1_1CO.pos_t.test.G$p.value`, and `r Q1_1CO.pos_t.test.LEW$p.value` for WSB, G and LEW respectively).
+In the domesticus strains the mean normalized foci positions were significantly different between sexes and fit the predictions of the 'typical recombination landscape' (with female positions being medially placed and terminally placed in males). The p.values across the strains are; (t.test; p = `r Q1_1CO.pos_t.test.WSB$p.value`, `r Q1_1CO.pos_t.test.G$p.value`, and `r Q1_1CO.pos_t.test.LEW$p.value` for WSB, G and LEW respectively).
 
 With the musculus and molossinus strains displaying a similar pattern (t.test p = `r Q1_1CO.pos_t.test.PWD$p.value` and `r Q1_1CO.pos_t.test.MSM$p.value`) PWD and MSM. Two musculus  strains had a weaker signal, but it was still in the same direction (t.test; p =  `r Q1_1CO.pos_t.test.KAZ$p.value`, and `r Q1_1CO.pos_t.test.SKIVE$p.value` for KAZ and SKIVE respectively). 
 
-After confirming the significan sex differences for 1CO position, we apply the familiar models
-
+After confirming the significan sex differences for 1CO position, we apply the model frameworks
 
 **M1. Mixed Model**
 
 $$mouse \ average \ F1 position ~=~ subsp * sex + rand(strain) + \varepsilon $$
+
+**M2. Linear model**
+
+$$mouse \ average \ F1 position ~=~ subsp * sex * strain + \varepsilon $$
+
+
+**M3. Linear model**
+
+$$mouse \ average \ F1 position ~=~ sex * strain + \varepsilon $$
 
 
 ```{r Q1.CO1pos_lmer.M1, echo=FALSE, message=FALSE}
@@ -3698,15 +3699,6 @@ sex.results = lmer.Q1.nrm1CO_M1.sex ,
 #write.table(round(summry.glm.Q1_IFD.PER.M2$coefficients, 6), "~./MLH1repo/summry.glm.Q1_IFD.PER.M2.csv", sep=",",row.names = TRUE)
 
 ```
-
-
-For the Mixed model, sex is the most significant effect (LTR; p =`r lmer.Q1.nrm1CO_M1_results$sex.results`).The random effect of strain is also significant
-(LRT; p =`r lmer.Q1.nrm1CO_M1_results$rand.pval`). These results confirm the sex difference establish in the t.tests above -- and suggesting variation across the strains (in the sexual dimorphism for this pattern).
-
-
-**M2. Linear model**
-
-$$mouse \ average \ F1 position ~=~ subsp * sex * strain + \varepsilon $$
 
 ```{r Q1.CO1pos_glm.M2, echo=FALSE}
 
@@ -3739,10 +3731,6 @@ Q1.glm_nrmF1pos_M2_Mol <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Tab
 
 ```
 
-**M3. Linear model**
-
-$$mouse \ average \ F1 position ~=~ sex * strain + \varepsilon $$
-
 ```{r Q1.CO1pos_glm.M3, echo=FALSE, eval=TRUE}
 
 Q1.glm_1CO.pos_M3 <- glm(norm.first.foci.pos ~ strain * sex, data=Q1.Foci.pos_DF)
@@ -3755,14 +3743,20 @@ summry.Q1.glm_1CO.pos_M3 <- summary(Q1.glm_1CO.pos_M3)
 
 ```
 
+For the Mixed model, sex is the most significant effect (LTR; p =`r lmer.Q1.nrm1CO_M1_results$sex.results`).The random effect of strain is also significant
+(LRT; p =`r lmer.Q1.nrm1CO_M1_results$rand.pval`). These results confirm the sex difference establish in the t.tests above -- and suggesting variation across the strains (in the sexual dimorphism for this pattern).
 
 The male effects were the most significant (glm M2; p =`r summry.Q1.glm_F1pos_M2$coefficients[,4][8]`, glm M3; p = `r summry.Q1.glm_1CO.pos_M3$coefficients[,4][8]`). While the musc subspecies, LEW and KAZ strains had slightly signifcant effects (glm M2; Musc subsp p = `r summry.Q1.glm_F1pos_M2$coefficients[,4][2]`, LEW strain p = `r summry.Q1.glm_F1pos_M2$coefficients[,4][5]`) and (glm M3; LEW strain p = `r summry.Q1.glm_1CO.pos_M3$coefficients[,4][3]`, KAZ strain p = `r summry.Q1.glm_1CO.pos_M3$coefficients[,4][7]`).
 
 (these results will be explored more fully in the Q2 section). The general pattern that emerges across these models is the sex effect being the most significant, (with the male single foci position being more telomeric compared to females). 
 
-<we don't explore the effects on the redcued bivalent data sets! The main expected pattern is confirmed>
+REMOVE THE SISCOTEN PLOTs...
 
-Chromosome size effects are a confounding factor for CO position, with the expectation that shorter chromosomes will have a more uniform landscape compared to larger/longer chromosomes (cite). To account for this we again use the reduced bivalent sets (long.biv and short.biv)
+<ONLY SHOW 1 PLOT, we don't explore the effects on the redcued bivalent data sets! The main expected pattern is confirmed>
+
+<!-- Ignore this section / kind of results for know
+Chromosome size effects are a confounding factor for CO position, with the expectation that shorter chromosomes will have a more uniform landscape compared to larger/longer chromosomes (cite). To account for this we again use the reduced bivalent sets (long.biv and short.biv) -->
+
 
 ```{r Q1.F1.pos.LONG.SHORT.BIV_scatter, echo=FALSE}
 
@@ -3776,7 +3770,6 @@ Q1.long.biv_scatr_box   <- ggplot((real.long.bivData %>% filter(hand.foci.count 
 Q1.long.biv_scatr_box
 ```
 
-
 ```{r Q1.mouse.av.F1.pos.LONG.BIV_scatter, echo=FALSE}
 
 #REAL.short_mouse_table
@@ -3788,7 +3781,6 @@ Q1.av.long.biv_scatr_box   <- ggplot(REAL.long_mouse_table  , aes(x=sex, y=mean_
 Q1.av.short.biv_scatr_box   <- ggplot(REAL.short_mouse_table, aes(x=sex, y=mean_F1pos_PER, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= mean_F1pos_PER ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nShort Biv")
 ```
 
-These box plot show that females have a much more medial position of single foci bivalents, (much closer to 50% compared to males). They also show that Musc males' Foci1 position is slightly more central / medial compared to the same type of positions in the Dom male strains. MOLF males have much more medial positions than other strains.
 
 <!--
 ### Siscoten
@@ -3797,7 +3789,7 @@ The logic of how the sis-co-ten metric is outlined in the figure below. The goal
 
 ![from (Lee, J. (2019). Is age-related increase of chromosome segregation errors in mammalian oocytes caused by cohesin deterioration?. Reproductive Medicine and Biology.)](figureFiles/Lee2019_Fig2.png)
 
-```{r show.siscoten, echo=FALSE}
+```{r show.siscoten, echo=FALSE, eval=FALSE}
 #think of a good way to display this
 
 sis.co.ten.plot_WSB_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
@@ -3852,7 +3844,7 @@ Males have much clearer separation of siscoten across chrm classes. This is emph
 To formally test the differences in sis-co-ten I plan to write a sub sampling / permutation loop to compare the mean(sis.co.ten) of the same numbers of bivalents of the same class.
 BUT females have a greater range -- so maybe it's just a scale issue.  
 
-```{r show.norm.siscoten, echo=FALSE}
+```{r show.norm.siscoten, echo=FALSE, eval=FALSE}
 Curated_BivData$nrm.siscoten <- Curated_BivData$SisCoTen/Curated_BivData$chromosomeLength
 
 Nrm.sis.co.ten.plot_WSB <- ggplot(data = Curated_BivData[Curated_BivData$strain == "WSB",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
@@ -3926,7 +3918,7 @@ mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD", mouse.avs_4MM$strain), 1,
 ```
 
 
-```{r log.reg_siscoten, echo=FALSE}
+```{r log.reg_siscoten, echo=FALSE, eval=FALSE}
 
 #replace the table
 
@@ -4014,7 +4006,7 @@ All the sis.co.ten tests are highly significant. Maybe I should consider running
 
 My metric for telomere and centromere distance measure the distance of the nearest foci to the ends of the bivalent (SC). In the plots below each point is a single bivalent. I choose not to use the mark for centromere because it seems noisy and inconsistent... 
 
-```{r telo.dist, echo=FALSE}
+```{r telo.dist, echo=FALSE, eval=FALSE}
 
 sis.co.ten.plot_WSB_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
   geom_point()+facet_wrap(sex~strain)
@@ -4038,7 +4030,7 @@ nrm.telo_jitter
 
 Males on average have much lower raw telomere distance (reflects the telomere bias) compared to females. In Males, 2CO bivalents have very low telomere distances, while the 1CO bivalents have a greater range. In females the ranges of telomere distances have much more overlap.   
 
-```{r MM.telo, echo=FALSE}
+```{r MM.telo, echo=FALSE, eval=FALSE}
 #HetC
 
 lme_MM_telo.dist <- lmer(mean.telo.dist ~ subsp * sex + (1|strain), data= Mouse.Table_BivData_4MM )
@@ -4058,7 +4050,7 @@ rand_telo.dist_MM
 
 Mixed model result summary:
 
-```{r log.reg_telo.dist, echo=FALSE}
+```{r log.reg_telo.dist, echo=FALSE, eval=FALSE}
 
 Mouse.Table_BivData_4MM$Rec.group <- ifelse(grepl("PWD male", Mouse.Table_BivData_4MM$category), 1, 
                             ifelse(grepl("MSM male", Mouse.Table_BivData_4MM$category), 1,
@@ -4087,7 +4079,7 @@ log.reg_Telo.Dist.PER_biv <- glm(Rec.group ~ telo_dist_PER,
 summary(log.reg_Telo.Dist.PER_biv)
 ```
 
-```{r t.test_Telo.Dist, echo=FALSE}
+```{r t.test_Telo.Dist, echo=FALSE, eval=FALSE}
 
 #mouse av
 t.test_mouse.av_telo.dist <- t.test(
@@ -4116,7 +4108,7 @@ single.biv_t.test_Telo.Dist_PER <- t.test(
    
 ```
 
-```{r cent.dist_show, echo=FALSE}
+```{r cent.dist_show, echo=FALSE, eval=FALSE}
 cent.dist_boxplots <- ggplot(Curated_BivData, aes(x= strain, y=dis.cent ) )+ geom_boxplot(aes( fill=hand.foci.count, group=strain), alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("raw centromere distance")+ ylim(c(0, 150))
 
 
@@ -4138,7 +4130,7 @@ lmer_MM_cent.dist <- lmer(mean.cent.dist ~ subsp * sex + (1|strain), data=Mouse.
 exactRLRT(lmer_MM_cent.dist)
 ```
 
-```{r log.reg_CENT.dist, echo=FALSE}
+```{r log.reg_CENT.dist, echo=FALSE, eval=FALSE}
 
 #CENT.DIST
 #mouse av, norm.first foci is from 1CO bivalents
@@ -4162,7 +4154,7 @@ log.reg_CENT.Dist.PER_biv <- glm(Rec.group ~ dis.cent.PER,
 summary(log.reg_CENT.Dist.PER_biv)
 ```
 
-```{r t.test_CENT.Dist, echo=FALSE}
+```{r t.test_CENT.Dist, echo=FALSE, eval=FALSE}
 #CENT.DIST
 #mouse av
 t.test_mouse.av_Cent.dist <- t.test(
@@ -4212,7 +4204,7 @@ CO.Pos.boxplots_1CO
 
 ```
 
-```{r Q1.1CO.pos_Sardell.eq, echo=FALSE, include=FALSE}
+```{r Q1.1CO.pos_Sardell.eq, echo=FALSE, eval=FALSE, include=FALSE}
 #IGNORE THIS FOR KNOW, THIS 
 
 #filter all Curated biv data for 1 strain
@@ -4251,7 +4243,7 @@ anova(Sardell.mo.PWD_R.dis.cent, Sardell.mo.PWD_R.dis.telo) #p = 1
 
 ```
 
-```{r Q1.mean.nrmF1_table, echo=FALSE,eval=FALSE}
+```{r Q1.mean.nrmF1_table, echo=FALSE, eval=FALSE}
 
 #make a table for the sex specific values of the normalized F1 positions
 
@@ -4321,15 +4313,7 @@ summary(log.reg_1CO_pos_biv)
 ```
 
 
-
-
 #Q1. Sex Differences in CO Interference (IFD)
-
-In order to test if there are sex differences between crossover interference, a major determinant of the positioning of crossovers along chromosomes, we examined ... ran models with the interfocal distance (IFD) of two foci on the same bivalent. 
-
--We focus on observations from two-crossover bivalents for more comparable observations.
--comparisons of all IFDs of mulit crossover bivalents is also included
-Interference is a major determinant of the positioning of chromosomes
 
 <!-- 
 Brief lit review for IFD / interference expectations  
@@ -4341,13 +4325,7 @@ Chrm1 genetic map,
 (other human and mice refs 
 Tease n Hulten 2004: -- no difference between MLH1 foci in males and females
 
-DeBoer 2006, 13 -- measured chrm 1 in males and females, both were 2.8 microns
-<!--
-ToDo: make a melt.DF with the IFD1, IFD2, IFD3 in a single cols
-
-explain the difference between the raw and PER measures. Why should I use /examine the IFD.PER?
--->
-
+DeBoer 2006, 13 -- measured chrm 1 in males and females, both were 2.8 microns -->
 
 <!--  set up -->
 
@@ -4407,10 +4385,12 @@ long.biv_IFD_look_PER <- ggplot(real.long.bivData.22, aes(y = IFD1_PER, x= mouse
 
 <!-- EXPLAIN WHY WE SHOULD CARE ABOUT RAW AND PER IFD values-->
 
-The raw IFD measures -- are usuful for thinking of crossover interference as a mechnical - force mediated through the SC -- In some models this metric should be thought of as the best metric for charaecterizing crossover interference -- bc it reflect the physcial -- 
+Crossover interference is one of the major determinates -- of the CO landscape. We use X number of 2CO bivalents, to test if there are diffferences between males and females in interference. 
+The mean interfocal distance (IFD) for raw and normalized values was calculated from X female and X male mice.
 
 
-The above plots display the raw and normalized area which seperate two foci on the same chromosome. In the normalized plot, 9 observations fall above the length threshold of 150.  The female measures fall more uniformly across the range of (0 to 1).
+The raw IFD measures -- are usuful for thinking of crossover interference as a mechnical force mediated through the SC. Previous measures found no sex difference in IFD in B6 mice (de Boer et al )
+
 
 In the abosolute plots, you can start to see clustering/ enrichment of IFD values between 40 and 80 pixels for PWD and SKIVE, 
 (and maybe slight clustering for MSM).
@@ -4667,11 +4647,10 @@ high rec strains have more 2COs so they there is potential for more variance // 
 
 **THE male female pattern** female close to 50% -- which fits with uniform rec landscape / weak interference
 
+<remove the chrm size effects -- or check out model with chromosome length>
+
 to rule out chromosome size effects, (espically in KAZ) I re-run the ttests using the short and long biv data sets. Our predictions for these are that longer chromsomes will show more of the 'typical male pattern' while short chromosomes often have a more uniform positing (hence tighter)
 
--- run these comparisons to see if the small NRM IFD are due to shorter chromosomes, which are predicted to have weaker interference.
-
-Looked at the KAZ pattern
 
 Plotting the single bivalent data for the short and the long data set show in KAZ -- there are two observations near the lowerest IFD1.PER, (even lower than female). These come from 2 different males and I looked up the images to confirm that the measures are accurate (by the bivalent).
 
@@ -4682,9 +4661,22 @@ Considering that the short-long bivData is much smaller than the full data set
 
 ### Mixed Model Tests, Fixed Effects
 
-Mixed model analysis for IFD (interference), the first set of models are made with the lme() functions.
+
+Since the most significant t.test were significantly different across sexes for the NORMALIZED effects -- we follow up with the model framework to --check out the potential evolutionary patterns--
+
+
+We applied the same frame work of models, Mixed model analysis for IFD (interference), the first set of models are made with the lme() functions.
+
 
 **M1. Mixed Model** $$mouse \ average \ IFD ~=~ subsp * sex + rand(strain) + \varepsilon $$
+
+**M2. Linear Model** $$mouse \ average \ IFD ~=~ subsp * sex * strain + \varepsilon $$
+
+
+**M3. Linear model**
+
+$$mouse \ average \ IFD ~=~  sex * strain + \varepsilon $$
+
 
 ```{r Q1.IFD.M1, echo=FALSE, message=FALSE}
 #get a list of the old mice to double check
@@ -4738,12 +4730,6 @@ lmer.IFD.PER_MM.M1.reduce.subp <- lmer( mean_IFD.2CO_PER ~ sex  +(1|strain), dat
 
 ```
 
-The table above should display the slightly unusual pattern, where the coefficients for the significant sex fixed effect are positive and negative in the raw and normalized values respectively. That is for the raw IFD values, females are significantly longer but the normalized IFD values, males are significantly longer.
-
-I tested 2 versions of the mixed model for this flavor of trait, raw IFD and normalized IFD measure. The tables below are from anova( for the lmer model ). Random effect of strain is not significant for ABS IFD, and only slightly significant for the IFD.PER
-
-**M2. Linear Model** $$mouse \ average \ IFD ~=~ subsp * sex * strain + \varepsilon $$
-
 ```{r IFD_HetC_M2, echo=FALSE}
 
 glm.Q1_IFD.ABS.M2  <- glm(mean_IFD.2CO_ABS ~ subsp * sex * strain, data=Mouse.Table_BivData_4MM)
@@ -4762,10 +4748,6 @@ summry.glm.Q1_IFD.PER.M2 <- summary(glm.Q1_IFD.PER.M2)
 #write.table(round(summry.glm.Q1_IFD.PER.M2$coefficients, 6), "~./MLH1repo/summry.glm.Q1_IFD.PER.M2.csv", sep=",",row.names = TRUE)
 
 ```
-
-**M3. Linear model**
-
-$$mouse \ average \ IFD ~=~  sex * strain + \varepsilon $$
 
 ```{r IFD_HetC_M3, echo=FALSE}
 
@@ -4787,23 +4769,22 @@ round(summry.glm.Q1_IFD.PER.M3$coefficients[,c(1,4)],5)
 
 For the Mixed models of IFDs, sex is a significant effect for both raw and nrmIFD. for the nrm.IFD, subspecies.
 
+ (IFD.PER)
+sex
+MM p = `r`
+
+subsp
+p = `r` 
+
 the interaction effects were slightly significant for both raw and nrm.IFD.
-
 The most significant value was the sex effect for nrm.IFDs. 
-
 The the random strain effect was not significant for either model.
 
-For the raw measures, in M2, I think the 2 SKIVE effects mean that the female raw IFD is shorter than the male IFD.raw. The other effects are for PWD and SKIVE (larger raw IFD from intercept.)  I think the MSM and MOLF interaction effects were too far down the list to sop up any variance. For the M3, only SKIVE*male effect is close to significant
+<For the raw measures, in M2, I think the 2 SKIVE effects mean that the female raw IFD is shorter than the male IFD.raw. The other effects are for PWD and SKIVE (larger raw IFD from intercept.)  I think the MSM and MOLF interaction effects were too far down the list to sop up any variance. For the M3, only SKIVE*male effect is close to significant>
 
 For the normalized values in both M2 and M3, sex is a significant effect, increasing nrm.IFD in males. SKIVE*male is the only other consistently significant effect, which also increases the nrm.IFD measure.
 
 Overall There's a low amount of significant effects across the 2CO IFD measures. This might be an indication that interference is conserved across these samples and/or that there is too much noise across from chromosome specific effects.
-
-
-Dive deeper into the sex specific pattern for each strain.  Below are code chunks which show the unusual sex specific results for IFD measures. The general pattern is that, female raw IFD > male IFD and  female PER IFD < male PER IFD. The scatter plots show that female raw measures are longer than male and for the PER values, the female mean is brought down by an enrichment of short IFDs.   
-
-For some strains, PWD, MSM and SKIVE there's a 30% threshold in the male PER IFD distributions. (What does that mean?). How do I test / quantify this pattern? Cluster metric?
-
 
 ```{r Comp_Ratios, echo=FALSE}
 
@@ -4871,9 +4852,10 @@ entr_DF$sex.dif <- entr_DF$female.ratio - entr_DF$male.ratio
 
 ```
 
-Above is a table of the proportion of 2Co bivalents which have a norm IFD below 30%, For all strains but KAZ, the females have a greater proportion of these shorted IFD values.
+<!-- junk for Q1.IFD
 
-
+The above plots display the raw and normalized area which seperate two foci on the same chromosome. In the normalized plot, 9 observations fall above the length threshold of 150.  The female measures fall more uniformly across the range of (0 to 1).
+-->
 
 # transition Q1 to Q2
 
