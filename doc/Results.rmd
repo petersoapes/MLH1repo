@@ -2375,11 +2375,15 @@ However the the differences in DMC1 foci were not significant for (later prophas
 
 <explain the biological significance of the ratios!>
 
+after DSB formation, DSBs are repaired as either NCO or CO (CO designation step)
+The vast majority of DSBs are repaired as NCOs, with a minority (in most species) of approximately 10% are repaired as crossovers.
+
+-DSBs are either repaired as crossovers or noncrossovers (NCO), with conversion tract lengths (30 to 100bp long). (this is also known as the CO repair deicison )
+
+thus the ratio of CO:DSB is in part an indicator of the proportion of DSBs which are designated into COs -- (and the others are repaired as NCO).
+
 The ratios, calculated for DMC1 means from both stages of prophase, are not significantly differet between the strain groups (t.test; p = `r DMC1.Lratio_t.test$p.value` and p=`r DMC1.Zratio_t.test$p.value` for leptotene and zygotene based ratios respectively). These results indicate that the targets of evolution which lead to differences in crossover numbers may be established before DSB formation (cite Baier et al 2014).
 
-
-<!-- which maybe be attributed to noise effects 
-The ratios for MLH1:DMC1^Leptotene^ and MLH1:DMC1^zygotene^ are shown in Table X, and can be used as a proxy for the CO:NCO ratio (instead CO:(CO+NCO) ratio). -->
 
 <!--
 The correlation with MLH1 and leptotene cells is `r MLH1.DMC1.L_cor`. The correlation with MLH1 and zygotene cells is `r MLH1.DMC1.Z_cor`. `r c(WSB_DMC1.Z_CO_ratio, G_DMC1.Z_CO_ratio, MSM_DMC1.Z_CO_ratio, PWD_DMC1.Z_CO_ratio )` for  _M. m. domesticus^WSB^_ , _M. m. domesticus^G^_, _M. m. molossinus^MSM^_, and  _M. m. musculus^PWD^_ respecitively. 
@@ -2494,8 +2498,6 @@ variance in L stage for DMC1 per cell would be proportional to the variation in 
 
 
 # Evolution of genome wide recombination rate is reflected at the single chromosome level 
-
-<come up with a better section title>
 
 ```{r chrm_prop_data, echo=FALSE, warning=FALSE}
 #shut off eval for now because of wd / path error
@@ -3165,9 +3167,19 @@ The mouse means for total SC in domesticus strains are significant shorter compa
 
 The above t.tests were done to establish the sex differences for SC-AE (chromatin condensation), we now apply models (for understanding within an evolutionary framework) -- we apply the same models to both mean mouse total sc and mouse mean short bivalent.
 
-**M3. Mixed Model** $$mouse \ average \ SC \ metric ~=~ subsp * sex + rand(strain) + \varepsilon $$
+**M1. Mixed Model** $$mouse \ average \ SC \ metric ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
-```{r Q1.lmer_totalSC, echo=FALSE, warning=FALSE, message=FALSE}
+**M2.Linear Model** $$mouse \ average \ SC \ metric ~=~ subsp * sex * strain + \varepsilon $$
+
+**M3. Linear Model** $$mouse \ average \ SC \ metric ~=~ sex * strain + \varepsilon $$
+
+
+**M2.Linear Model** $$mouse \ average \ SC \ metric ~=~ sex * strain + \varepsilon $$
+
+**M3. Linear Model** $$mouse \ average \ SC \ metric ~=~ sex * strain + \varepsilon $$
+
+
+```{r Q1.M.lmer_totalSC, echo=FALSE, warning=FALSE, message=FALSE}
 
 Q1.lmer_totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain != "AST" & strain != "TOM" & strain != "CZECH" & strain != "MOLF")
 
@@ -3213,8 +3225,7 @@ For the mixed model run on the total sc metric, there are more significant effec
 The three fixed effects and one random effect were significant (LTR; subsp p= `r Q1.lmer.totSC_results$sub.sp`, 
 sex p = `r Q1.lmer.totSC_results$sex.results`, and interaction p = `r Q1.lmer.totSC_results$interaction.pval`, (random LRT; strain p = `r Q1.lmer.totSC_results$rand.pval`).
 
-
-```{r Q1_short_biv_lmer, echo=FALSE, warning=FALSE, message=FALSE}
+```{r Q1.M1_short_biv_lmer, echo=FALSE, warning=FALSE, message=FALSE}
 lmer.Q1_SCLength_short_M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Q1.real.short_mouse_table, REML = TRUE) 
 
 lmer.Q1_SCLength_short_M1_R.sex <- lmer(mean_SC ~ subsp + (1|strain), data=Q1.real.short_mouse_table, REML = TRUE) 
@@ -3238,14 +3249,9 @@ Q1lmer.MM_SC_short_strain)
 
 ```
 
-
 Mixed models for the sex differences in mouse averages for short bivalents Sex is the most significant factor for the mixed model of mean short bivalents (LTR; p =`r Q1lmer.MM_SC_short_results$sex.results`). The interaction (subspecies by sex) effect also significant (p = `r Q1lmer.MM_SC_short_results$interaction.pval`).
 
 These effects were followed up the glms, again applied to both mouse means for short biv SC lengths and total sc area per cell.
-
-**M2.Linear Model** $$mouse \ average \ SC \ metric ~=~ sex * strain + \varepsilon $$
-
-**M3. Linear Model** $$mouse \ average \ SC \ metric ~=~ sex * strain + \varepsilon $$
 
 ```{r Q1.glm_totalSC_M2.M3, echo=FALSE, message=FALSE}
 #total-SC
@@ -3420,44 +3426,29 @@ Q1.SClength_Dom.BivData_plot <- ggplot( Dom_BivData, aes(y = chromosomeLength, x
 
 ## Adjusting for XX
 
-(rethink where this section should go)
-new outline
 
 1. illustrate problem(affects mostly SC length)  
-
 2. Expected impact on sex comparisons, estimated effect size of the X  
 3. (prove general pattern that ALL bivalents are longer), chrms sorted by bin comparisons
-
-4. 19 female, 19male, 20female 20 male
-
-The female mouse averages should have adjustments for the XX. working on code to estimate the SC length from 3rd largest bivalent from female whole cell data across strains. Subtract this amount from the female mouse averages ... This isn't the best solution -- since I can't determine what proportion of cells for female mouse averages include the XX, (most cells are missing at least 3 bivalents)
+4. permutations of 19 female, 19male, 20female 20 male
 
 
+<
 - Of all female single bivalents observations, 5% are XX (1 of 20). 
-
 - The XX is large, likely within the top 25% longest bivalents of the cell (3rd largest by Mb).
-
 - The average % of XX for whole cell SC (sum(all bivalents)) can be calculated from the whole.cell data set. Lets guess 12% of a cell's total SC area is XX.
-
-I think a formula something like this can be applied to adjust for XX
-
-- rate of bivalent segmentation /* rate of XX, 5% /* mean SC length for 3rd longest bivalent / total SC area (by bivalent) = proportion of SC area due to XX /* 
-
-
-
+- rate of bivalent segmentation /* rate of XX, 5% /* mean SC length for 3rd longest bivalent / total SC area (by bivalent) = proportion of SC area due to XX>
 
 # short transition
 
 <transition>  -- following up on SC area - with how COs are place --- placement and number of COs on single bivalents
+
 1. Transition, --- the SC-AE area can be thought of as the 'area / available real-estate for COs
 -- these results suggest that this area is 'utilized' in different ways across sexes and strains - so we next investigate the recombination landscape - (ie the relationship between the placement and number of COs along chromosomes).
 
 2. We focus on two metrics/ aspects i) the placement of single foci along a bivalent (just 1CO) and ii) the placement of two foci on the same bivalent / the interfocal distance of 2CO bivalents (reflects crossover interference)
 
-
-
 # Q1. 1CO Position Sex Differences
-
 
 ```{r Q1.F1pos_long.short_setup, echo=FALSE}
 
