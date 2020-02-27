@@ -2183,8 +2183,6 @@ DMC1.bxlt_Z_to_L <- ggplot(DMC1.DF[DMC1.DF$stage != "P",], aes(x=stage, y=total.
   )+ggtitle("Comparison of DMC1 means across high and low recombing groups")+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
-
-
 #Musc.mouse.av <-  Mouse.Table_BivData_4MM %>%  filter(subsp == "Musc") 
 
 ttest.ZtoL <- t.test(DMC1.DF$total.count[(DMC1.DF$stage == "L")],
@@ -2921,8 +2919,8 @@ Using this data set, we address two main questions 1) Which traits are sexually 
 
 
 # Q1 Sex Differences in SC-AE Lengths
-<!-- breif background on longer female SC  (mouse, human) Gruhn-->
 
+<!-- breif background on longer female SC  (mouse, human) Gruhn-->
 
 (in many mammal species -- SC lengths are longer in females - yet most all of these observations come from female biased heterochiasmy species) -- Our data set provides an opportunity to test (how SC length and chromatin compaction relates to heterochiasmy)
 
@@ -3524,7 +3522,7 @@ Q1.SClength_Dom.BivData_plot <- ggplot( Dom_BivData, aes(y = chromosomeLength, x
 
 ```
 
-## Adjusting for XX
+Adjusting for XX
 
 Summarize for now, refine this section later.
 
@@ -3539,7 +3537,7 @@ Summarize for now, refine this section later.
 - The average % of XX for whole cell SC (sum(all bivalents)) can be calculated from the whole.cell data set. Lets guess 12% of a cell's total SC area is XX.
 - rate of bivalent segmentation /* rate of XX, 5% /* mean SC length for 3rd longest bivalent / total SC area (by bivalent) = proportion of SC area due to XX>
 
-# short transition
+
 
 <transition>  
 -following up on SC area - with how COs are place - placement and number of COs on single bivalents
@@ -4385,20 +4383,16 @@ long.biv_IFD_look_PER <- ggplot(real.long.bivData.22, aes(y = IFD1_PER, x= mouse
 
 <!-- EXPLAIN WHY WE SHOULD CARE ABOUT RAW AND PER IFD values-->
 
-Crossover interference is one of the major determinates -- of the CO landscape. We use X number of 2CO bivalents, to test if there are diffferences between males and females in interference. 
-The mean interfocal distance (IFD) for raw and normalized values was calculated from X female and X male mice.
+Crossover interference is one of the major determinates -- of the CO landscape. We isolated `r length(  (Curated_BivData.22 %>% filter(sex == "female") )$Obj.ID )` and 
+`r length(  (Curated_BivData.22 %>% filter(sex == "male") )$Obj.ID )` 2CO bivalents in females and males to test discribe sex differences in crossover interference. Mean interfocal distances (IFD) were calculated from `r length( unique( (Curated_BivData.22 %>% filter(sex == "female") )$mouse) )`  female and `r length( unique( (Curated_BivData.22 %>% filter(sex == "male") )$mouse) )` male mice.
 
+We examined both raw IFD^raw^ and normalized normalized by SC length (IFD^norm^)
 
-The raw IFD measures -- are usuful for thinking of crossover interference as a mechnical force mediated through the SC. Previous measures found no sex difference in IFD in B6 mice (de Boer et al )
+The mean IFD^raw^ measures of crossover interference as a mechnical force mediated through the SC. --- we compared the IFD^raw^ to test the hypothesis of interference acting as a mechanical force transmitted through the SC. Previous measures found no sex difference in measures of IFD^raw^ in mice (de Boer et al ).
 
-
-In the abosolute plots, you can start to see clustering/ enrichment of IFD values between 40 and 80 pixels for PWD and SKIVE, 
-(and maybe slight clustering for MSM).
+While the comparisons of the IFD^PER^ metrics can reveal more general recpmbination landscape patterns while controling for the underlying differences in chromatin compaction / SC length.   (Also in a way this metric is closer to measures of interference from genetic (linkage) maps since they are not quantified / measured in phyiscal space either).
 
 <!--t.tests -->
-
-t.tests are performed on the normalized metrics for establish if there are sex differences in the IFD meterics (raw and normalized).
-
 
 ```{r Q1.IFD_Ttests, echo=FALSE}
 #below are calq just from 2COs, have no fear
@@ -4479,86 +4473,17 @@ Q1.IFD.raw_sansG_t.test <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% 
 
 ```
 
+The raw IFD measures for 2CO bivalents are slightly significant sexes (t.test; p = `r Q1.IFD.raw_FULL_t.test$p.value`)
+-- However _domesticus^G^_ might be an outlier (by having a larger than average degree of sexual dirmohpsim ). When the _domesticus^G^_ observations are removed, the difference is not longer significant (t.test; p = `r Q1.IFD.raw_sansG_t.test$p.value`).
+ This indicates there is no general pattern of sex differences in crossover interference measured in phyiscal (SC) units. (confirming deBoer and other models of crossover interference acting through phyical/mechanical force).
+ 
+On the other hand, the difference in mean IFD^PER^ are highly significant between sexes. The mean IFD^PER^ are significanly long in size of seven strains (MSM t.test; p-value = `r Q1.IFD.PER_t.test_MSM$p.value`), _musculus^SKIVE^_ p-value = `r Q1.IFD.PER_t.test_SKIVE$p.value`), _musculus^PWD^_ p-value = `r Q1.IFD.PER_t.test_PWD$p.value`), _molossinus^MSM^_ p-value =`r Q1.IFD.PER_t.test_MSM$p.value`), _domesticus^LEW^_ p-value = `r Q1.IFD.PER_t.test_LEW$p.value`), _domesticus^G^_ p-value = `r Q1.IFD.PER_t.test_G$p.value`), and _domesticus^WSB^_ (t.test; p-value =`r Q1.IFD.PER_t.test_WSB$p.value`) ). Only _musculus^KAZ^_ did not have a difference in mean IFD^PER^ (t.test; p-value = `r Q1.IFD.PER_t.test_KAZ$p.value`). These results indicate a general pattern of two foci are seperated by more area (hence stronger interference) in males. <which is supported by the pattern in genetics maps>
 
-The raw IFD measures for 2CO bivalents are slightly significant sexes (t.test; p = `r Q1.IFD.raw_FULL_t.test$p.value`). BUT WHEN G IS REMOVE, the pvalue is no longer significant (t.test; p = `r Q1.IFD.raw_sansG_t.test$p.value`). <look closer at G>
+<Full dataset (t.test; p = `r Q1.IFD.PER_FULL_t.test$p.value`).>
 
-The normalized IFD measures are highly significant (t.test; p = `r Q1.IFD.PER_FULL_t.test$p.value`) between sexes, indicating there a
+<!--  finer distribution patterns -->
 
-When the t.tests were performed within each strain, all but KAZ show (p-value = 0.3), significant sex differences in the normalized IFD measures
-MSM   `r Q1.IFD.PER_t.test_MSM$p.value`
-SKIVE  `r Q1.IFD.PER_t.test_SKIVE$p.value`
-PWD  `r Q1.IFD.PER_t.test_PWD$p.value`
-MSM  `r Q1.IFD.PER_t.test_MSM$p.value`
-LEW  `r Q1.IFD.PER_t.test_LEW$p.value`
-G  `r Q1.IFD.PER_t.test_G$p.value`
-WSB  `r Q1.IFD.PER_t.test_WSB$p.value`
-
-This indicates a general pattern of two foci are seperated by more area (hance have stronger interference) in males, this pattern is also for genetic maps.
-
-
-<!-- short and long -->
-
-```{r Q1.IFD.long.short.setup, echo=FALSE}
-
-#real.long.bivData
-#real.short.bivData
-
-Q1.IFD.long <- ddply(real.long.bivData, c("mouse"), summarise,
-                             
-                        n_obs = length(Obj.ID),
-                         mean.SC = mean(chromosomeLength),
-            
-                      meanIFD2CO_raw = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
-                     meanIFD2CO_norm = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE)
-                         
-                     )
-
-Q1.IFD.long <- add_sex(Q1.IFD.long)
-Q1.IFD.long <- add_strain(Q1.IFD.long)
-Q1.IFD.long <- add_subsp(Q1.IFD.long)
-
-Q1.IFD.long$strain <- factor(Q1.IFD.long$strain, ordered = FALSE)
-Q1.IFD.long$subsp <- factor(Q1.IFD.long$subsp, ordered = FALSE)
-
-
-
-Q1.IFD.short <- ddply(real.short.bivData, c("mouse"), summarise,
-                             
-                        n_obs = length(Obj.ID),
-                         mean.SC = mean(chromosomeLength),
-            
-                      meanIFD2CO_raw = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
-                     meanIFD2CO_norm = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE)
-                         
-                     )
-
-Q1.IFD.short <- add_sex(Q1.IFD.short)
-Q1.IFD.short <- add_strain(Q1.IFD.short)
-Q1.IFD.short <- add_subsp(Q1.IFD.short)
-
-Q1.IFD.short$strain <- factor(Q1.IFD.short$strain, ordered = FALSE)
-Q1.IFD.short$subsp <- factor(Q1.IFD.short$subsp, ordered = FALSE)
-
-#t.test. mouse av
-Q1.IFD.raw_short.ttest_KAZ <-  t.test( (Q1.IFD.short %>% filter(sex == "male") %>% filter(strain =="KAZ" ))$meanIFD2CO_norm,
-                                ( Q1.IFD.short %>% filter(sex == "female") %>% filter(strain =="KAZ"))$meanIFD2CO_norm)
-
-  
-Q1.IFD.raw_long.ttest_KAZ <- t.test( (Q1.IFD.long %>% filter(sex == "male") %>% filter(strain =="KAZ" ))$meanIFD2CO_norm,
-                                ( Q1.IFD.long %>% filter(sex == "female") %>% filter(strain =="KAZ"))$meanIFD2CO_norm)
-#both the short and long norm IFD are NS
-  
-
-#t.test Biv
-Q1.IFD.raw_BIV.long.ttest_KAZ <-  t.test( (real.long.bivData %>% filter(sex == "male") %>% filter(strain =="KAZ" )  %>% filter(hand.foci.count == "2") )$IFD1_PER,
-                ( real.long.bivData %>% filter(sex == "female") %>% filter(strain =="KAZ") %>%  filter(hand.foci.count == "2"))$IFD1_PER)
-
-Q1.IFD.raw_BIV.short.ttest_KAZ <-  t.test( (real.short.bivData %>% filter(sex == "male") %>% filter(strain =="KAZ" )  %>% filter(hand.foci.count == "2") )$IFD1_PER,
-                ( real.short.bivData %>% filter(sex == "female") %>% filter(strain =="KAZ") %>%  filter(hand.foci.count == "2"))$IFD1_PER)
-```
-
-
-```{r Q1.show.IFD.things, echo=FALSE, eval=FALSE}
+```{r Q1.show.IFD.scatter, echo=FALSE, eval=FALSE}
 nrm.IFD_KAZ_long <- ggplot( (Q1.IFD.long %>% filter(strain =="KAZ" ) ) , aes(y = meanIFD2CO_norm, x= sex,color=mouse))+geom_point()+ggtitle("Interfocal Distances, ABS KAZ")
 
 nrm.IFD_KAZ_BIV.long <- ggplot( (real.long.bivData %>% filter(strain =="KAZ" ) %>%  filter(hand.foci.count == "2")  ) , aes(y = IFD1_PER, x= sex, color=mouse))+geom_point()+ggtitle("Interfocal Distances, ABS KAZ")
@@ -4621,88 +4546,77 @@ nrm.IFD_SKIVE_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="SKIVE" )
 nrm.IFD_G_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="G" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, male G")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
 
 
-nrm.IFD_sex.comp_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="KAZ" ) %>%  filter(hand.foci.count == "2") ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, ")+facet_wrap(~sex, scales = "free")+ylim(c(0,1))+theme(legend.position="none") 
+nrm.IFD_sex.comp_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="LEW" ) %>%  filter(hand.foci.count == "2") ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, ")+facet_wrap(~sex, scales = "free")+ylim(c(0,1))+theme(legend.position="none") 
+
 ```
 
-strains where males have higher upper threshold, 
+We examined the 2CO observations  // the distributions of 2CO IFD^PER^ to better discribe how the means / distributions of this metric are different between the sexes.
 
-G - kinda, little weak
+We note that in females there are/ may be signals of upper and lower thresdholds for IFD^PER^.
 
-WSB - higher upper threshold (female's have many below the 25% lower threshold, males have a few below 25% threshold)
-
-LEW -- upper threshold looks very similar, much fewer low threshold obs in males, 
-
-PWD -- female lower threshold extends muchlower .25 (like .15?), male lower threshold very different (higher like .3) the male upper threshold is above .75
-
-MSM -- female thresdholds, upper set around .75(to .65) lower at mostly .25, some cells(mice) have more .1 to .2 IFD observatsions.  Male upper threshold it at .75 while lower is set to .3 or .4.
-
-SKIVE -- female upper threshold is capped at .75, lower threshold is between .25 to .3 but low rate of outliers below .25.   Male lower threshold is moved up, .4 or .35 and upper threshold moved up aprx .8
-
-KAZ  -- female upper threshold around .75, lower threshold around .25 the distribution is quite uniform and spread out.  Male pattern; upper threshold slightly higher than .75 (.8) and lower threshold seems to extend beyond .25 -- but maybe low sampling contributes to the spread? (the spread in IFD values seems much larger for KAZ males compared to males from other strains.)
-
-this section -- all strains but KAZ, males have a higher mean normalized IFDs
-
-the female norm IFD are centered at ~50% -- but they also seem to have a higher rate of short (<25%) normalized IFDs
-
-The KAZ strain is the only strain without significant p value for the normalized IFDs, due to KAZ males having a higher rate (enrichment of short normalized IFDs.
-
-There seems to be a 25% norm.IFD cutoff (in females) -- but some mice seem to have less of this cut
-off.
-Is there a default expectation for why .25 would be the cut off...(given female uniform CO positioning?
-
-<The plots above are focusing on the male pattern -- first meant to look at the pattern in KAZ -- WHICH DOESN"T have significant sex difference in NRM IFD -- INSTEAD it has a low rate of 2CO bivalents with very short IFD(nrm)  --- what if these were mistakes? they were supposed to be 1CO -- but somehow a second CO formed anyways .. and very close by
-
-Where as in PWD, SKIVE and MSM there ARE NO 2CO bivalents which have such short IFD
-WHAT espicially werid about this -- 
-
-whats the expectations following the confonding proportions? 
-high rec strains have more 2COs so they there is potential for more variance // chromsome specific effects   where as for the low rec strains -- which have fewer 2COs, there might (big might) be less chromosome specific effects.>
 
 
 **THE male female pattern** female close to 50% -- which fits with uniform rec landscape / weak interference
 
-<remove the chrm size effects -- or check out model with chromosome length>
+the female norm IFD are centered at ~50% -- but they also seem to have a higher rate of short (<25%) normalized IFDs.  There seems to be a 25% norm.IFD cutoff (in females) -- but some mice seem to have less of this cut
+off. Is there a default expectation for why .25 would be the cut off...(given female uniform CO positioning?
 
-to rule out chromosome size effects, (espically in KAZ) I re-run the ttests using the short and long biv data sets. Our predictions for these are that longer chromsomes will show more of the 'typical male pattern' while short chromosomes often have a more uniform positing (hence tighter)
+The general pattern of this sex difference is that the IFD^PER^ distribution is pushed higher   (females have mean of .5  IFD^PER^ where as males have a IFD^PER^ mean of ~.6?)
+
+The differences between the sexes is slightly different depending on if the males are in the high rec group.
+
+<INTRODUCED idea of constrain / thresholds>
+
+in the low rec strains (Dom + KAZ)...
+(both males and females IFD distributions have lower and upper thresholds around 25% and 75%) respectively -- however the weight of observations are slightly shifted across the sexes. There's an enrichment of lower IFD^PER^ in females relative to males, while the opposite is true for the higher threshold -- where males have an enrichment of higher/long IFD^PER^ compared to females.
+
+In the three high rec strains -- the distributions have a more striking difference of the lower threshold being much higher in males, aproximately 30% to 40% compared to 25% in females. Also while the female upper threshold is capped at 75%, in males (some strains have higher upper thresholds -- and it's more likely to observe IFD^PER^ above the threshold.
 
 
-Plotting the single bivalent data for the short and the long data set show in KAZ -- there are two observations near the lowerest IFD1.PER, (even lower than female). These come from 2 different males and I looked up the images to confirm that the measures are accurate (by the bivalent).
+<!--
+G - the upper and lower thresholds of females look pretty similar, the lower is closer to .2 than .25 -- female has more lower IFDs
 
-Considering that the short-long bivData is much smaller than the full data set
+WSB - higher upper threshold (female's have many below the 25% lower threshold, males have a few below 25% threshold)
+
+LEW -- upper threshold looks very similar (.75) in males and females, much fewer low threshold obs in males, 
+
+KAZ  -- female upper threshold around .75, lower threshold around .25 the distribution is quite uniform and spread out.  
+Male pattern; upper threshold slightly higher than .75 (.8) and lower threshold seems to extend beyond .25 -- but maybe low sampling contributes to the spread? (the spread in IFD values seems much larger for KAZ males compared to males from other strains.)
+
+PWD -- female lower threshold extends much lower .25 (like .15?),  upper threshold capped at .75
+Male lower threshold very different (higher like .3) the male upper threshold is above .75
+
+MSM -- female thresdholds, upper set around .75(to .65) lower at mostly .25, some cells(mice) have more .1 to .2 IFD observatsions.  
+Male upper threshold it at .75 while lower is set to .3 or .4.
+
+SKIVE -- female upper threshold is capped at .75, lower threshold is between .25 to .3 but low rate of outliers below .25.   Male lower threshold is moved up, .4 or .35 and upper threshold moved up aprx .8
+-->
+
 
 <!-- lmer/ glms-->
 
-
-### Mixed Model Tests, Fixed Effects
-
-
-Since the most significant t.test were significantly different across sexes for the NORMALIZED effects -- we follow up with the model framework to --check out the potential evolutionary patterns--
-
-
-We applied the same frame work of models, Mixed model analysis for IFD (interference), the first set of models are made with the lme() functions.
-
+Since the most significant t.test were significantly different across sexes for IFD^PER^ and we follow up with the model framework to.
 
 **M1. Mixed Model** $$mouse \ average \ IFD ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
 **M2. Linear Model** $$mouse \ average \ IFD ~=~ subsp * sex * strain + \varepsilon $$
 
-
 **M3. Linear model**
 
 $$mouse \ average \ IFD ~=~  sex * strain + \varepsilon $$
 
-
-```{r Q1.IFD.M1, echo=FALSE, message=FALSE}
+```{r Q1.IFD.lmer.M1, echo=FALSE, message=FALSE, warning=FALSE}
 #get a list of the old mice to double check
 #old.mice <- DF.HetC.MixedModel.HQ$mouse[DF.HetC.MixedModel.HQ$age.weeks < 25,]
 #MIXED MODEL
-
 #https://rdrr.io/cran/lme4/man/pvalues.html notes of fixed effect p values
 
+
+#mouse.avs_4MM -- is also the bivbased mouse average table 
 #Mouse.Table_BivData_4MM #this one is the HetC table (all the Curated BivData)
 #Long.biv_mouse_table_HetC  (long biv data set for HetC models)
 
-#M1_IFD_2CO
+#M1_IFD_2CO_ABS
 lmer.IFD.ABS_MM.M1 <- lmer(mean_IFD.2CO_ABS ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE) 
 lmer.IFD.ABS_MM.M1.reduce.sex <- lmer( mean_IFD.2CO_ABS ~ subsp  +(1|strain), data=Mouse.Table_BivData_4MM )
 lmer.IFD.ABS_MM.M1.reduce.subp <- lmer( mean_IFD.2CO_ABS ~ sex  +(1|strain), data=Mouse.Table_BivData_4MM )
@@ -4721,84 +4635,70 @@ lmer.IFD.PER_MM.M1 <- lmer(mean_IFD.2CO_PER ~ subsp * sex + (1|strain), data=Mou
 lmer.IFD.PER_MM.M1.reduce.sex <- lmer( mean_IFD.2CO_PER ~ subsp  +(1|strain), data=Mouse.Table_BivData_4MM )
 lmer.IFD.PER_MM.M1.reduce.subp <- lmer( mean_IFD.2CO_PER ~ sex  +(1|strain), data=Mouse.Table_BivData_4MM )
 
-sex.pval <- anova(lmer.IFD.ABS_MM.M1, lmer.IFD.ABS_MM.M1.reduce.sex)$`Pr(>Chisq)`[2]
-subsp.pval <- anova(lmer.IFD.ABS_MM.M1, lmer.IFD.ABS_MM.M1.reduce.subp)$`Pr(>Chisq)`[2]
-subsp.sex.pval <- drop1(lmer.IFD.ABS_MM.M1, test="Chisq" )$`Pr(Chi)`[2]
-strain.pval <- exactRLRT(lmer.IFD.ABS_MM.M1)$p.value
+sex.pval <- anova(lmer.IFD.PER_MM.M1, lmer.IFD.PER_MM.M1.reduce.sex)$`Pr(>Chisq)`[2]
+subsp.pval <- anova(lmer.IFD.PER_MM.M1, lmer.IFD.PER_MM.M1.reduce.subp)$`Pr(>Chisq)`[2]
+subsp.sex.pval <- drop1(lmer.IFD.PER_MM.M1, test="Chisq" )$`Pr(Chi)`[2]
+strain.pval <- exactRLRT(lmer.IFD.PER_MM.M1)$p.value
 
 Q1.IFD.PER_M1_lmer.results <- data.frame(sub.sp = subsp.pval, sex.results =  sex.pval, 
                interaction.pval = subsp.sex.pval,  rand.pval = strain.pval)
-#don't understand why 2 rows?
-
-#M1_IFD_2CO
-lmer.IFD.PER_MM.M1 <- lmer(mean_IFD.2CO_PER ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE) 
-lmer.IFD.PER_MM.M1.reduce.sex <- lmer( mean_IFD.2CO_PER ~ subsp  +(1|strain), data=Mouse.Table_BivData_4MM )
-lmer.IFD.PER_MM.M1.reduce.subp <- lmer( mean_IFD.2CO_PER ~ sex  +(1|strain), data=Mouse.Table_BivData_4MM )
-
-#anova(lmer.IFD.PER_MM.M1, lmer.IFD.PER_MM.M1.reduce.sex)
-#anova(lmer.IFD.PER_MM.M1, lmer.IFD.PER_MM.M1.reduce.subp)
-
-#these 2 below are LR tests
-#drop1(lmer.IFD.PER_MM.M1, test="Chisq" )
-#exactRLRT(lmer.IFD.PER_MM.M1)
 
 ```
 
-```{r IFD_HetC_M2, echo=FALSE}
+```{r Q1.IFD_glm.M2, echo=FALSE, warning=FALSE}
+
+#mouse.avs_4MM -- is also the bivbased mouse average table 
+#Mouse.Table_BivData_4MM #this one is the HetC table (all the Curated BivData)
 
 glm.Q1_IFD.ABS.M2  <- glm(mean_IFD.2CO_ABS ~ subsp * sex * strain, data=Mouse.Table_BivData_4MM)
-
 summry.glm.Q1_IFD.ABS.M2 <- summary(glm.Q1_IFD.ABS.M2)
-#round(summry.glm.Q1_IFD.ABS.M2$coefficients[,c(1,4)],5)
+
+glm.Q1_IFD.ABS.M2_kindaFU  <- glm(mean_IFD.2CO_ABS ~ subsp * sex * strain, data=mouse.avs_4MM)
+summry.glm.Q1_IFD.ABS.M2_kindaFU <- summary(glm.Q1_IFD.ABS.M2_kindaFU)
 
 #write.table(round(summry.glm.Q1_IFD.ABS.M2$coefficients,5), "~./MLH1repo/summry.glm.Q1_IFD.ABS.M2.csv", sep=",",row.names = TRUE)
 
 #PER
 glm.Q1_IFD.PER.M2 <- glm(mean_IFD.2CO_PER ~ subsp * sex * strain, data=Mouse.Table_BivData_4MM)
-
 summry.glm.Q1_IFD.PER.M2 <- summary(glm.Q1_IFD.PER.M2)
-#round(summry.glm.Q1_IFD.PER.M2$coefficients[,c(1,4)],5)
-
-#write.table(round(summry.glm.Q1_IFD.PER.M2$coefficients, 6), "~./MLH1repo/summry.glm.Q1_IFD.PER.M2.csv", sep=",",row.names = TRUE)
-
 ```
 
-```{r IFD_HetC_M3, echo=FALSE}
+```{r Q1.IFD_glmM3, echo=FALSE, warning=FALSE, message=FALSE}
 
 glm.Q1_IFD.ABS.M3  <- glm(mean_IFD.2CO_ABS ~  sex * strain, data=Mouse.Table_BivData_4MM)
-
 summry.glm.Q1_IFD.ABS.M3 <- summary(glm.Q1_IFD.ABS.M3)
-#round(summry.glm.Q1_IFD.ABS.M3$coefficients[,c(1,4)],5)
-
-#write.table(round(summry.glm.Q1_IFD.ABS.M3$coefficients,6), #"~./MLH1repo/summry.glm.Q1_IFD.ABS.M3.csv", sep="\t",row.names = TRUE)
 
 #PER
 glm.Q1_IFD.PER.M3  <- glm(mean_IFD.2CO_PER ~ sex * strain, data=Mouse.Table_BivData_4MM)
 summry.glm.Q1_IFD.PER.M3 <- summary(glm.Q1_IFD.PER.M3)
-round(summry.glm.Q1_IFD.PER.M3$coefficients[,c(1,4)],5)
+#round(summry.glm.Q1_IFD.PER.M3$coefficients[,c(1,4)],5)
 
 #write.table(round(summry.glm.Q1_IFD.PER.M3$coefficients,6), #"~./MLH1repo/summry.glm.Q1_IFD.PER.M3.csv", sep=",",row.names = TRUE)
-
 ```
 
-For the Mixed models of IFDs, sex is a significant effect for both raw and nrmIFD. for the nrm.IFD, subspecies.
+For the Mixed models of IFDs, sex is a significant effect for both raw and nrmIFD. 
 
- (IFD.PER)
-sex
-MM p = `r`
+(IFD.PER), sex is most significant effect (LRT: p = `r Q1.IFD.PER_M1_lmer.results$sex.results`) subspecies, interaction are slightly significant.
+<ONLY REPORT FOR PER MEASURES>
 
-subsp
-p = `r` 
+glm M2, 
+sex (glm; p= `r summry.glm.Q1_IFD.PER.M2$coefficients[,4][4]`) p = .0080 (this is different in the knited version!! arg)
 
-the interaction effects were slightly significant for both raw and nrm.IFD.
-The most significant value was the sex effect for nrm.IFDs. 
-The the random strain effect was not significant for either model.
+male*PWD p = 0.02 (glm; p =`r summry.glm.Q1_IFD.PER.M2$coefficients[,4][14]`)
+
+male * SKIVE p = 0.0058  (glm; p=`r summry.glm.Q1_IFD.PER.M2$coefficients[,4][15]`)
+
+
+for **glm M3**
+
+sex / male p = `r summry.glm.Q1_IFD.PER.M3$coefficients[,4][2]` and male*SKIVE just slightly significant (p =  `r summry.glm.Q1_IFD.PER.M3$coefficients[,4][14]`
 
 <For the raw measures, in M2, I think the 2 SKIVE effects mean that the female raw IFD is shorter than the male IFD.raw. The other effects are for PWD and SKIVE (larger raw IFD from intercept.)  I think the MSM and MOLF interaction effects were too far down the list to sop up any variance. For the M3, only SKIVE*male effect is close to significant>
 
 For the normalized values in both M2 and M3, sex is a significant effect, increasing nrm.IFD in males. SKIVE*male is the only other consistently significant effect, which also increases the nrm.IFD measure.
 
 Overall There's a low amount of significant effects across the 2CO IFD measures. This might be an indication that interference is conserved across these samples and/or that there is too much noise across from chromosome specific effects.
+
 
 ```{r Comp_Ratios, echo=FALSE}
 
@@ -4868,12 +4768,77 @@ entr_DF$sex.dif <- entr_DF$female.ratio - entr_DF$male.ratio
 
 <!-- junk for Q1.IFD
 
+<remove the chrm size effects -- or check out model with chromosome length
+to rule out chromosome size effects, (espically in KAZ) I re-run the ttests using the short and long biv data sets. Our predictions for these are that longer chromsomes will show more of the 'typical male pattern' while short chromosomes often have a more uniform positing (hence tighter)>
+
+Plotting the single bivalent data for the short and the long data set show in KAZ -- there are two observations near the lowerest IFD1.PER, (even lower than female). These come from 2 different males and I looked up the images to confirm that the measures are accurate (by the bivalent).
+
 The above plots display the raw and normalized area which seperate two foci on the same chromosome. In the normalized plot, 9 observations fall above the length threshold of 150.  The female measures fall more uniformly across the range of (0 to 1).
 -->
 
-# transition Q1 to Q2
+```{r Q1.IFD.long.short.setup, echo=FALSE, eval=FALSE}
 
-we tested the sex differences -- now we focus on the largest aspect of variation, the high rec males vs the low rec males.
+#real.long.bivData
+#real.short.bivData
+
+Q1.IFD.long <- ddply(real.long.bivData, c("mouse"), summarise,
+                             
+                        n_obs = length(Obj.ID),
+                         mean.SC = mean(chromosomeLength),
+            
+                      meanIFD2CO_raw = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                     meanIFD2CO_norm = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE)
+                         
+                     )
+
+Q1.IFD.long <- add_sex(Q1.IFD.long)
+Q1.IFD.long <- add_strain(Q1.IFD.long)
+Q1.IFD.long <- add_subsp(Q1.IFD.long)
+
+Q1.IFD.long$strain <- factor(Q1.IFD.long$strain, ordered = FALSE)
+Q1.IFD.long$subsp <- factor(Q1.IFD.long$subsp, ordered = FALSE)
+
+
+
+Q1.IFD.short <- ddply(real.short.bivData, c("mouse"), summarise,
+                             
+                        n_obs = length(Obj.ID),
+                         mean.SC = mean(chromosomeLength),
+            
+                      meanIFD2CO_raw = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                     meanIFD2CO_norm = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE)
+                         
+                     )
+
+Q1.IFD.short <- add_sex(Q1.IFD.short)
+Q1.IFD.short <- add_strain(Q1.IFD.short)
+Q1.IFD.short <- add_subsp(Q1.IFD.short)
+
+Q1.IFD.short$strain <- factor(Q1.IFD.short$strain, ordered = FALSE)
+Q1.IFD.short$subsp <- factor(Q1.IFD.short$subsp, ordered = FALSE)
+
+#t.test. mouse av
+Q1.IFD.raw_short.ttest_KAZ <-  t.test( (Q1.IFD.short %>% filter(sex == "male") %>% filter(strain =="KAZ" ))$meanIFD2CO_norm,
+                                ( Q1.IFD.short %>% filter(sex == "female") %>% filter(strain =="KAZ"))$meanIFD2CO_norm)
+
+  
+Q1.IFD.raw_long.ttest_KAZ <- t.test( (Q1.IFD.long %>% filter(sex == "male") %>% filter(strain =="KAZ" ))$meanIFD2CO_norm,
+                                ( Q1.IFD.long %>% filter(sex == "female") %>% filter(strain =="KAZ"))$meanIFD2CO_norm)
+#both the short and long norm IFD are NS
+  
+
+#t.test Biv
+Q1.IFD.raw_BIV.long.ttest_KAZ <-  t.test( (real.long.bivData %>% filter(sex == "male") %>% filter(strain =="KAZ" )  %>% filter(hand.foci.count == "2") )$IFD1_PER,
+                ( real.long.bivData %>% filter(sex == "female") %>% filter(strain =="KAZ") %>%  filter(hand.foci.count == "2"))$IFD1_PER)
+
+Q1.IFD.raw_BIV.short.ttest_KAZ <-  t.test( (real.short.bivData %>% filter(sex == "male") %>% filter(strain =="KAZ" )  %>% filter(hand.foci.count == "2") )$IFD1_PER,
+                ( real.short.bivData %>% filter(sex == "female") %>% filter(strain =="KAZ") %>%  filter(hand.foci.count == "2"))$IFD1_PER)
+```
+
+
+<!-- transition Q1 to Q2 -->
+
+We tested the sex differences -- now we focus on the largest aspect of variation, the high rec males vs the low rec males.
 
 
 # Q2 SC Length
@@ -6286,6 +6251,19 @@ Rec.group_IFD.PER_Ttest$p.value
 #p-value = 6.872e-07
 
 ```
+
+<write some kind of intro here>motivation / 
+
+A common/logical prediction for the relationship of crossover number and interference strength is -- a negeative correlation. ()
+
+
+how crossover interference affects the evolution of genome wide recombination rate -- is 
+
+prediction for the interference pattern in the high rec strains is that the high rec strains will have weaker interference (ie. less space between foci on the same bivalent, which allows more foci to be placed. GIVEN THAT THERE ARE strain effects for the SC length – we only examine the IFD^PER^ which controls for variation in SC lengths.
+
+The mouse averages for IFDs were significantly longer in the high rec groups (t.test; p = `r t.test_mouse.av.IFD_PER$p.value` for IFD^PER^ and p = `r t.test_mouse.av.IFD_ABS$p.value` for IFD^raw^). The pattern is confirmed with t.test comparing groups within the same subepcies .. add these ttests and p values.
+
+<glms> The following model framework was applied to further investigate these patterns using mouse averages of IFD^raw^ and IFD^PER^.
 
 The mouse averages for IFDs were significantly longer in the high rec groups (t.test; p = `r t.test_mouse.av.IFD_PER$p.value` for IFD^PER^ and p = `r t.test_mouse.av.IFD_ABS$p.value` for IFD^raw^). The pattern is confirmed with t.test comparing groups within the same subepcies.
 
