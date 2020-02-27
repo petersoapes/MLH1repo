@@ -2,15 +2,15 @@
 title: "MLH1 Results Outline"
 date: 
 output:
-  word_document:
-    toc: yes
-    toc_depth: '5'
-  pdf_document: default
   html_document:
     df_print: paged
     toc: yes
     toc_depth: '5'
     toc_float: yes
+  pdf_document: default
+  word_document:
+    toc: yes
+    toc_depth: '5'
 bibliography: refs_Main_Report.bib
 ---
 
@@ -4354,10 +4354,10 @@ boxplots_first.IFD.plot_PER <- ggplot(Curated_BivData.22, aes(y = IFD1_PER, x= m
 
 
 first.IFD.plot_ABS <- ggplot(Curated_BivData.22, aes(y = IFD1_ABS, x= strain, color=mouse))+geom_jitter()+ggtitle("Interfocal Distances, ABS")+facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none") #+scale_color_manual(values=colors_of_strains)
-first.IFD.plot_ABS
+
 
 first.IFD.plot_PER <- ggplot(Curated_BivData.22 %>% filter(chromosomeLength < 150), aes(y = IFD1_PER, x= strain, color=chromosomeLength))+geom_jitter()+ggtitle("Interfocal Distances, PER \ncut off of chrm lengths, 150")+facet_wrap(sex~subsp, scales = "free")+ylim(c(0,1)) 
-first.IFD.plot_PER
+
 #+theme(legend.position="none")
 ```
 
@@ -4485,13 +4485,13 @@ The raw IFD measures for 2CO bivalents are slightly significant sexes (t.test; p
 The normalized IFD measures are highly significant (t.test; p = `r Q1.IFD.PER_FULL_t.test$p.value`) between sexes, indicating there a
 
 When the t.tests were performed within each strain, all but KAZ show (p-value = 0.3), significant sex differences in the normalized IFD measures
-MSM   `r `
-SKIVE  `r `
-PWD  `r `
-MSM  `r `
-LEW  `r `
-G  `r `
-WSB  `r `
+MSM   `r Q1.IFD.PER_t.test_MSM$p.value`
+SKIVE  `r Q1.IFD.PER_t.test_SKIVE$p.value`
+PWD  `r Q1.IFD.PER_t.test_PWD$p.value`
+MSM  `r Q1.IFD.PER_t.test_MSM$p.value`
+LEW  `r Q1.IFD.PER_t.test_LEW$p.value`
+G  `r Q1.IFD.PER_t.test_G$p.value`
+WSB  `r Q1.IFD.PER_t.test_WSB$p.value`
 
 This indicates a general pattern of two foci are seperated by more area (hance have stronger interference) in males, this pattern is also for genetic maps.
 
@@ -4558,7 +4558,7 @@ Q1.IFD.raw_BIV.short.ttest_KAZ <-  t.test( (real.short.bivData %>% filter(sex ==
 ```
 
 
-```{r Q1.show.IFD.things, echo=FALSE}
+```{r Q1.show.IFD.things, echo=FALSE, eval=FALSE}
 nrm.IFD_KAZ_long <- ggplot( (Q1.IFD.long %>% filter(strain =="KAZ" ) ) , aes(y = meanIFD2CO_norm, x= sex,color=mouse))+geom_point()+ggtitle("Interfocal Distances, ABS KAZ")
 
 nrm.IFD_KAZ_BIV.long <- ggplot( (real.long.bivData %>% filter(strain =="KAZ" ) %>%  filter(hand.foci.count == "2")  ) , aes(y = IFD1_PER, x= sex, color=mouse))+geom_point()+ggtitle("Interfocal Distances, ABS KAZ")
@@ -4593,8 +4593,6 @@ nrm.IFD_G.female_BIV.data
 nrm.IFD_WSB.female_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="WSB" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "female")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, female WSB")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
 nrm.IFD_WSB.female_BIV.data    #18nov17_WSB_f2 has continuous ifd range
 
-
-
 nrm.IFD_LEW_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="LEW" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Interfocal Distances, ABS LEW")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
 
 
@@ -4622,9 +4620,25 @@ nrm.IFD_SKIVE_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="SKIVE" )
 
 nrm.IFD_G_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="G" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, male G")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
 
+
+nrm.IFD_sex.comp_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="KAZ" ) %>%  filter(hand.foci.count == "2") ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, ")+facet_wrap(~sex, scales = "free")+ylim(c(0,1))+theme(legend.position="none") 
 ```
 
-see the reference plots within this dir, --
+strains where males have higher upper threshold, 
+
+G - kinda, little weak
+
+WSB - higher upper threshold (female's have many below the 25% lower threshold, males have a few below 25% threshold)
+
+LEW -- upper threshold looks very similar, much fewer low threshold obs in males, 
+
+PWD -- female lower threshold extends muchlower .25 (like .15?), male lower threshold very different (higher like .3) the male upper threshold is above .75
+
+MSM -- female thresdholds, upper set around .75(to .65) lower at mostly .25, some cells(mice) have more .1 to .2 IFD observatsions.  Male upper threshold it at .75 while lower is set to .3 or .4.
+
+SKIVE -- female upper threshold is capped at .75, lower threshold is between .25 to .3 but low rate of outliers below .25.   Male lower threshold is moved up, .4 or .35 and upper threshold moved up aprx .8
+
+KAZ  -- female upper threshold around .75, lower threshold around .25 the distribution is quite uniform and spread out.  Male pattern; upper threshold slightly higher than .75 (.8) and lower threshold seems to extend beyond .25 -- but maybe low sampling contributes to the spread? (the spread in IFD values seems much larger for KAZ males compared to males from other strains.)
 
 this section -- all strains but KAZ, males have a higher mean normalized IFDs
 
@@ -7104,7 +7118,7 @@ bubu <- ggplot(data=CO_data_HetC_w.old)+geom_point(aes(y=mean_co, x=mouse, color
 #use multiplot
 #remove X axis
 
-multiplot(kuku,bubu, cols=2)
+#multiplot(kuku,bubu, cols=2)
 ```
 
 ```{r F1.by.F2, eval=FALSE}
