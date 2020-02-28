@@ -4713,9 +4713,9 @@ The literature provides basic predictions for the direction of the relationship 
 
 # Q2 SC Length
 
-While testing the sex differences, there were results (the significant subspecies effect) which suggest that the _musculus_ and _molossinus_ strains had longer SC compared to the domesticus strains - these two strains also contain the high rec strains - motivating a model/hypothesis that sc length / chromatin compaction evolution may facilitate the rapid male specific evolution in genome wide recombiantion rate.
+Our prediction for this section is that the high rec strains will have longer SC lengths proportional to the increase in the mean genome wide recombination rate. 
 
-The confounding effects of sex chromosomes are removed in this section that makes comparisons within males. Three sc based metrics; total SC, mean short bivalent length and mean long bivalent length. With long bivalents isolated in the same manner as the short bivalent.
+The confounding effects of sex chromosomes are removed for this section that compares across males from different inbred strains. We compared mouse means of three SC based metrics; total SC, mean short bivalent length and mean long bivalent length. The long bivalent data set was isolated in the same manner as the short bivalent data set.
 
 <!-- basic stats
 `r length(OG.MLH1.merge.Skel$fileName)` total skelentonize measures were made from all of the MLH1 pachtyene cell images. X observations removed for having extra signal from other cells. `r length(unique( all.remove ) )` measures removed as potential outliers (by examining the category specific plots)-->
@@ -4850,6 +4850,7 @@ mouse.shoo.long.biv <- ggplot( REAL.long_mouse_table, aes(y=mean.sc, x=strain, c
 
 ```
 
+
 ```{r Q2_tot.sc_plot, echo=FALSE, warning=FALSE}
 
 #totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain !="F1"& strain !="SPIC" & strain !=  "CAROLI" & strain !="SPRET"& strain !="HMI"& strain !="PERC")
@@ -4862,6 +4863,7 @@ mouse.av_totsc_male <- ggplot(data= totSC.mouse.av.table %>% filter(sex == "male
   facet_wrap(Rec.group~subsp, scales="free")+ theme(axis.title.x=element_blank(),        axis.text.x=element_blank(), axis.ticks.x=element_blank()) + ylim(c(1200,1850 ))+ggtitle("Mouse av. total SC area")
 
 mouse.av_totsc_male
+
 ```
 
 
@@ -4875,6 +4877,7 @@ X.by.texas <- ggplot(bep, aes(x=mean.skel, y=mean_co, color=strain))+geom_point(
   scale_color_manual(values=colors_of_strains)+ggtitle("Total SC by mean CO\nMouse Means")
 
 X.by.texas
+
 ```
 
 
@@ -4901,11 +4904,7 @@ Neg.control.find.date <- ggplot(bep, aes(x=mean.skel, y=mean.bin, color=strain))
 
 ```
 
-<!-- tests below;  t.test(high low) OR logistic regression, mixed modlels, glm 
-remember the pairwise t.test
-Pwise.ttest_Dom.male <- pairwise.t.test(male.Dom.mouse.av$mean_SC, male.Dom.mouse.av$strain)
-G-WSB is sig, WSB-LEW are slightly sig
--->
+
 
 ```{r Q2.totSC.ttest, echo=FALSE}
 #totalSC high and low rec group
@@ -4981,12 +4980,9 @@ Q2.BIV_long_t.test_HL <- t.test((real.long.bivData %>%filter(sex == "male")%>%fi
 
 ```
 
+There is a positive correlation between mean MLH1 foci per cell and total SC, however the variation in mean total SC does not completely predict the high and low rec strains (Figure X). While for the total data set of mean total SC, the high rec strains have significantly  (ttest; p = `r Q2tot.sc_t.test_High.Low$p.value`) when the high and low rec strains are compared within subspecies only the _molossinus_ strains have significant difference  (ttest mol p = `r Q2tot.sc_t.test_High.Low_Mol$p.value`), while the _musculus_ strains do not have significant differences (ttest; musc p= `r Q2tot.sc_t.test_High.Low_Musc$p.value`).
 
-There is a generally positive correlation between mean MLH1 foci per cell and total SC, however the variation in mean total SC does not completely predict the high and low rec strains (Figure X).
-
-Within the total data set of mean total SC, high rec strains have significantly more total SC area (ttest; p = `r Q2tot.sc_t.test_High.Low$p.value`). However when the high and low rec strains are compared within subspecies only the molossinus strains have significant difference  (ttest mol p = `r Q2tot.sc_t.test_High.Low_Mol$p.value`), while the musculus strains do not have significant differences (ttest; musc p= `r Q2tot.sc_t.test_High.Low_Musc$p.value`).
-
-The mouse means for the reduced bivalent datasets (short and long) are not significantly different between the high and low rec strains (for the total pooled data) (ttest; short p = `r Q2short.biv_t.test_High.Low$p.value` and long p = `r Q2long.biv_t.test_High.Low$p.value`).
+Additionally, the means for the reduced bivalent datasets, short and long bivalents, are not significantly different between the high and low rec strains (ttest; short p = `r Q2short.biv_t.test_High.Low$p.value` and long p = `r Q2long.biv_t.test_High.Low$p.value`).
 
 ```{r Q2.SC_across.subsp_tot.SC, echo=FALSE}
 
@@ -5062,17 +5058,15 @@ Q2.shortBIV_t.test_DomMol <- t.test((real.short.bivData  %>% filter(subsp == "Do
 
 <!-- models -->
 
-becasue there is weak // some significant differences between the sc metrics of the high and the low rec groups --- we proceed with running the model framework.
+We follow up the general pattern of a weak signal of high rec strains having longer SC lengths by running the model framework.
 
 **Linear model M1 ** $$mouse \ average \ SC metric ~=~ subsp * strain + \varepsilon $$
 
 **Linear model M2 ** $$mouse \ average \ SC metric ~=~ strain + \varepsilon $$
 
 ```{r Q2.totSC.glm, echo=FALSE}
-#(totSC.mouse.av.table %>% filter(sex == "male") %>% filter(Rec.group == "0") )$mean.skel
 
 Q2.glm_mus.av_totSC_M1 <- glm(mean.skel ~ subsp * strain, data= totSC.mouse.av.table %>% filter(sex == "male"))
-
 sum.Q2.glm_mus.av_totSC_M1  <- summary(Q2.glm_mus.av_totSC_M1)$coefficients
 
 #sum.Q2.glm_mus.av_totSC_M1$coefficients[,4]   pvalues of all effects
@@ -5080,9 +5074,42 @@ sum.Q2.glm_mus.av_totSC_M1  <- summary(Q2.glm_mus.av_totSC_M1)$coefficients
 #round(sum.Q2.glm_mus.av_totSC_M1$coefficients[,c(1,4)], 6)
 
 Q2.glm_mus.av_totSC_M2 <- glm(mean.skel ~ strain, data= totSC.mouse.av.table %>% filter(sex == "male"))
-
 sum.Q2.glm_mus.av_totSC_M2  <- summary(Q2.glm_mus.av_totSC_M2)
 #round(summary(sum.Q2.glm_mus.av_totSC_M2)$coefficients[,c(1,4)], 6)
+
+totSC.mouse.av.table <- add_strain(totSC.mouse.av.table)
+totSC.mouse.av.table <- add_sex(totSC.mouse.av.table)
+totSC.mouse.av.table <- add_subsp(totSC.mouse.av.table)
+#within subspecies values
+
+#Dom
+Q2.glm_mus.av_totSC_M2_DOM <- glm(mean.skel ~ strain, data= totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Dom"))
+sum.Q2.glm_mus.av_totSC_M2_DOM  <- summary(Q2.glm_mus.av_totSC_M2_DOM)
+#there are significant strain effects in DOM,
+
+
+#Musc
+Q2.glm_mus.av_totSC_M2_MUSC <- glm(mean.skel ~ strain, data= totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Musc") )
+sum.Q2.glm_mus.av_totSC_M2_MUSC  <- summary(Q2.glm_mus.av_totSC_M2_MUSC)
+#KAZ -- is the only significant effect
+
+#Mol
+Q2.glm_mus.av_totSC_M2_MOL <- glm(mean.skel ~ strain, data= totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Mol") )
+sum.Q2.glm_mus.av_totSC_M2_MOL  <- summary(Q2.glm_mus.av_totSC_M2_MOL)
+
+#these pair-wise t.test aren't working
+#dom
+#pairwise.t.test( ( totSC.mouse.av.table %>% filter(subsp == "Dom") %>% filter(sex == "male") )$mean.skel, 
+#                 ( totSC.mouse.av.table %>% filter(subsp == "Dom") %>% filter(sex == "male") )$strain )
+
+#musc
+#pairwise.t.test( ( totSC.mouse.av.table %>% filter(subsp == "Musc") %>% filter(sex == "male") )$mean.skel, 
+#                 ( totSC.mouse.av.table %>% filter(subsp == "Musc") %>% filter(sex == "male") )$strain )
+
+#mol
+#pairwise.t.test( ( totSC.mouse.av.table %>% filter(subsp == "Mol") %>% filter(sex == "male") )$mean.skel, 
+#                 ( totSC.mouse.av.table %>% filter(subsp == "Mol") %>% filter(sex == "male") )$strain )
+
 ```
 
 ```{r Q2.glm.SC.long, echo=FALSE}
@@ -5092,17 +5119,43 @@ sum.Q2.glm_mus.av_totSC_M2  <- summary(Q2.glm_mus.av_totSC_M2)
 #table(mouse.av.long.biv.table$mouse)
 #Q2mouse.av.long.biv.table
 
-
+#this dataset is all males
 glmQ2_long.biv_M1 <- glm(mean.SC ~ subsp * strain, data= Q2mouse.av.long.biv.table)
-
 sum.glmQ2_long.biv_M1 <- summary(glmQ2_long.biv_M1)
+#
 
 glmQ2_long.biv_M2 <- glm(mean.SC ~ strain, data= Q2mouse.av.long.biv.table)
-
 sum.glmQ2_long.biv_M2 <- summary(glmQ2_long.biv_M2)
-
 #round(sum.glmQ2_long.biv_M2$coefficients[,c(1,4)], 6)
+
+glmQ2_long.biv_M2_DOM <- glm(mean.SC ~ strain, data= ( Q2mouse.av.long.biv.table %>% filter(subsp == "Dom") )  )
+sum.glmQ2_long.biv_M2_DOM <- summary(glmQ2_long.biv_M2_DOM)
+
+#MUSC
+glmQ2_long.biv_M2_MUSC <- glm(mean.SC ~ strain, data= ( Q2mouse.av.long.biv.table %>% filter(subsp == "Musc") )  )
+sum.glmQ2_long.biv_M2_MUSC <- summary(glmQ2_long.biv_M2_MUSC)
+
+#MOL can't be done -- only 1 mouse for each MSM and MOLF
+glmQ2_long.biv_M2_MOL <- glm(mean.SC ~ strain, data= ( Q2mouse.av.long.biv.table %>% filter(subsp == "Mol") )  )
+sum.glmQ2_long.biv_M2_MOL <- summary(glmQ2_long.biv_M2_MOL)
+
+
+#Dom
+glm_SC.male_Dom_long.biv <- glm(mean_SC ~ strain, data= Long.biv_mouse_table[Long.biv_mouse_table$subsp == "Dom",])
+#Musc
+glm_SC.male_Musc_long.biv <- glm(mean_SC ~ strain, data= Long.biv_mouse_table[Long.biv_mouse_table$subsp == "Musc",])
+#summary(glm_SC.male_Musc_long.biv)
+#Mol
+glm_SC.male_Mol_long.biv <- glm(mean_SC ~ strain, data= Long.biv_mouse_table[Long.biv_mouse_table$subsp == "Mol",])
+
+#pairwise.t.test( ( Q2mouse.av.long.biv.table %>% filter(subsp == "Dom")%>% filter(subsp == "Dom") )$mean.SC, ( Q2mouse.av.long.biv.table %>% filter(subsp == "Dom") )$strain )
+
+#pairwise.t.test( ( Q2mouse.av.long.biv.table %>% filter(subsp == "Dom") )$mean.SC, ( Q2mouse.av.long.biv.table %>% filter(subsp == "Dom") )$strain, p.adj = "bonf", pool.sd = FALSE)
+
+#pairwise.t.test( ( Q2mouse.av.long.biv.table %>% filter(subsp == "Musc") )$mean.SC, ( Q2mouse.av.long.biv.table %>% filter(subsp == "Musc") )$strain )
+
 ```
+
 
 ```{r Q2.glm.SC.short, echo=FALSE}
 #Q2mouse.av.short.biv.table
@@ -5115,45 +5168,49 @@ sum.glmQ2_short.biv_M1 <- summary(glmQ2_short.biv_M1)
 
 glmQ2_short.biv_M2 <- glm(mean.SC ~ strain, data= Q2mouse.av.short.biv.table)
 glmQ2_short.biv_M2 <- summary(glmQ2_short.biv_M2)
-```
 
-```{r Q2.SC.long.glm.bivglm, echo=FALSE}
+#DOM
+glmQ2_short.biv_M2_DOM <- glm(mean.SC ~ strain, data= ( Q2mouse.av.short.biv.table %>% filter(subsp == "Dom") )  )
+sum.glmQ2_short.biv_M2_DOM <- summary(glmQ2_short.biv_M2_DOM)
 
-#Dom
-glm_SC.male_Dom_long.biv <- glm(mean_SC ~ strain, data= Long.biv_mouse_table[Long.biv_mouse_table$subsp == "Dom",])
-#round(summary(glm_SC.male_Dom_long.biv)$coefficients[,c(1,4)], 6)
+#MUSC
+glmQ2_short.biv_M2_MUSC <- glm(mean.SC ~ strain, data= ( Q2mouse.av.short.biv.table %>% filter(subsp == "Musc") )  )
+sum.glmQ2_short.biv_M2_MUSC <- summary(glmQ2_short.biv_M2_MUSC)
 
-#Musc
-glm_SC.male_Musc_long.biv <- glm(mean_SC ~ strain, data= Long.biv_mouse_table[Long.biv_mouse_table$subsp == "Musc",])
-#round(summary(glm_SC.male_Musc_long.biv)$coefficients[,c(1,4)], 6)
-#summary(glm_SC.male_Musc_long.biv)
+#MOL
+#within subspecies
 
-#Mol
-glm_SC.male_Mol_long.biv <- glm(mean_SC ~ strain, data= Long.biv_mouse_table[Long.biv_mouse_table$subsp == "Mol",])
-#round(summary(glm_SC.male_Mol_long.biv)$coefficients[,c(1,4)], 6)
+#pairwise.t.test( ( Q2mouse.av.short.biv.table %>% filter(subsp == "Dom") )$mean.SC, ( Q2mouse.av.short.biv.table %>% filter(subsp == "Dom") )$strain, p.adj = "bonf", pool.sd = FALSE)
 
-
-## logistic regression for Rec group
-#log.SC.male_long.SC <- glm(Rec.group ~ mean_SC, 
-#              data=Long.biv_mouse_table,  family=binomial(link="logit"))
-
-#summary(log.SC.male_long.SC)
-
-
-#log.SC.male.poly_musc <- glm(Rec.group ~ mean_SC, 
-#              data=Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",],  family=binomial(link="logit"))
+#pairwise.t.test( ( Q2mouse.av.short.biv.table %>% filter(subsp == "Musc") )$mean.SC, ( Q2mouse.av.short.biv.table %>% filter(subsp == "Musc") )$strain, p.adj = "bonf", pool.sd = FALSE)
 
 ```
 
 
-For total SC in M1 (glm including subsp), the two subspecies effects are significant (glm; p= Musculus `r sum.Q2.glm_mus.av_totSC_M1[,4][2]` and Molossinus p= `r sum.Q2.glm_mus.av_totSC_M1[,4][3]`)   
 
-In the short bivalent data set, analyzed by M1, both subspecies are sig (glm; p= Musculus `r sum.glmQ2_short.biv_M1$coefficients[,4][2]` and Molossinus p= `r sum.glmQ2_short.biv_M1$coefficients[,4][3]`). 
+For total SC in M1 (glm including subsp), the two subspecies effects are significant (glm; p= _Musculus_ `r sum.Q2.glm_mus.av_totSC_M1[,4][2]` and _Molossinus_ p= `r sum.Q2.glm_mus.av_totSC_M1[,4][3]`)   
+
+In the short bivalent data set, analyzed by M1, both subspecies are sig (glm; p= _Musculus_ `r sum.glmQ2_short.biv_M1$coefficients[,4][2]` and _Molossinus_ p= `r sum.glmQ2_short.biv_M1$coefficients[,4][3]`). 
+
+long bivalent set in M1 -- 
+
+Musc `r sum.glmQ2_long.biv_M1$coefficients[,4][2]` 
+
+MSM strain `r sum.glmQ2_long.biv_M1$coefficients[,4][7]`
 
 <And the strain effect for G is significant (glm; G p =`r sum.glmQ2_short.biv_M1$coefficients[,4][4]`).>
 
 
-**M3 -- tests within subspecies!!**
+**M3 -- tests within subspecies!!** SO the M3 model can be run within species specific data -- to test the predictions (based on the variation in mean MLH1 counts), (use all 3 metircs) **the within subspecies M3 models don't fully meet the predictions
+
+for total.Sc : there are significant Dom strain effects: in musc kaz is significant negative, several other strains have higher total SC, (MOL in the intercept is significant).
+
+short biv: Dom: Significant G effect, MUSC no significant -- strain effects
+
+long.biv:  Dom: no strain effects, MUSC no significant strain effects, MOL - not enough observations
+
+
+
 
 **For the long bivalent dataset, In M1 where the subsp are tested, only Musc is significant (glm; Musc p= `r sum.glmQ2_long.biv_M1$coefficients[,4][2]`). The significant strain effects in M1 are slight just MSM (glm; MSM p= `r sum.glmQ2_long.biv_M1$coefficients[,4][7]`).**
 
