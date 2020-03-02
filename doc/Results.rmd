@@ -1,16 +1,16 @@
 ---
 title: "MLH1 Results Outline"
-date: '3/1/2020'
+date:
 output:
-  word_document:
-    toc: yes
-    toc_depth: '5'
-  pdf_document: default
   html_document:
     df_print: paged
     toc: yes
     toc_depth: '5'
     toc_float: yes
+  pdf_document: default
+  word_document:
+    toc: yes
+    toc_depth: '5'
 bibliography: refs_Main_Report.bib
 ---
 
@@ -2023,18 +2023,7 @@ There is no significant difference in the amount of within mouse variance of MLH
 the main/general pattern, is that females have significantly higher within mouse variance compared to males. This general pattern is replicated in higher quality dataset and using the coefficient of variance (cv) as a dependant variable.>
 
 <!--
-RW's main qtl paper used the within animal variance, 
 
-@article{wang2017genetics,
-  title={Genetics of genome-wide recombination rate evolution in mice from an isolated Island},
-  author={Wang, Richard J and Payseur, Bret A},
-  journal={Genetics},
-  volume={206},
-  number={4},
-  pages={1841--1852},
-  year={2017},
-  publisher={Genetics Soc America}
-}
 references for phenotypic variance connected to robustness to environment, increase in developmental consistency
 
 Waddington 1942, Rutherford and Lindquist 2998, Mackay and Lyman 2005, Levy and Siegal 2008)
@@ -2444,7 +2433,7 @@ algorithm.stat.category <- ddply(cell.level.BivData_table, c("sex", "strain"), s
 #data.frame(table( droplevels( Curated_BivData  %>%  filter(hand.foci.count  == 0 | hand.foci.count  == 1 |                                       hand.foci.count  == 2 | hand.foci.count  == 3 | hand.foci.count  == 4 ) )$category ) )
 ```
 
-For each strain, we deconstructed the estimates of genome wide recombination rate by isolating single bivalents and quantifying the recombination landscape at the single bivalent level using an previously developed image analysis pipeline. The error of the image analysis algorithm is measuring chromosome features is low and highly similar to manual measures (Peterson 2019). 
+For each strain, we deconstructed the estimates of genome wide recombination rate by isolating single bivalents and quantifying the recombination landscape at the single bivalent level using an previously developed image analysis pipeline. The error of the image analysis algorithm is measuring chromosome features is low and highly similar to manual measures [@peterson_2019]. 
 
 A limitation of our image analysis algorithm is that not all bivalents per cell are isolated, due to overlapping  chromosomes. The range isolation rates per cell in this data set is `r min(algorithm.stat.category$mean_pass.rate)` in _molossinus^MSM^_ male to `r max(algorithm.stat.category$mean_pass.rate)`  _musculus^KAZ^_ female. However, we assume that the isolation of chromsomes within cell images is not biased. From our total set of cell images `r length(unique(new.Curate.FULL.org %>% filter(SC.pass == "1"))$fileName )` chromosome objects were isolated by the image analysis software. After the human curation step, `r length(unique(new.Curate.FULL.org %>% filter(hand.foci.count != ""))$Obj.ID )` single bivalent observations remained. Given the large number of single chromosome observations, we assume that each of the data sets are equally representative of general patterns.
 
@@ -2945,7 +2934,7 @@ All but one strains have significantly longer mouse mean for short bivalents in 
 
 <!-- t.test; p = `r Q1_mus.av_shortSC_t.test.WSB$p.value`, p =`r format(Q1_mus.av_shortSC_t.test.G$p.value, scientific = F)`, and p=`r format(Q1_mus.av_shortSC_t.test.LEW$p.value, scientific = F)` for _domesticus^WSB^_, _domesticus^G^_ and _domesticus^LEW^_ respectively. the musculus strins (t.test; p= `r format(Q1_mus.av_shortSC_t.test.PWD$p.value, scientific = F)`, `r Q1_mus.av_shortSC_t.test.KAZ$p.value`, and `r  format(Q1_mus.av_shortSC_t.test.SKIVE$p.value, scientific = F)` for _musculus^PWD^_ , _musculus^KAZ^_ , _musculus^SKIVE^_  respectively --> 
 
-For an additional  metric of chromatin compaction, we tested a whole cell measure of SC length using a second image analysis algorithm which converts the SC signal into single pixel wide trace of the SC shapes and provides accurate estimates of the summed SC length of bivalents for single cells (ref Wang). We apply the skeletonizing algorithm to all MLH1 meiocyte images. Mouse means were calculated from `r length(  (MLH1.merge.Skel %>% filter(species == "M.musculus") %>% filter(subsp != "Cast")  )$Random.Name)` cell wide total SC measures (figure X). (where as `r length(  (MLH1_data %>% filter(species == "M.musculus") %>% filter(subsp != "Cast")  )$Random.Name)` number of cells had MLH1 measures ).
+For an additional  metric of chromatin compaction, we tested a whole cell measure of SC length using a second image analysis algorithm which converts the SC signal into single pixel wide trace of the SC shapes and provides accurate estimates of the summed SC length of bivalents for single cells [@wang_2019_sc]. We apply the skeletonizing algorithm to all MLH1 meiocyte images. Mouse means were calculated from `r length(  (MLH1.merge.Skel %>% filter(species == "M.musculus") %>% filter(subsp != "Cast")  )$Random.Name)` cell wide total SC measures (figure X). (where as `r length(  (MLH1_data %>% filter(species == "M.musculus") %>% filter(subsp != "Cast")  )$Random.Name)` number of cells had MLH1 measures ).
 
 <The comparison of this metric is somewhat complicated across sexes due to the sex chromosomes. Breifly/in effect the oocytes have an additional autosome, and the spermatocytes have a mostly recombinationly inactive unit of SC (the XY).>
 
@@ -3521,7 +3510,7 @@ For most of the house mouse strains, 1COs are the major class of chromosomes obs
 
 The mean normalized foci positions per mouse from `r length( ( cleanCurated_BivData %>% filter(hand.foci.count == "1") )$Obj.ID )` single crossover bivalents. The CO positions are normalized by the SC length and anchored at the centromere with the normalized position values ranging from 0 to 1, (refered here as terminal or telomeric position).
 
-In all strains, the 1CO landscape had significant differences between males and female which followed the "typical landscape" of sex difference observed in many other species (Sardell Kirkpatrick). The foci position was more medially places in females while males have more terminal normalized foci positions (ttest; p = `r Q1_1CO.pos_t.test.FULL$p.value`).
+In all strains, the 1CO landscape had significant differences between males and female which followed the "typical landscape" of sex difference observed in many other species [@sardell_sex_2020]. The foci position was more medially places in females while males have more terminal normalized foci positions (ttest; p = `r Q1_1CO.pos_t.test.FULL$p.value`).
 
 ```{r Q1.CO1pos_lmer.M1, echo=FALSE, message=FALSE}
 
@@ -4318,7 +4307,7 @@ Q1.IFD.raw_sansG_t.test <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% 
 ```
 
 Crossover interference is one of the major determinates of the recombination landscape. It generates a distribution of evenly spaced crossover along chromosomes instead of a random and more uniform distribution. To quantifiy how crossover interference differs between the typical recombination landscapes of males and females, we isolated `r length(  (Curated_BivData.22 %>% filter(sex == "female") )$Obj.ID )` and 
-`r length(  (Curated_BivData.22 %>% filter(sex == "male") )$Obj.ID )` 2CO bivalents in females and males respectively. Mean interfocal distances (IFD) were calculated from `r length( unique( (Curated_BivData.22 %>% filter(sex == "female") )$mouse) )`  female and `r length( unique( (Curated_BivData.22 %>% filter(sex == "male") )$mouse) )` male mice. We examined both raw IFD^raw^ and normalized by SC length (IFD^norm^). The mean IFD^raw^ measures of crossover interference as a mechanical force mediated through the SC. We compared the IFD^raw^ to test the hypothesis of interference acting as a mechanical force transmitted through the SC. Previous measures found no sex difference in measures of IFD^raw^ in mice (de Boer et al 2004).
+`r length(  (Curated_BivData.22 %>% filter(sex == "male") )$Obj.ID )` 2CO bivalents in females and males respectively. Mean interfocal distances (IFD) were calculated from `r length( unique( (Curated_BivData.22 %>% filter(sex == "female") )$mouse) )`  female and `r length( unique( (Curated_BivData.22 %>% filter(sex == "male") )$mouse) )` male mice. We examined both raw IFD^raw^ and normalized by SC length (IFD^norm^). The mean IFD^raw^ measures of crossover interference as a mechanical force mediated through the SC. We compared the IFD^raw^ to test the hypothesis of interference acting as a mechanical force transmitted through the SC. Previous measures found no sex difference in measures of IFD^raw^ in mice [@de_boer_two_2006].
 
 The difference in mean IFD^raw^ are slightly significant sexes from the full data set (t.test; p = `r Q1.IFD.raw_FULL_t.test$p.value`). However _domesticus^G^_ might be an outlier (by having a larger than average degree of sexual dimorphism). When the _domesticus^G^_ observations are removed, the difference is not longer significant (t.test; p = `r Q1.IFD.raw_sansG_t.test$p.value`).  This indicates there is no general pattern of sex differences in crossover interference measured in physical (SC) units.
 
