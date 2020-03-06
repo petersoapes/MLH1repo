@@ -444,27 +444,117 @@ addIFD.2 <- function(DF){
 }
 
 
+add_umeter <- function(dat){
+  #how to convert dat$chrm.length to chrm.length
+  #sc unit
+  dat$chrm.length.um  <- dat$chromosomeLength / 9.8152
+  return(dat)
+}
+
+
+
+#calculate Interchromsomal rbar
+#tested with values from Veller et al 2018
+#Chrm row should be full DF
+
+calq.intra.rbar <- function(chrm_row){
+  o = 1
+  # rrbar <- c()
+  for(o in 1:length(chrm_row$fileName) ){
+    #print(chrm_row$fileName[o])
+    if(grepl(0, chrm_row$handFoci[o])){
+      #print("fist has 0 CO")
+      #rrbar[o] <- NA
+      rrbar <- 0
+    }
+    if(grepl(1, chrm_row$handFoci[o])){  #do the block here
+      #print("fist has 1 CO")
+      #rrbar[o] <- "1CO"
+      portion1 <- chrm_row$F1[o]
+      portion2  <- chrm_row$chromosomeLength[o] - portion1
+      portion.sum <- portion1+portion2
+      rel.portion1 <- (portion1 / portion.sum)
+      rel.portion2 <- (portion2 / portion.sum)
+      rel.por.sqrd1 <- rel.portion1^2
+      rel.por.sqrd2 <- rel.portion2^2
+      chrm.sq <- sum(rel.por.sqrd1, rel.por.sqrd2)
+      
+      #rbar[o] <- 0.5*(1-chrm.sq)
+      #print(chrm_row$rbar[o])
+      rrbar <- 0.5*(1-chrm.sq)
+      #o = o +1
+    }
+    if(grepl(2, chrm_row$handFoci[o])){  #do the block here
+      #print("this has 2 CO")
+      portion1 <- chrm_row$F1[o]
+      portion2  <- chrm_row$F2[o] - chrm_row$F1[o]
+      portion3 <- chrm_row$chromosomeLength[o] - chrm_row$F2[o]+1
+      portion.sum <- portion1+portion2+portion3 #in 2CO portions 
+      rel.portion1 <- (portion1 / portion.sum)
+      rel.portion2 <- (portion2 / portion.sum)
+      rel.portion3 <- (portion3 / portion.sum)
+      rel.por.sqrd1 <- rel.portion1^2
+      rel.por.sqrd2 <- rel.portion2^2
+      rel.por.sqrd3 <- rel.portion3^2
+      chrm.sq <- sum(rel.por.sqrd1,rel.por.sqrd2,rel.por.sqrd3)
+      
+      chrm_row$rbar[o] <- 0.5*(1-chrm.sq)
+      #  rrbar[o] <- 0.5*(1-chrm.sq)
+      rrbar <- 0.5*(1-chrm.sq)
+      #print(chrm_row$rbar[o])
+      #rbar[o] <- 0.5*(1-chrm.sq)
+      #o = o +1
+    }
+    if(grepl(3, chrm_row$handFoci)){
+      portion1 <- chrm_row$F1
+      portion2  <- chrm_row$F2 - chrm_row$F1
+      portion3 <- chrm_row$F3 - chrm_row$F2
+      portion4 <- chrm_row$chromosomeLength - chrm_row$F3
+      portion.sum <- portion1+portion2+portion3+portion4
+      rel.portion1 <- (portion1 / portion.sum)
+      rel.portion2 <- (portion2 / portion.sum)
+      rel.portion3 <- (portion3 / portion.sum)
+      rel.portion4 <- (portion4 / portion.sum)
+      
+      rel.por.sqrd1 <- rel.portion1^2
+      rel.por.sqrd2 <- rel.portion2^2
+      rel.por.sqrd3 <- rel.portion3^2
+      rel.por.sqrd4 <- rel.portion4^2
+      
+      chrm.sq <- sum(rel.por.sqrd1,rel.por.sqrd2,rel.por.sqrd3,rel.por.sqrd4)
+      rrbar <- 0.5*(1-chrm.sq)
+      #tot.rec <-  0.5*(1-sum(rel.por.sqrd1, rel.por.sqrd2, rel.por.sqrd3,rel.por.sqrd4 )) 
+      #tot.rec =((rel.portion1 + rel.portion2 + rel.portion3 + rel.portion4) )^2
+    }
+    o = o +1
+  }
+  return(rrbar)
+}
+
 
 
 #taken from wild mouse dir, 
 #needs to be updated for the new colnames
 #calculate Interchromsomal rbar
 #tested with values from Veller et al 2018
-calq.intra.rbar <- function(chrm_row){
+
+#this is only returning .5
+#changed SC. and chrm length
+new.calq.intra.rbar <- function(chrm_row){
   o = 1
   # rrbar <- c()
-  for(o in 1:length(chrm_row$fileName) ){
+  for(o in 1:length(chrm_row$Obj.ID) ){
     #print(chrm_row$fileName[o])
-    if(grepl(0, chrm_row$hand.foci.count[o])){
+    if(grepl(0, chrm_row$hand.foci.count)){
       #print("fist has 0 CO")
       #rrbar[o] <- NA
       rrbar <- 0
     }
-    if(grepl(1, chrm_row$hand.foci.count[o])){  #do the block here
+    if(grepl(1, chrm_row$hand.foci.count)){  #do the block here
       #print("fist has 1 CO")
       #rrbar[o] <- "1CO"
-      portion1 <- chrm_row$Foci1[o]
-      portion2  <- chrm_row$SC.length[o] - portion1
+      portion1 <- chrm_row$Foci1
+      portion2  <- chrm_row$chromosomeLength - portion1
       portion.sum <- portion1+portion2
       rel.portion1 <- (portion1 / portion.sum)
       rel.portion2 <- (portion2 / portion.sum)
@@ -481,7 +571,7 @@ calq.intra.rbar <- function(chrm_row){
       #print("this has 2 CO")
       portion1 <- chrm_row$Foci1[o]
       portion2  <- chrm_row$Foci2[o] - chrm_row$Foci1[o]
-      portion3 <- chrm_row$SC.length[o] - chrm_row$Foci2[o]+1
+      portion3 <- chrm_row$chromosomeLength[o] - chrm_row$Foci2[o]+1
       portion.sum <- portion1+portion2+portion3 #in 2CO portions 
       rel.portion1 <- (portion1 / portion.sum)
       rel.portion2 <- (portion2 / portion.sum)
@@ -502,7 +592,7 @@ calq.intra.rbar <- function(chrm_row){
       portion1 <- chrm_row$Foci1
       portion2  <- chrm_row$Foci2 - chrm_row$Foci1
       portion3 <- chrm_row$Foci3 - chrm_row$Foci2
-      portion4 <- chrm_row$SC.length - chrm_row$Foci3
+      portion4 <- chrm_row$chromosomeLength - chrm_row$Foci3
       portion.sum <- portion1+portion2+portion3+portion4
       rel.portion1 <- (portion1 / portion.sum)
       rel.portion2 <- (portion2 / portion.sum)

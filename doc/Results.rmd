@@ -182,6 +182,60 @@ Curated_BivData$Rec.group_alt <- ifelse(grepl("PWD male", Curated_BivData$catego
 
 ```
 
+
+```{r Q1.rbar, echo=FALSE}
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+
+#read.csv of gamma estimates from above
+gamma_estimates <- read.csv("~./MLH1repo/results/gamma_estimates.csv", header = TRUE)
+
+table_gamma_estimates <- read.csv("~./MLH1repo/table.csv", header = TRUE)
+
+
+
+
+for(e in 1:length(cleanCurated_BivData$fileName)){
+#  mini.IFD <- calq.intra.rbar(mini.IFD)
+  cleanCurated_BivData$rbar[e] <- new.calq.intra.rbar(cleanCurated_BivData[e,])
+  }
+
+#calq the mouse / strain means for rbar
+
+summarize_rbar_table <- ddply(.data=cleanCurated_BivData,
+                 .(sex, strain),
+                 summarize,
+                 mean.rbar.all = mean(rbar, na.rm = TRUE),
+                 
+                 mean.rbar.2CO = mean(rbar[which(hand.foci.count == 2)], na.rm = TRUE),
+                 mean.rbar.3CO = mean(rbar[which(hand.foci.count == 3)], na.rm = TRUE)
+)
+#the 3 is negative...
+
+#how best to merge rbar and gamma estiamtes (which estimate)
+
+raw.gamma_estimates <-  gamma_estimates %>% filter(type.IFD == "raw.IFD") %>% filter( (class == "2CO") | (class == "3CO") )
+
+table <- raw.gamma_estimates
+write.table(table, "~./MLH1repo/table.csv", sep=",",row.names = TRUE)
+
+write.table(summarize_rbar_table, "~./MLH1repo/RBAR.table.csv", sep=",",row.names = TRUE)
+
+
+
+#what comparison of IFD and rbar would be logical
+#plot rbar and gamma
+ll <- ggplot(table_gamma_estimates, aes(y=mean.rbar, x = all.biv.gamma, color = class, shape = sex ))+geom_point()+facet_wrap(~strain)+ ggtitle("")+ylim(c(0,.5))
+
+#mean rbars are up around 
+#SKIVE male have extra (very strong interference)
+#there's so much variance across the gamma estimates -- 
+#most all females seem to have stronger interfernce
+#there don't seem to be consistant patterns
+
+```
+
+
+
 ```{r MLH1.FEMALE.TABLE, echo=FALSE}
 female_mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
                             subsp.y,subsp.x,
