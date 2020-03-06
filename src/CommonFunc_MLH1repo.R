@@ -389,25 +389,27 @@ add_SisCoTen <- function(DF){
 #Calculate InterFocal Distance (IFD) in Chrm1 dataframe
 #requires Percent foci positions, for the sceiont part
 
+#t.test.4CO, for the 3IFD  #fixed bug
+
 add_IFD <- function(DF){
   
+  DF$IFD3_ABS <- ifelse(  (DF$hand.foci.count >= 4),
+                          #manual.verified.f1, 
+                          as.numeric(DF$Foci4) - as.numeric(DF$Foci3),   "" )
+  #need to include the IFD2
+  DF$IFD3_ABS <- as.numeric(DF$IFD3_ABS)
+
+    
   DF$IFD1_ABS <- ifelse(  (DF$hand.foci.count >= 2),
                           #manual.verified.f1, 
                           as.numeric(DF$Foci2) - as.numeric(DF$Foci1),   "" )
   DF$IFD1_ABS <- as.numeric(DF$IFD1_ABS)
   
   
-  DF$IFD2_ABS <- ifelse(  (DF$hand.foci.count == 3),
+  DF$IFD2_ABS <- ifelse(  (DF$hand.foci.count >= 3),
                           #manual.verified.f1, 
                           as.numeric(DF$Foci3) - as.numeric(DF$Foci2),   "" )
   DF$IFD2_ABS <- as.numeric(DF$IFD2_ABS)
-  
-  
-  DF$IFD3_ABS <- ifelse(  (DF$hand.foci.count == 4),
-                          #manual.verified.f1, 
-                          as.numeric(DF$Foci3) - as.numeric(DF$Foci4),   "" )
-  DF$IFD3_ABS <- as.numeric(DF$IFD3_ABS)
-  
   
  # DF$IFD1_PER <- ifelse(  (DF$hand.foci.count >= 2), 
   #                        as.numeric(DF$Foci2.PER) - as.numeric(DF$Foci1.PER),   "" )
