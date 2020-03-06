@@ -43,7 +43,7 @@ load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_2.24.20.RData")
 #load(file="C:/Users/April/Documents/MLH1repo/data/CleanBivData_1.27.20.RData")
 #load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/CleanBivData_1.27.20.RData")
 
-load(file="~./MLH1repo/data/CleanBivData_19.2.20.RData")
+load(file="~./MLH1repo/data/CleanBivData_6.3.20.RData")
 
 load(file="~./MLH1repo/data/total_SC_30.12.19.RData")
 
@@ -4397,6 +4397,345 @@ nrm.IFD_sex.comp_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="LEW" 
 ```
 
 In examining the IFD^norm^ distributions, we note that the female IFD^norm^ observations are centered at approximately 50% and have slight an enrichment of short (<25%) IFD^norm^ observations. Comparitively, the IDF^norm^ distributions in males are enriched for longer IFD^norm^. 
+
+```{r Q1.IFD_gamma, echo=FALSE}
+library(EnvStats)
+#cleanCurated_BivData
+
+#all.female.multi <- (cleanCurated_BivData %>% filter(sex == "female") %>% filter(hand.foci.count > 1) %>%
+#                       filter( !is.na( IFD1_ABS) ))  #$IFD1_ABS
+
+
+#this MELT BIVDATA should be good to go
+MELT.IFD.BIVDATA <- melt(cleanCurated_BivData[,c("fileName", "chromosomeLength","centromere_ABS_Position", "centromere_PER_Position",
+                            "Obj.ID","hand.foci.count",
+                            "mouse","category","strain", "sex", "Rec.group",
+                            "IFD1_ABS","IFD2_ABS","IFD3_ABS")], 
+           
+             id=c("fileName", "chromosomeLength","centromere_ABS_Position", "centromere_PER_Position",
+                            "Obj.ID","hand.foci.count",
+                            "mouse","category","strain", "sex", "Rec.group"))
+#rename the cols and clean up
+MELT.IFD.BIVDATA <- MELT.IFD.BIVDATA[(!is.na(MELT.IFD.BIVDATA$value)),]
+
+colnames(MELT.IFD.BIVDATA) <- c("fileName", "chromosomeLength","centromere_ABS_Position", "centromere_PER_Position",
+                            "Obj.ID","hand.foci.count",
+                            "mouse","category","strain", "sex", "Rec.group", 
+                               "whichIFD", "IFDval") 
+
+MELT.IFD.BIVDATA$Nrm.IFD <- MELT.IFD.BIVDATA$IFDval / MELT.IFD.BIVDATA$chromosomeLength
+
+#START isolating all the types of IFDs
+
+#all.female.multi$mycol <- apply(all.female.multi[,c('IFD1_ABS','IFD2_ABS','IFD3_ABS')], 1, function(x) x[!is.na(x)][1])
+
+all.female.IFDs <- MELT.IFD.BIVDATA %>% filter(sex == "female")#1697
+
+all.male.IFDs <- MELT.IFD.BIVDATA %>% filter(sex == "male")#1392
+
+
+#gamma fits
+FULL.female.gamma <- egamma( all.female.IFDs$IFDval, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#3.8
+
+#gamma fits
+FULL.male.gamma <- egamma( all.male.IFDs$IFDval, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#shape  5.4
+
+#male, stronger interference
+
+
+
+WSB.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "WSB")  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#3.1, 3.73 (raw, PER) (n=252)
+
+WSB.2CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "WSB") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#3.6, 5.10 (raw, PER) (n=186)
+#try the short and long bivalents dataset
+
+WSB.3CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "WSB") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#3, 3.237 (raw, PER) (n=60)
+
+
+#gamma fits
+WSB.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "WSB")  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#3.5,  5.1 (raw, PER) (n= 109)  
+
+WSB.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "WSB") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#3.9, 3.9 (raw, PER)  (n=107)
+#there are 0 3CO and 2  4CO bivalents -- this causes a greater difference in the PER based value
+
+```
+
+
+
+```{r gamma.IFD, echo=FALSE}
+
+female.gamma <- egamma( (all.female.IFDs )$IFDval, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+f2CO.female.gamma <- egamma( (all.female.IFDs  %>% filter(hand.foci.count == 2)  )$IFDval, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+f3CO.female.gamma <- egamma( (all.female.IFDs %>%  filter(hand.foci.count == 3)  )$IFDval, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+f4CO.female.gamma <- egamma( (all.female.IFDs %>%  filter(hand.foci.count == 4)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+###
+
+
+PWD.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "PWD")  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#3.8, 4.844 (raw, nrm)  (n = 357)
+PWD.2CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "PWD") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#3.8, 6.746 (raw, nrm) (n = 285)
+PWD.3CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "PWD") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#3, 3.628 (n = 72)
+
+KAZ.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "KAZ")  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+
+KAZ.2CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "KAZ") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+
+KAZ.3CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "KAZ") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+#####
+SKIVE.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "SKIVE")  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+SKIVE.2CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "SKIVE") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+SKIVE.3CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "SKIVE") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+##
+MSM.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "MSM")  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+MSM.2CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "MSM") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+MSM.3CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "MSM") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+MSM.4CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "MSM") %>% filter(hand.foci.count == 4)  )$IFDval, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+
+######
+G.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "G")  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+G.2CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "G") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+G.3CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "G") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+G.4CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "G") %>% filter(hand.foci.count == 4)  )$IFDval, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+######
+LEW.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "LEW")  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+LEW.2CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "LEW") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+LEW.3CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "LEW") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+LEW.4CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "LEW") %>% filter(hand.foci.count == 4)  )$IFDval, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+######
+WSB.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "WSB")  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+WSB.2CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "WSB") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+WSB.3CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "WSB") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+WSB.4CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "WSB") %>% filter(hand.foci.count == 4)  )$IFDval, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+```
+
+```{r Q1.male.IFD, echo=FALSE}
+
+#gamma fits
+male.gamma <- egamma( (all.male.IFDs )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+m2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+m3CO.male.gamma <- egamma( (all.male.IFDs %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE,         ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+###
+#gamma fits
+PWD.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "PWD")  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#8.1, 11.74 (n=318) (lots of variation when I apply sample size of 18)
+
+PWD.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "PWD") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#10.3, 16.962, (n=300)
+
+PWD.3CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "PWD") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#2.9, 3.4, (n=18)
+
+####
+KAZ.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "KAZ")  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+KAZ.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "KAZ") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+KAZ.3CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "KAZ") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+###
+SKIVE.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "SKIVE")  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+SKIVE.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "SKIVE") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+SKIVE.3CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "SKIVE") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+
+###
+MSM.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "MSM")  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+MSM.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "MSM") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE,     ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+MSM.3CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "MSM") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+###
+MOLF.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "MOLF")  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+MOLF.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "MOLF") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+MOLF.3CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "MOLF") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+###
+G.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "G")  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+G.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "G") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+G.3CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "G") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+###
+LEW.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "LEW")  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+LEW.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "LEW") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+LEW.3CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "LEW") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+###
+WSB.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "WSB")  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+#
+WSB.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "WSB") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
+                            ci.type = "two-sided", ci.method = "normal.approx", 
+                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
+
+
+
+```
+
+
 
 <!--
 The differences between the sexes is slightly different depending on if the males are in the high rec group. In the low rec strains (Dom + KAZ)...
