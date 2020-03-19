@@ -192,9 +192,6 @@ gamma_estimates <- read.csv("~./MLH1repo/results/gamma_estimates.csv", header = 
 
 table_gamma_estimates <- read.csv("~./MLH1repo/table.csv", header = TRUE)
 
-
-
-
 for(e in 1:length(cleanCurated_BivData$fileName)){
 #  mini.IFD <- calq.intra.rbar(mini.IFD)
   cleanCurated_BivData$rbar[e] <- new.calq.intra.rbar(cleanCurated_BivData[e,])
@@ -6360,7 +6357,62 @@ Long.biv.IFDs_PER_by.group <- ggplot(male.long.biv.2CO_IFD, aes(y = IFD1_PER, x=
   ggtitle("Normalized Interfocal Distances, Long BivData\nLow Rec group =0, High Rec group =1")+
   scale_color_manual(values=colors_of_strains)+ facet_wrap(subsp~Rec.group, scales = "free")+theme(legend.position="none")+ylim(c(0,1.1))
 
+#long biv's - short IFD rates
+
+LongBiv_IFD_mus.rate <- ddply(male.long.biv.2CO_IFD %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 2), 
+                         c("mouse"), summarise,
+                        
+                   N.obs  = length(Obj.ID),
+
+                  mean.ABS.IFD = mean(IFD1_ABS, na.rm = TRUE),  
+                  mean.per.IFD = mean(IFD1_PER, na.rm=TRUE),
+                  var.IFD = var(IFD1_PER, na.rm=TRUE),
+                        
+                  #mean_IFD_short.removed
+                  mean.perIFD_short.rm = mean(  IFD1_PER[which(IFD1_PER >= .3)], na.rm=TRUE),
+                mean.absIFD_short.rm = mean(  IFD1_ABS[which(IFD1_PER >= .3)] ),
+                
+                inverse.close.foci = length(which(IFD1_PER >= .31)),  
+                n.close.foci = length(which(IFD1_PER <= .3)),
+                      
+                off.by = (N.obs - sum(c(inverse.close.foci,n.close.foci)) ),
+                      
+                rate.close.foci = n.close.foci / N.obs
+                
+                                              )
+
+#run t.tests on long biv
+LongBiv_IFD_mus.rate <- add_strain(LongBiv_IFD_mus.rate)
+LongBiv_IFD_mus.rate <- add_category(LongBiv_IFD_mus.rate)
+LongBiv_IFD_mus.rate <- add_subsp(LongBiv_IFD_mus.rate)
+
+#add rec.group
+LongBiv_IFD_mus.rate$Rec.group <- ifelse(grepl("PWD", LongBiv_IFD_mus.rate$strain), 1, 
+                                ifelse(grepl("MSM", LongBiv_IFD_mus.rate$strain), 1,
+                                 ifelse(grepl("SKIVE", LongBiv_IFD_mus.rate$strain), 1, 0)))
+
 ```
+
+
+```{r Q2.IFD.long.biv_t.test, echo=FALSE}
+
+#short removed PER
+Short.removed_BivData.LongBiv_IFD.PER_Ttest <- t.test(LongBiv_IFD_mus.rate$mean.perIFD_short.rm[LongBiv_IFD_mus.rate$Rec.group == 1], 
+                                 LongBiv_IFD_mus.rate$mean.perIFD_short.rm[LongBiv_IFD_mus.rate$Rec.group == 0])
+ 
+Short.removed_BivData.LongBiv_IFD.PER_Ttest$p.value
+#0.0083
+
+
+#ABS short removed
+Short.removed_BivData.LongBiv_IFD.ABS_Ttest <- t.test(LongBiv_IFD_mus.rate$mean.absIFD_short.rm[LongBiv_IFD_mus.rate$Rec.group == 1], 
+                                 LongBiv_IFD_mus.rate$mean.absIFD_short.rm[LongBiv_IFD_mus.rate$Rec.group == 0])
+
+Short.removed_BivData.LongBiv_IFD.ABS_Ttest$p.value
+#0.047
+
+```
+
 
 ```{r Q2.show.IFD, echo=FALSE, warning = FALSE}
 
@@ -6472,41 +6524,6 @@ Q2.glm.M2_IFD.PER_Mol <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Ta
 
 ```
 
-
-The greater IFD measures in high recombing strains is confirmed by fitting both the IFD^raw^ and IFD^norm^ into the linear model framework, where only the strain effects for the high recombining strains had significant p values (glm; p < 0.05). The similar patterns across the raw and normalized IFD values rule out differences in IFD^raw^ measures, SC lengths and chromosome size as the major driver of this pattern. We determined that the main difference in IFDPER distribution across the high and low groups is an enrichment of IFD^norm^ observations under 30% in low recombining strains. The rate of IFD^norm^ below 30% range from 8.2% ( _domesticus^G^_) to 16% ( _musculus^KAZ^_) in the low recombining strains, while the high strains all had rates under 5% (0%, 1.3%, and 3.3% for _musculus^SKIVE^_, _molossinus^MSM^_, and _musculus^PWD^_ respectively). 
-
-<!--
-**Linear model M1 ** $$mouse \ average \ IFD ~=~ subsp * strain + \varepsilon $$
-
-**Linear model M2 ** $$mouse \ average \ IFD ~=~ strain + \varepsilon $$ -->
-
-```{r Q2.t.test_IFD, echo=FALSE, eval=FALSE}
-
-male.bivdata.2CO_IFD <- Curated_BivData %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 2)
-#t.tests for the Rec group
-Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
-                                    ifelse(grepl("MSM male", Curated_BivData$category), 1,
-                                           ifelse(grepl("SKIVE male",Curated_BivData$category),1, 0)))
-
-#Curated_BivData <- add_IFD(Curated_BivData)
-#THIS SHOULD ALREADY BE ADDED
-
-#single biv level
-Rec.group.BivData_IFD.PER_Ttest <- t.test(male.bivdata.2CO_IFD$IFD1_PER[male.bivdata.2CO_IFD$Rec.group == 1], 
-                                 male.bivdata.2CO_IFD$IFD1_PER[male.bivdata.2CO_IFD$Rec.group == 0])
- 
-Rec.group.BivData_IFD.PER_Ttest$p.value
-#p-value < 2.2e-16
-
-#MOUSE AVE  -- replace with mouse    mouse.avs_4MM,   male.av_4MM
-Rec.group_IFD.PER_Ttest <- t.test(  (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "1"))$mean_IFD.2CO_PER, 
-                                (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "0"))$mean_IFD.2CO_PER )
- 
-Rec.group_IFD.PER_Ttest$p.value 
-#p-value = 6.872e-07
-
-```
-
 ```{r Q2.IFD.glm.chrmLength, echo=FALSE, eval=FALSE}
 
 #repeating chrm models with chromsome length
@@ -6547,9 +6564,15 @@ close.IFD.rates.mus.rate <- ddply(Curated_BivData %>% filter(sex== "male") %>% f
                         N.obs  = length(Obj.ID),
 
                       #  mean_SC = as.numeric(format(round(  mean(chromosomeLength, na.rm = TRUE), 3 ), nsmall=3) ),
-                        mean.per.IFD = mean(IFD1_PER, na.rm=TRUE),
+                      mean.ABS.IFD = mean(IFD1_ABS, na.rm = TRUE),  
+                      mean.per.IFD = mean(IFD1_PER, na.rm=TRUE),
                         var.IFD = var(IFD1_PER, na.rm=TRUE),
                         
+                  #mean_IFD_short.removed
+                  mean.perIFD_short.rm = mean(  IFD1_PER[which(IFD1_PER >= .3)], na.rm=TRUE),
+                      
+                mean.absIFD_short.rm = mean(  IFD1_ABS[which(IFD1_PER >= .3)], na.rm=TRUE),
+                  
                       inverse.close.foci = length(which(IFD1_PER >= .31)),  
                       n.close.foci = length(which(IFD1_PER <= .3)),
                       
@@ -6558,9 +6581,16 @@ close.IFD.rates.mus.rate <- ddply(Curated_BivData %>% filter(sex== "male") %>% f
                       rate.close.foci = n.close.foci / N.obs
 )
 
+#mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+
 close.IFD.rates.mus.rate <- add_strain(close.IFD.rates.mus.rate)
 close.IFD.rates.mus.rate <- add_category(close.IFD.rates.mus.rate)
 close.IFD.rates.mus.rate <- add_subsp(close.IFD.rates.mus.rate)
+#add rec.group
+close.IFD.rates.mus.rate$Rec.group <- ifelse(grepl("PWD", close.IFD.rates.mus.rate$strain), 1, 
+                                ifelse(grepl("MSM", close.IFD.rates.mus.rate$strain), 1,
+                                 ifelse(grepl("SKIVE", close.IFD.rates.mus.rate$strain), 1, 0)))
+
 
 
 close.IFD.rates_strain <- ddply(Curated_BivData %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 2), 
@@ -6569,7 +6599,11 @@ close.IFD.rates_strain <- ddply(Curated_BivData %>% filter(sex== "male") %>% fil
 
                         mean_SC = as.numeric(format(round(  mean(chromosomeLength, na.rm = TRUE), 3 ), nsmall=3) ),
                         mean.per.IFD = mean(IFD1_PER, na.rm=TRUE),
-                        var.IFD = var(IFD1_PER),
+                        var.IFD = var(IFD1_PER, na.rm = TRUE),
+                        
+                        #mean_IFD_short.removed
+                      mean.perIFD_short.rm = mean(  IFD1_PER[which(IFD1_PER >= .3)], na.rm=TRUE),
+                      
                         
                       inverse.close.foci = length(which(IFD1_PER > .3)),  
                       n.close.foci = length(which(IFD1_PER < .3)),
@@ -6578,8 +6612,19 @@ close.IFD.rates_strain <- ddply(Curated_BivData %>% filter(sex== "male") %>% fil
                        off.by = (N.obs - sum(c(inverse.close.foci,n.close.foci)) )
                       
 )
-#the 
+
+close.IFD.rates_strain <- add_subsp(close.IFD.rates_strain)
+
+
+
+show.IFDrm <- ggplot(close.IFD.rates_strain, aes(y=mean.per.IFD, x=mean.perIFD_short.rm, color=strain))+geom_jitter()+scale_color_manual(values=colors_of_strains)+ylim(c(.4,.7))+xlim(c(.4,.7))+ggtitle("2CO interference differences")+ geom_abline(slope = 1, intercept = 0)
+
  
+
+#close.IFD.rates.mus.rate
+show.IFDrm_mus <- ggplot(close.IFD.rates.mus.rate, aes(y=mean.per.IFD, x=mean.perIFD_short.rm, color=strain))+geom_jitter()+scale_color_manual(values=colors_of_strains)+ylim(c(.4,.7))+xlim(c(.4,.7))+ggtitle("2CO interference differences") + geom_abline(slope = 1, intercept = 0)
+ 
+
 
 show.close.IFD.rate <- ggplot(close.IFD.rates_strain, aes(y=rate.close.foci, x=strain, color=strain))+geom_jitter()+scale_color_manual(values=colors_of_strains)
 
@@ -6595,7 +6640,6 @@ high.rec.props <- prop.test( ( close.IFD.rates_strain %>% filter(Rec.group == 1)
 #p-value = 0.03, slight dif tween 3 high rec strains
 
 #don't need to run chi square for this pattern, since it's enough to 
-
 ```
 
 ```{r Q2.IFD.PER.logreg, echo=FALSE, eval=FALSE}
@@ -6697,6 +6741,86 @@ Q2.glm_long.biv_M2.IFD.PER <- glm(IFD1_PER ~ strain, data= male.long.biv.2CO_IFD
 #summary(Q2.glm_long.biv_M2.IFD.PER)
 #The PER.IFDs don't have significant strain effects
 ```
+
+
+The greater IFD measures in high recombing strains is confirmed by fitting both the IFD^raw^ and IFD^norm^ into the linear model framework, where only the strain effects for the high recombining strains had significant p values (glm; p < 0.05). The similar patterns across the raw and normalized IFD values rule out differences in IFD^raw^ measures, SC lengths and chromosome size as the major driver of this pattern. We determined that the main difference in IFDPER distribution across the high and low groups is an enrichment of IFD^norm^ observations under 30% in low recombining strains. The rate of IFD^norm^ below 30% range from 8.2% ( _domesticus^G^_) to 16% ( _musculus^KAZ^_) in the low recombining strains, while the high strains all had rates under 5% (0%, 1.3%, and 3.3% for _musculus^SKIVE^_, _molossinus^MSM^_, and _musculus^PWD^_ respectively). 
+
+<REDO tests with the short IFDs removed, where do those above values come from >
+
+```{r Q2.IFD_remove.short, echo=FALSE, include=FALSE}
+#mus
+#PER 
+#biv level
+
+#mus
+
+```
+
+
+When I compared the normalized IFDs with and without the short IFD's included, -- predictably, many mouse averages for 2CO IFD do nnot change for higher rec strains (but some low too). Most of the low rec strains show a change in the PER IFD (but some high rec mice also changed)
+
+For the strain averages, the high rec strains also show low change in the normalized IFD -also these are all higher (0.6)
+
+
+
+<!--
+**Linear model M1 ** $$mouse \ average \ IFD ~=~ subsp * strain + \varepsilon $$
+
+**Linear model M2 ** $$mouse \ average \ IFD ~=~ strain + \varepsilon $$ -->
+
+```{r Q2.t.test_IFD, echo=FALSE, eval=FALSE}
+
+male.bivdata.2CO_IFD <- Curated_BivData %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 2)
+#t.tests for the Rec group
+Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
+                                    ifelse(grepl("MSM male", Curated_BivData$category), 1,
+                                           ifelse(grepl("SKIVE male",Curated_BivData$category),1, 0)))
+
+#Curated_BivData <- add_IFD(Curated_BivData)
+#THIS SHOULD ALREADY BE ADDED
+
+#single biv level
+Rec.group.BivData_IFD.PER_Ttest <- t.test(male.bivdata.2CO_IFD$IFD1_PER[male.bivdata.2CO_IFD$Rec.group == 1], 
+                                 male.bivdata.2CO_IFD$IFD1_PER[male.bivdata.2CO_IFD$Rec.group == 0])
+ 
+Rec.group.BivData_IFD.PER_Ttest$p.value
+#p-value < 2.2e-16
+
+#MOUSE AVE  -- replace with mouse    mouse.avs_4MM,   male.av_4MM
+Rec.group_IFD.PER_Ttest <- t.test(  (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "1"))$mean_IFD.2CO_PER, 
+                                (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "0"))$mean_IFD.2CO_PER )
+ 
+Rec.group_IFD.PER_Ttest$p.value 
+#p-value = 6.872e-07
+
+```
+
+```{r Q2.IFD_short.removed_t.test, echo=FALSE}
+
+#Curated_BivData_short.IFD.removed
+#still need to calq the mouse averages
+
+Short.removed_BivData_IFD.PER_Ttest <- t.test(Curated_BivData_short.IFD.removed$IFD1_PER[Curated_BivData_short.IFD.removed$Rec.group == 1], 
+                                 Curated_BivData_short.IFD.removed$IFD1_PER[Curated_BivData_short.IFD.removed$Rec.group == 0])
+ 
+Short.removed_BivData_IFD.PER_Ttest$p.value
+
+
+#
+Short.removed_BivData_IFD.PER_Ttest_mus.av <- t.test(close.IFD.rates.mus.rate$mean.perIFD_short.rm[close.IFD.rates.mus.rate$Rec.group == 1], 
+                                 close.IFD.rates.mus.rate$mean.perIFD_short.rm[close.IFD.rates.mus.rate$Rec.group == 0])
+
+Short.removed_BivData_IFD.PER_Ttest_mus.av$p.value
+
+
+Short.removed_BivData_IFD.ABS_Ttest_mus.av <- t.test(close.IFD.rates.mus.rate$mean.absIFD_short.rm[close.IFD.rates.mus.rate$Rec.group == 1], 
+                                 close.IFD.rates.mus.rate$mean.absIFD_short.rm[close.IFD.rates.mus.rate$Rec.group == 0])
+
+#p.value
+
+```
+
+The p values are still significant
 
 <!--
 RAW IFD M1 results for M1  -- `r sum.Q2.M1glm_IFD.raw$coefficients[,4][6]` PWD, 
