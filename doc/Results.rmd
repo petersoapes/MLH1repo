@@ -4249,11 +4249,36 @@ P1.by.P2_plot <- ggplot(Curated_BivData.22, aes(y = rev(PER_Foci_2), x= PER_Foci
   scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")+xlim(c(0,1))+ylim(c(0,1))
 
 #each point is a 2CO, with the F1 and F2 position 
+#based on plot from Dourad et al (Mercier)
 
-P1.by.P2_plot_raw <- ggplot(Curated_BivData.22, aes(y = Foci2, x= Foci1, color=strain))+
-  geom_jitter(alpha=.2)+
-  ggtitle("Normalized IFD")+
-  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")
+P1.by.P2_plot_raw.WSB <- ggplot(Curated_BivData.22 %>% filter(strain == "WSB"),
+    aes(y = Foci2, x= Foci1, color=strain))+
+  geom_jitter(alpha=.5)+
+  ggtitle("Raw IFD WSB")+
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none") + ylim(c(0,160))+xlim(c(0,160))+ theme(  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank() )
+
+#trying to move x axis to top
+#cowplot might be the easier way -- since kinda diffecult in ggplot
+#or ggdraw
+
+P1.by.P2_plot_nrm.PWD.f <- ggplot(Curated_BivData.22 %>% filter(strain == "PWD") %>% filter(sex == "female"),
+    aes(y = PER_Foci_2, x= PER_Foci_1, color=strain))+
+  geom_jitter(alpha=.5)+
+#  scale_x_continuous(position = "top") +
+  scale_x_continuous(sec.axis = dup_axis(), position = "top")+
+    ggtitle("Nrm IFD PWD, female")+scale_color_manual(values=colors_of_strains)+ ylim(c(0,1))+xlim(c(0,1))+ theme(  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank() )
+
+
+P1.by.P2_plot_nrm.PWD.male <- ggplot(Curated_BivData.22 %>% filter(strain == "PWD") %>% filter(sex == "male"),
+    aes(y = PER_Foci_2, x= PER_Foci_1, color=strain))+
+  geom_jitter(alpha=.5)+
+#  scale_x_continuous(position = "top") +
+  scale_x_continuous(sec.axis = dup_axis(), position = "top")+
+    ggtitle("Nrm IFD PWD, male")+scale_color_manual(values=colors_of_strains)+ ylim(c(0,1))+xlim(c(0,1))+ theme(  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank() )
+
 
 
 #boxplots
