@@ -4242,6 +4242,20 @@ DeBoer 2006, 13 -- measured chrm 1 in males and females, both were 2.8 microns -
 Curated_BivData.22 <- Curated_BivData[Curated_BivData$hand.foci.count == 2,]
 Curated_BivData.22 <- Curated_BivData.22[(!is.na(Curated_BivData.22$hand.foci.count)),]
 
+
+P1.by.P2_plot <- ggplot(Curated_BivData.22, aes(y = rev(PER_Foci_2), x= PER_Foci_1, color=strain))+
+  geom_jitter(alpha=.2)+
+  ggtitle("Normalized IFD")+
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")+xlim(c(0,1))+ylim(c(0,1))
+
+#each point is a 2CO, with the F1 and F2 position 
+
+P1.by.P2_plot_raw <- ggplot(Curated_BivData.22, aes(y = Foci2, x= Foci1, color=strain))+
+  geom_jitter(alpha=.2)+
+  ggtitle("Normalized IFD")+
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")
+
+
 #boxplots
 boxplots_first.IFD.plot_ABS <- ggplot(Curated_BivData.22, aes(y = IFD1_ABS, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
   geom_jitter(alpha=.2)+
@@ -4542,8 +4556,6 @@ WSB.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "WSB") %>% fil
 
 ```
 
-
-
 ```{r gamma.IFD, echo=FALSE}
 
 female.gamma <- egamma( (all.female.IFDs )$IFDval, method = "mle", ci = TRUE, 
@@ -4797,7 +4809,6 @@ WSB.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "WSB") %>% fil
 ```
 
 
-
 <!--
 The differences between the sexes is slightly different depending on if the males are in the high rec group. In the low rec strains (Dom + KAZ)...
 (both males and females IFD distributions have lower and upper thresholds around 25% and 75%) respectively. however the weight of observations are slightly shifted across the sexes. There's an enrichment of lower IFD^norm^ in females relative to males, while the opposite is true for the higher threshold -- where males have an enrichment of higher/long IFD^norm^ compared to females.
@@ -4903,6 +4914,18 @@ summry.glm.Q1_IFD.PER.M3 <- summary(glm.Q1_IFD.PER.M3)
 ```
 
 The three sets of models support the result of stronger interference in males, sex was the most significant significant effect (LRT: p = `r Q1.IFD.PER_M1_lmer.results$sex.results`). When interference is measured in physical SC units (IFD^raw^), the differences between sexes is low and only slightly significant (data not shown). These results support the model of the physical measures of interference (in SC units) is conserved between sexes inwithin the same species.  
+
+
+```{r Q1.IFD.plot, echo=FALSE}
+
+#make interference plots of IFD, position p1 by p2
+
+
+
+
+```
+
+
 
 ```{r Comp_Ratios, echo=FALSE}
 
