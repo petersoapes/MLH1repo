@@ -1826,24 +1826,48 @@ lm.m2.Q12VAR.male_sum <- summary(lm.m2.Q12_male)
 
 # Partitioning variation in recombination rate
 
+
 To situate variation in recombination rate within an evolutionary framework, we
-We applied fit a series of models including subspecies, strain, and sex, to to our dataset of mean MLH1 foci counts from 187 mice to fit the patterns of variation across sex, subspecies and strain into an evolutionary framework. We began with a full mixed model (M1, see Methods), which showed that strain (random effect p < someSmallNumber), sex (p = 3.9710^{-5}), subspecies (p= 1.7210^{-4}), and subspecies * sex (p = 3.110^{-5}) each significantly affect recombination rate. After a general linear model including all factors as fixed effects (M2) revealed only weak contributions of subspecies, we focused on additional models designed to illuminate the role of strain and sex. A general linear model with these two variables (M3) identified two strains with particularly strong effects on recombination rate: musculusMSM (p= 3.9910^{-6}) and domesticusG (p= 1.0410^{-6}). In addition, two strains exhibit strain-by-sex interactions:  molossinusMSM  (p = 1.2610^{-4}) and musculusPWD (p = 3.8610^{-4}). 
-We next fit general linear models separately for 192 males and 144 females (M4). In the male dataset, three strains significantly affect recombination rate: molossinusMSM (p = 2.2310^{-14}; effect = X MLH1 foci), All of the effects within the mixed model M1 were highly significant (LRT: subsp p= 1.7210^{-4}, sex p = 3.9710^{-5}, subspecies * sex p = 3.110^{-5}) and random LTR; strain p= 0 ).
-M1. Mixed Model 
-mouse av. MLH1 foci per cell = subsp*sex+rand(strain)+??
-M2. Linear Model
-mouse av. MLH1 foci per cell = subsp*sex*strain+??
-M3. Linear Model
-mouse av. MLH1 foci per cell = sex*strain+??
-M4. Linear Model
-sex specific mouse av. MLH1 foci per cell = subsp*strain+??
+We applied fit a series of models including subspecies, strain, and sex, to to our dataset of mean MLH1 foci counts from `r length(DF.HetC.MixedModel.HQ$mean_co)` mice to fit the patterns of variation across sex, subspecies and strain into an evolutionary framework. We began with a full mixed model (M1, see Methods), which showed that strain 
+(random effect p < `r MLH1.MMlmer_results$rand.pval`   **someSmallNumber**), sex (p = `r MLH1.MMlmer_results$sex.results` -- 3.9710^{-5}), subspecies (p=`r MLH1.MMlmer_results$interaction.pval`--  1.7210^{-4}), and subspecies sex (p = `r MLH1.MMlmer_results$interaction.pval` -- 3.110^{-5}) each significantly affect recombination rate. 
 
 
-The linear model results confirm the qualitative observations of sex-specific evolution and significant difference in the degree of sexual dimorphism in genome wide recombination rates. The subspecies fixed effects tested in M2, were either weak or not significant (glm; p=0.22 and p= 0.09 for M. m. musculus and M. m. molossinus respectively), indicating that most of the variance is due to strain effects. As such, we focus on results from M3. The two most significant strain effects were domesticusG and musculusMSM (p= 1.0410^{-6} and p= 3.9910^{-6} for domesticusG and molossinusMSM respectively). In addition to significant strain effects for molossinusMSM, (glm; p = 0.06 and p = 3.9910^{-6}) both musculusPWD and musculusMSM had significant strain by sex effects (glm; p = 3.8610^{-4} and p = 1.2610^{-4}) musculusPWD by male and musculusMSM by male. Combined, these results demonstrate that i) the significant sex-specific evolution in MSM and PWD and ii) the larger magnitude of heterochiasmy in domesticusG.
-A linear model was run on the sex specific data sets (M4), with 192 male and 144 female mean MLH1 foci per cell. There were three significant strain effects in the male specific data; musculusPWD ((glm; p = 7.3710^{-10}; effect = X foci), and musculusSKIVE (glm; p = 0.01; effect = X foci). These three strains point to rapid evolution in recombination rate in spermatocytes; we subsequently refer to them collectively as "high-recombination" strains. Analysis of the female dataset points to four strains with significant effects on recombination rate:  and molossinusMSM (glm; p=2.2310^{-14} with effect sizes ranging from 5, 7, and 2 foci respectively.  Given these results, theses strains are classified as 'high recombining' strains and point to rapid evolution in the recombiantion rate for spermatocytes.
-While the female specific linear model has many more had significant strain effects; domesticusG (glm; p = 2.510^{-6}), molossinusMSM (p = 6.2410^{-6}), domesticusLEW (glm; p = 0.01), and domesticusPWD musculusPWD (glm; p=0.02). Strain effect sizes in females are modest in magnitude (ranging from 1 to 4 foci) compared to those in males., domesticusMSM (glm; p=6.2410^{-6}), domesticusMOLF(glm; p=0.08), and domesticusKAZ(glm; p=0.1), the effect sizes have a smaller range of (4 to 1), indicating significant but small strain specific effects on mean MLH1 foci per cell.
+<for values> The linear model results confirm the qualitative observations of sex-specific evolution and significant difference in the degree of sexual dimorphism in genome-wide recombination rates. The subspecies fixed effects tested in M2, were either weak or not significant (glm; p=`r summ.MLH1.M2.glm.strain.fixed.full$coefficients[,4][2]` and p= `r summ.MLH1.M2.glm.strain.fixed.full$coefficients[,4][3]` for _M. m. musculus_ and _M. m. molossinus_ respectively), indicating that most of the variance is due to strain effects.
+
+As such, we focus on results from M3. The two most significant strain effects were _domesticus^G^_ and _musculus^MSM^_ (p= `r summ.MLH1.M3.strain.fixed$coefficients[,4][3]` and p= `r summ.MLH1.M3.strain.fixed$coefficients[,4][6]` for _domesticus^G^_ and _molossinus^MSM^_ respectively). In addition to significant strain effects for _molossinus^MSM^_, (glm; p = `r summ.MLH1.M3.strain.fixed$coefficients[,4][5]` and p = `r summ.MLH1.M3.strain.fixed$coefficients[,4][6]`)  both _musculus^PWD^_ and _musculus^MSM^_ had significant strain by sex effects (glm; p = `r summ.MLH1.M3.strain.fixed$coefficients[,4][12]`
+and p = `r summ.MLH1.M3.strain.fixed$coefficients[,4][13]`) _musculus^PWD^_ by male and _musculus^MSM^_ by male. Combined, these results demonstrate that i) the significant sex-specific evolution in MSM and PWD and ii) the larger magnitude of heterochiasmy in _domesticus^G^_. 
+
+
+
+After a general linear model including all factors as fixed effects (M2) revealed only weak contributions of subspecies, we focused on additional models designed to illuminate the role of strain and sex. A general linear model with these two variables (M3) identified two strains with particularly strong effects on recombination rate: musculus^MSM^ (p= 3.9910^{-6} p= `r summ.MLH1.M3.strain.fixed$coefficients[,4][6]`)
+and domesticus^G^ (p= 1.0410^{-6}  -- `r summ.MLH1.M3.strain.fixed$coefficients[,4][3]`). In addition, two strains exhibit strain-by-sex interactions:  molossinus^MSM^  (p = 1.2610^{-4} -- `r summ.MLH1.M3.strain.fixed$coefficients[,4][13]`) and musculus^PWD^ (p = 3.8610^{-4} -- `r summ.MLH1.M3.strain.fixed$coefficients[,4][12]`). 
+
+We next fit general linear models separately for 192 males and 144 females (M4). In the male dataset, three strains significantly affect recombination rate: molossinus^MSM^ (p = 2.2310^{-14}; effect = X MLH1 foci), All of the effects within the mixed model M1 were highly significant (LRT: subsp p= 1.7210^{-4}, sex p = 3.9710^{-5}, subspecies * sex p = 3.110^{-5}) and random LTR; strain p= 0 ).
+
+
+
+**M1. Mixed Model** $$mouse \ av.\ MLH1\ foci\ per\ cell ~=~ subsp * sex + rand(strain) + \varepsilon $$
+
+**M2. Linear Model** $$mouse \ av.\ MLH1\ foci\ per\ cell ~=~ subsp * sex * strain + \varepsilon$$
+
+**M3. Linear Model** $$mouse \ av.\ MLH1\ foci\ per\ cell ~=~ sex * strain + \varepsilon$$
+
+**M4. Linear Model** $$sex\ specific\ mouse \ av.\ MLH1\ foci\ per\ cell ~=~ subsp * strain + \varepsilon$$
+
+
+The linear model results confirm the qualitative observations of sex-specific evolution and significant difference in the degree of sexual dimorphism in genome wide recombination rates. The subspecies fixed effects tested in M2, were either weak or not significant (glm; p=0.22 and p= 0.09 for *M. m. musculus* and *M. m. molossinus* respectively), indicating that most of the variance is due to strain effects. As such, we focus on results from M3. The two most significant strain effects were domesticusG and musculus^MSM^ (p= 1.0410^{-6} and p= 3.9910^{-6} for domesticusG and molossinusMSM respectively). In addition to significant strain effects for molossinus^MSM^, (glm; p = 0.06 and p = 3.9910^{-6}) both musculusPWD and musculus^MSM^ had significant strain by sex effects (glm; p = 3.8610^{-4} and p = 1.2610^{-4}) musculus^PWD^ by male and musculusMSM by male. Combined, these results demonstrate that i) the significant sex-specific evolution in MSM and PWD and ii) the larger magnitude of heterochiasmy in domesticusG.
+
+
+
+
+A linear model was run on the sex specific data sets (M4), with `r length(fomo.male_mouse.av$mouse)` -- 192 male and `r length(female_mouse.avs_for.analysis$mouse)` -- 144 female mean MLH1 foci per cell. There were three significant strain effects in the male specific data; musculus^PWD^ ((glm; p = 7.3710^{-10} -- `r sum_MLH1.male.specific.glm.M2$coefficients[5,][4]`; effect = ~ 5 X foci), and musculus^SKIVE^ (glm; p = 0.01; `r sum_MLH1.male.specific.glm.M2$coefficients[8,][4]` -- effect = ~7 foci), and  _molossinus^MSM^_ (glm; p=`r sum_MLH1.male.specific.glm.M2$coefficients[6,][4]`; effect ~ 2 foci). 
+
+
+These three strains point to rapid evolution in recombination rate in spermatocytes; we subsequently refer to them collectively as "high-recombination" strains. Analysis of the female dataset points to four strains with significant effects on recombination rate:  and molossinus^MSM^ (glm; p=2.2310^{-14} with effect sizes ranging from 5, 7, and 2 foci respectively.  Given these results, theses strains are classified as 'high recombining' strains and point to rapid evolution in the recombiantion rate for spermatocytes.
+While the female specific linear model has many more had significant strain effects; domesticus^G^ (glm; p = 2.510^{-6}), molossinus^MSM^ (p = 6.2410^{-6}), domesticus^LEW^ (glm; p = 0.01), and domesticusPWD musculusPWD (glm; p=0.02). Strain effect sizes in females are modest in magnitude (ranging from 1 to 4 foci) compared to those in males., domesticus^MSM^ (glm; p=6.2410^{-6}), domesticus^MOLF^(glm; p=0.08), and domesticus^KAZ^ (glm; p=0.1), the effect sizes have a smaller range of (4 to 1), indicating significant but small strain specific effects on mean MLH1 foci per cell.
 Together, these results demonstrate heritable differences in the genome-wide recombination rate evolving in a highly sex-specific manner over short evolutionary timescales.
 
+<bret above>
 
 ```{r MLH1co.lmer.MM, echo=FALSE, waring=FALSE, message=FALSE}
 
@@ -1867,25 +1891,9 @@ MLH1.MM_strain)
 
 ```
 
- <to better understand this varation in RR within an evolutionary framework. Make table of models>
 
 We applied a series of models to our dataset of mean MLH1 foci counts from `r length(DF.HetC.MixedModel.HQ$mean_co)` mice to fit the patterns of variation across sex, subspecies and strain into an evolutionary framework. All of the effects within the mixed model M1 were highly significant (LRT: subsp p= `r MLH1.MMlmer_results$sub.sp`, sex p = `r MLH1.MMlmer_results$sex.results`, subspecies * sex p = `r MLH1.MMlmer_results$interaction.pval`) and random LTR; strain p= `r MLH1.MMlmer_results$rand.pval`).
 
-**M1. Mixed Model** $$mouse \ av.\ MLH1\ foci\ per\ cell ~=~ subsp * sex + rand(strain) + \varepsilon $$
-
-**M2. Linear Model** $$mouse \ av.\ MLH1\ foci\ per\ cell ~=~ subsp * sex * strain + \varepsilon$$
-
-**M3. Linear Model** $$mouse \ av.\ MLH1\ foci\ per\ cell ~=~ sex * strain + \varepsilon$$
-
-**M4. Linear Model** $$sex\ specific\ mouse \ av.\ MLH1\ foci\ per\ cell ~=~ subsp * strain + \varepsilon$$
-
- 
- <These results allow use to reject the hypothesis of genome-wide recombination rates (varying consistantly by sex across subepcies -- and having variance within subspecies due to strains)>
-
- <!-- (random strain effect was meant to reflect sampling of gentic backgrounds/standing genetic variation for a subspecies) -- (significant pvalue indicates that the variance is not 0)>
- indicating, fixed effects -- random effect variance due to each strain nested within subspecies
- <The linear models, allow us to quantifying the significance in sepecific fixed effects and focus on how specific levels and interactions create these differences.
- -->
 
 ```{r MLH1.glmM2, echo=FALSE}
 
@@ -1916,6 +1924,7 @@ summ.MLH1.M3.strain.fixed <- summary(MLH1.M3.strain.fixed)
 
 #write.table(summ.strain.fixed$coefficients , "~./MLH1repo/summ.strain.fixed.csv", sep=",",row.names = TRUE)
 ```
+
 
 The linear model results confirm the qualitative observations of sex-specific evolution and significant difference in the degree of sexual dimorphism in genome-wide recombination rates. The subspecies fixed effects tested in M2, were either weak or not significant (glm; p=`r summ.MLH1.M2.glm.strain.fixed.full$coefficients[,4][2]` and p= `r summ.MLH1.M2.glm.strain.fixed.full$coefficients[,4][3]` for _M. m. musculus_ and _M. m. molossinus_ respectively), indicating that most of the variance is due to strain effects. As such, we focus on results from M3. The two most significant strain effects were _domesticus^G^_ and _musculus^MSM^_ (p= `r summ.MLH1.M3.strain.fixed$coefficients[,4][3]` and p= `r summ.MLH1.M3.strain.fixed$coefficients[,4][6]` for _domesticus^G^_ and _molossinus^MSM^_ respectively). In addition to significant strain effects for _molossinus^MSM^_, (glm; p = `r summ.MLH1.M3.strain.fixed$coefficients[,4][5]` and p = `r summ.MLH1.M3.strain.fixed$coefficients[,4][6]`)  both _musculus^PWD^_ and _musculus^MSM^_ had significant strain by sex effects (glm; p = `r summ.MLH1.M3.strain.fixed$coefficients[,4][12]`
 and p = `r summ.MLH1.M3.strain.fixed$coefficients[,4][13]`) _musculus^PWD^_ by male and _musculus^MSM^_ by male. Combined, these results demonstrate that i) the significant sex-specific evolution in MSM and PWD and ii) the larger magnitude of heterochiasmy in _domesticus^G^_. 
