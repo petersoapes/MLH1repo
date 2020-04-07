@@ -28,7 +28,7 @@ library(nlme)
 library(RLRsim)
 library(ggpubr)
 library(reshape2)
-library(patchwork)
+#library(patchwork)
 
 options(digits=2)
 
@@ -94,18 +94,6 @@ MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
 # sort your dataframe, by the focal categories
 MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 #use the above line for when order is out of wak
-
-
-#count the non-quality measures,  #remove non qualit
-#length(MLH1_data[ !(is.na(MLH1_data$quality) | MLH1_data$quality==""), ] )  #15 rows with out quality scores, remove.
-#MLH1_data <- MLH1_data[ !(is.na(MLH1_data$quality) | MLH1_data$quality==""), ]
-
-#MLH1_by_F_strain <- MLH1_data[MLH1_data$sex == "female", ]
-#MLH1_by_M_strain <- MLH1_data[MLH1_data$sex == "male", ]
-
-#MLH1_data <- MLH1_data %>%
-#  arrange(category) %>%
-#  mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
 
 #MLH1_data <- with(MLH1_data, MLH1_data[order(category),])
 AP_mouse_table.HQ$var <- as.numeric(AP_mouse_table.HQ$var)
@@ -237,7 +225,6 @@ ll <- ggplot(table_gamma_estimates, aes(y=mean.rbar, x = all.biv.gamma, color = 
 #house mouse raw nu is around 11
 
 ```
-
 
 
 ```{r MLH1.FEMALE.TABLE, echo=FALSE}
@@ -1119,7 +1106,7 @@ mouse.av_sc_male <- ggplot(data= OG.totSC.mouse.av.table[OG.totSC.mouse.av.table
 
 ```
 
-```{r, tot.SC.setup, echo = FALSE}
+```{r tot.SC.setup, echo = FALSE}
 
 totSC.strain.av.table <- ddply(.data=totSC.mouse.av.table, 
                  .(sex,strain),
@@ -1493,7 +1480,7 @@ VandMean.mouse <- ggplot(aes(x=mean_co, y = var), data=AP_mouse_table.HQ )+geom_
 
 cVandMean.mouse <- ggplot(aes(x=mean_co, y = cV), data=AP_mouse_table.HQ )+geom_point(aes(color=strain))+facet_wrap(~sex)+ggtitle("mouse MLH1 averages; cV by means")
 
-str(AP_mouse_table.HQ)
+#str(AP_mouse_table.HQ)
 
 cor(AP_mouse_table.HQ$mean_co[AP_mouse_table.HQ$sex == "female"], AP_mouse_table.HQ$var[AP_mouse_table.HQ$sex == "female"])
 #[1] 0.5750399
@@ -1519,8 +1506,6 @@ AP_mouse_table.HQ.10plus <- AP_mouse_table.HQ[AP_mouse_table.HQ$Ncells >= 10,]
 
 VandMean.mouse.10plus <- ggplot(aes(x=mean_co, y = var), data=AP_mouse_table.HQ.10plus )+geom_point(aes(color=strain))+facet_wrap(~sex)+ggtitle("10 plus mouse MLH1 averages; variance by mean")
 
-
-
 cor(AP_mouse_table.HQ.10plus$mean_co[AP_mouse_table.HQ.10plus$sex == "female"], AP_mouse_table.HQ.10plus$cV[AP_mouse_table.HQ.10plus$sex == "female"])
 
 
@@ -1544,7 +1529,9 @@ female.musc.mice.table <- ddply(female.musc.cells, c("sex"), summarise,
 )
 ```
 
-# Genome wide recombination rate estimates for both sexes
+
+# genome-wide recombination rate estimates for both sexes
+
 
 ```{r MLH1.summ.stats, echo=FALSE}
 
@@ -1577,33 +1564,32 @@ main.table <- add_species(main.table)
 
 ```
 
-We used counts of MLH1 foci per cell to estimate genome-wide recombination rates in 14 wild-derived inbred strains sampled from three subspecies of house mice: M. m. domesticus, M. m. musculus and M. m. molossinus. Mean MLH1 foci counts for XX mice were quantified from an average of XX spermatocytes per male (for a total of 1,867 spermatocytes) and XX oocytes per female (for a total of 1,409 oocytes). 
+
+```{r MLH1.sum.stats.Bret.edits, echo=FALSE}
+
+AP_mouse_table.HQ <- add_species(AP_mouse_table.HQ)
+
+#total mice
+length( unique(AP_mouse_table.HQ %>% filter(species == "M.musculus") )$mouse )
+
+#average cell number for spermatocytes and oocytes
+
+#mean(female_mouse.avs_for.analysis$Ncells, na.rm = T)
+
+#mean( (male_mouse.av %>% filter(species == "M.musculus") )$Ncells, na.rm = T)
+
+```
+
+
+We used counts of MLH1 foci per cell to estimate genome-wide recombination rates in `r length(unique(  (main.table  %>% filter(species == "M.musculus") )$strain) )` wild-derived inbred strains sampled from three subspecies of house mice: *M. m. domesticus*, *M. m. musculus* and *M. m. molossinus*. Mean MLH1 foci counts for `r length( unique(AP_mouse_table.HQ %>% filter(species == "M.musculus") )$mouse )` mice were quantified from an average of `r mean( (male_mouse.av %>% filter(species == "M.musculus") )$Ncells, na.rm = T)` spermatocytes per male (for a total of `r sum( (main.table %>% filter(species == "M.musculus") %>% filter(sex == "male"))$Ncells)` spermatocytes) and `mean(female_mouse.avs_for.analysis$Ncells, na.rm = T)` oocytes per female (for a total of `r sum( (main.table %>% filter(species == "M.musculus") %>% filter(sex == "female"))$Ncells)` oocytes). 
+
+
 Graphical comparisons between the two sexes reveal several patterns (Figure 1A). First, recombination rate differs between females and males in most strains. Second, the direction and magnitude of heterochiasmy varies among strains. Although the majority of strains show higher recombination rates in females (following the pattern in laboratory mice), two musculus strains and one molossinus strain exhibit male-biased heterochiasmy. Hence, relative recombination rates in the two sexes are evolutionarily labile.
 Separately examining the mouse means of MLH1 foci per cell for each sex points to distinct patterns of variation (Figure 1B-C). Female recombination rates are evenly distributed around the sex-wide mean of approximately 25 MLH1 foci per cell (Figure 1B). In stark contrast, males separate more clearly into two groups of strains with high rates (near 30 MLH1 foci per cell) and low rates (near 23 MLH1 foci per cell) (Figure 1C).
 
+The general patterns of heterochiasmy in house mouse are displayed in Figure 1A. Taking note of the direction and the magnitude of the sex differences, our results confirm two general patterns: i) genome-wide recombination rates averages are greater in females compared to males (female biased heterochiasmy) and ii) the degree of heterochiasmy (Female:Male ratio) is generally low, ranging from `r G.HETC.val` in _domesticus^G^_ to `r LEW.HETC.val` in _domesticus^LEW^_. Three notable exceptions of male biased heterochiasmy are the strains _musculus^PWD^_, _molossinus^MSM^_ and _musculus^SKIVE^_, with heterochiasmy values of `r PWD.HETC.val`, `r MSM.HETC.val` and `r SKIVE.HETC.val` respectively.
 
-
-We used counts of MLH1 foci per cell to estimate the genome wide recombination rates across our panel of `r length(unique(  (main.table  %>% filter(species == "M.musculus") )$strain) )` wild derived inbred strains sampled from three subspecies within the house mouse species complex;  _M. m. domesticus,_ _M. m. musculus_ and _M. m. molossinus_. Mean MLH1 foci counts for each mouse were quantified from a total of `r sum( (main.table %>% filter(species == "M.musculus") %>% filter(sex == "male"))$Ncells)` spermatocytes and `r sum( (main.table %>% filter(species == "M.musculus") %>% filter(sex == "female"))$Ncells)` oocytes. <!-- state the average number of mice
-The sampling of prophase oocytes is diffecult and was the limiting factor thus there are some strains with only MLH1 counts from spermatocytes, which are included for sex specific analysises. -->
-
-<!--
-1. Fig1A  magnitude and direction of heterochiasmy;
--general patterns i) female higher and ii) low degree of hetC  (range of 1 to 1.2) (human is 1.6)
--All strain means are above the expected minimum of 20 (1CO per chromosome)
--there are exceptions they are followed up in the sex-specific plots  (male higher)
-
-2. Fig1B and C mouse means and sex specific patterns; 
--female mouse mean distributions are have more spread across the range of means
--male distributions are more clustered, low and high (~30% evolution largest-rapid evolution of gwRR)
--sex-specific evolution, both sexes don't show equivalent elevation of gwRR
--Dom vs Molossinus and Musculus -->
-
-The general patterns of heterochiasmy in house mouse are displayed in Figure 1A. Taking note of the direction and the magnitude of the sex differences, our results confirm two general patterns: i) genome wide recombination rates averages are greater in females compared to males (female biased heterochiasmy) and ii) the degree of heterochiasmy (Female:Male ratio) is generally low, ranging from `r G.HETC.val` in _domesticus^G^_ to `r LEW.HETC.val` in _domesticus^LEW^_. Three notable exceptions of male biased heterochiasmy are the strains _musculus^PWD^_, _molossinus^MSM^_ and _musculus^SKIVE^_, with heterochiasmy values of `r PWD.HETC.val`, `r MSM.HETC.val` and `r SKIVE.HETC.val` respectively.
-
-Examining the mouse means of MLH1 foci per cell separately for each sex reveal distinct patterns of variation (Figure1 B and C). The female means are evenly distributed around the sex-wide mean of approximately 25 MLH1 foci per cell (Figure1 B). While in males, the strain specific means separate more clearly into two groups of high genome wide recombination rates near 30 MLH1 foci per cell and low genome wide recombination rates, near 23 MLH1 foci per cell (Figure1 C).
-
-<illustrate sex differences female mean `r mean((main.table %>% filter(sex=="female") )$mean_co )`>
-
+Separtely examining the mouse means of MLH1 foci per cell separately for each sex reveal distinct patterns of variation (Figure1 B and C). Female recombination rate means are evenly distributed around the sex-wide mean of approximately 25 MLH1 foci per cell (Figure1 B). In stark contrast, males specific means separate more clearly into two groups of strains with high genome-wide recombination rates (near 30 MLH1 foci per cell) and low genome-wide recombination rates, (near 23 MLH1 foci per cell) (Figure1 C).
 
 
 ```{r female.strain.table, echo=FALSE}
@@ -1688,10 +1674,6 @@ sum_MLH1.female.spc.glm.M2 <- summary(MLH1.female.spc.glm.M2)
 #write.table(lm.female.strain_sum$coefficients, "~./MLH1repo/lm.female.strain.csv", sep=",",row.names = TRUE)
 ```
 
-<!--
-The variance across mouse means for each strain is also variable across strains. With _domesticus^LEW^_ having the most significant strain effect in the second model (glm; p= ).
- -->
- 
 ```{r FEMALE.VAR.MODELS, echo=FALSE}
 ## within mouse variance models 
 lmVAR.female.strain.subsp <- glm(var ~ subsp * strain, data= female_mouse.avs_for.analysis)
@@ -1807,7 +1789,6 @@ sum_MLH1.male.specific.glm.M2 <- summary(MLH1.male.specific.glm.M2)
 #even when all the other male strains are added -- the same result; PWD, MSM and SKIVE strain effects are significant.
 ```
 
-
 ```{r MALE.SPECIFIC.variance.model, echo=FALSE}
 ## within mouse variance models 
 lmVAR.male.strain.subsp <- lm(var ~ subsp * strain, data= just.male_mouse.av)
@@ -1882,7 +1863,7 @@ We applied a series of models to our dataset of mean MLH1 foci counts from `r le
 **M4. Linear Model** $$sex\ specific\ mouse \ av.\ MLH1\ foci\ per\ cell ~=~ subsp * strain + \varepsilon$$
 
  
- <These results allow use to reject the hypothesis of genome wide recombination rates (varying consistantly by sex across subepcies -- and having variance within subspecies due to strains)>
+ <These results allow use to reject the hypothesis of genome-wide recombination rates (varying consistantly by sex across subepcies -- and having variance within subspecies due to strains)>
 
  <!-- (random strain effect was meant to reflect sampling of gentic backgrounds/standing genetic variation for a subspecies) -- (significant pvalue indicates that the variance is not 0)>
  indicating, fixed effects -- random effect variance due to each strain nested within subspecies
@@ -1919,7 +1900,7 @@ summ.MLH1.M3.strain.fixed <- summary(MLH1.M3.strain.fixed)
 #write.table(summ.strain.fixed$coefficients , "~./MLH1repo/summ.strain.fixed.csv", sep=",",row.names = TRUE)
 ```
 
-The linear model results confirm the qualitative observations of sex-specific evolution and significant difference in the degree of sexual dimorphism in genome wide recombination rates. The subspecies fixed effects tested in M2, were either weak or not significant (glm; p=`r summ.MLH1.M2.glm.strain.fixed.full$coefficients[,4][2]` and p= `r summ.MLH1.M2.glm.strain.fixed.full$coefficients[,4][3]` for _M. m. musculus_ and _M. m. molossinus_ respectively), indicating that most of the variance is due to strain effects. As such, we focus on results from M3. The two most significant strain effects were _domesticus^G^_ and _musculus^MSM^_ (p= `r summ.MLH1.M3.strain.fixed$coefficients[,4][3]` and p= `r summ.MLH1.M3.strain.fixed$coefficients[,4][6]` for _domesticus^G^_ and _molossinus^MSM^_ respectively). In addition to significant strain effects for _molossinus^MSM^_, (glm; p = `r summ.MLH1.M3.strain.fixed$coefficients[,4][5]` and p = `r summ.MLH1.M3.strain.fixed$coefficients[,4][6]`)  both _musculus^PWD^_ and _musculus^MSM^_ had significant strain by sex effects (glm; p = `r summ.MLH1.M3.strain.fixed$coefficients[,4][12]`
+The linear model results confirm the qualitative observations of sex-specific evolution and significant difference in the degree of sexual dimorphism in genome-wide recombination rates. The subspecies fixed effects tested in M2, were either weak or not significant (glm; p=`r summ.MLH1.M2.glm.strain.fixed.full$coefficients[,4][2]` and p= `r summ.MLH1.M2.glm.strain.fixed.full$coefficients[,4][3]` for _M. m. musculus_ and _M. m. molossinus_ respectively), indicating that most of the variance is due to strain effects. As such, we focus on results from M3. The two most significant strain effects were _domesticus^G^_ and _musculus^MSM^_ (p= `r summ.MLH1.M3.strain.fixed$coefficients[,4][3]` and p= `r summ.MLH1.M3.strain.fixed$coefficients[,4][6]` for _domesticus^G^_ and _molossinus^MSM^_ respectively). In addition to significant strain effects for _molossinus^MSM^_, (glm; p = `r summ.MLH1.M3.strain.fixed$coefficients[,4][5]` and p = `r summ.MLH1.M3.strain.fixed$coefficients[,4][6]`)  both _musculus^PWD^_ and _musculus^MSM^_ had significant strain by sex effects (glm; p = `r summ.MLH1.M3.strain.fixed$coefficients[,4][12]`
 and p = `r summ.MLH1.M3.strain.fixed$coefficients[,4][13]`) _musculus^PWD^_ by male and _musculus^MSM^_ by male. Combined, these results demonstrate that i) the significant sex-specific evolution in MSM and PWD and ii) the larger magnitude of heterochiasmy in _domesticus^G^_. 
 
 A linear model was run on the sex specific data sets (M4), with `r length(fomo.male_mouse.av$mouse)` male and `r length(female_mouse.avs_for.analysis$mouse)` female mean MLH1 foci per cell. There were three significant strain effects in the male specific data; _musculus^PWD^_ (glm; p=`r sum_MLH1.male.specific.glm.M2$coefficients[5,][4]`), _musculus^SKIVE^_ (glm; p=`r sum_MLH1.male.specific.glm.M2$coefficients[8,][4]`) and _molossinus^MSM^_ (glm; p=`r sum_MLH1.male.specific.glm.M2$coefficients[6,][4]` with effect sizes ranging from 5, 7, and 2 foci respectively. Given these results, theses strains are classified as 'high recombining' strains and point to rapid evolution in the recombiantion rate for spermatocytes.
@@ -2100,10 +2081,10 @@ meiotic Checkpoints for ensuring consistency (Hochwagen and Amon 2006, Li and Sc
 
 <SUMMERIZE BOTH THE MLH1 evolution and within mouse variance HERE>
 <The greater amount of within mouse variance in females (almost and, (males have no detecable difference across strains for within mouse variance)
--- supports the distinct evolutionary pressures acting on the genome wide recombination rate in oocytes and spermatocytes.
-The striking patterns of variation across male and females suggest that the genome wide recombination rates have distinct evolutionary trajectories. For female the pattern of Strain averages distributed around a species wide average fits a model of stabilizing or relaxed evolution in contrast to the male pattern where there is rapid evolution in a subset of genetic strains that is close to a model of directional selection on genome wide recombination rate.>
+-- supports the distinct evolutionary pressures acting on the genome-wide recombination rate in oocytes and spermatocytes.
+The striking patterns of variation across male and females suggest that the genome-wide recombination rates have distinct evolutionary trajectories. For female the pattern of Strain averages distributed around a species wide average fits a model of stabilizing or relaxed evolution in contrast to the male pattern where there is rapid evolution in a subset of genetic strains that is close to a model of directional selection on genome-wide recombination rate.>
 
-# Evolution of genome wide recombination rate associated with evolution of mean DSB number
+# Evolution of genome-wide recombination rate associated with evolution of mean DSB number
 
 ```{r DMC1.setup, echo=FALSE}
 #load DMC1 csv
@@ -2497,14 +2478,14 @@ algorithm.stat.category <- ddply(cell.level.BivData_table, c("sex", "strain"), s
 #data.frame(table( droplevels( Curated_BivData  %>%  filter(hand.foci.count  == 0 | hand.foci.count  == 1 |                                       hand.foci.count  == 2 | hand.foci.count  == 3 | hand.foci.count  == 4 ) )$category ) )
 ```
 
-For each strain, we deconstructed the estimates of genome wide recombination rate by isolating single bivalents and quantifying the recombination landscape at the single bivalent level using an previously developed image analysis pipeline. The error of the image analysis algorithm is measuring chromosome features is low and highly similar to manual measures [@peterson_2019]. 
+For each strain, we deconstructed the estimates of genome-wide recombination rate by isolating single bivalents and quantifying the recombination landscape at the single bivalent level using an previously developed image analysis pipeline. The error of the image analysis algorithm is measuring chromosome features is low and highly similar to manual measures [@peterson_2019]. 
 
 A limitation of our image analysis algorithm is that not all bivalents per cell are isolated, due to overlapping  chromosomes. The range isolation rates per cell in this data set is `r min(algorithm.stat.category$mean_pass.rate)` in _molossinus^MSM^_ male to `r max(algorithm.stat.category$mean_pass.rate)`  _musculus^KAZ^_ female. However, we assume that the isolation of chromsomes within cell images is not biased. From our total set of cell images `r length(unique(new.Curate.FULL.org %>% filter(SC.pass == "1"))$fileName )` chromosome objects were isolated by the image analysis software. After the human curation step, `r length(unique(new.Curate.FULL.org %>% filter(hand.foci.count != ""))$Obj.ID )` single bivalent observations remained. Given the large number of single chromosome observations, we assume that each of the data sets are equally representative of general patterns.
 
 A limitation of these data from cytological stains are the only chromosome which can be accurately identified is the XY in males. The unpaired XY chromosomes have SYCP3 signal along the chromosome axis, but it forms a structure distinct from the synapsed autosomes, which can be excluded in the curation step. Since it has homologous pair in oocytes, the XX bivalent is indistinguishable from the rest of the autosomes. By physical length in Mb, the X is predicted to be the 3rd longest bivalent. 
 
 
-# Evolution of genome wide recombination rate is reflected at the single chromosome level 
+# Evolution of genome-wide recombination rate is reflected at the single chromosome level 
 
 ```{r chrm_prop_data, echo=FALSE, warning=FALSE}
 #shut off eval for now because of wd / path error
@@ -5114,11 +5095,11 @@ In comparing the male specific single bivalent based metrics the first creteria 
 **Linear model M2 ** $$mouse \ average \ bivalent metric ~=~ strain + \varepsilon $$  
 
 
-The literature provides basic predictions for the direction of the relationship the genome wide recombination rate and two aspects of the recombination landscape; SC length (positive) and crossover interference (negative). Following this logic we predict i) no strain effects for SC length or crossover interference within _domesticus_, ii) _musculus^PWD^_ will have greater SC length and weaker interference than _musculus^SKIVE^_, which will have longer SC and weaker interference compared to the other _musculus_ strains and iii) _molossinus^MSM^_ will have longer SC and weaker interference compared to _molossinus^MOLF^_.
+The literature provides basic predictions for the direction of the relationship the genome-wide recombination rate and two aspects of the recombination landscape; SC length (positive) and crossover interference (negative). Following this logic we predict i) no strain effects for SC length or crossover interference within _domesticus_, ii) _musculus^PWD^_ will have greater SC length and weaker interference than _musculus^SKIVE^_, which will have longer SC and weaker interference compared to the other _musculus_ strains and iii) _molossinus^MSM^_ will have longer SC and weaker interference compared to _molossinus^MOLF^_.
 
 # Q2 SC Length
 
-Given the differences in the DSB numbers between a subset of the high and low recombining strains we predict that there will also be differences in SC lengths proportional to the increase in the mean genome wide recombination rate. We compared mouse means of three SC based metrics; total SC, mean short bivalent length and mean long bivalent length. The long bivalent data set was isolated in the same manner as the short bivalent data set.
+Given the differences in the DSB numbers between a subset of the high and low recombining strains we predict that there will also be differences in SC lengths proportional to the increase in the mean genome-wide recombination rate. We compared mouse means of three SC based metrics; total SC, mean short bivalent length and mean long bivalent length. The long bivalent data set was isolated in the same manner as the short bivalent data set.
 
 <!-- basic stats
 `r length(OG.MLH1.merge.Skel$fileName)` total skelentonize measures were made from all of the MLH1 pachtyene cell images. X observations removed for having extra signal from other cells. `r length(unique( all.remove ) )` measures removed as potential outliers (by examining the category specific plots)<pattern for the single bivalent, pos correlation, The predicted pattern for SC length becomes more nuanced when the data are split up by Chromosome class. Mainly that 1CO are shorter in the high recombining strains then low recombining strains. This is likely due to the fact that more physically longer chromosomes have 1CO in the low recombining strains, which pushes the mean SC length up. Where as in the high recombining strains, physically longer chromosomes are more likely to be in the 2CO group.  This supports a general pattern of tighter clustering of SC lengths across chromosome classes in the high recombininggroup. They have a lower probability of 2COs below a certain SC length threshold.>  -->
@@ -6206,7 +6187,7 @@ Rec.group_BivData_F1post_Ttest <- t.test(
 
 ```
 
-The normalized 1CO position is not significantly different between the high and low recombining groups for the total pooled data (t.test; p = `r Rec.group_BivData_F1post_Ttest$p.value`) and also when examined within subspecies (t.test; p = `r Q2.1COpos_mus.av_Musc_ttest$p.value` and p = `r Q2.1COpos_mus.av_Mol_ttest$p.value` for _musculus_ and _molossinus_ respectively). While there were significant strain effects for _domesticus^^WSB^_ and _molossinus^MOLF^_ (figure X), this evolution of the 1CO positioning is decoupled from the total genome wide recombination rate. Hence we don't follow up with the model framework.
+The normalized 1CO position is not significantly different between the high and low recombining groups for the total pooled data (t.test; p = `r Rec.group_BivData_F1post_Ttest$p.value`) and also when examined within subspecies (t.test; p = `r Q2.1COpos_mus.av_Musc_ttest$p.value` and p = `r Q2.1COpos_mus.av_Mol_ttest$p.value` for _musculus_ and _molossinus_ respectively). While there were significant strain effects for _domesticus^^WSB^_ and _molossinus^MOLF^_ (figure X), this evolution of the 1CO positioning is decoupled from the total genome-wide recombination rate. Hence we don't follow up with the model framework.
 
 <!--
 The high rec musc strains, _musculus^PWD^_ and _musculus^SKIVE^_, do not have signifcantly different single foci landscapes from the other musc low rec strains (ttest; p = `r Q2.1COpos_mus.av_Musc_ttest$p.value`). While _molossinus^MOLF^_ is significantly more centrally positioned compared to _molossinus^MSM^_ (t.test; p = `r Q2.1COpos_mus.av_Mol_ttest$p.value`). 
@@ -6238,7 +6219,7 @@ sum.Q2.glm_mus.av_1COpos_M2 <- summary(Q2.glm_mus.av_1COpos_M2)$coefficients
 ```
 
 <!--
-given that the t.test don't return significant pvalues so we are not motivated to follow up with linear models. Males from WSB and MOLF strains have 'strang'unique patterns for the single foci positions, which don't fit with predicted patterns from the genome wide recombination rate variation
+given that the t.test don't return significant pvalues so we are not motivated to follow up with linear models. Males from WSB and MOLF strains have 'strang'unique patterns for the single foci positions, which don't fit with predicted patterns from the genome-wide recombination rate variation
 <I ran another model that used the single bivalents observations to predict the normalize foci position with fixed effects of chromosome length, subspecies, strian and the interaction effects.>
 
 In the above chunk I tried making another glm's which uses the single bivalent measures and include chromosome size for the switching the model to include interaction (instead of additive), all of the pvalues get lower. .. the chromosome length has the most significant effect, LEW by chrm effect are significant
@@ -6393,7 +6374,7 @@ Log.Q2.F1_PER_Mol <- glm(Rec.group ~ PER_Foci_1,
 
 
 
-# Q2 Evolution of interference is associated with genome wide recombination rate evolution
+# Q2 Evolution of interference is associated with genome-wide recombination rate evolution
 
 ```{r Q2.IFD.long.short.setup, echo=FALSE}
 #long BivData
@@ -6521,7 +6502,7 @@ t.test_mouse.av.IFD_ABS_MOL <- t.test(  (mouse.avs_4MM %>% filter(Rec.group == "
 
 ```
 
-Unlike total SC length and single foci landscapes, our metrics of interference from 2COs are significant predictors of evolution in genome wide recombination rates. However, the pattern is in the opposite direction to our prediction; the high recombining strains have significantly stronger interference (instead of being predicted weaker interference). In the 2CO landscape, instead of observing weaker interference strength and two foci placed closer together on a single chromosomes, the two foci are spaced further apart.
+Unlike total SC length and single foci landscapes, our metrics of interference from 2COs are significant predictors of evolution in genome-wide recombination rates. However, the pattern is in the opposite direction to our prediction; the high recombining strains have significantly stronger interference (instead of being predicted weaker interference). In the 2CO landscape, instead of observing weaker interference strength and two foci placed closer together on a single chromosomes, the two foci are spaced further apart.
 
 The mouse averages for both IFD^raw^ and IFD^norm^ were significantly longer in the high recombining groups (t.test; p = `r t.test_mouse.av.IFD_PER$p.value` for IFD^norm^ and p = `r t.test_mouse.av.IFD_ABS$p.value` for IFD^raw^). The pattern is confirmed with t.test comparing strains within _musculus_ and _molossinus_ (t.tests p =`r t.test_mouse.av.IFD_PER_MUSC$p.value` and p= `r t.test_mouse.av.IFD_PER_MOL$p.value` for IFD^norm^ and `r t.test_mouse.av.IFD_ABS_MUSC$p.value`  `r t.test_mouse.av.IFD_ABS_MOL$p.value` for IFD^raw^).  
 
@@ -6899,7 +6880,7 @@ With each unit increase in SC length, the IFD^norm^ also increases (for the high
 -->
 
 
-<This striking differences across sexes suggest that the genome wide recombination rates have distinct evolutionary trajectories in males and females of the same species. The pattern of strain averages distributed around the total sample mean in females is supportive of stabilizing selection or neutral evolution. In contrast to the pattern from male means which have rapid evolution in a subset of genetic backgrounds this fits a model of directional selection. (We attempt to make better evolutionary models by applying an evolutionary framework)>
+<This striking differences across sexes suggest that the genome-wide recombination rates have distinct evolutionary trajectories in males and females of the same species. The pattern of strain averages distributed around the total sample mean in females is supportive of stabilizing selection or neutral evolution. In contrast to the pattern from male means which have rapid evolution in a subset of genetic backgrounds this fits a model of directional selection. (We attempt to make better evolutionary models by applying an evolutionary framework)>
 
 # Q2 Summary
 
