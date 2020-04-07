@@ -542,7 +542,7 @@ calq.intra.rbar <- function(chrm_row){
 #changed SC. and chrm length
 new.calq.intra.rbar <- function(chrm_row){
   o = 1
-  # rrbar <- c()
+  rrbar <- c()
   for(o in 1:length(chrm_row$Obj.ID) ){
     #print(chrm_row$fileName[o])
     if(grepl(0, chrm_row$hand.foci.count)){
