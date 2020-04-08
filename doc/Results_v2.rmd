@@ -1566,20 +1566,16 @@ main.table <- add_species(main.table)
 ```{r MLH1.sum.stats.Bret.edits, echo=FALSE}
 
 AP_mouse_table.HQ <- add_species(AP_mouse_table.HQ)
-
 #total mice
-length( unique(AP_mouse_table.HQ %>% filter(species == "M.musculus") )$mouse )
+#length( unique(AP_mouse_table.HQ %>% filter(species == "M.musculus") )$mouse )
 
 #average cell number for spermatocytes and oocytes
-
 #mean(female_mouse.avs_for.analysis$Ncells, na.rm = T)
-
 #mean( (male_mouse.av %>% filter(species == "M.musculus") )$Ncells, na.rm = T)
-
 ```
 
 
-We used counts of MLH1 foci per cell to estimate genome-wide recombination rates in `r length(unique(  (main.table  %>% filter(species == "M.musculus") )$strain) )` wild-derived inbred strains sampled from three subspecies of house mice: *M. m. domesticus*, *M. m. musculus* and *M. m. molossinus*. Mean MLH1 foci counts for `r length( unique(AP_mouse_table.HQ %>% filter(species == "M.musculus") )$mouse )` mice were quantified from an average of `r mean( (male_mouse.av %>% filter(species == "M.musculus") )$Ncells, na.rm = T)` spermatocytes per male (for a total of `r sum( (main.table %>% filter(species == "M.musculus") %>% filter(sex == "male"))$Ncells)` spermatocytes) and `mean(female_mouse.avs_for.analysis$Ncells, na.rm = T)` oocytes per female (for a total of `r sum( (main.table %>% filter(species == "M.musculus") %>% filter(sex == "female"))$Ncells)` oocytes). 
+We used counts of MLH1 foci per cell to estimate genome-wide recombination rates in `r length(unique(  (main.table  %>% filter(species == "M.musculus") )$strain) )` wild-derived inbred strains sampled from three subspecies of house mice: *M. m. domesticus*, *M. m. musculus* and *M. m. molossinus*. Mean MLH1 foci counts for `r length( unique(AP_mouse_table.HQ %>% filter(species == "M.musculus") )$mouse )` mice were quantified from an average of `r mean( (male_mouse.av %>% filter(species == "M.musculus") )$Ncells, na.rm = T)` spermatocytes per male (for a total of `r sum( (main.table %>% filter(species == "M.musculus") %>% filter(sex == "male"))$Ncells)` spermatocytes) and `r mean(female_mouse.avs_for.analysis$Ncells, na.rm = T)` oocytes per female (for a total of `r sum( (main.table %>% filter(species == "M.musculus") %>% filter(sex == "female"))$Ncells)` oocytes). 
 
 
 Graphical comparisons between the two sexes reveal several patterns (Figure 1A). First, recombination rate differs between females and males in most strains. Second, the direction and magnitude of heterochiasmy varies among strains. Although the majority of strains show higher recombination rates in females (following the pattern in laboratory mice), two musculus strains and one molossinus strain exhibit male-biased heterochiasmy. Hence, relative recombination rates in the two sexes are evolutionarily labile.
@@ -1877,9 +1873,7 @@ summ.MLH1.M3.strain.fixed <- summary(MLH1.M3.strain.fixed)
 #write.table(summ.strain.fixed$coefficients , "~./MLH1repo/summ.strain.fixed.csv", sep=",",row.names = TRUE)
 ```
 
-To situate variation in recombination rate within an evolutionary framework, we fit a series of models including subspecies, strain, and sex, to mean MLH1 foci counts from `r length(DF.HetC.MixedModel.HQ$mean_co)` mice.
-
-We began with a full mixed model (M1, see Methods), which showed that strain 
+To situate variation in recombination rate within an evolutionary framework, we fit a series of models including subspecies, strain, and sex, to mean MLH1 foci counts from `r length(DF.HetC.MixedModel.HQ$mean_co)` mice. We began with a full mixed model (M1, see Methods), which showed that strain 
 (random effect p < `r MLH1.MMlmer_results$rand.pval`   **someSmallNumber**), sex (p = `r MLH1.MMlmer_results$sex.results` -- 3.9710^{-5}), subspecies (p=`r MLH1.MMlmer_results$sub.sp`--  1.7210^{-4}), and subspecies sex (p = `r MLH1.MMlmer_results$interaction.pval` -- 3.110^{-5}) each significantly affect recombination rate. 
 
 
@@ -1897,9 +1891,6 @@ Together, these results demonstrate heritable differences in the genome-wide rec
 <!-- transition gwRR to within mouse variance -->
 
 ## Within mouse variance in CO count per cell
-
-Counting MLH1 foci in multiple oocytes for each female and multiple spermatocytes for each male allowed us to examine determinants of the within-mouse variance in recombination rate. To do this, we considered the same models as above, but replaced mean MLH1 foci count with within-mouse variance in MLH1 foci count as the dependent variable. Sex is the only variable that significantly affects recombination rate in both the mixed model (M1) (p < smallNumber) and general linear model (M2) (p = 2.310^{-4}). In general, females have almost twice as much variance in MLH1 foci per cell compared to males (Figure 1). Since estimates of within-mouse variance may be more susceptible to technical error from the staining protocol, we repeated the analyses using a subset of cells with higher quality scores (criteria?). The results are similar: sex is the strongest effect (p < smallNumber, M1; p = 2.310^{-4}, M2). When both quality-curated and full datasets are considered, strain does not significantly and consistently affect variance in MLH1 foci count per cell in either sex. These results suggest that within-mouse variance in recombination rate evolves independently of mean recombination rate.
-
 
 
 ```{r M1.MLH1.var_cv, echo=FALSE, warning=FALSE, message=FALSE}
@@ -2019,42 +2010,9 @@ MLH1cv_M4_Q12 <- glm( cV ~ sex*strain, data=Q12_mouse_table_w.Ages )
 ```
 
 
-We examine the within animal variance in MLH1 foci count per cell using the same models applied to mean MLH1 foci count (replacing mean MLH1 foci count with variance of MLH1 foci across cells as the dependent variable). 
+Counting MLH1 foci in multiple oocytes for each female and multiple spermatocytes for each male allowed us to examine determinants of the within-mouse variance in recombination rate. To do this, we considered the same models as above, but replaced mean MLH1 foci count with within-mouse variance in MLH1 foci count as the dependent variable. Sex is the only variable that significantly affects recombination rate in both the mixed model (M1) (p < smallNumber -- `r round(LmerMLH1_VAR_results$sex.results, 5)`) and general linear model (M2) (p = 2.310^{-4} -- `r round(MLH1var_M3_Q12_sum$coefficients[,4][2], 5)`). In general, females have almost twice as much variance in MLH1 foci per cell compared to males (Figure 1). Since estimates of within-mouse variance may be more susceptible to technical error from the staining protocol, we repeated the analyses using a subset of cells with higher quality scores (**criteria?**). The results are similar: sex is the strongest effect (p < smallNumber -- `r round(LmerMLH1_M1_Q12_VAR_results$sex.results, 5)`, M1; p = 2.310^{-4} -- `r  round(MLH1var_M3_Q12_sum$coefficients[2,4], 5)`, M2). When both quality-curated and full datasets are considered, strain does not significantly and consistently affect variance in MLH1 foci count per cell in either sex. These results suggest that within-mouse variance in recombination rate evolves independently of mean recombination rate.
 
-The linear models support the general pattern of females having almost twice as much variance in MLH1 foci per cell compared to males (Figure 1)). For both the mixed and linear models, sex was the only significant effect (LRT; p= `r round(LmerMLH1_VAR_results$sex.results, 5)`, glm; p= `r round(MLH1var_M3_Q12_sum$coefficients[,4][2], 5)`). Since the measures for within mouse variance may be more susceptible to technical error effects from the staining protocol (i.e. background noise), we replicated the model analysis using a subset of cells with higher quality scores. These models replicated the results of the full data set with sex being the most significant effect (LTR; p = `r round(LmerMLH1_M1_Q12_VAR_results$sex.results, 5)`, and glm; p = `r  round(MLH1var_M3_Q12_sum$coefficients[2,4], 5)` ). 
-
-There is no significant difference in the amount of within mouse variance of MLH1 foci counts per cell in males according to the linear models. In females, the significance of strain effects was not consistent between the full data set and higher quality dataset _domesticus^LEW^_ (glm; p = 0) was a significant effect in the full model and _musculus^PWD^_ (glm; p =0.04) in the higher quality dataset.
-
-<one strain, _domesticus^LEW^_ has significantly higher within mouse variance (glm; p = `r lmVAR.female.strain_sum$coefficients[3,][4]`). However, in the model using the high quality cells, _musculus^PWD^_ has the only signicant strain effect (glm; p =`r lm.m2.Q12VAR.female_sum$coefficients[4,][4]`) suggesting a lack of a consistant signal for differences in the amount of within mouse variance in oocytes.>
-
-<there are some caveats, but the general pattern is that females have more variance ... For the estimates of variance, the replicates are at the level of mouse, unlike MLH1 counts, in which the replicates are at the level of the cell. This limits the power for detecting significance differences across groups,
-the main/general pattern, is that females have significantly higher within mouse variance compared to males. This general pattern is replicated in higher quality dataset and using the coefficient of variance (cv) as a dependant variable.>
-
-<!--
-
-references for phenotypic variance connected to robustness to environment, increase in developmental consistency
-
-Waddington 1942, Rutherford and Lindquist 2998, Mackay and Lyman 2005, Levy and Siegal 2008)
-phenotypic variance leading to adaptation - 
-(Losick and desplan 2008, Beaumont 2009, Eldar and Eloqitz 2010)
-Previous vQTLs (Shen etal 2012, Hulse and Cai 2013, Mulder et al 2016)
-meiotic Checkpoints for ensuring consistency (Hochwagen and Amon 2006, Li and Schimenti 2007, Jaramillo-Lambert 2010 and Kauppi 2013)
--->
-
-
-<SUMMERIZE BOTH THE MLH1 evolution and within mouse variance HERE>
-<The greater amount of within mouse variance in females (almost and, (males have no detecable difference across strains for within mouse variance)
--- supports the distinct evolutionary pressures acting on the genome-wide recombination rate in oocytes and spermatocytes.
-The striking patterns of variation across male and females suggest that the genome-wide recombination rates have distinct evolutionary trajectories. For female the pattern of Strain averages distributed around a species wide average fits a model of stabilizing or relaxed evolution in contrast to the male pattern where there is rapid evolution in a subset of genetic strains that is close to a model of directional selection on genome-wide recombination rate.>
-
-# Evolution of genome-wide recombination rate associated with evolution of mean DSB number
-
-Evolution of genome-wide recombination rate is associated with evolution of double strand breaks
-
-
-In an attempt to localize the male-specific evolution of crossover number to steps of the meiotic pathway, we counted foci from a marker for double strand breaks (DSBs), DMC1, in prophase spermatocytes. DMC1 foci were scored from a total of 76 leptotene-stage and 75 zygotene-stage spermatocytes from juvenile mice (12 to 18 days) from three low-recombination strains (musculusKAZ , domesticusWSB , and domesticusG) and two high-recombination strains (musculusPWD and molossinusMSM).
-The high-recombination strains have significantly more DMC1 foci than the low-recombination strains in leptotene cells (t-test, p<someSmallNumber; one-way ANOVA, p = 0.00027). In contrast, the two strain groups do not differ in DMC1 foci counted in zygotene cells (later prophase)(t-test, p = 0.66; one-way-anova, p = 0.15).
-After DSB formation, DSBs are repaired as either non-crossovers (NCO) or as crossovers (COs), with the vast majority being repaired as NCOs. Thus the ratio of CO:DSB is a partial indicator of the proportion of DSBs which are designated as COs. The ratios, calculated for DMC1 means from both stages, are not significantly different between the high and low strain groups (t-test, p = 0.94 and p = 0.11 for leptotene and zygotene ratios, respectively). This comparison raises the possibility that the evolution of crossover number is primarily due to processes that precede the crossover/non-crossover decision.
+# Evolution of genome-wide recombination rate is associated with evolution of double strand breaks
 
 
 ```{r DMC1.setup, echo=FALSE}
@@ -2321,17 +2279,12 @@ DMC1.Zratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G mal
 
 ```
 
-In an attempt to localize  the above male specific crossover number evolution within the meiotic pathway we quantified a marker for double strand breaks (DSBs), DMC1, in prophase spermatocytes. DMC1 foci were scored from a total of `r sum( (DMC1.mean.table %>%  filter(stage == "L") )$ncells)` leptotene and `r sum( (DMC1.mean.table %>%  filter(stage == "Z") )$ncells)` zygotene staged spermatocytes from juvenile mice (12 to 18 days) of three low rec, ( _musculus^KAZ^_ ,  _domesticus^WSB^_ , and _domesticus^G^_) and two high recombining strains ( _musculus^PWD^_ and _molossinus^MSM^_).
 
-<All strains had significantly more DMC1 foci from leptotene cells compared to zygotene (t.test; p = `r ttest.ZtoL$p.value`), which reflects the expected patterns across the cell stages in prophase.>
+In an attempt to localize the male-specific evolution of crossover number to steps of the meiotic pathway, we counted foci from a marker for double strand breaks (DSBs), DMC1, in prophase spermatocytes. DMC1 foci were scored from a total of `r sum( (DMC1.mean.table %>%  filter(stage == "L") )$ncells)` -- 76 leptotene-stage and 75 --`r sum( (DMC1.mean.table %>%  filter(stage == "Z") )$ncells)` zygotene-stage spermatocytes from juvenile mice (12 to 18 days) from three low-recombination strains (musculus^KAZ^ , domesticus^WSB^ , and domesticus^G^) and two high-recombination strains (musculus^PWD^ and molossinus^MSM^).  
 
-The mean number of DMC1 foci per cell is associated with evolution of the number of precursors (DSBs). The two high recombining strains tested have significantly more DMC1 foci compared to low recombining strains in leptotene cells (t.test; p=`r ttest.HighLow.L.pval`, one-way-anova; p=`r format(l.anova.pval, scientific=F)`). However the differences in DMC1 foci were not significant for zygotene cells (later prophase) between the two groups (t.test; p=`r ttest.HighLow.Z.pval`, one-way-anova; p=`r z.anova.pval`). Indicating that DMC1 counts at this stage is more predictive of the downstream crossover number differences.
 
- After DSB formation, DSBs are repaired as either non-crossover (NCO) or crossovers (COs). with the vast majority being repaired as NCOs. Thus the ratio of CO:DSB is a partial indicator of the proportion of DSBs which are designated into COs, partially known as the NCO:CO decision. The ratios, calculated for DMC1 means from both stages, are not significantly different between the high and low strain groups (t.test; p = `r DMC1.Lratio_t.test$p.value` and p=`r DMC1.Zratio_t.test$p.value` for leptotene and zygotene ratios respectively).
+The high-recombination strains have significantly more DMC1 foci than the low-recombination strains in leptotene cells (t-test, p<**someSmallNumber** -- `r ttest.HighLow.L.pval`; one-way ANOVA, p = 0.00027 -- `r format(l.anova.pval, scientific=F)`). In contrast, the two strain groups do not differ in DMC1 foci counted in zygotene cells (later prophase)(t-test, p = 0.66 -- `r ttest.HighLow.Z.pval`; one-way-anova, p = 0.15 -- `r z.anova.pval`). After DSB formation, DSBs are repaired as either non-crossovers (NCO) or as crossovers (COs), with the vast majority being repaired as NCOs. Thus the ratio of CO:DSB is a partial indicator of the proportion of DSBs which are designated as COs. The ratios, calculated for DMC1 means from both stages, are not significantly different between the high and low strain groups (t-test, p = 0.94 -- `r DMC1.Lratio_t.test$p.value` and p = 0.11 -- `r DMC1.Zratio_t.test$p.value` for leptotene and zygotene ratios, respectively). This comparison raises the possibility that the evolution of crossover number is primarily due to processes that precede the crossover/non-crossover decision.
 
-<!--
-The correlation with MLH1 and leptotene cells is `r MLH1.DMC1.L_cor`. The correlation with MLH1 and zygotene cells is `r MLH1.DMC1.Z_cor`. `r c(WSB_DMC1.Z_CO_ratio, G_DMC1.Z_CO_ratio, MSM_DMC1.Z_CO_ratio, PWD_DMC1.Z_CO_ratio )` for  _M. m. domesticus^WSB^_ , _M. m. domesticus^G^_, _M. m. molossinus^MSM^_, and  _M. m. musculus^PWD^_ respecitively. 
--->
 
 ```{r DMC1.subsampling, echo=FALSE, eval = FALSE, include = FALSE}
 
@@ -2415,19 +2368,7 @@ DMC1.histogram <- ggplot(DMC1.DF, aes(total.count, fill = stage)) + geom_histogr
 ```
 
 
-# Single Bivalent Level Results
-
-Evolution of genome-wide recombination rate is reflected at the single chromosome level
-
-
-To examine the connection between evolution of the genome-wide recombination rate and changes to the recombination landscape, we used an image analysis pipeline to measure properties of single bivalents (Peterson et al. 2019). This algorithm substantially speeds the accurate measurement of bivalents, but has the limitation that not all bivalents per cell can be isolated due to overlapping bivalents. In this dataset, isolation rates per cell range from 0.51 (molossinusMSM male) to 0.72 (musculusKAZ female). From the total set of cell images, 10,458 bivalent objects were isolated by the image analysis software. After a human curation step (Peterson et al. 2019), 9,829 single-bivalent observations remained. We assume that the isolation of bivalents within cells is unbiased. Given the large number of single-bivalent observations, we assume that each of the datasets are equally representative of general patterns.
-An additional challenge of the MLH1 framework is that the identities of individual autosomes and the XX in females cannot be easily obtained (the male XY is distinct).
-
-<figure>
-
-Ninety-six percent of single bivalents in our pooled dataset (n = 34,982) have either one or two crossovers (Figure X). The proportion of one-crossover (1CO) to two-crossover (2CO) bivalents distinguishes the high vs. low recombining strains (Figure X). High-recombination strains are enriched for 2CO bivalents at the expense of 1CO bivalents: proportions of 2CO bivalents  are 0.33 in musculusSKIVE , 0.44 in musculusPWD , and 0.53 in molossinusMSM . Following patterns in the genome-wide recombination rate, male musculusPWD and male molossinusMSM have 2CO proportions that are more similar to each other than to strains from their own subspecies (chi-square tests; musculusPWD vs. musculusKAZ p = 3.1510^{-33}; molossinusMSM vs. molossinusMOLF p = 4.7210^{-13}). 
-Next, we use this single-bivalent dataset to focus on aspects of the recombination landscape along chromosomes. We address two main questions. First, which traits are sexually dimorphic? Second, which traits differ between males from high-recombination vs. low-recombination strains?
-
+# Evolution of genome-wide recombination rate is reflected at the single chromosome level
 
 
 ```{r algorithm_performance_stats, echo=FALSE}
@@ -2462,14 +2403,8 @@ algorithm.stat.category <- ddply(cell.level.BivData_table, c("sex", "strain"), s
 #data.frame(table( droplevels( Curated_BivData  %>%  filter(hand.foci.count  == 0 | hand.foci.count  == 1 |                                       hand.foci.count  == 2 | hand.foci.count  == 3 | hand.foci.count  == 4 ) )$category ) )
 ```
 
-For each strain, we deconstructed the estimates of genome-wide recombination rate by isolating single bivalents and quantifying the recombination landscape at the single bivalent level using an previously developed image analysis pipeline. The error of the image analysis algorithm is measuring chromosome features is low and highly similar to manual measures [@peterson_2019]. 
-
-A limitation of our image analysis algorithm is that not all bivalents per cell are isolated, due to overlapping  chromosomes. The range isolation rates per cell in this data set is `r min(algorithm.stat.category$mean_pass.rate)` in _molossinus^MSM^_ male to `r max(algorithm.stat.category$mean_pass.rate)`  _musculus^KAZ^_ female. However, we assume that the isolation of chromsomes within cell images is not biased. From our total set of cell images `r length(unique(new.Curate.FULL.org %>% filter(SC.pass == "1"))$fileName )` chromosome objects were isolated by the image analysis software. After the human curation step, `r length(unique(new.Curate.FULL.org %>% filter(hand.foci.count != ""))$Obj.ID )` single bivalent observations remained. Given the large number of single chromosome observations, we assume that each of the data sets are equally representative of general patterns.
-
-A limitation of these data from cytological stains are the only chromosome which can be accurately identified is the XY in males. The unpaired XY chromosomes have SYCP3 signal along the chromosome axis, but it forms a structure distinct from the synapsed autosomes, which can be excluded in the curation step. Since it has homologous pair in oocytes, the XX bivalent is indistinguishable from the rest of the autosomes. By physical length in Mb, the X is predicted to be the 3rd longest bivalent. 
 
 
-# Evolution of genome-wide recombination rate is reflected at the single chromosome level 
 
 ```{r chrm_prop_data, echo=FALSE, warning=FALSE}
 #shut off eval for now because of wd / path error
@@ -2814,33 +2749,23 @@ total.biv.all <- sum( MELT_Chrm.Proportion$n0CO, MELT_Chrm.Proportion$n1CO, MELT
 ```
 
 
-<from the means the expected number of COs per chroosomes ranges from X to X we confirm these numbers Can't have fractions of COs>
-
-We distill the variance observed in the mean MLH1 foci counts per cell to number of MLH1 foci per bivalent. Because our observations of MLH1 foci are made of pachytene cells, our chromosome observations are fully synapsed paired homologous chromosomes (4n copies of each chromosomes). Additionally we can not fully distinguish the identity of chromosomes (e.g. Chromosome 1 or Chromosome 2), for these reasons we use the term 'bivalent' instead of chromosome. 
-
-Ninety six percent of the pooled dataset of single bivalents (n=`r total.biv.all`) have either one or two crossovers (Figure X). The proportion of 1CO:2CO distinguishes the high and low recombining strains (Figure X). This confirms the intuitive interpretation that high recombination strains are enriched for 2CO bivalents at the expense of 1CO bivalents. In the high recombining strains the 2CO proportions are `r chrm.prop.male.high1$n2CO[chrm.prop.male.high1$strain == "SKIVE"] / chrm.prop.male.high1$nbiv[chrm.prop.male.high1$strain == "SKIVE"]` ( _musculus^SKIVE^_ ), `r chrm.prop.male.high1$n2CO[chrm.prop.male.high1$strain == "PWD"] / chrm.prop.male.high1$nbiv[chrm.prop.male.high1$strain == "PWD"]` ( _musculus^PWD^_ ), and `r chrm.prop.male.high1$n2CO[chrm.prop.male.high1$strain == "MSM"] / chrm.prop.male.high1$nbiv[chrm.prop.male.high1$strain == "MSM"]` (_molossinus^MSM^_ ).
-
-While the proportions are significantly different (chi-square-test; p = `r PWD.MSM.2CO.prop.test$p.value`), males _musculus^PWD^_ and _molossinus^MSM^_ have 2CO proportions more similar to each other than strains from the same subspecies ( _musculus^PWD^_ and _musculus^KAZ^_ chi-square test; 2CO p=`r PWD.KAZ.2CO.prop.test$p.value`) and _molossinus^MSM^_ and _molossinus^MOLF^_ chi-square test; 2CO p=`r MSM.MOLF.2CO.prop.test$p.value`). Using this data set of single bivalents, we focus on aspects of the recombination landscape to address two main questions 1) Which traits are sexually dimorphic? and 2) Which traits fit distinguish the high and low recombining strains for males?
-
-In our analysis our first step is to test for measurable differences, between sexes or recombination groups in males and if the differences are significant, our second step is to apply the same sets of models applied to the mean MLH1 foci counts to test for effects due to subspecies or strains.
-
-
-# Q1 Sex Differences in SC-AE Lengths
-
-Q1 Sex Differences in the Length of the Synaptonemal Complex
-
-
-In many mammalian species, the synaptonemal complex (SC) is longer in females. Yet, the majority of these observations come from species with female-biased heterochiasmy. Our wider survey of recombination in house mice provides an opportunity to determine whether sex differences in chromatin compaction (SC length) are reversed when heterochiasmy is male-biased. In addition, if SC length is a strong determinant of the genome-wide recombination rate,  male musculusPWD and male molossinusMSM should have longer SC lengths than the other strains. 
-To account for confounding effects of sex chromosomes from pooled samples of bivalents, we considered a reduced dataset including only bivalents with SC lengths below the 2nd quartile (for SC length) in each cell. This dataset included the four or five shortest bivalents  and excluded the X bivalent in oocytes. A total of 678 'short' bivalents were isolated from 103 oocytes and 37 spermatocytes. Although this smaller dataset has decreased power, it offers a more comparable set of single bivalents to compare between the sexes.
+To examine the connection between evolution of the genome-wide recombination rate and changes to the recombination landscape, we used an image analysis pipeline to measure properties of single bivalents ([@peterson2019]). This algorithm substantially speeds the accurate measurement of bivalents, but has the limitation that not all bivalents per cell can be isolated due to overlapping bivalents. In this dataset, isolation rates per cell range from 
+`r min(algorithm.stat.category$mean_pass.rate)` -- 0.51 (molossinus^MSM^ male) to `r max(algorithm.stat.category$mean_pass.rate)`-- 0.72 (musculus^KAZ^ female). From the total set of cell images, `r length(unique(new.Curate.FULL.org %>% filter(SC.pass == "1"))$fileName )` -- 10,458 bivalent objects were isolated by the image analysis software. After a human curation step ([@peterson2019]), `r length(unique(new.Curate.FULL.org %>% filter(hand.foci.count != ""))$Obj.ID )` -- 9,829 single-bivalent observations remained. We assume that the isolation of bivalents within cells is unbiased. Given the large number of single-bivalent observations, we assume that each of the datasets are equally representative of general patterns.
+An additional challenge of the MLH1 framework is that the identities of individual autosomes and the XX in females cannot be easily obtained (the male XY is distinct).
 
 <figure>
 
-Short bivalents are significantly longer in females than males in all strains (t-test; p < 0.05) except musculusSKIVE.  The female:male ratio ranges across strains from 1.15 (musculusMSM) to 1.49 (domesticusWSB). 
-As an additional metric of chromatin compaction, we computed the total (summed) SC length of all bivalents for single cells, using the image analysis algorithm of Wang et al. (2019). Mouse means were calculated from cell-wide total SC lengths in 2,984 out of 3,680 cells with MLH1 counts (Figure X). Females have significantly longer total SC than males in each strain tested separately (t-test; p < 0.05). That females have longer SCs is also supported by mixed models and general linear models with covariates, which identify sex as the most consistently significant effect (p < 0.05). Additionally, there are some significant subspecies and strain effects (p < 0.05), indicating that SC length has evolved among strains and subspecies.
+Ninety-six percent of single bivalents in our pooled dataset (n = 34,982 -- `r total.biv.all`) have either one or two crossovers (Figure X). The proportion of one-crossover (1CO) to two-crossover (2CO) bivalents distinguishes the high vs. low recombining strains (Figure X). High-recombination strains are enriched for 2CO bivalents at the expense of 1CO bivalents: proportions of 2CO bivalents are 0.33 -- `r chrm.prop.male.high1$n2CO[chrm.prop.male.high1$strain == "SKIVE"] / chrm.prop.male.high1$nbiv[chrm.prop.male.high1$strain == "SKIVE"]` ( _musculus^SKIVE^_ ) in musculus^SKIVE^, 0.44 -- `r chrm.prop.male.high1$n2CO[chrm.prop.male.high1$strain == "PWD"] / chrm.prop.male.high1$nbiv[chrm.prop.male.high1$strain == "PWD"]` in musculus^PWD^, and `r chrm.prop.male.high1$n2CO[chrm.prop.male.high1$strain == "MSM"] / chrm.prop.male.high1$nbiv[chrm.prop.male.high1$strain == "MSM"]` -- 0.53 in molossinus^MSM^. 
 
-<figure>
+Following patterns in the genome-wide recombination rate, male musculus^PWD^ and male molossinus^MSM^ have 2CO proportions that are more similar to each other than to strains from their own subspecies (chi-square tests; musculus^PWD^ vs. musculus^KAZ^ p = 3.1510^{-33} -- `r PWD.KAZ.2CO.prop.test$p.value`; molossinus^MSM^ vs. molossinus^MOLF^ p = 4.7210^{-13} -- `r MSM.MOLF.2CO.prop.test$p.value`). 
 
-In summary, two approaches for measuring and analyzing SC length indicate that females have longer SCs (chromosome axes), even in strains where males have more MLH1 foci per cell. Furthermore, joint consideration of MLH1 foci and total SC length suggests that males from high-recombination strains have less "space" in which to place their additional crossovers.
+
+Next, we use this single-bivalent dataset to focus on aspects of the recombination landscape along chromosomes. We address two main questions. First, which traits are sexually dimorphic? Second, which traits differ between males from high-recombination vs. low-recombination strains?
+
+
+
+# Q1 Sex Differences in the Length of the Synaptonemal Complex
+
 
 ```{r Q1.Short.Long_biv.setup, echo=FALSE}
 
@@ -2853,10 +2778,6 @@ Q1.real.short_mouse_table <- REAL.short_mouse_table %>% filter( (strain != "CZEC
 Q1.real.long_mouse_table <- REAL.long_mouse_table %>% filter( (strain != "CZECH") & (strain != "MOLF") )
 
 ```
-
-In many mammalian species the SC lengths are longer in females, yet the majority of these observations come from species with female biased heterochiasmy. Our sample of house mice provides an opportunity to test if the sex differences in chromatin compaction (SC length) are reversed in the high recombining strains with male-biased heterochiasmy; _musculus^PWD^_  and _molossinus^MSM^_). If SC length is the strongest predictor for number of MLH1 foci per cell, males of the high recombining strains would have longer SC length leading to the difference in total MLH1 foci per cell.
-
-To account for confounding effects of sex chromosomes from pooled samples of bivalents, we use a reduced bivalent data set made up of bivalents with SC lengths below the 2nd quartile for SC length from a single cell to compare across sexes. This results in a dataset of the shortest 4 to 5 chromosomes and excludes the X bivalent in the oocytes. A total of `r sum(Q1.real.short_mouse_table$n_obs)` 'short' bivalents were isolated from `r sum(  (Q1.real.short_mouse_table  %>% filter(sex=="female") )$ncells)` oocytes and `r sum(  (Q1.real.short_mouse_table  %>% filter(sex=="male") )$ncells)` spermatocytes. Even though this smaller data set has decreased power, it offers a more comparable set of single bivalents to compare between sexes.
 
 ```{r Q1.show.SC.length, echo=FALSE, warning=FALSE}
 
@@ -2963,14 +2884,6 @@ Q1SC.BivData.short.biv_DIFF_MSM <- mean( (real.short.bivData %>% filter(sex == "
 
 ```
 
-All but one strains have significantly longer mouse mean for short bivalents in females (t.test; p <0.05). The differences, (F:M), across strains ranges from `r Q1SC.mus.av.short.biv_DIFF_MSM` in _musculus^MSM^_ to `r Q1SC.mus.av.short.biv_DIFF_WSB` in _domesticus^WSB^_. While the female value is longer, it is not significantly different from males in _musculus^SKIVE^_ (t.test; p = `r  format(Q1_mus.av_shortSC_t.test.SKIVE$p.value, scientific = F)`). 
-
-<!-- t.test; p = `r Q1_mus.av_shortSC_t.test.WSB$p.value`, p =`r format(Q1_mus.av_shortSC_t.test.G$p.value, scientific = F)`, and p=`r format(Q1_mus.av_shortSC_t.test.LEW$p.value, scientific = F)` for _domesticus^WSB^_, _domesticus^G^_ and _domesticus^LEW^_ respectively. the musculus strins (t.test; p= `r format(Q1_mus.av_shortSC_t.test.PWD$p.value, scientific = F)`, `r Q1_mus.av_shortSC_t.test.KAZ$p.value`, and `r  format(Q1_mus.av_shortSC_t.test.SKIVE$p.value, scientific = F)` for _musculus^PWD^_ , _musculus^KAZ^_ , _musculus^SKIVE^_  respectively --> 
-
-For an additional  metric of chromatin compaction, we tested a whole cell measure of SC length using a second image analysis algorithm which converts the SC signal into single pixel wide trace of the SC shapes and provides accurate estimates of the summed SC length of bivalents for single cells [@wang_2019_sc]. We apply the skeletonizing algorithm to all MLH1 meiocyte images. Mouse means were calculated from `r length(  (MLH1.merge.Skel %>% filter(species == "M.musculus") %>% filter(subsp != "Cast")  )$Random.Name)` cell wide total SC measures (figure X). (where as `r length(  (MLH1_data %>% filter(species == "M.musculus") %>% filter(subsp != "Cast")  )$Random.Name)` number of cells had MLH1 measures ).
-
-<The comparison of this metric is somewhat complicated across sexes due to the sex chromosomes. Breifly/in effect the oocytes have an additional autosome, and the spermatocytes have a mostly recombinationly inactive unit of SC (the XY).>
-
 ```{r Q1.tot.SC_show, echo=FALSE, warning=FALSE}
 # fig.width = 4, fig.height=2.5
 
@@ -3028,8 +2941,6 @@ Tot.SC_mouse.av_Mol <- ggplot(data= totsc.mol, aes(y = mean.skel, x=mouse, color
   theme(axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank())+  ylim(c(1000,3000 ))+ggtitle("Mouse av. total SC area")
 
 ```
-
-<these are the number of mice for each of the categories r as.data.frame( table(droplevels( totSC.mouse.av.table$category) ) )>
 
 ```{r Q1.total.SC_t.test, echo=FALSE}
 
@@ -3093,11 +3004,6 @@ Q1.male.Dom.Musc.t.test <- t.test( ( totSC.mouse.av.table %>% filter(sex == "mal
 Q1.male.Dom.Mol.t.test <- t.test( ( totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Dom") )$mean.skel,
 (totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Mol") )$mean.skel)
 ```
-
-In all of the strains the means of total SC per cell was significantly greater in females than males (ttest; p < 0.05). To test for strain and subspecies specific effects on the sex difference in SC lengths we apply the model framework.
-
-<!-- _domesticues^WSB^_ p = `r format(Q1_tot.sc_t.test.WSB$p.value, scientific = F )`, _domesticues^G^_  p = `r format(Q1_tot.sc_t.test.G$p.value, scientific= F )`, _domesticues^LEW^_ p = `r format(Q1_tot.sc_t.test.LEW$p.value, scientific= F )`, _musculus^PWD^_ p = `r format(Q1_tot.sc_t.test.PWD$p.value,scientific = F )`, _musculus^KAZ^_ p = `r format(Q1_tot.sc_t.test.KAZ$p.value, scientific = F )`, _molossinus^MSM^_ `r format(Q1_tot.sc_t.test.MSM$p.value, scientific = F )` -->
-
 
 ```{r Q1.M.lmer_totalSC, echo=FALSE, warning=FALSE, message=FALSE}
 
@@ -3164,16 +3070,25 @@ Q1lmer.MM_SC_short_strain)
 
 ```
 
-<!--
-**M1. Mixed Model** $$mouse \ average \ SC \ metric ~=~ subsp * sex + rand(strain) + \varepsilon $$
+In many mammalian species, the synaptonemal complex (SC) is longer in females. Yet, the majority of these observations come from species with female-biased heterochiasmy. Our wider survey of recombination in house mice provides an opportunity to determine whether sex differences in chromatin compaction (SC length) are reversed when heterochiasmy is male-biased. In addition, if SC length is a strong determinant of the genome-wide recombination rate,  male musculus^PWD^ and male molossinus^MSM^ should have longer SC lengths than the other strains. 
 
-**M2.Linear Model** $$mouse \ average \ SC \ metric ~=~ subsp * sex * strain + \varepsilon $$
+To account for confounding effects of sex chromosomes from pooled samples of bivalents, we considered a reduced dataset including only bivalents with SC lengths below the 2nd quartile (for SC length) in each cell. This dataset included the four or five shortest bivalents  and excluded the X bivalent in oocytes. A total of 678 -- `r sum(Q1.real.short_mouse_table$n_obs)` 'short' bivalents were isolated from 103 -- `r sum(  (Q1.real.short_mouse_table  %>% filter(sex=="female") )$ncells)` oocytes and 37 -- `r sum(  (Q1.real.short_mouse_table  %>% filter(sex=="male") )$ncells)` spermatocytes. Although this smaller dataset has decreased power, it offers a more comparable set of single bivalents to compare between the sexes.
 
-**M3. Linear Model** $$mouse \ average \ SC \ metric ~=~ sex * strain + \varepsilon $$
+<figure>
 
-In the mixed models for the sex differences mean **short bivalents** length as the dependent variable, sex is the most significant effect (LTR; p =`r Q1lmer.MM_SC_short_results$sex.results`). The interaction (subspecies by sex) effect was also slightly significant (p = `r Q1lmer.MM_SC_short_results$interaction.pval`).  
 
-In the mixed model run on the mean total SC metric all of the coefficients were significant, (LTR; subsp p= `r Q1.lmer.totSC_results$sub.sp`, sex p = `r Q1.lmer.totSC_results$sex.results`, and interaction p = `r Q1.lmer.totSC_results$interaction.pval`, (random LRT; strain p = `r Q1.lmer.totSC_results$rand.pval`). -->
+Short bivalents are significantly longer in females than males in all strains (t-test; p < 0.05) except musculus^SKIVE^.  The female:male ratio ranges across strains from 1.15 -- `r Q1SC.mus.av.short.biv_DIFF_MSM` (musculus^MSM^) to 1.49 -- `r Q1SC.mus.av.short.biv_DIFF_WSB` (domesticus^WSB^). 
+
+
+As an additional metric of chromatin compaction, we computed the total (summed) SC length of all bivalents for single cells, using the image analysis algorithm of [@wang_2019_sc]. 
+
+Mouse means were calculated from cell-wide total SC lengths in 2,984 -- `r length(  (MLH1.merge.Skel %>% filter(species == "M.musculus") %>% filter(subsp != "Cast")  )$Random.Name)` out of 3,680 -- `r length(  (MLH1_data %>% filter(species == "M.musculus") %>% filter(subsp != "Cast")  )$Random.Name)` cells with MLH1 counts (Figure X). Females have significantly longer total SC than males in each strain tested separately (t-test; p < 0.05). That females have longer SCs is also supported by mixed models and general linear models with covariates, which identify sex as the most consistently significant effect (p < 0.05). Additionally, there are some significant subspecies and strain effects (p < 0.05), indicating that SC length has evolved among strains and subspecies.
+
+<figure>
+
+In summary, two approaches for measuring and analyzing SC length indicate that females have longer SCs (chromosome axes), even in strains where males have more MLH1 foci per cell. Furthermore, joint consideration of MLH1 foci and total SC length suggests that males from high-recombination strains have less "space" in which to place their additional crossovers.
+
+
 
 ```{r Q1.glm_totalSC_M2.M3, echo=FALSE, message=FALSE}
 #total-SC
@@ -3325,7 +3240,6 @@ Q12.Tot.SC_mouse.av_Mol <- ggplot(data= totSC_Q12_mouse.av.table %>% filter(subs
   theme(axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank())+  ylim(c(1000,3000 ))+ggtitle("Mouse av. Q12 total SC area")
 ```
 
-<Q12 total SC mouse means! In Dom when running the Q12 SC lengths, the sex difference seems to get larger (male mean total SC gets lower).  In Musc the female mean total sc gets lower (maybe fewer cells (SKIVE is removed)). For Mol / MSM female mean stays about the same, MSM and MOLF means converge around 1600.>
 
 ```{r show.long.biv, echo=FALSE, include=FALSE}
 #mouse av
@@ -3428,17 +3342,10 @@ Q1.SClength_Dom.BivData_plot <- ggplot( Dom_BivData, aes(y = chromosomeLength, x
 
 ```
 
-Longer Sc compaction in females is supporte by the model framework, with sex being the most consistant significant effect (LTR and glm; p < 0.05). Additionally there are some significant subspecies and strain effects indicating that the SC lengths can evolve within strains and subspecies (LTR and glm; p < 0.05). 
-
-These combined results of total SC per cell and reduced single bivalent SC metrics, indicate that females have longer SC lengths (chromosome axis), even in strains where males have more MLH1 foci per cell. I the means MLH1 foci per cell and SC area per cell, are considered seperatly, it is as if the males in these strains have more crossovers (more 2CO), but generally less 'space' to place them. 
-
-This leads us to focus on aspects of the recombination landscape for the two major classes of bivalents; i) the placement of single foci along a single crossover bivalent and ii) the spacing of two foci on the same bivalent, or the interfocal distance (IFD).
-
-# Q1. 1CO Position Sex Differences
-Q1. Sex Differences in the Positions of Single Crossovers
 
 
-In most of the strains we surveyed, the majority of bivalents are observed to contain one crossover (focus). In all strains, the landscape across 1CO bivalents is significantly different in females and males. Normalized foci positions tend to be more central in females (mean focus position = X) and closer to the telomere in males (mean focus position = Y) (t-test; p = 2.9210^{-22}). Sex is also the most significant effect on focus position in a mixed model (M1: p =1.2610^{-25}) and in general linear models (M2: p =1.3310^{-7}; M3: p = 1.3310^{-7}). These sex differences in the placement of foci on 1CO bivalents follow a pattern observed across a variety of mammalian species (Sardell Kirkpatrick).
+# Q1. Sex Differences in the Positions of Single Crossovers
+
 
 ```{r Q1.F1pos_long.short_setup, echo=FALSE}
 
@@ -3448,10 +3355,6 @@ In most of the strains we surveyed, the majority of bivalents are observed to co
 Q1.long.biv_1CO <-  real.long.bivData %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1) %>% filter(strain != "MOLF") %>% filter(strain != "CZECH")
 
 ```
-
-<!-- motivating
-To quantify one of the major -- patterns that is different between male and female recombiantion landscapes
--->
 
 ```{r CO.positions.figs, echo=FALSE, include=FALSE, warning=FALSE}
 #main figure of density plots,
@@ -3530,13 +3433,6 @@ Q1_1CO.pos_t.test.MSM <- t.test((mouse.avs_4MM %>% filter(sex == "male") %>% fil
 #t.tests for mous.av_nrm.1CO.pos 
 ```
 
-
-For most of the house mouse strains, 1COs are the major class of chromosomes observed across cells. There are known sex differences in the relative placement along chromsomes this section tests if there has been evolution in this aspect of the recombination landscape.
-
-The mean normalized foci positions per mouse from `r length( ( cleanCurated_BivData %>% filter(hand.foci.count == "1") )$Obj.ID )` single crossover bivalents. The CO positions are normalized by the SC length and anchored at the centromere with the normalized position values ranging from 0 to 1, (refered here as terminal or telomeric position).
-
-In all strains, the 1CO landscape had significant differences between males and female which followed the "typical landscape" of sex difference observed in many other species [@sardell_sex_2020]. The foci position was more medially places in females while males have more terminal normalized foci positions (ttest; p = `r Q1_1CO.pos_t.test.FULL$p.value`).
-
 ```{r Q1.CO1pos_lmer.M1, echo=FALSE, message=FALSE}
 
 #make sure this dataset has all the right strains
@@ -3608,25 +3504,9 @@ summry.Q1.glm_1CO.pos_M3 <- summary(Q1.glm_1CO.pos_M3)
 
 ```
 
-The differences in 1CO landscapes due to sexes is confirmed by the model framework, with sex is the most significant effect in the mixed model (M1) (LTR; p =`r lmer.Q1.nrm1CO_M1_results$sex.results`) and the two linear models (glm M2; p =`r summry.Q1.glm_F1pos_M2$coefficients[,4][8]`, glm M3; p = `r summry.Q1.glm_1CO.pos_M3$coefficients[,4][8]`). 
 
-<!--
-not addressing the strain and subspecies effects
-The random effect of strain is also significant (LRT; p =`r lmer.Q1.nrm1CO_M1_results$rand.pval`).
+In most of the strains we surveyed, the majority of bivalents are observed to contain one crossover (focus). In all strains, the landscape across 1CO bivalents is significantly different in females and males. Normalized foci positions tend to be more central in females **(mean focus position = X)** and closer to the telomere in males **(mean focus position = Y)** (t-test; p = 2.9210^{-22} -- `r Q1_1CO.pos_t.test.FULL$p.value`). Sex is also the most significant effect on focus position in a mixed model (M1: p =1.2610^{-25} -- `r lmer.Q1.nrm1CO_M1_results$sex.results`) and in general linear models (M2: p =1.3310^{-7} -- `r summry.Q1.glm_F1pos_M2$coefficients[,4][8]`; M3: p = 1.3310^{-7} -- `r summry.Q1.glm_1CO.pos_M3$coefficients[,4][8]`). These sex differences in the placement of foci on 1CO bivalents follow a pattern observed across a variety of mammalian species [@sardell_sex_2020].
 
-While the musc subspecies, LEW and KAZ strains had slightly significant effects (glm M2; Musc subsp p = `r summry.Q1.glm_F1pos_M2$coefficients[,4][2]`, LEW strain p = `r summry.Q1.glm_F1pos_M2$coefficients[,4][5]`) and (glm M3; LEW strain p = `r summry.Q1.glm_1CO.pos_M3$coefficients[,4][3]`, KAZ strain p = `r summry.Q1.glm_1CO.pos_M3$coefficients[,4][7]`).
-
-**M1. Mixed Model**
-$$mouse \ average \ F1 position ~=~ subsp * sex + rand(strain) + \varepsilon $$
-
-**M2. Linear model**
-$$mouse \ average \ F1 position ~=~ subsp * sex * strain + \varepsilon $$
-
-**M3. Linear model**
-$$mouse \ average \ F1 position ~=~ sex * strain + \varepsilon $$
-
-Ignore this section / kind of results for know
-Chromosome size effects are a confounding factor for CO position, with the expectation that shorter chromosomes will have a more uniform landscape compared to larger/longer chromosomes (cite). To account for this we again use the reduced bivalent sets (long.biv and short.biv) -->
 
 
 ```{r Q1.F1.pos.LONG.SHORT.BIV_scatter, echo=FALSE}
@@ -3649,14 +3529,6 @@ Q1.av.long.biv_scatr_box   <- ggplot(REAL.long_mouse_table  , aes(x=sex, y=mean_
 
 Q1.av.short.biv_scatr_box   <- ggplot(REAL.short_mouse_table, aes(x=sex, y=mean_F1pos_PER, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= mean_F1pos_PER ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nShort Biv")
 ```
-
-
-<!--
-### Siscoten
-The metric Sis-co-ten measures the amount of sister cohesion connected to the other pole.
-The logic of how the sis-co-ten metric is outlined in the figure below. The goal is to use this metric to model different tension active cohesion amounts as a consequence of different numbers and placements of chiasmata/CO. This metric is calculated using SC area as a proxy to the amount of cohesion at metaphase.
-
-![from (Lee, J. (2019). Is age-related increase of chromosome segregation errors in mammalian oocytes caused by cohesin deterioration?. Reproductive Medicine and Biology.)](figureFiles/Lee2019_Fig2.png)
 
 ```{r show.siscoten, echo=FALSE, eval=FALSE}
 #think of a good way to display this
@@ -3709,10 +3581,6 @@ jitter_siscoten_WSBm <- ggplot(data = Curated_BivData[Curated_BivData$category =
 #jitter_siscoten_WSBm
 ```
 
-Males have much clearer separation of siscoten across chrm classes. This is emphasized when SC length is also plotted. It seems like musc males have higher amounts of this metric compared to Dom males.
-To formally test the differences in sis-co-ten I plan to write a sub sampling / permutation loop to compare the mean(sis.co.ten) of the same numbers of bivalents of the same class.
-BUT females have a greater range -- so maybe it's just a scale issue.  
-
 ```{r show.norm.siscoten, echo=FALSE, eval=FALSE}
 Curated_BivData$nrm.siscoten <- Curated_BivData$SisCoTen/Curated_BivData$chromosomeLength
 
@@ -3751,8 +3619,6 @@ Nrm.sis.co.ten.plot_MSM
 
 ```
 
-I think the the normalized sis.co.ten plots also show that the there is more clustering of the sis.co.ten for the males.
-
 ```{r sis.co.ten.test_HetC, echo=FALSE, eval=FALSE}
 
 #glm for siscoten
@@ -3773,7 +3639,6 @@ rand_siscoten_MM
 #slightly sig
 ```
 
-
 ```{r siscoten.test.poly, echo=FALSE, eval=FALSE}
 
 #move this to the set up blocks
@@ -3785,7 +3650,6 @@ mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD", mouse.avs_4MM$strain), 1,
 #test high vs low Musc strains
 #mouse.avs_4MM
 ```
-
 
 ```{r log.reg_siscoten, echo=FALSE, eval=FALSE}
 
@@ -3815,7 +3679,6 @@ log.reg_Sis.co.ten_biv <- glm(Rec.group ~ SisCoTen,
 summary(log.reg_Sis.co.ten_biv)
 
 ```
-
 
 ```{r t.test_sis.co.ten,echo=FALSE, eval=FALSE}
 
@@ -3869,12 +3732,6 @@ mouse.avs_4MM$mean.siscoten_2CO
 
 ```
 
-All the sis.co.ten tests are highly significant. Maybe I should consider running a normalized sis.co.ten? I think nrm_siscoten would still reflect the differing cohesion structure/outcome.
-
-### Telomere and centromere Distance
-
-My metric for telomere and centromere distance measure the distance of the nearest foci to the ends of the bivalent (SC). In the plots below each point is a single bivalent. I choose not to use the mark for centromere because it seems noisy and inconsistent... 
-
 ```{r telo.dist, echo=FALSE, eval=FALSE}
 
 sis.co.ten.plot_WSB_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
@@ -3897,8 +3754,6 @@ nrm.telo_jitter
 #why do a different number of rows removed each time??
 ```
 
-Males on average have much lower raw telomere distance (reflects the telomere bias) compared to females. In Males, 2CO bivalents have very low telomere distances, while the 1CO bivalents have a greater range. In females the ranges of telomere distances have much more overlap.   
-
 ```{r MM.telo, echo=FALSE, eval=FALSE}
 #HetC
 
@@ -3916,8 +3771,6 @@ drop1(lmer_MM_telo.dist, test="Chisq")
 rand_telo.dist_MM <- exactRLRT(lmer_MM_telo.dist)
 rand_telo.dist_MM
 ```
-
-Mixed model result summary:
 
 ```{r log.reg_telo.dist, echo=FALSE, eval=FALSE}
 
@@ -4052,9 +3905,6 @@ single.biv_t.test_Cent.Dist_PER <- t.test(
    
 ```
 
-The normalized centromere plots show that in Musc males, on 2CO bivalents the 1st CO is closer to the centromere end than in Dom males. Females have more overlap in the distributions of centromere distances across chromosome class compared to males.-->
-
-
 ```{r Q1.CO1_foci_pos_boxplot, echo=FALSE, eval=FALSE}
 
 MELT_long_biv <- MELT_Curated_BivData[ MELT_Curated_BivData$Obj.ID %in% real.long.bivData$Obj.ID, ]
@@ -4128,7 +3978,6 @@ Q1.normF1.pos_table <- ddply(Mouse.Table_BivData_4MM, c("strain","sex"), summari
 
 ```
 
-
 ```{r norm.CO.pos_longBiv, echo=FALSE, eval=FALSE}
 
 #real.long.bivData
@@ -4185,34 +4034,10 @@ summary(log.reg_1CO_pos_biv)
 # Q1. Sex Differences in CO Interference (IFD)
 
 
-Q1. Sex Differences in CO Interference (IFD)
-Crossover interference is one of the major determinates of the recombination landscape. It generates a distribution of evenly spaced crossover along chromosomes instead of a random and more uniform distribution. To quantifiy how crossover interference differs between the typical recombination landscapes of males and females, we isolated 1360 and 1272 2CO bivalents in females and males respectively. Mean interfocal distances (IFD) were calculated from 42 female and 45 male mice. We examined both raw IFDraw and normalized by SC length (IFDnorm). The mean IFDraw measures of crossover interference as a mechanical force mediated through the SC. We compared the IFDraw to test the hypothesis of interference acting as a mechanical force transmitted through the SC. Previous measures found no sex difference in measures of IFDraw in mice (de Boer et al 2004). 
-There is no strong signal of sex differences in raw mean inter-focal distances (IFDraw) across the full set of strains. A marginally significant difference between the sexes (t-test; p = 0.07) is driven by one strain (t-test without domesticusG; p = 0.27). The difference in mean IFDraw are slightly significant sexes from the full data set (t.test; p = 0.07). However domesticusG might be an outlier (by having a larger than average degree of sexual dimorphism). When the domesticusG observations are removed, the difference is not longer significant (t.test; p = 0.27). This result indicates there is no general pattern of sex differences in crossover interferencethat females and males exhibit a similar level of interference when it is measured in physical (SC) units. In contrast, males have significantly longer normalized mean inter-focal distances (IFDnorm) than females in seven out of eight strains (t-tests; p < 0.02), with only musculusKAZ showing no difference (t-test; p = 0.33). 
-While the comparisons of the IFDnorm metrics can reveal more general recombination landscape patterns while controlling for the underlying differences in chromatin compaction and SC length. This metric is closer to measures of interference from linkage maps which are also removed from physical scales in that they measure frequencies of crossovers. Crossover interference is stronger in male specific linkage maps compared to female maps in a variety of species (ref).
-The difference in mean IFDnorm are highly significant between sexes. The mean IFDnorm are significantly long in six of seven strains (MSM t.test; p-value = 0.01), musculusSKIVE p-value = 4.310^{-5}), musculusPWD p-value = 2.2810^{-4}), molossinusMSM p-value =0.01), domesticusLEW p-value = 3.5710^{-5}), domesticusG p-value = 0.05), and domesticusWSB (t.test; p-value =0.03) ). Only musculusKAZ did not have a difference in mean IFDnorm (t.test; p-value = 0.33).
-In examining theExamination of IFDnorm distributions, we note indicates that  the female IFDnorm observations values are centered at approximately 50% and have show a slight an enrichment of short low (<25%) IFDnorm observationsvalues, whereas males are enriched for higher values. Comparitively, the IDFnorm distributions in males are enriched for longer IFDnorm.
-The three sets of modelsMixed models and general linear models of IFDnorm support the result inference of stronger interference in males:, sex was theis the most significant significant effectvariable (LRT: p = 6.7410^{-14}). When interference is measured in physical SC units (IFDraw), the differences between sexes is low and only slightly significant (data not shown). 
-In summary, controlling for differences in chromatin compaction (SC length) using IFDnorm indicates that interference is stronger in males, whereas consideration of IFDraw shows that the sexes exhibit a similar level of interference on the physical (SC) scale.
-These results support the model of the physical measures of interference (in SC units) is conserved between sexes inwithin the same species.While the comparisons of the IFDnorm metrics can reveal more general recombination landscape patterns while controlling for the underlying differences in chromatin compaction and SC length. This metric is closer to measures of interference from linkage maps which are also removed from physical scales in that they measure frequencies of crossovers. Crossover interference is stronger in male specific linkage maps compared to female maps in a variety of species (ref). 
-
 Q1 Summary, consequences of sex differences in the recombination landscape
 Our results confirm sex differences in recombination landscapes described in several other species and we note that these differences have distinct consequences on the potential patterns of genetic variation resulting from the distinct recombination landscapes.
 The terminal position of single foci and the greater distance between two foci on the same chromosome will have a consequence of larger sections of linked sites segregating together in male gametes compared to female gametes (Veller). 
 
-Additional Determinants of Genome-wide Recombination Rate Evolution in Males
-The next section is meant to focusNext, we used the contrast between high-recombination strains (musculusPWD , musculusSKIVE, and molossinusMSM) and low-recombination strains to identify features of the recombination landscape associated with evolutionary transitions in the genome-wide recombination rate. 
-on the greater aspect of variation in mean MLH1 counts per cell the high recombining strains ( musculusPWD , musculusSKIVE, and molossinusMSM) to the low recombing strains. The main objective of this section is to test for significant correlations between features of the recombination landscape and the evolution of mean MLH1 foci per cell.
-In comparing the male specific single bivalent based metrics the first creteria for analysis is a significant differences between the high and low recombining groups and the second step is testing for significant subspecies and strain effects in the same models which used mean MLH1 count per cell.
-
-<equations>
-
-**Linear model M1**
-
-
-mouse average bivalentmetric = subsp*strain+??
-Linear model M2 
-mouse average bivalentmetric = strain+?? 
-The literature provides Previous empirical work suggests basic predictions for the direction of the relationship between the genome wide recombination rate and two aspects of the recombination landscape.; SC length is expected to be positively associated with genome-wide recombination rate because X. Crossover interference is expected to be negatively associated with genome-wide recombination rate because X. (positive) and crossover interference (negative). Following this logic we predict i) no strain effects for SC length or crossover interference within domesticus, ii(1) musculusPWD will have greater SC length and weaker interference than musculusSKIVE, which in turn will have longer SC and weaker interference compared to the other musculus strains, and iii(2) molossinusMSM will have longer SC and weaker interference compared to molossinusMOLF, and 3) domesticus strains will have similar SC length and crossover interference..
 
 
 ```{r Q1.IFD_show.IFD_99, echo=FALSE, warning=FALSE}
@@ -4386,6 +4211,36 @@ Q1.IFD.raw_sansG_t.test <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% 
 
 
 ```
+
+
+There is no strong signal of sex differences in raw mean inter-focal distances (IFDraw) across the full set of strains. A marginally significant difference between the sexes (t-test; p = 0.07) is driven by one strain (t-test without domesticusG; p = 0.27). This result indicates that females and males exhibit a similar level of interference when it is measured in physical (SC) units. In contrast, males have significantly longer normalized mean inter-focal distances (IFDnorm) than females in seven out of eight strains (t-tests; p < 0.02), with only musculusKAZ showing no difference (t-test; p = 0.33). Examination of IFDnorm distributions indicates that female IFDnorm values are centered at approximately 50% and show a slight enrichment of low (<25%) values, whereas males are enriched for higher values.
+Mixed models and general linear models of IFDnorm support the inference of stronger interference in males: sex is the most significant variable (LRT: p = 6.7410^{-14}). When interference is measured in physical SC units (IFDraw), the differences between sexes is low and only slightly significant (data not shown). 
+In summary, controlling for differences in chromatin compaction (SC length) using IFDnorm indicates that interference is stronger in males, whereas consideration of IFDraw shows that the sexes exhibit a similar level of interference on the physical (SC) scale.
+While the comparisons of the IFDnorm metrics can reveal more general recombination landscape patterns while controlling for the underlying differences in chromatin compaction and SC length. This metric is closer to measures of interference from linkage maps which are also removed from physical scales in that they measure frequencies of crossovers. Crossover interference is stronger in male specific linkage maps compared to female maps in a variety of species (ref).
+
+
+--- not sure what below is from -- 
+
+Crossover interference is one of the major determinates of the recombination landscape. It generates a distribution of evenly spaced crossover along chromosomes instead of a random and more uniform distribution. To quantifiy how crossover interference differs between the typical recombination landscapes of males and females, we isolated 1360 -- `r length(  (Curated_BivData.22 %>% filter(sex == "female") )$Obj.ID )` and 1272 -- `r length(  (Curated_BivData.22 %>% filter(sex == "male") )$Obj.ID )` 2CO bivalents in females and males respectively. Mean interfocal distances (IFD) were calculated from 42 -- `r length( unique( (Curated_BivData.22 %>% filter(sex == "female") )$mouse) )` female and 45 -- `r length( unique( (Curated_BivData.22 %>% filter(sex == "male") )$mouse) )` male mice. We examined both raw IFDraw and normalized by SC length (IFDnorm). The mean IFDraw measures of crossover interference as a mechanical force mediated through the SC. We compared the IFDraw to test the hypothesis of interference acting as a mechanical force transmitted through the SC. Previous measures found no sex difference in measures of IFDraw in mice [@de_boer_two_2006]. 
+
+----
+
+
+There is no strong signal of sex differences in raw mean inter-focal distances (IFDraw) across the full set of strains. A marginally significant difference between the sexes (t-test; p = 0.07 -- `r Q1.IFD.raw_FULL_t.test$p.value`) is driven by one strain (t-test without domesticus^G^; p = 0.27 -- `r Q1.IFD.raw_sansG_t.test$p.value`). The difference in mean IFDraw are slightly significant sexes from the full data set (t.test; **p = 0.07)**. However domesticusG might be an outlier (by having a larger than average degree of sexual dimorphism). 
+
+When the domesticusG observations are removed, the difference is not longer significant (t.test; p = 0.27) <already stated?>. 
+
+This result indicates there is no general pattern of sex differences in crossover interferencethat females and males exhibit a similar level of interference when it is measured in physical (SC) units. In contrast, males have significantly longer normalized mean inter-focal distances (IFDnorm) than females in seven out of eight strains (t-tests; p < 0.02), with only musculus^KAZ^ showing no difference (t-test; p = 0.33). 
+While the comparisons of the IFDnorm metrics can reveal more general recombination landscape patterns while controlling for the underlying differences in chromatin compaction and SC length. This metric is closer to measures of interference from linkage maps which are also removed from physical scales in that they measure frequencies of crossovers. Crossover interference is stronger in male specific linkage maps compared to female maps in a variety of species (ref).
+
+The difference in mean IFDnorm are highly significant between sexes. The mean IFDnorm are significantly long in six of seven strains (MSM t.test; p-value = 0.01), musculus^SKIVE^ p-value = 4.310^{-5}), musculus^PWD^ p-value = 2.2810^{-4}), molossinus^MSM^ p-value =0.01), domesticus^LEW^ p-value = 3.5710^{-5}), domesticusG p-value = 0.05), and domesticus^WSB^ (t.test; p-value =0.03) ). Only musculus^KAZ^ did not have a difference in mean IFDnorm (t.test; p-value = 0.33).
+In examining theExamination of IFDnorm distributions, we note indicates that  the female IFDnorm observations values are centered at approximately 50% and have show a slight an enrichment of short low (<25%) IFDnorm observationsvalues, whereas males are enriched for higher values. Comparitively, the IDFnorm distributions in males are enriched for longer IFDnorm.
+The three sets of models Mixed models and general linear models of IFDnorm support the result inference of stronger interference in males:, sex was theis the most significant significant effectvariable (LRT: p = 6.7410^{-14}). When interference is measured in physical SC units (IFDraw), the differences between sexes is low and only slightly significant (data not shown). 
+In summary, controlling for differences in chromatin compaction (SC length) using IFDnorm indicates that interference is stronger in males, whereas consideration of IFDraw shows that the sexes exhibit a similar level of interference on the physical (SC) scale.
+These results support the model of the physical measures of interference (in SC units) is conserved between sexes inwithin the same species.While the comparisons of the IFDnorm metrics can reveal more general recombination landscape patterns while controlling for the underlying differences in chromatin compaction and SC length. This metric is closer to measures of interference from linkage maps which are also removed from physical scales in that they measure frequencies of crossovers. Crossover interference is stronger in male specific linkage maps compared to female maps in a variety of species (ref). 
+
+
+
 
 Crossover interference is one of the major determinates of the recombination landscape. It generates a distribution of evenly spaced crossover along chromosomes instead of a random and more uniform distribution. To quantifiy how crossover interference differs between the typical recombination landscapes of males and females, we isolated `r length(  (Curated_BivData.22 %>% filter(sex == "female") )$Obj.ID )` and 
 `r length(  (Curated_BivData.22 %>% filter(sex == "male") )$Obj.ID )` 2CO bivalents in females and males respectively. Mean interfocal distances (IFD) were calculated from `r length( unique( (Curated_BivData.22 %>% filter(sex == "female") )$mouse) )`  female and `r length( unique( (Curated_BivData.22 %>% filter(sex == "male") )$mouse) )` male mice. We examined both raw IFD^raw^ and normalized by SC length (IFD^norm^). The mean IFD^raw^ measures of crossover interference as a mechanical force mediated through the SC. We compared the IFD^raw^ to test the hypothesis of interference acting as a mechanical force transmitted through the SC. Previous measures found no sex difference in measures of IFD^raw^ in mice [@de_boer_two_2006].
@@ -5028,40 +4883,42 @@ Q1.IFD.raw_BIV.short.ttest_KAZ <-  t.test( (real.short.bivData %>% filter(sex ==
                 ( real.short.bivData %>% filter(sex == "female") %>% filter(strain =="KAZ") %>%  filter(hand.foci.count == "2"))$IFD1_PER)
 ```
 
-# Q1 Summary, consequences of sex differences in the recombination landscape
 
-Our results confirm sex differences in recombination landscapes described in several other species and we note that these differences have distinct consequences on the potential patterns of genetic variation resulting from the distinct recombination landscapes.  
-The terminal position of single foci and the greater distance between two foci on the same chromosome will have a consequence of larger sections of linked sites segregating together in male gametes compared to female gametes (Veller).
 
-<!-- transition Q1 to Q2 -->
+## Additional Determinants of Genome-wide Recombination Rate Evolution in Males
 
-The next section is meant to focus on the greater aspect of variation in mean MLH1 counts per cell the high recombining strains ( _musculus^PWD^_ , _musculus^SKIVE^_, and _molossinus^MSM^_) to the low recombing strains. The main objective of this section is to test for significant correlations between features of the recombination landscape and the evolution of mean MLH1 foci per cell. 
 
-In comparing the male specific single bivalent based metrics the first creteria for analysis is a significant differences between the high and low recombining groups and  the second step is testing for significant subspecies and strain effects in the same models which used mean MLH1 count per cell.
+The next section is meant to focusNext, we used the contrast between high-recombination strains (musculus^PWD^ , musculus^SKIVE^, and molossinus^MSM^) and low-recombination strains to identify features of the recombination landscape associated with evolutionary transitions in the genome-wide recombination rate. 
+on the greater aspect of variation in mean MLH1 counts per cell the high recombining strains ( musculus^PWD^ , musculus^SKIVE^, and molossinus^MSM^) to the low recombing strains. The main objective of this section is to test for significant correlations between features of the recombination landscape and the evolution of mean MLH1 foci per cell.
+In comparing the male specific single bivalent based metrics the first creteria for analysis is a significant differences between the high and low recombining groups and the second step is testing for significant subspecies and strain effects in the same models which used mean MLH1 count per cell.
+
+<equations>
+
+**Linear model M1**
+
+$$mouse \ average \ bivalent \ metric ~=~ subsp * rand(strain) + \varepsilon $$
+
+**Linear model M2**
+
+mouse average bivalent metric = strain+?? 
+
+$$mouse \ average \ bivalent \ metric ~=~ rand(strain) + \varepsilon $$
+
 
 **Linear model M1 ** $$mouse \ average \ bivalent metric ~=~ subsp * strain + \varepsilon $$
 
 **Linear model M2 ** $$mouse \ average \ bivalent metric ~=~ strain + \varepsilon $$  
 
 
-The literature provides basic predictions for the direction of the relationship the genome-wide recombination rate and two aspects of the recombination landscape; SC length (positive) and crossover interference (negative). Following this logic we predict i) no strain effects for SC length or crossover interference within _domesticus_, ii) _musculus^PWD^_ will have greater SC length and weaker interference than _musculus^SKIVE^_, which will have longer SC and weaker interference compared to the other _musculus_ strains and iii) _molossinus^MSM^_ will have longer SC and weaker interference compared to _molossinus^MOLF^_.
+Previous empirical work suggests basic predictions for the relationship between the genome wide recombination rate and two aspects of the recombination landscape. **SC length is expected to be positively associated with genome-wide recombination rate because X**. Crossover interference is expected to be negatively **associated with genome-wide recombination rate because X**. Following this logic we predict (1) musculus^PWD^ will have greater SC length and weaker interference than musculus^SKIVE^, which in turn will have longer SC and weaker interference compared to the other _musculus_ strains, (2) molossinus^MSM^ will have longer SC and weaker interference compared to molossinus^MOLF^, and 3) _domesticus_ strains will have similar SC length and crossover interference.
+
 
 # Q2 SC Length
 
-We compared mouse means of three SC-based metrics: total SC length, mean short bivalent length, and mean long bivalent length. The long bivalent data set was isolated by choosing bivalents in the X quartile of the SC length distribution within cells. The short bivalent dataset was isolated as described above.
+```{r Q2.SC.length.bret.comments, echo=FALSE}
+#correlation
 
-figure
-
-Confirming the basic predictions, there is a positive correlation between mean MLH1 foci per cell and total SC ([report spearman's rho and p-value]). Nevertheless, mean total SC only partially differentiates high-recombination and low-recombination strains (Figure X). While high-recombination strains have significantly more SC area in the total dataset (t-test; p = 0.01), separate tests by strain show that only within molossinus are high- and low-recombination strains significantly different (t-test; molossinus: p = 0.03; musculus: p = 0.87). Additionally, the means for the reduced (short and long) bivalent datasets are not significantly different between high-recombination and low-recombination strains (t-test; short: p = 0.88; long: p = 0.18).
-In a general linear model with total SC as the dependent variable, two subspecies effects are significant (p = musculus 1.2410^{-6}, molossinus p = 10^{-6}). In general linear models with reduced bivalent means as dependent variables, several subspecies and strain effects reach significance (p < 0.05) but they are not consistent across models, indicating to some extent the chromatin compaction evolution is decoupled from evolution in mean MLH1 foci per cell.
-
-
-<bret's version above>
-
-
-Given the differences in the DSB numbers between a subset of the high and low recombining strains we predict that there will also be differences in SC lengths proportional to the increase in the mean genome-wide recombination rate. We compared mouse means of three SC based metrics; total SC, mean short bivalent length and mean long bivalent length. The long bivalent data set was isolated in the same manner as the short bivalent data set.
-
-
+```
 
 ```{r Q2.SC.short.long.setup, echo=FALSE}
 
@@ -5317,9 +5174,6 @@ Q2.BIV_long_t.test_HL <- t.test((real.long.bivData %>%filter(sex == "male")%>%fi
 
 ```
 
-Confirming the basic predictions, there is a positive correlation between mean MLH1 foci per cell and total SC, however the variation in mean total SC does not completely predict the high and low recombining strains (Figure X). While for the total data set of mean total SC, the high recombining strains have significantly more SC area
-(t.test; p = `r Q2tot.sc_t.test_High.Low$p.value`), only the _molossinus_ strains are significantly different between the high and low recombining strains (t.test mol p = `r Q2tot.sc_t.test_High.Low_Mol$p.value`). The _musculus_ are not significantly different across the groups (ttest; musc p= `r Q2tot.sc_t.test_High.Low_Musc$p.value`). Additionally, the means for the reduced bivalent datasets, short and long bivalents, are not significantly different between the high and low recombining strains (t.test; short p = `r Q2short.biv_t.test_High.Low$p.value` and long p = `r Q2long.biv_t.test_High.Low$p.value`).
-
 ```{r Q2.SC_across.subsp_tot.SC, echo=FALSE}
 
 #Dom-Musc
@@ -5391,8 +5245,6 @@ Q2.shortBIV_t.test_DomMol <- t.test((real.short.bivData  %>% filter(subsp == "Do
 #p-value = 0.06
 
 ```
-
-
 
 ```{r Q2.totSC.glm, echo=FALSE}
 
@@ -5514,10 +5366,6 @@ sum.glmQ2_short.biv_M2_MUSC <- summary(glmQ2_short.biv_M2_MUSC)
 #pairwise.t.test( ( Q2mouse.av.short.biv.table %>% filter(subsp == "Musc") )$mean.SC, ( Q2mouse.av.short.biv.table %>% filter(subsp == "Musc") )$strain, p.adj = "bonf", pool.sd = FALSE)
 
 ```
-
-For the linear model testing subspeices and strain (M1) and total SC as the dependant variable, the two subspecies effects are significant (glm; p= _Musculus_ `r sum.Q2.glm_mus.av_totSC_M1[,4][2]` and _Molossinus_ p= `r sum.Q2.glm_mus.av_totSC_M1[,4][3]`). Whereas the model with reduced bivalent means as the dependant variables, a number of subspeicies and strains effects reach significance, (glm; p < 0.05) they are not consistant across the sets of models tested, indecateing to some extent the chromation compaction evolution is decoupled from evolution in mean MLH1 foci per cell. 
-
-
 
 ```{r Q2.SC.logreg.chrmClass_BivData, echo=FALSE, include=FALSE, eval=FALSE}
 
@@ -5681,10 +5529,6 @@ summary(log.SC_male_chrm.class)
 #i'd be more convinced by running all those log regression plots for each strain
 #come back later
 ```
-
-<These are the plots of the logistic regression.>
-
-<Each point is a mouse average SC. When all bivalents are pooled, the logistic regression SC lengths predict the groups. When the data is divided by CO number, 1CO's have a higher SC length in the low group - in the low group more chrms, including the longer ones have 1CO - whereas in the high group, only shorter chrms (SC) are in the 1CO class. For the 2CO class of bivalents - all the SC are longer, the high group averages were longer than the low.>
 
 ```{r Q2.SC.log.regression.show.plots, echo=FALSE, include=FALSE}
 
@@ -6013,9 +5857,23 @@ Pwise.ttest_Mol.male.2CO <- pairwise.t.test(male.Mol.mouse.av$mean.SC_2CO, male.
 #pairwise.t.test(Ozone, Month, p.adj = "bonf")
 ```
 
+
+We compared mouse means of three SC-based metrics: total SC length, mean short bivalent length, and mean long bivalent length. The long bivalent data set was isolated by choosing bivalents in the X quartile of the SC length distribution within cells. The short bivalent dataset was isolated as described above.
+
+figure
+
+Confirming the basic predictions, there is a positive correlation between mean MLH1 foci per cell and total SC **([report spearman's rho and p-value])**. Nevertheless, mean total SC only partially differentiates high-recombination and low-recombination strains (Figure X).
+
+While high-recombination strains have significantly more SC area in the total dataset (t-test; p = 0.01 -- `r Q2tot.sc_t.test_High.Low$p.value`), separate tests by strain show that only within _molossinus_ are high- and low-recombination strains significantly different (t-test; molossinus: p = 0.03 -- `r Q2tot.sc_t.test_High.Low_Mol$p.value`; musculus: p = 0.87  -- `r Q2tot.sc_t.test_High.Low_Musc$p.value`). 
+
+Additionally, the means for the reduced (short and long) bivalent datasets are not significantly different between high-recombination and low-recombination strains (t-test; short: p = 0.88 -- `r Q2short.biv_t.test_High.Low$p.value`; long: p = 0.18 -- `r Q2long.biv_t.test_High.Low$p.value`).
+
+In a general linear model with total SC as the dependent variable, two subspecies effects are significant (p = musculus 1.2410^{-6} -- `r sum.Q2.glm_mus.av_totSC_M1[,4][2]`, molossinus p = 10^{-6} -- `r sum.Q2.glm_mus.av_totSC_M1[,4][3]`). In general linear models with reduced bivalent means as dependent variables, several subspecies and strain effects reach significance (p < 0.05) but they are not consistent across models, indicating to some extent the chromatin compaction evolution is decoupled from evolution in mean MLH1 foci per cell.
+
+<bret's version above>
+
 # Q2.1CO rec landscape evolution is decoupled from gwRR evolution
 
-The normalized 1CO position is not significantly different between high-recombination and low-recombination strains for the total pooled data (t-test; p = 0.24) and also when examined within subspecies (t-test; p = 0.41 and p = 0.07 for musculus and molossinus, respectively). While there are significant strain effects for domesticusWSB and molossinusMOLF in a general linear model with normalized position as the dependent variable (Figure X), this evolution of the 1CO positioning is decoupled from the total genome-wide recombination rate. 
 
 ```{r Q2.1CO.show_plots, echo=FALSE,  warning=FALSE}
 #Curated_BivData_male
@@ -6132,9 +5990,6 @@ Rec.group_BivData_F1post_Ttest <- t.test(
 
 ```
 
-The normalized 1CO position is not significantly different between the high and low recombining groups for the total pooled data (t.test; p = `r Rec.group_BivData_F1post_Ttest$p.value`) and also when examined within subspecies (t.test; p = `r Q2.1COpos_mus.av_Musc_ttest$p.value` and p = `r Q2.1COpos_mus.av_Mol_ttest$p.value` for _musculus_ and _molossinus_ respectively). While there were significant strain effects for _domesticus^^WSB^_ and _molossinus^MOLF^_ (figure X), this evolution of the 1CO positioning is decoupled from the total genome-wide recombination rate. Hence we don't follow up with the model framework.
-
-
 
 ```{r Q2.1COpos_mus.av.full_glm, echo=FALSE}
 
@@ -6153,7 +6008,6 @@ Q2.glm_mus.av_1COpos_M2 <- glm(norm.first.foci.pos ~ strain, data= mouse.avs_4MM
 sum.Q2.glm_mus.av_1COpos_M2 <- summary(Q2.glm_mus.av_1COpos_M2)$coefficients
 
 ```
-
 
 ```{r Q2.1COpos.show.MOL, echo=FALSE}
 
@@ -6200,7 +6054,6 @@ chrm.1CO.pos.chrmLength_strain <- glm(PER_Foci_1 ~ chromosomeLength *  strain, d
 #summary(chrm.1CO.pos.chrmLength_strain)
 
 ```
-
 
 ```{r Q2.1COpos_strain, echo=FALSE, eval=FALSE}
 #isolate all musc
@@ -6265,13 +6118,9 @@ Log.Q2.F1_PER_Mol <- glm(Rec.group ~ PER_Foci_1,
 ```
 
 
+The normalized 1CO position is not significantly different between high-recombination and low-recombination strains for the total pooled data (t-test; p = 0.24 -- `r Rec.group_BivData_F1post_Ttest$p.value`) and also when examined within subspecies (t-test; p = 0.41 -- `r Q2.1COpos_mus.av_Musc_ttest$p.value` and p = 0.07 -- `r Q2.1COpos_mus.av_Mol_ttest$p.value` for _musculus_ and _molossinus_, respectively). While there are significant strain effects for domesticus^WSB^ and molossinus^MOLF^ in a general linear model with normalized position as the dependent variable (Figure X), this evolution of the 1CO positioning is decoupled from the total genome-wide recombination rate. 
 
-# Q2 Evolution of interference is associated with genome-wide recombination rate evolution
-
-Mouse averages for both IFDraw and IFDnorm are significantly longer in high-recombination strains (t-test; IFDnorm: p = 7.7410^{-7}; IFDraw: p = 8.7810^{-6}). This pattern is confirmed by separate comparisons within musculus (t-test; IFDnorm: p =2.0410^{-5}; IFDraw: p = 1.9410^{-4}) and within molossinus (IFDnorm: p= 0.17; IFDraw: p = 0.08). Similar results are seen with general linear models for both IFDraw and IFDnorm: only effects associated with high-recombination strains are significant (p < 0.05). That IFDraw and IFDnorm show similar patterns eliminates variation in SC lengths and bivalent sizes as primary explanations. We determined that the main difference in IFDnorm distributions between high-recombination and low-recombination strains is an enrichment of IFDnorm values under 30% in low-recombination strains. The frequency of IFDnorm values that fall below 30% ranges from 8.2% (domesticusG) to 16% (musculusKAZ) in low-recombination strains, whereas high-recombination strains all show such frequencies below 5% (0%, 1.3%, and 3.3% for musculusSKIVE, molossinusMSM, and musculusPWD, respectively).
-In summary, the level of interference is a significant predictor of evolution in the genome-wide recombination rate, but SC length and crossover position on 1CO bivalents are not. However, the pattern is in the opposite direction to our prediction: high-recombination strains have stronger interference. At least on 2CO bivalents, crossovers are spaced further apart when the genome-wide recombination rate is higher.
-
-
+# Q2 Evolution of interference is associated with genome wide recombination rate evolution
 
 
 ```{r Q2.IFD.long.short.setup, echo=FALSE}
@@ -6324,7 +6173,6 @@ LongBiv_IFD_mus.rate$Rec.group <- ifelse(grepl("PWD", LongBiv_IFD_mus.rate$strai
 
 ```
 
-
 ```{r Q2.IFD.long.biv_t.test, echo=FALSE}
 
 #short removed PER
@@ -6343,7 +6191,6 @@ Short.removed_BivData.LongBiv_IFD.ABS_Ttest$p.value
 #0.047
 
 ```
-
 
 ```{r Q2.show.IFD, echo=FALSE, warning = FALSE}
 
@@ -6399,11 +6246,6 @@ t.test_mouse.av.IFD_ABS_MOL <- t.test(  (mouse.avs_4MM %>% filter(Rec.group == "
 
 
 ```
-
-Unlike total SC length and single foci landscapes, our metrics of interference from 2COs are significant predictors of evolution in genome-wide recombination rates. However, the pattern is in the opposite direction to our prediction; the high recombining strains have significantly stronger interference (instead of being predicted weaker interference). In the 2CO landscape, instead of observing weaker interference strength and two foci placed closer together on a single chromosomes, the two foci are spaced further apart.
-
-The mouse averages for both IFD^raw^ and IFD^norm^ were significantly longer in the high recombining groups (t.test; p = `r t.test_mouse.av.IFD_PER$p.value` for IFD^norm^ and p = `r t.test_mouse.av.IFD_ABS$p.value` for IFD^raw^). The pattern is confirmed with t.test comparing strains within _musculus_ and _molossinus_ (t.tests p =`r t.test_mouse.av.IFD_PER_MUSC$p.value` and p= `r t.test_mouse.av.IFD_PER_MOL$p.value` for IFD^norm^ and `r t.test_mouse.av.IFD_ABS_MUSC$p.value`  `r t.test_mouse.av.IFD_ABS_MOL$p.value` for IFD^raw^).  
-
 
 ```{r Q2.IFD.glm.test, echo=FALSE}
 #REPLACE Male.poly with ..
@@ -6673,11 +6515,6 @@ Q2.glm_long.biv_M2.IFD.PER <- glm(IFD1_PER ~ strain, data= male.long.biv.2CO_IFD
 #The PER.IFDs don't have significant strain effects
 ```
 
-
-The greater IFD measures in high recombing strains is confirmed by fitting both the IFD^raw^ and IFD^norm^ into the linear model framework, where only the strain effects for the high recombining strains had significant p values (glm; p < 0.05). The similar patterns across the raw and normalized IFD values rule out differences in IFD^raw^ measures, SC lengths and chromosome size as the major driver of this pattern. We determined that the main difference in IFDPER distribution across the high and low groups is an enrichment of IFD^norm^ observations under 30% in low recombining strains. The rate of IFD^norm^ below 30% range from 8.2% ( _domesticus^G^_) to 16% ( _musculus^KAZ^_) in the low recombining strains, while the high strains all had rates under 5% (0%, 1.3%, and 3.3% for _musculus^SKIVE^_, _molossinus^MSM^_, and _musculus^PWD^_ respectively). 
-
-<REDO tests with the short IFDs removed, where do those above values come from >
-
 ```{r Q2.IFD_remove.short, echo=FALSE, include=FALSE}
 #mus
 #PER 
@@ -6686,13 +6523,6 @@ The greater IFD measures in high recombing strains is confirmed by fitting both 
 #mus
 
 ```
-
-
-When I compared the normalized IFDs with and without the short IFD's included, -- predictably, many mouse averages for 2CO IFD do nnot change for higher rec strains (but some low too). Most of the low rec strains show a change in the PER IFD (but some high rec mice also changed)
-
-For the strain averages, the high rec strains also show low change in the normalized IFD -also these are all higher (0.6)
-
-
 
 ```{r Q2.t.test_IFD, echo=FALSE, eval=FALSE}
 
@@ -6746,6 +6576,11 @@ Short.removed_BivData_IFD.ABS_Ttest_mus.av <- t.test(close.IFD.rates.mus.rate$me
 
 ```
 
+Mouse averages for both IFD^raw^ and IFD^norm^ are significantly longer in high-recombination strains (t-test; IFD^norm^: p = 7.7410^{-7} -- `r t.test_mouse.av.IFD_PER$p.value`; IFD^raw^: p = 8.7810^{-6} -- `r t.test_mouse.av.IFD_ABS$p.value`). This pattern is confirmed by separate comparisons within _musculus_ (t-test; IFD^norm^: p =2.0410^{-5} -- `r t.test_mouse.av.IFD_PER_MUSC$p.value`; IFD^raw^: p = 1.9410^{-4} -- `r t.test_mouse.av.IFD_ABS_MUSC$p.value`) and within _molossinus_ (IFD^norm^: p= 0.17 -- `r t.test_mouse.av.IFD_PER_MOL$p.value`; IFD^raw^: p = 0.08 -- `r t.test_mouse.av.IFD_ABS_MOL$p.value`). Similar results are seen with general linear models for both IFD^raw^ and IFD^norm^: only effects associated with high-recombination strains are significant (p < 0.05). 
+
+That IFD^raw^ and IFD^norm^ show similar patterns eliminates variation in SC lengths and bivalent sizes as primary explanations. We determined that the main difference in IFD^norm^ distributions between high-recombination and low-recombination strains is an enrichment of IFD^norm^ values under 30% in low-recombination strains. The frequency of IFD^norm^ values that fall below 30% ranges from 8.2% (domesticus^G^) to 16% (musculus^KAZ^) in low-recombination strains, whereas high-recombination strains all show such frequencies below 5% (0%, 1.3%, and 3.3% for musculus^SKIVE^, molossinus^MSM^, and musculus^PWD^, respectively).  
+
+In summary, the level of interference is a significant predictor of evolution in the genome-wide recombination rate, but SC length and crossover position on 1CO bivalents are not. However, the pattern is in the opposite direction to our prediction: high-recombination strains have stronger interference. At least on 2CO bivalents, crossovers are spaced further apart when the genome-wide recombination rate is higher.
 
 
 # Q2 Summary
