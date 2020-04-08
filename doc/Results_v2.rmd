@@ -1,16 +1,16 @@
 ---
 title: "MLH1 Results Outline"
-date:
+date: "null"
 output:
+  word_document:
+    toc: yes
+    toc_depth: '5'
+  pdf_document: default
   html_document:
     df_print: paged
     toc: yes
     toc_depth: '5'
     toc_float: yes
-  pdf_document: default
-  word_document:
-    toc: yes
-    toc_depth: '5'
 bibliography: refs_Main_Report.bib
 ---
 
@@ -1236,7 +1236,6 @@ bin is short for binary, it reports the binarized area of the SC
 
 skel -- takes the skeletonized midline of the bin objects
 -->
-# Main Figure
 
 ```{r table.for.plot, echo=FALSE, warning=FALSE}
 #why do I add in a different table?
@@ -1530,7 +1529,6 @@ female.musc.mice.table <- ddply(female.musc.cells, c("sex"), summarise,
 
 # genome-wide recombination rate estimates for both sexes
 
-
 ```{r MLH1.summ.stats, echo=FALSE}
 
 #strain.table.HQ_Fig.og  all strains
@@ -1562,7 +1560,6 @@ main.table <- add_species(main.table)
 
 ```
 
-
 ```{r MLH1.sum.stats.Bret.edits, echo=FALSE}
 
 AP_mouse_table.HQ <- add_species(AP_mouse_table.HQ)
@@ -1578,12 +1575,13 @@ AP_mouse_table.HQ <- add_species(AP_mouse_table.HQ)
 We used counts of MLH1 foci per cell to estimate genome-wide recombination rates in `r length(unique(  (main.table  %>% filter(species == "M.musculus") )$strain) )` wild-derived inbred strains sampled from three subspecies of house mice: *M. m. domesticus*, *M. m. musculus* and *M. m. molossinus*. Mean MLH1 foci counts for `r length( unique(AP_mouse_table.HQ %>% filter(species == "M.musculus") )$mouse )` mice were quantified from an average of `r mean( (male_mouse.av %>% filter(species == "M.musculus") )$Ncells, na.rm = T)` spermatocytes per male (for a total of `r sum( (main.table %>% filter(species == "M.musculus") %>% filter(sex == "male"))$Ncells)` spermatocytes) and `r mean(female_mouse.avs_for.analysis$Ncells, na.rm = T)` oocytes per female (for a total of `r sum( (main.table %>% filter(species == "M.musculus") %>% filter(sex == "female"))$Ncells)` oocytes). 
 
 
-Graphical comparisons between the two sexes reveal several patterns (Figure 1A). First, recombination rate differs between females and males in most strains. Second, the direction and magnitude of heterochiasmy varies among strains. Although the majority of strains show higher recombination rates in females (following the pattern in laboratory mice), two musculus strains and one molossinus strain exhibit male-biased heterochiasmy. Hence, relative recombination rates in the two sexes are evolutionarily labile.
+Graphical comparisons between the two sexes reveal several patterns (Figure 1A). First, recombination rate differs between females and males in most strains. Second, the direction and magnitude of heterochiasmy varies among strains. Although the majority of strains show higher recombination rates in females (following the pattern in laboratory mice), two musculus strains and one molossinus strain exhibit male-biased heterochiasmy. Hence, relative recombination rates in the two sexes are evolutionarily labile.  
+
+
+The general patterns of heterochiasmy in house mouse are displayed in Figure 1A. Taking note of the direction and the magnitude of the sex differences, our results confirm two general patterns: i) genome-wide recombination rates averages are greater in females compared to males (female biased heterochiasmy) and ii) the degree of heterochiasmy (Female:Male ratio) is generally low, ranging from `r G.HETC.val` in _domesticus^G^_ to `r LEW.HETC.val` in _domesticus^LEW^_. Three notable exceptions of male biased heterochiasmy are the strains _musculus^PWD^_, _molossinus^MSM^_ and _musculus^SKIVE^_, with heterochiasmy values of `r PWD.HETC.val`, `r MSM.HETC.val` and `r SKIVE.HETC.val` respectively.  
+
+
 Separately examining the mouse means of MLH1 foci per cell for each sex points to distinct patterns of variation (Figure 1B-C). Female recombination rates are evenly distributed around the sex-wide mean of approximately 25 MLH1 foci per cell (Figure 1B). In stark contrast, males separate more clearly into two groups of strains with high rates (near 30 MLH1 foci per cell) and low rates (near 23 MLH1 foci per cell) (Figure 1C).
-
-The general patterns of heterochiasmy in house mouse are displayed in Figure 1A. Taking note of the direction and the magnitude of the sex differences, our results confirm two general patterns: i) genome-wide recombination rates averages are greater in females compared to males (female biased heterochiasmy) and ii) the degree of heterochiasmy (Female:Male ratio) is generally low, ranging from `r G.HETC.val` in _domesticus^G^_ to `r LEW.HETC.val` in _domesticus^LEW^_. Three notable exceptions of male biased heterochiasmy are the strains _musculus^PWD^_, _molossinus^MSM^_ and _musculus^SKIVE^_, with heterochiasmy values of `r PWD.HETC.val`, `r MSM.HETC.val` and `r SKIVE.HETC.val` respectively.
-
-Separtely examining the mouse means of MLH1 foci per cell separately for each sex reveal distinct patterns of variation (Figure1 B and C). Female recombination rate means are evenly distributed around the sex-wide mean of approximately 25 MLH1 foci per cell (Figure1 B). In stark contrast, males specific means separate more clearly into two groups of strains with high genome-wide recombination rates (near 30 MLH1 foci per cell) and low genome-wide recombination rates, (near 23 MLH1 foci per cell) (Figure1 C).
 
 
 ```{r female.strain.table, echo=FALSE}
@@ -1816,8 +1814,6 @@ lm.m2.Q12VAR.male_sum <- summary(lm.m2.Q12_male)
 ```
 
 
-<add a transition sentence, about the expectations under different evolutionary scnarios>
-
 # Partitioning variation in recombination rate
 
 
@@ -1872,6 +1868,7 @@ summ.MLH1.M3.strain.fixed <- summary(MLH1.M3.strain.fixed)
 
 #write.table(summ.strain.fixed$coefficients , "~./MLH1repo/summ.strain.fixed.csv", sep=",",row.names = TRUE)
 ```
+
 
 To situate variation in recombination rate within an evolutionary framework, we fit a series of models including subspecies, strain, and sex, to mean MLH1 foci counts from `r length(DF.HetC.MixedModel.HQ$mean_co)` mice. We began with a full mixed model (M1, see Methods), which showed that strain 
 (random effect p < `r MLH1.MMlmer_results$rand.pval`   **someSmallNumber**), sex (p = `r MLH1.MMlmer_results$sex.results` -- 3.9710^{-5}), subspecies (p=`r MLH1.MMlmer_results$sub.sp`--  1.7210^{-4}), and subspecies sex (p = `r MLH1.MMlmer_results$interaction.pval` -- 3.110^{-5}) each significantly affect recombination rate. 
@@ -3072,17 +3069,13 @@ Q1lmer.MM_SC_short_strain)
 
 In many mammalian species, the synaptonemal complex (SC) is longer in females. Yet, the majority of these observations come from species with female-biased heterochiasmy. Our wider survey of recombination in house mice provides an opportunity to determine whether sex differences in chromatin compaction (SC length) are reversed when heterochiasmy is male-biased. In addition, if SC length is a strong determinant of the genome-wide recombination rate,  male musculus^PWD^ and male molossinus^MSM^ should have longer SC lengths than the other strains. 
 
-To account for confounding effects of sex chromosomes from pooled samples of bivalents, we considered a reduced dataset including only bivalents with SC lengths below the 2nd quartile (for SC length) in each cell. This dataset included the four or five shortest bivalents  and excluded the X bivalent in oocytes. A total of 678 -- `r sum(Q1.real.short_mouse_table$n_obs)` 'short' bivalents were isolated from 103 -- `r sum(  (Q1.real.short_mouse_table  %>% filter(sex=="female") )$ncells)` oocytes and 37 -- `r sum(  (Q1.real.short_mouse_table  %>% filter(sex=="male") )$ncells)` spermatocytes. Although this smaller dataset has decreased power, it offers a more comparable set of single bivalents to compare between the sexes.
-
 <figure>
 
 
 Short bivalents are significantly longer in females than males in all strains (t-test; p < 0.05) except musculus^SKIVE^.  The female:male ratio ranges across strains from 1.15 -- `r Q1SC.mus.av.short.biv_DIFF_MSM` (musculus^MSM^) to 1.49 -- `r Q1SC.mus.av.short.biv_DIFF_WSB` (domesticus^WSB^). 
 
 
-As an additional metric of chromatin compaction, we computed the total (summed) SC length of all bivalents for single cells, using the image analysis algorithm of [@wang_2019_sc]. 
-
-Mouse means were calculated from cell-wide total SC lengths in 2,984 -- `r length(  (MLH1.merge.Skel %>% filter(species == "M.musculus") %>% filter(subsp != "Cast")  )$Random.Name)` out of 3,680 -- `r length(  (MLH1_data %>% filter(species == "M.musculus") %>% filter(subsp != "Cast")  )$Random.Name)` cells with MLH1 counts (Figure X). Females have significantly longer total SC than males in each strain tested separately (t-test; p < 0.05). That females have longer SCs is also supported by mixed models and general linear models with covariates, which identify sex as the most consistently significant effect (p < 0.05). Additionally, there are some significant subspecies and strain effects (p < 0.05), indicating that SC length has evolved among strains and subspecies.
+Females have significantly longer total SC than males in each strain tested separately (t-test; p < 0.05). That females have longer SCs is also supported by mixed models and general linear models with covariates, which identify sex as the most consistently significant effect (p < 0.05). Additionally, there are some significant subspecies and strain effects (p < 0.05), indicating that SC length has evolved among strains and subspecies.
 
 <figure>
 
@@ -4034,12 +4027,6 @@ summary(log.reg_1CO_pos_biv)
 # Q1. Sex Differences in CO Interference (IFD)
 
 
-Q1 Summary, consequences of sex differences in the recombination landscape
-Our results confirm sex differences in recombination landscapes described in several other species and we note that these differences have distinct consequences on the potential patterns of genetic variation resulting from the distinct recombination landscapes.
-The terminal position of single foci and the greater distance between two foci on the same chromosome will have a consequence of larger sections of linked sites segregating together in male gametes compared to female gametes (Veller). 
-
-
-
 ```{r Q1.IFD_show.IFD_99, echo=FALSE, warning=FALSE}
 
 #first draft of the IFD comparisons
@@ -4216,19 +4203,10 @@ Q1.IFD.raw_sansG_t.test <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% 
 There is no strong signal of sex differences in raw mean inter-focal distances (IFDraw) across the full set of strains. A marginally significant difference between the sexes (t-test; p = 0.07) is driven by one strain (t-test without domesticusG; p = 0.27). This result indicates that females and males exhibit a similar level of interference when it is measured in physical (SC) units. In contrast, males have significantly longer normalized mean inter-focal distances (IFDnorm) than females in seven out of eight strains (t-tests; p < 0.02), with only musculusKAZ showing no difference (t-test; p = 0.33). Examination of IFDnorm distributions indicates that female IFDnorm values are centered at approximately 50% and show a slight enrichment of low (<25%) values, whereas males are enriched for higher values.
 Mixed models and general linear models of IFDnorm support the inference of stronger interference in males: sex is the most significant variable (LRT: p = 6.7410^{-14}). When interference is measured in physical SC units (IFDraw), the differences between sexes is low and only slightly significant (data not shown). 
 In summary, controlling for differences in chromatin compaction (SC length) using IFDnorm indicates that interference is stronger in males, whereas consideration of IFDraw shows that the sexes exhibit a similar level of interference on the physical (SC) scale.
-While the comparisons of the IFDnorm metrics can reveal more general recombination landscape patterns while controlling for the underlying differences in chromatin compaction and SC length. This metric is closer to measures of interference from linkage maps which are also removed from physical scales in that they measure frequencies of crossovers. Crossover interference is stronger in male specific linkage maps compared to female maps in a variety of species (ref).
+While the comparisons of the IFDnorm metrics can reveal more general recombination landscape patterns while controlling for the underlying differences in chromatin compaction and SC length. 
 
 
---- not sure what below is from -- 
 
-Crossover interference is one of the major determinates of the recombination landscape. It generates a distribution of evenly spaced crossover along chromosomes instead of a random and more uniform distribution. To quantifiy how crossover interference differs between the typical recombination landscapes of males and females, we isolated 1360 -- `r length(  (Curated_BivData.22 %>% filter(sex == "female") )$Obj.ID )` and 1272 -- `r length(  (Curated_BivData.22 %>% filter(sex == "male") )$Obj.ID )` 2CO bivalents in females and males respectively. Mean interfocal distances (IFD) were calculated from 42 -- `r length( unique( (Curated_BivData.22 %>% filter(sex == "female") )$mouse) )` female and 45 -- `r length( unique( (Curated_BivData.22 %>% filter(sex == "male") )$mouse) )` male mice. We examined both raw IFDraw and normalized by SC length (IFDnorm). The mean IFDraw measures of crossover interference as a mechanical force mediated through the SC. We compared the IFDraw to test the hypothesis of interference acting as a mechanical force transmitted through the SC. Previous measures found no sex difference in measures of IFDraw in mice [@de_boer_two_2006]. 
-
-----
-
-
-There is no strong signal of sex differences in raw mean inter-focal distances (IFDraw) across the full set of strains. A marginally significant difference between the sexes (t-test; p = 0.07 -- `r Q1.IFD.raw_FULL_t.test$p.value`) is driven by one strain (t-test without domesticus^G^; p = 0.27 -- `r Q1.IFD.raw_sansG_t.test$p.value`). The difference in mean IFDraw are slightly significant sexes from the full data set (t.test; **p = 0.07)**. However domesticusG might be an outlier (by having a larger than average degree of sexual dimorphism). 
-
-When the domesticusG observations are removed, the difference is not longer significant (t.test; p = 0.27) <already stated?>. 
 
 This result indicates there is no general pattern of sex differences in crossover interferencethat females and males exhibit a similar level of interference when it is measured in physical (SC) units. In contrast, males have significantly longer normalized mean inter-focal distances (IFDnorm) than females in seven out of eight strains (t-tests; p < 0.02), with only musculus^KAZ^ showing no difference (t-test; p = 0.33). 
 While the comparisons of the IFDnorm metrics can reveal more general recombination landscape patterns while controlling for the underlying differences in chromatin compaction and SC length. This metric is closer to measures of interference from linkage maps which are also removed from physical scales in that they measure frequencies of crossovers. Crossover interference is stronger in male specific linkage maps compared to female maps in a variety of species (ref).
@@ -4238,18 +4216,6 @@ In examining theExamination of IFDnorm distributions, we note indicates that  th
 The three sets of models Mixed models and general linear models of IFDnorm support the result inference of stronger interference in males:, sex was theis the most significant significant effectvariable (LRT: p = 6.7410^{-14}). When interference is measured in physical SC units (IFDraw), the differences between sexes is low and only slightly significant (data not shown). 
 In summary, controlling for differences in chromatin compaction (SC length) using IFDnorm indicates that interference is stronger in males, whereas consideration of IFDraw shows that the sexes exhibit a similar level of interference on the physical (SC) scale.
 These results support the model of the physical measures of interference (in SC units) is conserved between sexes inwithin the same species.While the comparisons of the IFDnorm metrics can reveal more general recombination landscape patterns while controlling for the underlying differences in chromatin compaction and SC length. This metric is closer to measures of interference from linkage maps which are also removed from physical scales in that they measure frequencies of crossovers. Crossover interference is stronger in male specific linkage maps compared to female maps in a variety of species (ref). 
-
-
-
-
-Crossover interference is one of the major determinates of the recombination landscape. It generates a distribution of evenly spaced crossover along chromosomes instead of a random and more uniform distribution. To quantifiy how crossover interference differs between the typical recombination landscapes of males and females, we isolated `r length(  (Curated_BivData.22 %>% filter(sex == "female") )$Obj.ID )` and 
-`r length(  (Curated_BivData.22 %>% filter(sex == "male") )$Obj.ID )` 2CO bivalents in females and males respectively. Mean interfocal distances (IFD) were calculated from `r length( unique( (Curated_BivData.22 %>% filter(sex == "female") )$mouse) )`  female and `r length( unique( (Curated_BivData.22 %>% filter(sex == "male") )$mouse) )` male mice. We examined both raw IFD^raw^ and normalized by SC length (IFD^norm^). The mean IFD^raw^ measures of crossover interference as a mechanical force mediated through the SC. We compared the IFD^raw^ to test the hypothesis of interference acting as a mechanical force transmitted through the SC. Previous measures found no sex difference in measures of IFD^raw^ in mice [@de_boer_two_2006].
-
-The difference in mean IFD^raw^ are slightly significant sexes from the full data set (t.test; p = `r Q1.IFD.raw_FULL_t.test$p.value`). However _domesticus^G^_ might be an outlier (by having a larger than average degree of sexual dimorphism). When the _domesticus^G^_ observations are removed, the difference is not longer significant (t.test; p = `r Q1.IFD.raw_sansG_t.test$p.value`).  This indicates there is no general pattern of sex differences in crossover interference measured in physical (SC) units.
-
-While the comparisons of the IFD^norm^ metrics can reveal more general recombination landscape patterns while controlling for the underlying differences in chromatin compaction and SC length. This metric is closer to measures of interference from linkage maps which are also removed from physical scales in that they measure frequencies of crossovers. Crossover interference is stronger in male specific linkage maps compared to female maps in a variety of species (ref). 
-
-The difference in mean IFD^norm^ are highly significant between sexes. The mean IFD^norm^ are significantly long in six of seven strains (MSM t.test; p-value = `r Q1.IFD.PER_t.test_MSM$p.value`), _musculus^SKIVE^_ p-value = `r Q1.IFD.PER_t.test_SKIVE$p.value`), _musculus^PWD^_ p-value = `r Q1.IFD.PER_t.test_PWD$p.value`), _molossinus^MSM^_ p-value =`r Q1.IFD.PER_t.test_MSM$p.value`), _domesticus^LEW^_ p-value = `r Q1.IFD.PER_t.test_LEW$p.value`), _domesticus^G^_ p-value = `r Q1.IFD.PER_t.test_G$p.value`), and _domesticus^WSB^_ (t.test; p-value =`r Q1.IFD.PER_t.test_WSB$p.value`) ). Only _musculus^KAZ^_ did not have a difference in mean IFD^norm^ (t.test; p-value = `r Q1.IFD.PER_t.test_KAZ$p.value`). 
 
 <!--  finer distribution patterns <Full dataset (t.test; p = `r Q1.IFD.PER_FULL_t.test$p.value`).> -->
 
@@ -4331,8 +4297,6 @@ nrm.IFD_G_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="G" ) %>%  fi
 nrm.IFD_sex.comp_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="LEW" ) %>%  filter(hand.foci.count == "2") ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, ")+facet_wrap(~sex, scales = "free")+ylim(c(0,1))+theme(legend.position="none") 
 
 ```
-
-In examining the IFD^norm^ distributions, we note that the female IFD^norm^ observations are centered at approximately 50% and have slight an enrichment of short (<25%) IFD^norm^ observations. Comparitively, the IDF^norm^ distributions in males are enriched for longer IFD^norm^. 
 
 ```{r Q1.IFD_gamma, echo=FALSE}
 library(EnvStats)
@@ -4754,8 +4718,6 @@ The three sets of models support the result of stronger interference in males, s
 
 ```
 
-
-
 ```{r Comp_Ratios, echo=FALSE}
 
 #calq ratios of belo 30
@@ -4822,8 +4784,6 @@ entr_DF$sex.dif <- entr_DF$female.ratio - entr_DF$male.ratio
 
 ```
 
-
-
 ```{r Q1.IFD.long.short.setup, echo=FALSE, eval=FALSE}
 
 #real.long.bivData
@@ -4885,29 +4845,12 @@ Q1.IFD.raw_BIV.short.ttest_KAZ <-  t.test( (real.short.bivData %>% filter(sex ==
 
 
 
-## Additional Determinants of Genome-wide Recombination Rate Evolution in Males
+# Additional Determinants of Genome-wide Recombination Rate Evolution in Males
 
 
 The next section is meant to focusNext, we used the contrast between high-recombination strains (musculus^PWD^ , musculus^SKIVE^, and molossinus^MSM^) and low-recombination strains to identify features of the recombination landscape associated with evolutionary transitions in the genome-wide recombination rate. 
 on the greater aspect of variation in mean MLH1 counts per cell the high recombining strains ( musculus^PWD^ , musculus^SKIVE^, and molossinus^MSM^) to the low recombing strains. The main objective of this section is to test for significant correlations between features of the recombination landscape and the evolution of mean MLH1 foci per cell.
 In comparing the male specific single bivalent based metrics the first creteria for analysis is a significant differences between the high and low recombining groups and the second step is testing for significant subspecies and strain effects in the same models which used mean MLH1 count per cell.
-
-<equations>
-
-**Linear model M1**
-
-$$mouse \ average \ bivalent \ metric ~=~ subsp * rand(strain) + \varepsilon $$
-
-**Linear model M2**
-
-mouse average bivalent metric = strain+?? 
-
-$$mouse \ average \ bivalent \ metric ~=~ rand(strain) + \varepsilon $$
-
-
-**Linear model M1 ** $$mouse \ average \ bivalent metric ~=~ subsp * strain + \varepsilon $$
-
-**Linear model M2 ** $$mouse \ average \ bivalent metric ~=~ strain + \varepsilon $$  
 
 
 Previous empirical work suggests basic predictions for the relationship between the genome wide recombination rate and two aspects of the recombination landscape. **SC length is expected to be positively associated with genome-wide recombination rate because X**. Crossover interference is expected to be negatively **associated with genome-wide recombination rate because X**. Following this logic we predict (1) musculus^PWD^ will have greater SC length and weaker interference than musculus^SKIVE^, which in turn will have longer SC and weaker interference compared to the other _musculus_ strains, (2) molossinus^MSM^ will have longer SC and weaker interference compared to molossinus^MOLF^, and 3) _domesticus_ strains will have similar SC length and crossover interference.
@@ -6575,6 +6518,7 @@ Short.removed_BivData_IFD.ABS_Ttest_mus.av <- t.test(close.IFD.rates.mus.rate$me
 #p.value
 
 ```
+
 
 Mouse averages for both IFD^raw^ and IFD^norm^ are significantly longer in high-recombination strains (t-test; IFD^norm^: p = 7.7410^{-7} -- `r t.test_mouse.av.IFD_PER$p.value`; IFD^raw^: p = 8.7810^{-6} -- `r t.test_mouse.av.IFD_ABS$p.value`). This pattern is confirmed by separate comparisons within _musculus_ (t-test; IFD^norm^: p =2.0410^{-5} -- `r t.test_mouse.av.IFD_PER_MUSC$p.value`; IFD^raw^: p = 1.9410^{-4} -- `r t.test_mouse.av.IFD_ABS_MUSC$p.value`) and within _molossinus_ (IFD^norm^: p= 0.17 -- `r t.test_mouse.av.IFD_PER_MOL$p.value`; IFD^raw^: p = 0.08 -- `r t.test_mouse.av.IFD_ABS_MOL$p.value`). Similar results are seen with general linear models for both IFD^raw^ and IFD^norm^: only effects associated with high-recombination strains are significant (p < 0.05). 
 
