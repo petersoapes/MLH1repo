@@ -1304,9 +1304,176 @@ MLH1cv_M4_Q12 <- glm( cV ~ sex*strain, data=Q12_mouse_table_w.Ages )
 ```
 
 
+# DMC1 Results
+
+main table (DMC1.mean.table), t.tests  , ratios
+
+set up, t.tests, correlations
+
+```{r DMC1.setup, echo=FALSE}
+#load DMC1 csv
+#DMC1.DF <- read.csv("~./DMC1/newJuviQuant.csv", header = TRUE)
+DMC1.DF <- read.csv("~./MLH1repo/data/DMC1newJuviQuant.csv", header = TRUE)
+
+
+DMC1.DF$fileName <- DMC1.DF$Original.Name
+DMC1.DF <- add_mouse(DMC1.DF)
+DMC1.DF <- add_strain(DMC1.DF)
+DMC1.DF <- add_category(DMC1.DF)
+DMC1.DF <- add_subsp(DMC1.DF)
+DMC1.DF <- DMC1.DF[DMC1.DF$stage != "P",]
+
+#make DMC1 table
+DMC1.mean.obs.L <- ddply(.data=DMC1.DF[DMC1.DF$stage == "L",],
+                 .(category),
+                 summarize, 
+                 
+                 ncells = length(fileName),
+                 mean.count = mean( total.count)
+)
+DMC1.mean.obs.L$stage <- "L"
+
+DMC1.mean.obs.Z <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Z",],
+                 .(category),
+                 summarize, 
+                 ncells = length(fileName),
+                 mean.count = mean( total.count)
+)
+DMC1.mean.obs.Z$stage <- "Z"
+
+DMC1.mean.table <- rbind(DMC1.mean.obs.L,DMC1.mean.obs.Z)
+
+#write.table(DMC1.mean.table, "~./MLH1repo/DMC1.mean.table.csv", sep=",",
+#            row.names = FALSE)
+
+DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
+                          ifelse(grepl("G",DMC1.DF$strain), "Low",
+                                 
+              ifelse(grepl("KAZ", DMC1.DF$strain), "Low",
+            ifelse(grepl("PWD", DMC1.DF$strain), "High",
+               ifelse(grepl("MSM", DMC1.DF$strain), "High","")))))
+
+#make category averages from AP_mouse_table.HQ
+mean.MLH1.obs <- ddply(.data=AP_mouse_table.HQ,
+                 .(category),
+                 summarize, 
+                 mean.MLH1 = mean(mean_co),
+                 var.MLH1 = var(mean_co)
+)
+
+DMC1.target.strains <- subset(mean.MLH1.obs, category == "G male" |
+                   category == "WSB male" |
+                     category == "KAZ male" |
+                  category == "MSM male" |
+                    category == "PWD male")
+#attach this mini DF to the DMC1 data
+
+
+```
+
+
+```{r DMC1_t.tests, echo=FALSE, warning=FALSE}
+#2. t-tests for the DMC1 counts 
+#need to account for sample sizes when comparing t.tests (KAZ and G don't have equal across )
+#best case scnario -- more microscoping to get ~20 cells for each stage by strain combo
+
+
+#high vs low group (L)
+ttest.HighLow.L.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
+# p-value =  0.002145
+
+
+#high vs low group (Z)
+ttest.HighLow.Z.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
+# p-value = 0.6628
+
+
+#dom vs musc (L) (2 subsp vs)
+ttest.subsp.L <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "L")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "L")] )
+# p-value = 0.003016
+
+#dom vs musc (Z)
+ttest.subsp.Z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Z")] )
+#p-value = 0.09588
+
+#KAZ vs Dom (Z) (only 1 L cell)
+ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], 
+      DMC1.DF$total.count[(DMC1.DF$strain == "KAZ") & (DMC1.DF$stage == "Z")] )
+
+#p-value = 0.004148
+#Kaz Z are higher than Dom
+```
+
+
+```{r DMC1.rand.calq, echo=FALSE}
+
+DMC1.mean.obs.L$mean.count.L <- DMC1.mean.obs.L$mean.count
+DMC1.mean.obs.Z$mean.count.Z <- DMC1.mean.obs.Z$mean.count
+
+
+DMC1table <- merge(DMC1.mean.obs.L, DMC1.mean.obs.Z, by="category")
+
+DMC1table.main <- merge(DMC1.target.strains, DMC1table, by="category")
+
+MLH1.DMC1.L_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.L, method = c("pearson"))#MLH1.DMC1.Z_cor
+
+MLH1.DMC1.Z_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.Z, method = c("pearson"))#0.2793237
+```
+
+
+```{r DMC1.ratios, echo=FALSE}
+
+##RATIOS
+DMC1table.main$MLH1.L_ratio <- DMC1table.main$mean.MLH1/ DMC1table.main$mean.count.L 
+DMC1table.main$MLH1.Z_ratio <- DMC1table.main$mean.MLH1 / DMC1table.main$mean.count.Z
+  
+#colnames(DMC1table.main) <- c("category", "mean.MLH1", "", "", "")
+
+#DMC1.mean.table
+DMC1.mean.table.99 <- subset(DMC1table.main, select= -c(var.MLH1,  mean.count.x,  mean.count.y, stage.x, stage.y))
+
+colnames(DMC1.mean.table.99) <- c("category","mean.MLH1","ncells.L","mean.L",
+                  "ncells.Z", "mean.Z", "MLH1.L_ratio", "MLH1.Z_ratio")
+
+
+WSB_DMC1.Z_CO_ratio <-   ( DMC1table.main %>% filter(category == "WSB male") )$mean.count.L / (DMC1table.main %>% filter(category == "WSB male"))$mean.MLH1
+  
+G_DMC1.Z_CO_ratio <-   ( DMC1table.main %>% filter(category == "G male") )$mean.count.L / (DMC1table.main %>% filter(category == "G male"))$mean.MLH1
+
+MSM_DMC1.Z_CO_ratio <- ( DMC1table.main %>% filter(category == "MSM male") )$mean.count.L / (DMC1table.main %>% filter(category == "MSM male"))$mean.MLH1
+
+PWD_DMC1.Z_CO_ratio <-( DMC1table.main %>% filter(category == "PWD male") )$mean.count.L / (DMC1table.main %>% filter(category == "PWD male"))$mean.MLH1
+
+
+
+DMC1table.main$category <- factor(DMC1table.main$category, levels = c("WSB male","G male","KAZ male",               "PWD male","MSM male"), ordered = TRUE )
+
+DMC1table.main <- DMC1table.main[order(DMC1table.main$category),]
+
+kable(head(DMC1table.main),  caption = "Table X. DMC1 foci counts per cell summary")
+
+
+DMC1.Lratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G male" | category == "WSB male" | category == "KAZ male" ) ) )$MLH1.L_ratio, 
+                (DMC1table.main %>% filter(  ( category == "PWD male" | category == "MSM male") ) )$MLH1.L_ratio        )
+                               
+
+DMC1.Zratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G male" | category == "WSB male" | category == "KAZ male" ) ) )$MLH1.Z_ratio, 
+                (DMC1table.main %>% filter(  ( category == "PWD male" | category == "MSM male") ) )$MLH1.Z_ratio        )
+
+```
+
+
 
 # SAVE the data
 
 
 
+
+
+
+```{r Save.File, echo=FALSE}
+
+```
 
