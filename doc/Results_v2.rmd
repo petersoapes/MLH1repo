@@ -1,16 +1,16 @@
 ---
 title: "MLH1 Results Outline"
-date: "null"
+date: 'null'
 output:
-  word_document:
-    toc: yes
-    toc_depth: '5'
-  pdf_document: default
   html_document:
     df_print: paged
     toc: yes
     toc_depth: '5'
     toc_float: yes
+  pdf_document: default
+  word_document:
+    toc: yes
+    toc_depth: '5'
 bibliography: refs_Main_Report.bib
 ---
 
@@ -1217,26 +1217,6 @@ REAL.long_mouse_table$Rec.group.exclu <- ifelse(grepl("PWD male", REAL.long_mous
 #find which one 
 ```
 
-<!-- 
-two round of removing outliers were done. in total 84 skel_bin potential outlier observations were removed 
--->
-
-
-<!--
-From this figure of the male mouse average of total sc measures, Confirm the general pattern of more SC area for the higher rec strains, compared to the low. But there are some exceptions.
-
-
-the low rec musc strains which are higher are czech (1) and ast (2) -- the PWD mouse which is lower 24sep14_PWD_m1
-
-INSERT TABLE FOR THE TOTAL SC means ect
-
-The difference between 
-
-bin is short for binary, it reports the binarized area of the SC
-
-skel -- takes the skeletonized midline of the bin objects
--->
-
 ```{r table.for.plot, echo=FALSE, warning=FALSE}
 #why do I add in a different table?
 
@@ -1271,7 +1251,6 @@ strain.table.HQ_Fig$strain <- factor(strain.table.HQ_Fig$strain,levels =c(
                          "SPRET","SPIC" ), order=T )
 
 ```
-
 
 ```{r Fig1, echo=FALSE, warning=FALSE}
 
@@ -1315,7 +1294,6 @@ Fig1_v1_strain <- ggplot(strain.table.HQ_Fig, aes(y=mean_co, x=strain, color=str
 
 ```
 
-
 ```{r female.show.plots, echo=FALSE, fig.width = 4, fig.height=2.5, warning=FALSE}
 
 female_mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
@@ -1350,7 +1328,6 @@ female.specific.plot <- ggplot(female_mouse.avs_for.analysis, aes(x = as.factor(
 
 
 ```
-
 
 ```{r male.show.plots, echo=FALSE, fig.width = 4, fig.height=2.5, warning=FALSE, include=FALSE}
 #try customize the plot size
@@ -1391,7 +1368,6 @@ musc.male.plot <- ggplot(Musc.male_mouse.av, aes(color= strain))+geom_jitter(aes
 
 ```
 
-
 ```{r three.plots, echo=FALSE, warning=FALSE}
 #merge the 3 plots
 #try patchwork
@@ -1403,7 +1379,6 @@ musc.male.plot <- ggplot(Musc.male_mouse.av, aes(color= strain))+geom_jitter(aes
 
 #(p1 | p2 | p3)/p4
 ```
-
 
 ```{r main.fig1s, echo=FALSE, include=FALSE}
 strain.table.HQ_Fig_F <-  strain.table.HQ_Fig %>% filter(sex == "female") %>% filter(strain != "CAST" & strain != "SPRET" & strain != "SPIC" )
@@ -1859,6 +1834,7 @@ summ.MLH1.M2.glm.strain.fixed.full <- summary(MLH1.M2.glm.strain.fixed.full)
 #write.table(summ$coefficients , "~./MLH1repo/glm.strain.fixed.full.csv", sep=",",row.names = TRUE)
 ```
 
+
 ```{r MLH1.glm.M3, echo=FALSE}
 
 remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC")
@@ -1873,6 +1849,13 @@ summ.MLH1.M3.strain.fixed <- summary(MLH1.M3.strain.fixed)
 ```
 
 
+```{r bret.comment.var, echo=FALSE}
+
+
+
+```
+
+
 To situate variation in recombination rate within an evolutionary framework, we fit a series of models including subspecies, strain, and sex, to mean MLH1 foci counts from `r length(DF.HetC.MixedModel.HQ$mean_co)` mice. We began with a full mixed model (M1, see Methods), which showed that strain 
 (random effect p < `r MLH1.MMlmer_results$rand.pval`   **someSmallNumber**), sex (p = `r MLH1.MMlmer_results$sex.results` -- 3.9710^{-5}), subspecies (p=`r MLH1.MMlmer_results$sub.sp`--  1.7210^{-4}), and subspecies sex (p = `r MLH1.MMlmer_results$interaction.pval` -- 3.110^{-5}) each significantly affect recombination rate. 
 
@@ -1881,7 +1864,8 @@ After a general linear model including all factors as fixed effects (M2) reveale
 and domesticus^G^ (p= 1.0410^{-6}  -- `r summ.MLH1.M3.strain.fixed$coefficients[,4][3]`). In addition, two strains exhibit strain-by-sex interactions:  molossinus^MSM^  (p = 1.2610^{-4} -- `r summ.MLH1.M3.strain.fixed$coefficients[,4][13]`) and musculus^PWD^ (p = 3.8610^{-4} -- `r summ.MLH1.M3.strain.fixed$coefficients[,4][12]`). 
 
 
-We next fit general linear models separately for 192--`r length(fomo.male_mouse.av$mouse)` males and `r length(female_mouse.avs_for.analysis$mouse)`--144 females (M4). In the male dataset, three strains significantly affect recombination rate: musculus^PWD^ ((glm; p = 7.3710^{-10} -- `r sum_MLH1.male.specific.glm.M2$coefficients[5,][4]`; effect = ~ 5 X foci), and musculus^SKIVE^ (glm; p = 0.01; `r sum_MLH1.male.specific.glm.M2$coefficients[8,][4]` -- effect = ~7 foci), and  _molossinus^MSM^_ (glm; p=`r sum_MLH1.male.specific.glm.M2$coefficients[6,][4]`; effect ~ 2 foci). These three strains point to rapid evolution in recombination rate in spermatocytes; we subsequently refer to them collectively as "high-recombination" strains.  Analysis of the female dataset points to four strains with significant effects on recombination rate: domesticus^G^ (p = 2.510^{-6} -- `r sum_MLH1.female.spc.glm.M2$coefficients[2,][4]`), molossinus^MSM^ (p = 6.2410^{-6} -- `r sum_MLH1.female.spc.glm.M2$coefficients[5,][4]`), domesticus^LEW^ (p = 0.01 -- `r sum_MLH1.female.spc.glm.M2$coefficients[3,][4]`), and musculus^PWD^ (p=0.02  -- `r sum_MLH1.female.spc.glm.M2$coefficients[4,][4]`). Strain effect sizes in females are modest in magnitude (ranging from 1 to 4 foci) compared to those in males. 
+We next fit general linear models separately for 192--`r length(fomo.male_mouse.av$mouse)` males and `r length(female_mouse.avs_for.analysis$mouse)`--144 females (M4  **male specific, M2? rename the code for these models**). In the male dataset, three strains significantly affect recombination rate: musculus^PWD^ ((glm; p = 7.3710^{-10} -- `r sum_MLH1.male.specific.glm.M2$coefficients[5,][4]`; effect = 
+`r MLH1.male.specific.glm.M2$coefficients[5]` -- ~ 5 foci), and musculus^SKIVE^ (glm; p = 0.01; `r sum_MLH1.male.specific.glm.M2$coefficients[8,][4]` -- effect = `r MLH1.male.specific.glm.M2$coefficients[8]` -- ~7 foci), and  _molossinus^MSM^_ (glm; p=`r sum_MLH1.male.specific.glm.M2$coefficients[6,][4]`; effect  `r MLH1.male.specific.glm.M2$coefficients[6]` ~ 2 foci). These three strains point to rapid evolution in recombination rate in spermatocytes; we subsequently refer to them collectively as "high-recombination" strains.  Analysis of the female dataset points to four strains with significant effects on recombination rate: domesticus^G^ (p = 2.510^{-6} -- `r sum_MLH1.female.spc.glm.M2$coefficients[2,][4]`), molossinus^MSM^ (p = 6.2410^{-6} -- `r sum_MLH1.female.spc.glm.M2$coefficients[5,][4]`), domesticus^LEW^ (p = 0.01 -- `r sum_MLH1.female.spc.glm.M2$coefficients[3,][4]`), and musculus^PWD^ (p=0.02  -- `r sum_MLH1.female.spc.glm.M2$coefficients[4,][4]`). Strain effect sizes in females are modest in magnitude (ranging from 1 to 4 foci) compared to those in males. 
 
 <in the above section reorder the strains by the effect sizes>
 
@@ -1953,47 +1937,49 @@ LmerMLH1_M1_Q12_VAR_results <- data.frame(sub.sp = LmerMLH1_M1_Q12_CV_subsp,
 sex.results =  LmerMLH1_M1_Q12_CV_sex, interaction.pval = LmerMLH1_M1_Q12_CV_int,  rand.pval = LmerMLH1_M1_Q12_CV_strain)
 ```
 
-```{r M2.MLH1.var, echo=FALSE, include=FALSE, eval=FALSE}
+```{r M2.MLH1.var, echo=FALSE, include=FALSE}
 #not including this model for now / brivity
 #$$mouse CO metric  ~=~ subsp * sex * strain + \varepsilon$$
 
-MLH1var_M3 <- lm( var ~ subsp * sex * strain,  data=DF.HetC.MixedModel.HQ )
+#why are these named M3? -- rename to M2
 
-#summary(MLH1var_M3)
-anova(MLH1var_M3)  
-as.data.frame( round(summary(MLH1var_M3)$coefficients, 6))
+MLH1var_M2 <- lm( var ~ subsp * sex * strain,  data=DF.HetC.MixedModel.HQ )
+
+MLH1var_M2_sum <- summary(MLH1var_M2)
+
+#summary(MLH1var_M2)
+#anova(MLH1var_M2)  
+#as.data.frame( round(summary(MLH1var_M2)$coefficients, 6)) #table of p values for coefficients.
 
 
-MLH1cv_M3 <- lm(cV ~ subsp*sex*strain, data=DF.HetC.MixedModel.HQ)
+MLH1cv_M2 <- lm(cV ~ subsp*sex*strain, data=DF.HetC.MixedModel.HQ)
 
 #summary(MLH1cv_M3)
 
-anova(MLH1cv_M3)
-as.data.frame( round(summary(MLH1cv_M3)$coefficients, 6))
-
+#anova(MLH1cv_M2)
+#as.data.frame( round(summary(MLH1cv_M2)$coefficients, 6))
 
 #Q12 var
-MLH1var_M3_Q12 <- lm( var ~ subsp*sex*strain,  data=Q12_mouse_table_w.Ages )
+MLH1var_M2_Q12 <- lm( var ~ subsp*sex*strain,  data=Q12_mouse_table_w.Ages )
 
 #summary(MLH1var_M3_Q12)
-anova(MLH1var_M3_Q12)  
-as.data.frame( round(summary(MLH1var_M3_Q12)$coefficients, 6))
+#anova(MLH1var_M2_Q12)  
+#as.data.frame( round(summary(MLH1var_M2_Q12)$coefficients, 6))
 
 #Q12 cv
-MLH1cv_M3_Q12 <- lm( cV ~ subsp*sex*strain, data=Q12_mouse_table_w.Ages )
+MLH1cv_M2_Q12 <- lm( cV ~ subsp*sex*strain, data=Q12_mouse_table_w.Ages )
 
-#summary(MLH1cv_M3_Q12)
-anova(MLH1cv_M3_Q12)#sex large F
-
-as.data.frame( round(summary(MLH1cv_M3_Q12)$coefficients, 6))
-
+#summary(MLH1cv_M2_Q12)
+#anova(MLH1cv_M2_Q12)#sex large F
+#as.data.frame( round(summary(MLH1cv_M2_Q12)$coefficients, 6))
 ```
 
 ```{r M3.MLH1.var, echo=FALSE}
-
 glmMLH1Var_M3 <- glm( var ~ sex * strain,  data=DF.HetC.MixedModel.HQ )
 glmMLH1Var_M3_sum <- summary(glmMLH1Var_M3)
 #round(glmMLH1Var_M3_sum$coefficients[,c(1,4)], 5)
+
+#use the values from this model below
 
 MLH1cv_M3 <- glm(cV ~ sex * strain, data=DF.HetC.MixedModel.HQ)
 #summary(MLH1cv_M4)
@@ -2012,13 +1998,16 @@ MLH1cv_M4_Q12 <- glm( cV ~ sex*strain, data=Q12_mouse_table_w.Ages )
 ```
 
 
-Counting MLH1 foci in multiple oocytes for each female and multiple spermatocytes for each male allowed us to examine determinants of the within-mouse variance in recombination rate. To do this, we considered the same models as above, but replaced mean MLH1 foci count with within-mouse variance in MLH1 foci count as the dependent variable. Sex is the only variable that significantly affects recombination rate in both the mixed model (M1) (p < smallNumber -- `r round(LmerMLH1_VAR_results$sex.results, 5)`) and general linear model (M2) (p = 2.310^{-4} -- `r round(MLH1var_M3_Q12_sum$coefficients[,4][2], 5)`). In general, females have almost twice as much variance in MLH1 foci per cell compared to males (Figure 1). Since estimates of within-mouse variance may be more susceptible to technical error from the staining protocol, we repeated the analyses using a subset of cells with higher quality scores (**criteria? Q1, see methods for certeria**). 
+Counting MLH1 foci in multiple oocytes for each female and multiple spermatocytes for each male allowed us to examine determinants of the within-mouse variance in recombination rate. To do this, we considered the same models as above, but replaced mean MLH1 foci count with within-mouse variance in MLH1 foci count as the dependent variable. Sex is the only variable that significantly affects recombination rate in both the mixed model (M1) (p < smallNumber -- `r round(LmerMLH1_VAR_results$sex.results, 5)`) and general linear model (M2) (p = 2.310^{-4} -- `r round(MLH1var_M3_Q12_sum$coefficients[,4][2], 5)` (old) `r round(MLH1var_M2_sum$coefficients[,4][4], 5)`  correct). **the pland full M2 model is not significant**.  M3 `r round(glmMLH1Var_M3_sum$coefficients[,4][2], 5)`. 
+
+In general, females have almost twice as much variance in MLH1 foci per cell compared to males (Figure 1). Since estimates of within-mouse variance may be more susceptible to technical error from the staining protocol, we repeated the analyses using a subset of cells with higher quality scores (quality score 1 and 2, see Materials and Methods).  
 
 <Bret's comment for below, are there differences between the curated and the full dataset? he propbably means, Q1 and full data set.>
 
-The results are similar: sex is the strongest effect (p < smallNumber -- `r round(LmerMLH1_M1_Q12_VAR_results$sex.results, 5)`, M1; p = 2.310^{-4} -- `r  round(MLH1var_M3_Q12_sum$coefficients[2,4], 5)`, M2). When both quality-curated and full datasets are considered, strain does not significantly and consistently affect variance in MLH1 foci count per cell in either sex. These results suggest that within-mouse variance in recombination rate evolves independently of mean recombination rate.
+The results are similar: sex is the strongest effect (p < smallNumber -- `r round(LmerMLH1_M1_Q12_VAR_results$sex.results, 5)`, M1; p = 2.310^{-4} -- `r  round(MLH1var_M3_Q12_sum$coefficients[2,4], 5)`, M2 -- also M3). When both quality-curated and full datasets are considered, strain does not significantly and consistently affect variance in MLH1 foci count per cell in either sex. These results suggest that within-mouse variance in recombination rate evolves independently of mean recombination rate.
 
 <strain specific effect section was deleted for not highlighting main pattern. I agree>
+
 
 # DSB. Evolution of genome-wide recombination rate is associated with evolution of double strand breaks
 
@@ -2217,6 +2206,10 @@ mod.Z <- lm(total.count ~ strain, data = DMC1.DF[DMC1.DF$stage == "Z",])
 
 l.anova.pval <- anova(mod.L)$`Pr(>F)`[1] #0.0002701 ***
 z.anova.pval <- anova(mod.Z)$`Pr(>F)`[1] #NS
+
+#anova's aren't appropriate for 2 samples... re-do the anova
+#so that it's compareing more than just 2 categories -- or delete
+
 ```
 
 ```{r DMC1_MLH1.MAIN_TABLE, echo=FALSE, warning = FALSE}
@@ -2291,7 +2284,7 @@ DMC1.Zratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G mal
 In an attempt to localize the male-specific evolution of crossover number to steps of the meiotic pathway, we counted foci from a marker for double strand breaks (DSBs), DMC1, in prophase spermatocytes. DMC1 foci were scored from a total of `r sum( (DMC1.mean.table %>%  filter(stage == "L") )$ncells)` -- 76 leptotene-stage and 75 --`r sum( (DMC1.mean.table %>%  filter(stage == "Z") )$ncells)` zygotene-stage spermatocytes from juvenile mice (12 to 18 days) from three low-recombination strains (musculus^KAZ^ , domesticus^WSB^ , and domesticus^G^) and two high-recombination strains (musculus^PWD^ and molossinus^MSM^).  
 
 
-The high-recombination strains have significantly more DMC1 foci than the low-recombination strains in leptotene cells (t-test, p<**someSmallNumber** -- `r ttest.HighLow.L.pval`; one-way ANOVA, p = 0.00027 -- `r format(l.anova.pval, scientific=F)`). In contrast, the two strain groups do not differ in DMC1 foci counted in zygotene cells (later prophase)(t-test, p = 0.66 -- `r ttest.HighLow.Z.pval`; one-way-anova, p = 0.15 -- `r z.anova.pval`). **note that this interpertation depends on which stage is most relevant to CO number**  
+The high-recombination strains have significantly more DMC1 foci than the low-recombination strains in leptotene cells (t-test, p<**someSmallNumber** -- `r ttest.HighLow.L.pval`; one-way ANOVA, p = 0.00027 -- `r format(l.anova.pval, scientific=F)`). In contrast, the two strain groups do not differ in DMC1 foci counted in zygotene cells (later prophase)(t-test, p = 0.66 -- `r ttest.HighLow.Z.pval`). **note that this interpertation depends on which stage is most relevant to CO number**  
 
 
 After DSB formation, DSBs are repaired as either non-crossovers (NCO) or as crossovers (COs), with the vast majority being repaired as NCOs. Thus the ratio of CO:DSB is a partial indicator of the proportion of DSBs which are designated as COs. The ratios, calculated for DMC1 means from both stages, are not significantly different between the high and low strain groups (t-test, p = 0.94 -- `r DMC1.Lratio_t.test$p.value` and p = 0.11 -- `r DMC1.Zratio_t.test$p.value` for leptotene and zygotene ratios, respectively). This comparison raises the possibility that the evolution of crossover number is primarily due to processes that precede the crossover/non-crossover decision.

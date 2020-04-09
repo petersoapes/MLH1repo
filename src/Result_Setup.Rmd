@@ -1210,6 +1210,99 @@ REAL.long_mouse_table$Rec.group.exclu <- ifelse(grepl("PWD male", REAL.long_mous
 ```
 
 
+# MLH1 models
+
+M1 - subsp, sex, (1 | strain)
+M2 - subsp, sex, strain
+M3 - sex, strain
+M4 - strain (sex specific)
+
+
+#MLH1 variance models
+
+M1 - subsp, sex, (1 | strain)
+M2 - subsp, sex, strain
+M3 - sex, strain
+M4 - strain (sex specific)
+
+
+```{r M1.MLH1.var_cv, echo=FALSE, warning=FALSE, message=FALSE}
+MLH1var_M1 <- lmer( var ~ subsp * sex +(1|strain), data=DF.HetC.MixedModel.HQ )
+MLH1var_M1.reduce.sex <- lmer( var ~ subsp  +(1|strain), data=DF.HetC.MixedModel.HQ )
+MLH1var_M1.reduce.subp <- lmer( var ~ sex  +(1|strain), data=DF.HetC.MixedModel.HQ )
+
+#summary(MLH1var_M1)
+LmerMLH1_VAR_int <- drop1(MLH1var_M1, test="Chisq")$`Pr(Chi)`[2]
+LmerMLH1_VAR_sex <- anova(MLH1var_M1, MLH1var_M1.reduce.sex)$`Pr(>Chisq)`[2]
+LmerMLH1_VAR_subsp <- anova(MLH1var_M1, MLH1var_M1.reduce.subp)$`Pr(>Chisq)`[2]
+LmerMLH1_VAR_strain <- exactRLRT(MLH1var_M1)$p.value
+
+LmerMLH1_VAR_results <- data.frame(sub.sp = LmerMLH1_VAR_subsp,
+sex.results =  LmerMLH1_VAR_sex, interaction.pval = LmerMLH1_VAR_int,  rand.pval = LmerMLH1_VAR_strain)
+
+```
+
+```{r M2.MLH1.var, echo=FALSE, include=FALSE}
+#not including this model for now / brivity
+#$$mouse CO metric  ~=~ subsp * sex * strain + \varepsilon$$
+
+MLH1var_M2 <- lm( var ~ subsp * sex * strain,  data=DF.HetC.MixedModel.HQ )
+MLH1var_M2_sum <- summary(MLH1var_M2)
+
+#summary(MLH1var_M2)
+#anova(MLH1var_M2)  
+#as.data.frame( round(summary(MLH1var_M2)$coefficients, 6)) #table of p values for coefficients.
+
+MLH1cv_M2 <- lm(cV ~ subsp*sex*strain, data=DF.HetC.MixedModel.HQ)
+
+#summary(MLH1cv_M3)
+#anova(MLH1cv_M2)
+#as.data.frame( round(summary(MLH1cv_M2)$coefficients, 6))
+
+#Q12 var
+MLH1var_M2_Q12 <- lm( var ~ subsp*sex*strain,  data=Q12_mouse_table_w.Ages )
+
+#summary(MLH1var_M3_Q12)
+#anova(MLH1var_M2_Q12)  
+#as.data.frame( round(summary(MLH1var_M2_Q12)$coefficients, 6))
+
+#Q12 cv
+MLH1cv_M2_Q12 <- lm( cV ~ subsp*sex*strain, data=Q12_mouse_table_w.Ages )
+
+#summary(MLH1cv_M2_Q12)
+#anova(MLH1cv_M2_Q12)#sex large F
+#as.data.frame( round(summary(MLH1cv_M2_Q12)$coefficients, 6))
+```
+
+```{r M3.MLH1.var, echo=FALSE}
+
+glmMLH1Var_M3 <- glm( var ~ sex * strain,  data=DF.HetC.MixedModel.HQ )
+glmMLH1Var_M3_sum <- summary(glmMLH1Var_M3)
+#round(glmMLH1Var_M3_sum$coefficients[,c(1,4)], 5)
+
+MLH1cv_M3 <- glm(cV ~ sex * strain, data=DF.HetC.MixedModel.HQ)
+#summary(MLH1cv_M4)
+#round(summary(MLH1cv_M3)$coefficients[,c(1,4)], 6)
+
+### Q12 var
+MLH1var_M3_Q12 <- glm( var ~ sex*strain, data=Q12_mouse_table_w.Ages )
+MLH1var_M3_Q12_sum <- summary(MLH1var_M3_Q12)
+
+#as.data.frame( round(summary(MLH1var_M3_Q12)$coefficients[,c(1,4)], 6))
+#round(summary(MLH1var_M3_Q12)$coefficients[,c(1,4)], 6)
+
+#Q12 cv
+MLH1cv_M4_Q12 <- glm( cV ~ sex*strain, data=Q12_mouse_table_w.Ages )
+#round(summary(MLH1cv_M4_Q12)$coefficients[,c(1,4)], 6)
+```
+
+```{r MLH1.var.M4}
+
+#male
+
+#female
+```
+
 
 
 # SAVE the data
