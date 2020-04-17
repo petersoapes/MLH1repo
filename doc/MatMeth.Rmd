@@ -104,25 +104,18 @@ Images of cells were capture using a Zeiss Axioplan 2 microscope with AxioLab ca
 For MLH1 pachytene quantification, cells with a full karyotype (19 acrocentric bivalents and XY for spermatocytes or 20 acrocentric bivalents for oocytes), distinct foci, and intact bivalents were included for quantification.
 Image file names were anonymized before manual scoring of MLH1 or DMC1 foci.
 
-
-
 ## Analysis
 
-
 ### DMC1
-
-
 ```{r DMC1.section.outline, echo=FALSE, include=FALSE}
 #cell certeria, number, t.test
 #DMC1 -- leptotene and sygotene cells were identified by SC morphology (by degree of synapsis) (cite another paper?). foci counted manually, error ccalulated from a subset of cells counted twice (supplement)
+
+#<A subset of strains, *musculus^PWD^*, *musculus^MSM^*, *domesticus^WSB^*, and *domesticus^G^* were quantified for DMC1.  A total of `r length( (DMC1.DF %>% filter(stage == "Z"))$Original.Name)` and `r length( (DMC1.DF %>% filter(stage == "L"))$Original.Name)` of zygotene and leptotene cells were quantified respectively.>
 ```
-
-
 <certeria for DMC1 stained cells (single cells) SC morphology used for staging.>
-<subset of males from strains were used>
 
-A subset of strains, *musculus^PWD^*, *musculus^MSM^*, *domesticus^WSB^*, and *domesticus^G^* were quantified for DMC1.  A total of `r length( (DMC1.DF %>% filter(stage == "Z"))$Original.Name)` and `r length( (DMC1.DF %>% filter(stage == "L"))$Original.Name)` of zygotene and leptotene cells were quantified respectively.
-
+The means of DMC1 foci per cell from a single mouse from a subset of srains *musculus^PWD^*, *musculus^MSM^*, *domesticus^WSB^*, and *domesticus^G^* were tested by t-tests.
 
 ### MLH1
 
@@ -171,16 +164,17 @@ We chose to use a **mixed model framework** to interpret the patterns of variati
 
 # DNA.CrossOver (site, efficiency, curation, chromosome size effects-reduced dataset,
 
-# chromosome proportions
+# chromosome proportions, number of CO per chrm, proportions perpared by chi-sq tests
 
-# sc bivalent used in models (aldready above)
+#chrm chrteriztions -- SC length (chromatin compaction), foci position(raw and normalized), and interfocal distance, 
+#these traits were fit into the main models (as mentioned above) ... t.tests were used to test between sexes and groups
 
+
+# sc bivalent used in models (aldready above), the length of single SC compared by t-tests -- and fit into models
+# Foci Position -- t-test  and put into models
 # IFD / interference
 ```
 
-The proportions of different chromosome classes (seperated by number of foci) was tested with chi-sqaure tests. <in R using the X package/function>
-
-**CO Interferecne**  -- Our primary mode of examining interference is to compared the interfocal disatnces (IFDs) (raw and normalized by SC length.)  -- Gamma parameter v has historically been used to charaecterize interference and was calculated using <x function>.
 
 <to quantify / charaecterize the SC (length) (synapsed chromosomes, )-- two image analysis algorithms were used both which apply a 'skeletonizing' transformation to the synapsed chromosomes,  which transforms the elongatde chromosome space into a single pixel wide 'trace' of the originial chromosom shape.>
 
@@ -194,19 +188,22 @@ As an additional metric of chromatin compaction, we computed the total (summed) 
 
 The DNACrossover algorithm is hosted on CyVerse, more detailed description in @peterson2019. The DNA CrossOver algorithm isolated single chromosomes shapes from an image, in addition to returning the SC length and also measured the location of (green and blue signal along the single SC - reflecting MLH1 foci and cetromere signal respectively).
 
-**CURATION data ect** (i think these are still in results)
+This algorithm substantially speeds the accurate measurement of bivalents, but has the limitation that not all bivalents per cell can be isolated due to overlapping bivalents. In this dataset, isolation rates per cell range from `r min(algorithm.stat.category$mean_pass.rate)` -- 0.51 (molossinus^MSM^ male) to `r max(algorithm.stat.category$mean_pass.rate)`-- 0.72 (musculus^KAZ^ female). 
 
-- The performance of the segmentaion algorithm was assessed by counting the number of objects segmented per single cell image (expected 19 or 20 in males and females respectively). All automated bivalent data was manually curated before analysis.
+**curation step**  From the total set of cell images, `r length(unique(new.Curate.FULL.org %>% filter(SC.pass == "1"))$fileName )` -- 10,458 bivalent objects were isolated by the image analysis software. After a human curation step ([@peterson2019]), `r length(unique(new.Curate.FULL.org %>% filter(hand.foci.count != ""))$Obj.ID )` -- 9,829 single-bivalent observations remained.
 
-**REDUCED DATASET**
 
-To account for confounding effects of sex chromosomes from pooled samples of bivalents, we considered a reduced dataset including only bivalents with SC lengths below the 2nd quartile (for SC length) in each cell. This dataset included the four or five shortest bivalents  and excluded the X bivalent in oocytes. A total of 678 -- `r sum(Q1.real.short_mouse_table$n_obs)` 'short' bivalents were isolated from 103 -- `r sum(  (Q1.real.short_mouse_table  %>% filter(sex=="female") )$ncells)` oocytes and 37 -- `r sum(  (Q1.real.short_mouse_table  %>% filter(sex=="male") )$ncells)` spermatocytes. Although this smaller dataset has decreased power, it offers a more comparable set of single bivalents to compare between the sexes.  
+To better understand the whole genome rec landscap -- we charecterizaed the number of crossover/MLH1 foci on single chromosomes (from the curated bivalent dataset). 
 
-- The long bivalent and short bivalent data sets were compiled by calculating the 1st and 4th quartille of SC lengths for each cell with at least 16 bivalent measures. Bivalents from each cell were assigned into the long and short bins based on these SC Length cut offs.
+We defined/classified each bivalent into a 'class' based on the number of MLH1 foci (range X to X). The **chromosome class proportions** different chromosome classes per strains by sex were tested with chi-sqaure tests with the prop.test function. 
 
-Using the single bivalent dataset, the within cell distribution of bivalent SC lengths from cells with at least 17 isolated chromosome measures. The longest and shortest 4 to 5 chromosomes within each cell were identified by qualqulating the fourth and second quartille. (these comprised the short and long bivalent datasets).
+#main traits
 
-**chromosome proportion**
+chrm chrteriztions -- SC length (chromatin compaction), foci position(raw and normalized), and interfocal distance, 
+these traits were fit into the main models (as mentioned above) ... t.tests were used to test between sexes and groups
+
+
+**CO Interferecne**  -- Our primary mode of examining interference is to compared the interfocal disatnces (IFDs) (raw and normalized by SC length.)  -- Gamma parameter v has historically been used to charaecterize interference and was calculated using <x function>.
 
 
 **SC Length model**
@@ -220,6 +217,17 @@ Using the single bivalent dataset, the within cell distribution of bivalent SC l
 
 In order to examine interference, Interfocal distance was measured from the single bivalent data sets.
 - This metric is closer to measures of interference from linkage maps which are also removed from physical scales in that they measure frequencies of crossovers. Crossover interference is stronger in male specific linkage maps compared to female maps in a variety of species (ref).  **IFD^norm^**
+
+
+
+
+**REDUCED DATASET**
+
+To account for confounding effects of sex chromosomes from pooled samples of bivalents, we considered a reduced dataset including only bivalents with SC lengths below the 2nd quartile (for SC length) in each cell. This dataset included the four or five shortest bivalents  and excluded the X bivalent in oocytes. A total of 678 -- `r sum(Q1.real.short_mouse_table$n_obs)` 'short' bivalents were isolated from 103 -- `r sum(  (Q1.real.short_mouse_table  %>% filter(sex=="female") )$ncells)` oocytes and 37 -- `r sum(  (Q1.real.short_mouse_table  %>% filter(sex=="male") )$ncells)` spermatocytes. Although this smaller dataset has decreased power, it offers a more comparable set of single bivalents to compare between the sexes.  
+
+- The long bivalent and short bivalent data sets were compiled by calculating the 1st and 4th quartille of SC lengths for each cell with at least 16 bivalent measures. Bivalents from each cell were assigned into the long and short bins based on these SC Length cut offs.
+
+Using the single bivalent dataset, the within cell distribution of bivalent SC lengths from cells with at least 17 isolated chromosome measures. The longest and shortest 4 to 5 chromosomes within each cell were identified by qualqulating the fourth and second quartille. (these comprised the short and long bivalent datasets).
 
 
 
