@@ -188,7 +188,6 @@ table_gamma_estimates <- read.csv("~./MLH1repo/table.csv", header = TRUE)
 #                 mean.rbar.3CO = mean(rbar[which(hand.foci.count == 3)], na.rm = TRUE)
 #)
 #the 3 is negative...
-
 #how best to merge rbar and gamma estiamtes (which estimate)
 
 raw.gamma_estimates <-  gamma_estimates %>% filter(type.IFD == "raw.IFD") %>% filter( (class == "2CO") | (class == "3CO") )
@@ -818,6 +817,40 @@ mouse.avs_4MM$Rec.group.exclu <- ifelse(grepl("PWD male", mouse.avs_4MM$category
                                 ifelse(grepl("MSM male", mouse.avs_4MM$category), 1, 0))
 
 ```
+
+
+```{r algorithm_performance_stats, echo=FALSE}
+
+#sort by category, 
+#compare total boxes and rate passed
+#Curated_BivData  -- pass rate?
+
+#number of mice, number of cells
+#mean number of isolate bivs per cell,
+#use these two metrics
+#cell.level.BivData_table$boxs.IDd 
+#cell.level.BivData_table$nboxes_passed
+
+#calq the mean rate by category
+
+cell.level.BivData_table$pass.rate <- cell.level.BivData_table$nboxes_passed / cell.level.BivData_table$boxs.IDd 
+
+algorithm.stat.mouse <- ddply(cell.level.BivData_table, c("mouse"), summarise,
+                        n_obs = length( unique(fileName) ),
+                         mean_pass.rate = mean(pass.rate)
+                         )
+
+cell.level.BivData_table <- add_sex(cell.level.BivData_table)
+
+algorithm.stat.category <- ddply(cell.level.BivData_table, c("sex", "strain"), summarise,
+                        n_obs = length(unique(fileName)),
+                        mean_pass.rate = mean(pass.rate)
+                         )
+
+#showing the table..
+#data.frame(table( droplevels( Curated_BivData  %>%  filter(hand.foci.count  == 0 | hand.foci.count  == 1 |                                       hand.foci.count  == 2 | hand.foci.count  == 3 | hand.foci.count  == 4 ) )$category ) )
+```
+
 
 ```{r Q1.biv.data_table.4MM.Male, echo=FALSE, eval=FALSE}
 
@@ -1482,12 +1515,13 @@ DMC1.Zratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G mal
 
 
 
-# SAVE the data
 
+
+# SAVE the data
 
 ```{r Save.File, echo=FALSE}
 #save Rdata
-save.image("~./MLH1repo/data/Results_setup_4.16.20.RData")
+save.image("~./MLH1repo/data/Results_setup_4.17.20.RData")
 #save.image("data/BivData_4_PCA.RData")
 ```
 
