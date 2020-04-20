@@ -76,11 +76,12 @@ We tested for **effects** on mean MLH1 counts per cell; across mouse rooms, ages
 
 <Because some strains have breeding issues, all mice some strains were kept in breeding pairs (before collecting, and aged out of the desired age range. We performed tests for effects on MLH1 counts and found no effects in the older male mice ages. (Also we tested other effects, including maternal age...)>
 
-**Staining / Immunohistochemistry**
 
-The immunohistochemistry was based on that in [@anderson1999] and [@koehler2002]. To visualize chromosomes in the meiocytes we used markers for the centromere (CREST) and lateral element of of the SC (SYCP3). Double strand breaks (DSB) and COs were visualized with DMC1 and MLH1 respectively. Antibodies and slide blocking was performed in 1X antibody dilution buffer (ADB) (normal donkey serum (Jackson ImmnuoResearch), 1X PBS, bovine serum albumin (Sigma), Triton X-100 (Sigma) ). 
+The **immunohistochemistry** was based on that in [@anderson1999] and [@koehler2002]. To visualize chromosomes in the meiocytes we used markers for the centromere (CREST) and lateral element of of the SC (SYCP3). Double strand breaks (DSB) and COs were visualized with DMC1 and MLH1 respectively. Antibodies and slide blocking was performed in 1X antibody dilution buffer (ADB) (normal donkey serum (Jackson ImmnuoResearch), 1X PBS, bovine serum albumin (Sigma), Triton X-100 (Sigma) ). 
 
 Each slide was blocked for 30 minutes in ADB then incubated with 60ul of primary antibody master mix for 48 hours at 37 degrees. For each master mix polyclonal anti rabbit anti-MLH1 (Calbiochem; diluted 1:50) or anti rabbit anti-DMC1) (mix of DMC1), anti goat polyclonal anti-SYCP3, (Abcam; diluted 1:50), and anti-human polyclonal antibody to CREST (Antibodies, Inc; diluted 1:200) were suspended in ADB. Slides were washed twice in 50ml ADB before the first round of secondary antibody incubation for 12 hours at 37 degrees. Alexa Fluor 488 donkey anti-rabbit IgG (Invitrgoen, location; diluted to 1:100) and Coumarin AMCA donkey anti-human IgG (Jackson ImmunoResearch; diluted to 1:200)  were suspended in ADB. The last incubation of Alexa Fluor 568 donkey anti-goat (Invitrogen; diluted 1:100) was incubated at 1:100 for 2 hours at 37 degrees. Slides were fixed with Prolong Gold Antifade (Invitrogen) for 24 hours after a final wash in 1x PBS.
+
+
 
 
 ### Image Processing
@@ -103,9 +104,18 @@ Images were capture using a Zeiss Axioplan 2 microscope with AxioLab camera and 
 #DMC1 -- leptotene and sygotene cells were identified by SC morphology (by degree of synapsis) (cite another paper?). foci counted manually, error ccalulated from a subset of cells counted twice (supplement)
 ```
 
-SC morphology was used to stage spermatocytes in the zygotene, leptotene, or pachtyene cell stage. Mean **DMC1** foci per cell for a single mouse from a subset of srains *musculus^PWD^*, *musculus^MSM^*, *domesticus^WSB^*, and *domesticus^G^* were compared by t-tests.
 
-### MLH1
+Mean **DMC1** foci per cell for a single mouse from a subset of srains *musculus^PWD^*, *musculus^MSM^*, *domesticus^WSB^*, and *domesticus^G^* were compared by t-tests.
+SC morphology was used to stage spermatocytes in the zygotene, leptotene, or pachtyene cell stage. 
+
+### MLH1 (Analytical Framework)
+
+-Background for setting up/organizing models -- (heiarchal nature of multiple strains within subspecies -- ) - hierarchical nature of categories for inviual mouse averages ()
+
+-(primary focus is mean MLH1 count per cell - at the mouse observation level - apply to more meiocyte traits)
+
+-Our goal -- design an utilize a mixed model for our analytical framework - which leverages / accounts for the hierarchical/nested nature of categories across all the individual mice (e.g. sex, strain subspecies).
+
 
 MLH1 foci were quantified from cells with intact and compelete karyotypes (19 acrocentric bivalents and XY for spermatocytes or 20 acrocentric bivalents for oocytes) and distinct MLH1 foci. A quality score, between 1 to 5, was asigned to each cell based on staining quality and general spread of bivalents. <cell with small defects were included -- and coded as a score of 5 - but these cell weren't included in the final analysis.>  The distributions of MLH1 counts per cell was assessed for normality (supplemental figure). 
 
@@ -123,11 +133,13 @@ MLH1 foci were quantified from cells with intact and compelete karyotypes (19 ac
 
 The use of wild derived inbred strains enabled us to design an utilize a mixed model for our analytical framework. We built our model to predict the strain average MLH1 count per cell. 
 
+**X package used to test the fixed effects, Z package used to test the random effects.**
+
 The main effects and their interaction of subspecies and sex were coded as fixed. While, strain (or genetic background) was coded as a random effect to reflect a random sample of natural genetic variation from each subspecies. A strains to have a specific sex effect was also included.  
 
 We applied the following models to analyze several dependent variables: mouse average mlh1 count per cell, the mouse average of variance in crossover count per cell, mouse mean total SC per cell, mouse mean single SC length, mouse mean IFD^norm^ and IFD^raw^, and position of crossover for single crossover bivalents. 
 
-X package used to test the fixed effects, Z package used to test the random effects.
+
 
 
 **M1. Mixed Model** $$mouse \ av.\ dependant\ variable\ ~=~ subsp * sex + rand(strain) + \varepsilon $$
@@ -147,6 +159,7 @@ We used x package for testing significance of fixed effects and V package for te
 
 ### Single bivalent charaecterization
 
+**combine any X and XY issue with reduced dataset** An additional challenge of the MLH1 framework is that the identities of individual autosomes and the XX in females cannot be easily obtained (the male XY is distinct).
 
 ```{r single.biv.chr, echo=FALSE, include=FALSE}
 

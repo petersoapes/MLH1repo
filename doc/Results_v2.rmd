@@ -65,11 +65,7 @@ SC.skel = read.csv("~./MLH1repo/data/SCskel_output_feb20.csv", header = TRUE, st
 #this MLH1 only goes up to batch16!
 #load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#batch18
 #load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#fixing bugs, formating
-#load(file="data/MLH1/MLH1_data_setup_12.3.19.RData")#removed exclude mice
-#load(file="data/MLH1/MLH1_data_setup_11.12.19.RData")#added batch17
-#load(file="data/MLH1/MLH1_data_setup_11.11.19.RData")#deleted DUP image
-#load(file="data/MLH1/MLH1_data_setup_9.26.19.RData")#added batch16
-#load(file="data/MLH1/MLH1_data_setup_8.29.19.RData") #
+
 
 #load(file="data/MetaData.RData") #this was replacing most updated data file
 
@@ -1054,22 +1050,31 @@ MLH1.merge.Skel <- MLH1.merge.Skel_2
 
 MLH1.merge.Skel <- add_species(MLH1.merge.Skel)
 
+
+#adjust 
+MLH1.merge.Skel_2$mouse <- as.factor(MLH1.merge.Skel_2$mouse)
+MLH1.merge.Skel_2$nMLH1.foci <- as.numeric(MLH1.merge.Skel_2$nMLH1.foci)
+MLH1.merge.Skel_2$quality <- as.numeric(MLH1.merge.Skel_2$quality)
+  
 ```
 
 ```{r tot.skel.table, echo=FALSE}
-totSC.mouse.av.table <- ddply(.data=MLH1.merge.Skel, 
+#calq the correlation for tota.SC and mlh1 - after mouse averages
+#use MLH1.merge.Skel_2 -- quality 1-4
+
+totSC.mouse.av.table <- ddply(.data= ( MLH1.merge.Skel_2 %>% filter(quality < 5) ), 
                  .(mouse),
                  summarize, 
                  ncells = length(unique(Original.Name)),
                  nmice = length(unique(mouse)),
-                # mean.MLH1 = mean(adj_nMLH1.foci, na.rm = TRUE),
+                 mean.MLH1 = mean(nMLH1.foci, na.rm = TRUE),
                 # var.MLH1 = var(adj_nMLH1.foci, na.rm = TRUE),
                  
                  mean.skel = mean(skel_size, na.rm = TRUE),
                 #se for skel
                 
                  mean.bin =  mean(bin_size, na.rm = TRUE)
-                 
+                
 )
 
 totSC.mouse.av.table <- add_strain(totSC.mouse.av.table)
@@ -1098,6 +1103,12 @@ totSC.mouse.av.table <- totSC.mouse.av.table[! totSC.mouse.av.table$mouse  %in% 
 
 totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain !="F1" & strain !="SPIC" & strain !=  "CAROLI" & strain !="SPRET"& strain !="HMI"& strain !="PERC")
 
+
+#ADD CORRELATION
+for(g in length(totSC.mouse.av.table$mouse) ){
+totSC.mouse.av.table$cor.SCskel.MLH1[g] <- cor(totSC.mouse.av.table$mean.MLH1[g], totSC.mouse.av.table$mean.skel[g])
+}
+
 mouse.av_sc_female <- ggplot(data= OG.totSC.mouse.av.table[OG.totSC.mouse.av.table$sex == "female",], aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
   facet_wrap(Rec.group~subsp, scales="free")+ theme(axis.title.x=element_blank(),        axis.text.x=element_blank(), axis.ticks.x=element_blank()) + ylim(c(1500,3000 ))+ggtitle("Female Mouse av. total SC area")
 
@@ -1107,6 +1118,8 @@ mouse.av_sc_male <- ggplot(data= OG.totSC.mouse.av.table[OG.totSC.mouse.av.table
 ```
 
 ```{r tot.SC.setup, echo = FALSE}
+#calc=q correlation, total.sc and mean MLH1
+
 
 totSC.strain.av.table <- ddply(.data=totSC.mouse.av.table, 
                  .(sex,strain),
@@ -1877,6 +1890,9 @@ Together, these results demonstrate heritable differences in the genome-wide rec
 <!-- transition gwRR to within mouse variance -->
 
 # Within mouse variance in CO count per cell
+
+
+**re-read Lenzi et al -- heterogeneity in oogenesis**
 
 
 ```{r M1.MLH1.var_cv, echo=FALSE, warning=FALSE, message=FALSE}
@@ -4875,11 +4891,6 @@ Previous empirical work suggests basic predictions for the relationship between 
 
 # Q2 SC Length
 
-```{r Q2.SC.length.bret.comments, echo=FALSE}
-#correlation
-
-```
-
 ```{r Q2.SC.short.long.setup, echo=FALSE}
 
 #table(male.long.biv$strain)
@@ -5078,6 +5089,15 @@ Q2tot.sc_t.test_High.Low_Musc <- t.test((totSC.mouse.av.table %>% filter(sex == 
                 (totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Musc") %>% filter(Rec.group == "1") )$mean.skel)
 
 ```
+
+
+```{r Q2.SC.length.bret.comments, echo=FALSE}
+#correlation, total sc and Mean MLH1
+
+
+
+```
+
 
 ```{r Q2.short.long.ttest, echo=FALSE}
 
@@ -5822,7 +5842,7 @@ We compared mouse means of three SC-based metrics: total SC length, mean short b
 
 figure
 
-Confirming the basic predictions, there is a positive correlation between mean MLH1 foci per cell and total SC **([report spearman's rho and p-value])**. Nevertheless, mean total SC only partially differentiates high-recombination and low-recombination strains (Figure X).  <Bret's note on positive correlation, 'A correlation across mice, across strains, or both?'>
+Confirming the basic predictions, there is a positive correlation between mean MLH1 foci per cell and total SC  `r cor(totSC.mouse.av.table$mean.skel, totSC.mouse.av.table$mean.MLH1)`. Nevertheless, mean total SC only partially differentiates high-recombination and low-recombination strains (Figure X).  <Bret's note on positive correlation, 'A correlation across mice, across strains, or both?'>
 
 While high-recombination strains have significantly more SC area in the total dataset (t-test; p = 0.01 -- `r Q2tot.sc_t.test_High.Low$p.value`), separate tests by strain show that only within _molossinus_ are high- and low-recombination strains significantly different (t-test; molossinus: p = 0.03 -- `r Q2tot.sc_t.test_High.Low_Mol$p.value`; musculus: p = 0.87  -- `r Q2tot.sc_t.test_High.Low_Musc$p.value`). 
 
