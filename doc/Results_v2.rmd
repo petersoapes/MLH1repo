@@ -2284,7 +2284,9 @@ DMC1table.main$category <- factor(DMC1table.main$category, levels = c("WSB male"
 
 DMC1table.main <- DMC1table.main[order(DMC1table.main$category),]
 
-kable(head(DMC1table.main),  caption = "Table X. DMC1 foci counts per cell summary")
+#MAIN TABLE, headers need to be fixed, remove var.MLH1
+#try adding double decker colume names / lines for early Z and late Z
+#kable(head(DMC1table.main),  caption = "Table X. DMC1 foci counts per cell summary")
 
 
 DMC1.Lratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G male" | category == "WSB male" | category == "KAZ male" ) ) )$MLH1.L_ratio, 
@@ -2297,13 +2299,36 @@ DMC1.Zratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G mal
 ```
 
 
-In an attempt to localize the male-specific evolution of crossover number to steps of the meiotic pathway, we counted foci from a marker for double strand breaks (DSBs), DMC1, in prophase spermatocytes. DMC1 foci were scored from a total of `r sum( (DMC1.mean.table %>%  filter(stage == "L") )$ncells)` leptotene-stage and `r sum( (DMC1.mean.table %>%  filter(stage == "Z") )$ncells)` zygotene-stage spermatocytes from juvenile mice (12 to 18 days) from three low-recombination strains (musculus^KAZ^ , domesticus^WSB^ , and domesticus^G^) and two high-recombination strains (musculus^PWD^ and molossinus^MSM^).  
+In an attempt to localize the male-specific evolution of crossover number to steps of the meiotic pathway, we counted foci from a marker for double strand breaks (DSBs), DMC1, in prophase spermatocytes. DMC1 foci were scored from a total of `r sum( (DMC1.mean.table %>%  filter(stage == "L") )$ncells)` early zygotene-stage and `r sum( (DMC1.mean.table %>%  filter(stage == "Z") )$ncells)` late zygotene-stage spermatocytes from juvenile mice (12 to 18 days) from three low-recombination strains (musculus^KAZ^ , domesticus^WSB^ , and domesticus^G^) and two high-recombination strains (musculus^PWD^ and molossinus^MSM^).  
 
 
-The high-recombination strains have significantly more DMC1 foci than the low-recombination strains in leptotene cells (t-test, p<**someSmallNumber** -- `r ttest.HighLow.L.pval`). In contrast, the two strain groups do not differ in DMC1 foci counted in zygotene cells (later prophase)(t-test, p = 0.66 `r ttest.HighLow.Z.pval`). **note that this interpertation depends on which stage is most relevant to CO number**  
+The high-recombination strains have significantly more DMC1 foci than the low-recombination strains in early zygotene cells (t-test, p<**someSmallNumber** -- `r ttest.HighLow.L.pval`). In contrast, the two strain groups do not differ in DMC1 foci counted in late zygotene cells (t-test, p = 0.66 --- `r ttest.HighLow.Z.pval`). 
+
+[@cole2012] suggest that early Z counts for DMC1 are most relevant for predicting CO number.
+(CO homeostasis -- robustness )
+
+After DSB formation, DSBs are repaired as either non-crossovers (NCO) or as crossovers (COs), with the vast majority being repaired as NCOs. Thus the ratio of CO:DSB is a partial indicator of the proportion of DSBs which are designated as COs. 
+**what does the ratio tell us? which stage of DMC1 counts is most relevant for CO count** 
+
+The ratios, calculated for DMC1 means from both stages, are not significantly different between the high and low strain groups (t-test, p = `r DMC1.Lratio_t.test$p.value` and p = 0.11 -- `r DMC1.Zratio_t.test$p.value` for early zygotene and late zygotene ratios, respectively). This comparison raises the possibility that the evolution of crossover number is primarily due to processes that precede the crossover/non-crossover decision.
+
+**note that this interpertation depends on which stage is most relevant to CO number**  
 
 
-After DSB formation, DSBs are repaired as either non-crossovers (NCO) or as crossovers (COs), with the vast majority being repaired as NCOs. Thus the ratio of CO:DSB is a partial indicator of the proportion of DSBs which are designated as COs. The ratios, calculated for DMC1 means from both stages, are not significantly different between the high and low strain groups (t-test, p = `r DMC1.Lratio_t.test$p.value` and p = 0.11 `r DMC1.Zratio_t.test$p.value` for leptotene and zygotene ratios, respectively). This comparison raises the possibility that the evolution of crossover number is primarily due to processes that precede the crossover/non-crossover decision.
+the difference in DMC1 counts across staes of zygotene may be related to the findings related to (crossover homeostasis).
+
+The number of DSBs increase in zygotene, then deminish as the effects of crossover homeostasis are implemented (Cole). (co homeostasis also indecates dsb )
+
+
+'Natural' variation in precursor number (the relationship of DSB and CO number) was analyzed in Barier et al  and links/ connects the CO number variation to 'pre' DSB formation -- fitting the model that DSB formation is dependant on the axis-loop structure of chromatin.
+(this study only examined one stage of early prophase for DMC1 counts)
+
+'does the number of DSBs per se regulate CO number?'
+
+bairer-- DSB number is not a primary driver of variation in CO number -- these authors suggest that chromatin organizaiton (loop-axis) structure is the primary determinant of CO variation.
+
+
+the birer et al ratios for strain average DMC1: MLH1 were 5.6 cast. 6.6 c3h, 7.3 B6 )
 
 <Bret's Q, ANOVA is not appropriate for 2 samples unless it's specilaized somehow>
 
@@ -4055,7 +4080,7 @@ summary(log.reg_1CO_pos_biv)
 # Q1. Sex Differences in CO Interference (IFD)
 
 
-```{r Q1.IFD_show.IFD_99, echo=FALSE, warning=FALSE}
+```{r Q1.IFD_show.IFD_99, echo=FALSE, warning=FALSE, message=FALSE}
 
 #first draft of the IFD comparisons
 #make the mouse boxplots -- instead of geom_points
@@ -4124,7 +4149,7 @@ first.IFD.plot_PER <- ggplot(Curated_BivData.22 %>% filter(chromosomeLength < 15
 #+theme(legend.position="none")
 ```
 
-```{r Q1.IFD_IFD.old.plots, echo=FALSE, eval=FALSE}
+```{r Q1.IFD_IFD.old.plots, echo=FALSE, eval=FALSE, warning=FALSE, message=FALSE}
 #long SC Long_biv_mouse.avs_4MM
 #real.long.bivData
 #Only use 2CO bivalents
@@ -4145,9 +4170,7 @@ long.biv_IFD_look_PER <- ggplot(real.long.bivData.22, aes(y = IFD1_PER, x= mouse
   scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+ylim(c(0,1))+theme(legend.position="none")+scale_color_manual(values=colors_of_strains)
 ```
 
-<!--t.tests -->
-
-```{r Q1.IFD_Ttests, echo=FALSE, warning=FALSE}
+```{r Q1.IFD_Ttests, echo=FALSE, warning=FALSE, message=FALSE}
 #below are calq just from 2COs, have no fear
 #mean_IFD.2CO_ABS
 #mean_IFD.2CO_PER
@@ -4224,7 +4247,7 @@ Q1.IFD.raw_sansG_t.test <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% 
 #p-value = 0.3
 ```
 
-```{r Q1.show.IFD.scatter, echo=FALSE, eval=FALSE}
+```{r Q1.show.IFD.scatter, echo=FALSE, eval=FALSE, message=FALSE}
 nrm.IFD_KAZ_long <- ggplot( (Q1.IFD.long %>% filter(strain =="KAZ" ) ) , aes(y = meanIFD2CO_norm, x= sex,color=mouse))+geom_point()+ggtitle("Interfocal Distances, ABS KAZ")
 
 nrm.IFD_KAZ_BIV.long <- ggplot( (real.long.bivData %>% filter(strain =="KAZ" ) %>%  filter(hand.foci.count == "2")  ) , aes(y = IFD1_PER, x= sex, color=mouse))+geom_point()+ggtitle("Interfocal Distances, ABS KAZ")
@@ -4384,7 +4407,7 @@ WSB.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "WSB") %>% fil
 
 ```
 
-```{r Q1.gamma.IFD, echo=FALSE}
+```{r Q1.gamma.IFD, echo=FALSE, message=FALSE}
 female.gamma <- egamma( (all.female.IFDs )$IFDval, method = "mle", ci = TRUE, 
                             ci.type = "two-sided", ci.method = "normal.approx", 
                             normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
@@ -4510,7 +4533,7 @@ WSB.4CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "WSB") %>%
                             normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
 ```
 
-```{r Q1.male.IFD_gamma, echo=FALSE}
+```{r Q1.male.IFD_gamma, echo=FALSE, message=FALSE}
 #gamma fits
 male.gamma <- egamma( (all.male.IFDs )$Nrm.IFD, method = "mle", ci = TRUE, 
                             ci.type = "two-sided", ci.method = "normal.approx", 
@@ -4658,7 +4681,7 @@ Q1.IFD.PER_M1_lmer.results <- data.frame(sub.sp = subsp.pval, sex.results =  sex
 
 ```
 
-```{r Q1.IFD_glm.M2, echo=FALSE, warning=FALSE}
+```{r Q1.IFD_glm.M2, echo=FALSE, warning=FALSE, message=FALSE}
 #mouse.avs_4MM -- is also the bivbased mouse average table 
 #Mouse.Table_BivData_4MM #this one is the HetC table (all the Curated BivData)
 
@@ -5790,17 +5813,13 @@ Pwise.ttest_Mol.male.2CO <- pairwise.t.test(male.Mol.mouse.av$mean.SC_2CO, male.
 ```
 
 
-We compared mouse means of three SC-based metrics: total SC length, mean short bivalent length, and mean long bivalent length. The long bivalent data set was isolated by choosing bivalents in the X quartile of the SC length distribution within cells. The short bivalent dataset was isolated as described above.
-
-figure
-
-Confirming the basic predictions, there is a positive correlation between mean MLH1 foci per cell and total SC  `r cor(totSC.mouse.av.table$mean.skel, totSC.mouse.av.table$mean.MLH1)`. Nevertheless, mean total SC only partially differentiates high-recombination and low-recombination strains (Figure X).  <Bret's note on positive correlation, 'A correlation across mice, across strains, or both?'>
-
-While high-recombination strains have significantly more SC area in the total dataset (t-test; p = 0.01 -- `r Q2tot.sc_t.test_High.Low$p.value`), separate tests by strain show that only within _molossinus_ are high- and low-recombination strains significantly different (t-test; molossinus: p = 0.03 -- `r Q2tot.sc_t.test_High.Low_Mol$p.value`; musculus: p = 0.87  -- `r Q2tot.sc_t.test_High.Low_Musc$p.value`). 
+Confirming the basic predictions, there is a positive correlation between mean MLH1 foci per cell and total SC ( Spearmans' r = `r cor( totSC.mouse.av.table$mean.skel, totSC.mouse.av.table$mean.MLH1, method = c("spearman") )`; p = `r cor.test(totSC.mouse.av.table$mean.skel, totSC.mouse.av.table$mean.MLH1, method=c("spearman") )$p.value`). Nevertheless, mean total SC only partially differentiates high-recombination and low-recombination strains (Figure X).  **Bret's note on positive correlation, 'A correlation across mice, across strains, or both?** While high-recombination strains have significantly more SC area in the total dataset (t-test; p = 0.01 -- `r Q2tot.sc_t.test_High.Low$p.value`), separate tests by strain show that only within _molossinus_ are high- and low-recombination strains significantly different (t-test; molossinus: p = 0.03 -- `r Q2tot.sc_t.test_High.Low_Mol$p.value`; musculus: p = 0.87  -- `r Q2tot.sc_t.test_High.Low_Musc$p.value`). 
+**the values above are diferent between editions**
 
 Additionally, the means for the reduced (short and long) bivalent datasets are not significantly different between high-recombination and low-recombination strains (t-test; short: p = 0.88 -- `r Q2short.biv_t.test_High.Low$p.value`; long: p = 0.18 -- `r Q2long.biv_t.test_High.Low$p.value`).
 
-In a general linear model with total SC as the dependent variable, two subspecies effects are significant (p = musculus 1.2410^{-6} -- `r sum.Q2.glm_mus.av_totSC_M1[,4][2]`, molossinus p = 10^{-6} -- `r sum.Q2.glm_mus.av_totSC_M1[,4][3]`). In general linear models with reduced bivalent means as dependent variables, several subspecies and strain effects reach significance (p < 0.05) but they are not consistent across models, indicating to some extent the chromatin compaction evolution is decoupled from evolution in mean MLH1 foci per cell.   <Bret's comment; How can you differentiate between this biological conclusion and uncertainty due to the size of the datasets and statistical approaches?>  
+**the values between versions are slightly different**
+In a general linear model with total SC as the dependent variable, two subspecies effects are significant (p = musculus 1.2410^{-6} -- `r sum.Q2.glm_mus.av_totSC_M1[,4][2]`, molossinus p = 10^{-6} -- `r sum.Q2.glm_mus.av_totSC_M1[,4][3]`). In general linear models with reduced bivalent means as dependent variables, several subspecies and strain effects reach significance (p < 0.05) but they are not consistent across models, indicating to some extent the chromatin compaction evolution is decoupled from evolution in mean MLH1 foci per cell.   **Bret's comment; How can you differentiate between this biological conclusion and uncertainty due to the size of the datasets and statistical approaches?**  
 
 
 # Q2.1CO rec landscape evolution is decoupled from gwRR evolution
@@ -6128,10 +6147,6 @@ male.biv.2CO$Rec.group <- ifelse(grepl("PWD", male.biv.2CO$strain), 1,
                                            ifelse(grepl("SKIVE", male.biv.2CO$strain), 1, 0)))
 
 
-biv.IFDs_by_group <- ggplot(male.biv.2CO, aes(y = IFD1_ABS, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
-  geom_jitter(alpha=.2)+
-  ggtitle("Interfocal Distances, ABS \nSeperated by Rec Groups")+
-  scale_color_manual(values=colors_of_strains)+ facet_wrap(subsp~Rec.group, scales = "free")+ylim(c(0,110))
 
 biv.IFDs_PER_by.group <- ggplot(male.biv.2CO, aes(y = IFD1_PER, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
   geom_jitter(alpha=.2)+
