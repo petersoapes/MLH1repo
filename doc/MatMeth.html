@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2020-04-18" />
+<meta name="date" content="2020-04-20" />
 
 <title></title>
 
@@ -300,8 +300,7 @@ div.tocify {
 <p>Meiocyte spreads for both sexes were made following <span class="citation">(Peters et al. 1997)</span> with ajustments for volumes. Whole testes and decapsulated overaires were incubated in 3ml or 300ul of hypotonic solution for 45min respectively. Fifteen microliters of cell slurry (masticated gonads) were transferred to 80ul of 2% PFA solution. Cells were fixed in this solution and dried in a humid chamber at room temperature overnight. The following morning, slides were treated with a photoflow wash (Kodak, cite).</p>
 <p>We tested for <strong>effects</strong> on mean MLH1 counts per cell; across mouse rooms, ages of mature males – and differnces between embryos and neonates. No effects were found (Supplemental section).</p>
 <p><Because some strains have breeding issues, all mice some strains were kept in breeding pairs (before collecting, and aged out of the desired age range. We performed tests for effects on MLH1 counts and found no effects in the older male mice ages. (Also we tested other effects, including maternal age...)></p>
-<p><strong>Staining / Immunohistochemistry</strong></p>
-<p>The immunohistochemistry was based on that in <span class="citation">(Anderson et al. 1999)</span> and <span class="citation">(Koehler et al. 2002)</span>. To visualize chromosomes in the meiocytes we used markers for the centromere (CREST) and lateral element of of the SC (SYCP3). Double strand breaks (DSB) and COs were visualized with DMC1 and MLH1 respectively. Antibodies and slide blocking was performed in 1X antibody dilution buffer (ADB) (normal donkey serum (Jackson ImmnuoResearch), 1X PBS, bovine serum albumin (Sigma), Triton X-100 (Sigma) ).</p>
+<p>The <strong>immunohistochemistry</strong> was based on that in <span class="citation">(Anderson et al. 1999)</span> and <span class="citation">(Koehler et al. 2002)</span>. To visualize chromosomes in the meiocytes we used markers for the centromere (CREST) and lateral element of of the SC (SYCP3). Double strand breaks (DSB) and COs were visualized with DMC1 and MLH1 respectively. Antibodies and slide blocking was performed in 1X antibody dilution buffer (ADB) (normal donkey serum (Jackson ImmnuoResearch), 1X PBS, bovine serum albumin (Sigma), Triton X-100 (Sigma) ).</p>
 <p>Each slide was blocked for 30 minutes in ADB then incubated with 60ul of primary antibody master mix for 48 hours at 37 degrees. For each master mix polyclonal anti rabbit anti-MLH1 (Calbiochem; diluted 1:50) or anti rabbit anti-DMC1) (mix of DMC1), anti goat polyclonal anti-SYCP3, (Abcam; diluted 1:50), and anti-human polyclonal antibody to CREST (Antibodies, Inc; diluted 1:200) were suspended in ADB. Slides were washed twice in 50ml ADB before the first round of secondary antibody incubation for 12 hours at 37 degrees. Alexa Fluor 488 donkey anti-rabbit IgG (Invitrgoen, location; diluted to 1:100) and Coumarin AMCA donkey anti-human IgG (Jackson ImmunoResearch; diluted to 1:200) were suspended in ADB. The last incubation of Alexa Fluor 568 donkey anti-goat (Invitrogen; diluted 1:100) was incubated at 1:100 for 2 hours at 37 degrees. Slides were fixed with Prolong Gold Antifade (Invitrogen) for 24 hours after a final wash in 1x PBS.</p>
 </div>
 <div id="image-processing" class="section level3">
@@ -313,13 +312,17 @@ div.tocify {
 </div>
 <div id="dmc1" class="section level3">
 <h3>DMC1</h3>
-<p>SC morphology was used to stage spermatocytes in the zygotene, leptotene, or pachtyene cell stage. Mean <strong>DMC1</strong> foci per cell for a single mouse from a subset of srains <em>musculus<sup>PWD</sup></em>, <em>musculus<sup>MSM</sup></em>, <em>domesticus<sup>WSB</sup></em>, and <em>domesticus<sup>G</sup></em> were compared by t-tests.</p>
+<p>Mean <strong>DMC1</strong> foci per cell for a single mouse from a subset of srains <em>musculus<sup>PWD</sup></em>, <em>musculus<sup>MSM</sup></em>, <em>domesticus<sup>WSB</sup></em>, and <em>domesticus<sup>G</sup></em> were compared by t-tests. SC morphology was used to stage spermatocytes in the zygotene, leptotene, or pachtyene cell stage.</p>
 </div>
-<div id="mlh1" class="section level3">
-<h3>MLH1</h3>
+<div id="mlh1-analytical-framework" class="section level3">
+<h3>MLH1 (Analytical Framework)</h3>
+<p>-Background for setting up/organizing models – (heiarchal nature of multiple strains within subspecies – ) - hierarchical nature of categories for inviual mouse averages ()</p>
+<p>-(primary focus is mean MLH1 count per cell - at the mouse observation level - apply to more meiocyte traits)</p>
+<p>-Our goal – design an utilize a mixed model for our analytical framework - which leverages / accounts for the hierarchical/nested nature of categories across all the individual mice (e.g. sex, strain subspecies).</p>
 <p>MLH1 foci were quantified from cells with intact and compelete karyotypes (19 acrocentric bivalents and XY for spermatocytes or 20 acrocentric bivalents for oocytes) and distinct MLH1 foci. A quality score, between 1 to 5, was asigned to each cell based on staining quality and general spread of bivalents. <cell with small defects were included -- and coded as a score of 5 - but these cell weren't included in the final analysis.> The distributions of MLH1 counts per cell was assessed for normality (supplemental figure).</p>
 <p><The mean, variance and coefficient of variance for MLH1 counts per cell were calculated for each mouse (in R).></p>
 <p>The use of wild derived inbred strains enabled us to design an utilize a mixed model for our analytical framework. We built our model to predict the strain average MLH1 count per cell.</p>
+<p><strong>X package used to test the fixed effects, Z package used to test the random effects.</strong></p>
 <p>The main effects and their interaction of subspecies and sex were coded as fixed. While, strain (or genetic background) was coded as a random effect to reflect a random sample of natural genetic variation from each subspecies. A strains to have a specific sex effect was also included.</p>
 <p>We applied the following models to analyze several dependent variables: mouse average mlh1 count per cell, the mouse average of variance in crossover count per cell, mouse mean total SC per cell, mouse mean single SC length, mouse mean IFD<sup>norm</sup> and IFD<sup>raw</sup>, and position of crossover for single crossover bivalents.</p>
 <p><strong>M1. Mixed Model</strong> <span class="math display">\[mouse \ av.\ dependant\ variable\ ~=~ subsp * sex + rand(strain) + \varepsilon \]</span></p>
@@ -332,40 +335,34 @@ div.tocify {
 </div>
 <div id="single-bivalent-charaecterization" class="section level3">
 <h3>Single bivalent charaecterization</h3>
-<p><to quantify charaecterize the SC (length) (synapsed chromosomes, )-- two image analysis algorithms were used both which apply a 'skeletonizing' transformation to the synapsed chromosomes, which transforms the elongatde chromosome space into a single pixel wide 'trace' of the originial chromosom shape.></p>
-<p>To quantify the SC area of indiviual cells and single chromosomes we applied the approaches discribed in <span class="citation">(Wang et al. 2019)</span> and <span class="citation">(Peterson, Miller, and Payseur 2019)</span> respectively.</p>
-<p>Both which apply a ‘skeletonizing’ transformation to the synapsed chromosomes (SC area), which transforms the elongatde chromosome space into a single pixel wide ‘trace’ of the originial chromosom shape. (DNACrossover isolates single chromosomes from the cell images). Hand measures of SC/pactyene chromosomes were performed by using ImageJ/Fiji (v1.52) <span class="citation">(Schindelin et al. 2012)</span>.</p>
-<div id="total-sc---wang" class="section level5">
-<h5>total SC - Wang</h5>
-<p>The total SC per cell (all bivalents) was quantified across single cell images. Mouse means were calculated from cell-wide total SC lengths in 2,984 – 2984 out of 3,680 – 3680 cells with MLH1 counts (Figure X). the mouse average total sc was applied to the model framework. <how else was this analyzed?!></p>
-</div>
+<p><strong>combine any X and XY issue with reduced dataset</strong> An additional challenge of the MLH1 framework is that the identities of individual autosomes and the XX in females cannot be easily obtained (the male XY is distinct).</p>
+<p>To charaecterize the SC length of individual chromosomes which is a marker of chromatin compaction <from MLH1 stained cells>, two image analysis algorithms were used to specifically (measure indiviual cells) <span class="citation">(Wang et al. 2019)</span> and indiviaul chromosomes <span class="citation">(Peterson, Miller, and Payseur 2019)</span>. Both apply a ‘skeletonizing’ transformation to the synapsed chromosomes which transforms the chromosome space into a single pixel wide ‘trace’ of the originial chromosom shape. Hand measures of SC/pactyene chromosomes were performed by using ImageJ/Fiji (v1.52) <span class="citation">(Schindelin et al. 2012)</span>.</p>
+<p>The <strong>total SC</strong> per cell (all bivalents) was quantified across single cell images. Mouse means were calculated from cell-wide total SC lengths in 2,984 – 2984 out of 3,680 – 3680 cells with MLH1 counts (Figure X). the mouse average total sc was applied to the model framework. <how else was this analyzed?!></p>
+<p><strong>walk through how outliers are removed</strong></p>
 <div id="dnacrossover" class="section level5">
 <h5>DNACrossover</h5>
-<p>The DNACrossover algorithm is hosted on CyVerse (), with more detailed description in <span class="citation">Peterson, Miller, and Payseur (2019)</span>.</p>
-<p>The DNA CrossOver algorithm isolated single straightened bivalents/chromosomes shapes from an image, and returns SC length, and location of green and blue signal, reflecting MLH1 foci and cetromere signal respectively). This algorithm substantially speeds the accurate measurement of bivalents, but has the limitation that not all bivalents per cell can be isolated due to overlapping bivalents. In this dataset, isolation rates per cell range from 0.5076364 – 0.51 (molossinus<sup>MSM</sup> male) to 0.7158857– 0.72 (musculus<sup>KAZ</sup> female).</p>
-<p><strong>Curation</strong> needed to remove ‘bad’ /incorrect instances of bivalent isolation. From the total set of cell images, 10458 – 10,458 bivalent objects were isolated by the image analysis software. After a human curation step (<span class="citation">(Peterson, Miller, and Payseur 2019)</span>), 9829 – 9,829 single-bivalent observations remained.</p>
-<p>To better understand the whole genome rec landscap – we charecterizaed the number of crossover/MLH1 foci on single chromosomes (from the curated bivalent dataset).</p>
-<p>We defined/classified each bivalent into a ‘class’ based on the number of MLH1 foci (range X to X). The <strong>chromosome class proportions</strong> different chromosome classes per strains by sex were tested with chi-sqaure tests with the prop.test function.</p>
+<p>The <strong>DNA CrossOver</strong> algorithm isolates single straightened bivalents/chromosomes shapes from an image, and returns SC length, and location of green and blue signal, reflecting MLH1 foci and cetromere signal respectively. This algorithm substantially speeds the accurate measurement of bivalents, but has the limitation that not all bivalents per cell can be isolated due to overlapping bivalents. In this dataset, isolation rates per cell range from 0.5076364 – 0.51 (molossinus<sup>MSM</sup> male) to 0.7158857– 0.72 (musculus<sup>KAZ</sup> female).</p>
+<p>A curation step is applied to the total single bivalent dataset to remove poor isolation/segmentation instances. From the total set of cell images, 10458 – 10,458 bivalent objects were isolated by the image analysis software. After a human curation step (<span class="citation">(Peterson, Miller, and Payseur 2019)</span>), 9829 – 9,829 single-bivalent observations remained.</p>
 </div>
 </div>
 </div>
 <div id="main-traits" class="section level1">
 <h1>main traits</h1>
-<p>chrm chrteriztions – SC length (chromatin compaction), foci position(raw and normalized), and interfocal distance, these traits were fit into the main models (as mentioned above) … t.tests were used to test between sexes and groups</p>
-<p><strong>CO Interferecne</strong> – Our primary mode of examining interference is to compared the interfocal disatnces (IFDs) (raw and normalized by SC length.) – Gamma parameter v has historically been used to charaecterize interference and was calculated using <x function>.</p>
+<p><strong>This dataset is used to charaecterize single bivalent traits</strong></p>
+<p>The number of MLH1 foci on single chromosomes was quantified from the curated bivalent dataset to better understand the total recombination landscape. The <strong>proportions</strong> of single and double crossover bivalents were tested across mouse categories by chi-sqaure tests with the prop.test function.</p>
+<p><strong>other traits</strong> were also charaecterized – SC length (a marker for chromatin compaction), foci position (raw and normalized), and interfocal distance a marker for interference, these traits were fit into the main models (as mentioned above). In addition to fiting the mouse means into the models discribed above, t.tests were used to test the means between sexes and groups.</p>
+<p><strong>IFD, Interference</strong> In order to examine interference, Interfocal distance was measured from the single bivalent data sets. - This metric is closer to measures of interference from linkage maps which are also removed from physical scales in that they measure frequencies of crossovers. Crossover interference is stronger in male specific linkage maps compared to female maps in a variety of species (ref). <strong>IFD<sup>norm</sup></strong></p>
 <p><strong>SC Length model</strong></p>
 <ul>
 <li><p><strong>Linear model M1 </strong> <span class="math display">\[mouse \ average \ bivalent metric ~=~ subsp * strain + \varepsilon \]</span></p></li>
 <li><p><strong>Linear model M2 </strong> <span class="math display">\[mouse \ average \ bivalent metric ~=~ strain + \varepsilon \]</span></p></li>
 </ul>
-<p><strong>IFD, Interference</strong></p>
-<p>In order to examine interference, Interfocal distance was measured from the single bivalent data sets. - This metric is closer to measures of interference from linkage maps which are also removed from physical scales in that they measure frequencies of crossovers. Crossover interference is stronger in male specific linkage maps compared to female maps in a variety of species (ref). <strong>IFD<sup>norm</sup></strong></p>
 <p><strong>REDUCED DATASET</strong></p>
 <p>To account for confounding effects of sex chromosomes from pooled samples of bivalents, we considered a reduced dataset including only bivalents with SC lengths below the 2nd quartile (for SC length) in each cell. This dataset included the four or five shortest bivalents and excluded the X bivalent in oocytes. A total of 678 – 678 ‘short’ bivalents were isolated from 103 – 103 oocytes and 37 – 37 spermatocytes. Although this smaller dataset has decreased power, it offers a more comparable set of single bivalents to compare between the sexes.</p>
 <ul>
 <li>The long bivalent and short bivalent data sets were compiled by calculating the 1st and 4th quartille of SC lengths for each cell with at least 16 bivalent measures. Bivalents from each cell were assigned into the long and short bins based on these SC Length cut offs.</li>
 </ul>
-<p>Using the single bivalent dataset, the within cell distribution of bivalent SC lengths from cells with at least 17 isolated chromosome measures. The longest and shortest 4 to 5 chromosomes within each cell were identified by qualqulating the fourth and second quartille. (these comprised the short and long bivalent datasets).</p>
+<p>Using the single bivalent dataset, the within cell distribution of bivalent SC lengths from cells with at least 17 isolated chromosome measures. The longest and shortest 4 to 5 chromosomes within each cell were identified by calculating the fourth and second quartille.</p>
 </div>
 <div id="references" class="section level1 unnumbered">
 <h1>References</h1>
