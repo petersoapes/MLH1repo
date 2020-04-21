@@ -34,11 +34,8 @@ options(digits=2)
 
 setwd("~.")#switch over to here()
 
-#MLH1_data_setup_2.24.20.RData
-load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_2.24.20.RData")
-
+load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_4.21.20.RData")
 #load(file = "C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.31.20.RData")
-
 #2.2.20
 #load(file="C:/Users/April/Documents/MLH1repo/data/CleanBivData_1.27.20.RData")
 #load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/CleanBivData_1.27.20.RData")
@@ -166,7 +163,6 @@ Curated_BivData$Rec.group_alt <- ifelse(grepl("PWD male", Curated_BivData$catego
 
 ```
 
-
 ```{r Q1.rbar, echo=FALSE}
 
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
@@ -221,7 +217,6 @@ ll <- ggplot(table_gamma_estimates, aes(y=mean.rbar, x = all.biv.gamma, color = 
 #house mouse raw nu is around 11
 
 ```
-
 
 ```{r MLH1.FEMALE.TABLE, echo=FALSE}
 female_mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
@@ -284,21 +279,6 @@ Dom.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(sub
 #https://rcompanion.org/handbook/G_03.html
 #testing random effects within lme
 
-#What are the main DFs for this code chunk
-#AP_mouse_table_w.Ages   <- used to remove males which are too old (includes outgroups) 
-#DF.HetC.MixedModel   <- only Mmusculus
-#DF.HetC.MixedModel.HQ <- only mice of certain age, Q5 excluded
-
-#variance is still chr
-#AP_mouse_table_w.Ages$var <- as.numeric(AP_mouse_table_w.Ages$var)
-
-#use the merged DF to filter by age 
-#AP_mouse_table_w.Ages$strain <- AP_mouse_table_w.Ages$strain.x
-#AP_mouse_table_w.Ages$sex <- AP_mouse_table_w.Ages$sex.x
-#AP_mouse_table_w.Ages$subsp <- AP_mouse_table_w.Ages$subsp.x
-#main file, make everything unordered factors
-#AP_mouse_table_w.Ages <- add_species(AP_mouse_table_w.Ages)
-
 DF.HetC.MixedModel <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$species == "M.musculus",]
 
 #remove the extra merged cols
@@ -307,21 +287,8 @@ DF.HetC.MixedModel <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$species == "M.
 #                    category.y,category.x, strain.x,
 #                    strain.y, mouse.1  )  )
 
-
-#REMOVE EXTRA STRAINS
-#DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$subsp != "Cast",]
-#remove musc strains
-#DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "AST",]
-#DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "TOM",]
-#remove PERC, MOLF, CZECH, (no females)
-#DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "CZECH",]
-#DF.HetC.MixedModel <- DF.HetC.MixedModel[DF.HetC.MixedModel$strain != "PERC",]
-
-#DF.HetC.MixedModel <- droplevels(DF.HetC.MixedModel)#remove levels not used
-
 #AP_mouse_table excluide Qual5 cells
 DF.HetC.MixedModel.HQ <- AP_mouse_table.MLH1_HQ
-
 DF.HetC.MixedModel.HQ <- add_species(DF.HetC.MixedModel.HQ)
 
 #main df with variables coded as chr
