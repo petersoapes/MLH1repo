@@ -394,7 +394,7 @@ all.cell.MM.HQ <- ddply(.data=DF.HetC.MixedModel.HQ,
 ```
 
 
-```{r MLH1.HetC.rates, echo=FALSE, include=FALSE, warning=FALSE}
+```{r MLH1.HetC.rates, echo=FALSE, warning=FALSE}
 #calculate the initial HetC levels from best quality mice and cells (compare both levels (cell and mouse average levels))
 #subset MLH1_DF, remove non passing mice (as diagnoised from plots)
 #remove quality 5 cells
@@ -1135,13 +1135,17 @@ MLH1.merge.Skel <- add_species(MLH1.merge.Skel)
 ```
 
 ```{r tot.skel.table, echo=FALSE}
+
+MLH1.merge.Skel$nMLH1.foci <- as.numeric(MLH1.merge.Skel$nMLH1.foci)
+
 totSC.mouse.av.table <- ddply(.data=MLH1.merge.Skel, 
                  .(mouse),
                  summarize, 
                  ncells = length(unique(Original.Name)),
                  nmice = length(unique(mouse)),
-                # mean.MLH1 = mean( nMLH1.foci, na.rm = TRUE),
-                # var.MLH1 = var( nMLH1.foci, na.rm = TRUE),
+                 
+                 mean.MLH1 = mean(nMLH1.foci, na.rm = TRUE),
+                 var.MLH1 = var( nMLH1.foci, na.rm = TRUE),
                  
                  mean.skel = mean(skel_size, na.rm = TRUE),
                 #se for skel
@@ -1178,6 +1182,7 @@ totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain 
 
 ```
 
+
 ```{r tot.SC.setup, echo = FALSE}
 
 totSC.strain.av.table <- ddply(.data=totSC.mouse.av.table, 
@@ -1185,7 +1190,8 @@ totSC.strain.av.table <- ddply(.data=totSC.mouse.av.table,
                  summarize, 
                  ncells = sum(ncells),
                  nmice = length(unique(mouse)),
-                # mean.MLH1 = mean( nMLH1.foci, na.rm = TRUE),
+                 
+                av.MLH1 = mean( mean.MLH1, na.rm = TRUE),
                 # var.MLH1 = var( nMLH1.foci, na.rm = TRUE),
                  
                  mean.skel = mean(mean.skel, na.rm = TRUE),
@@ -2068,7 +2074,7 @@ Q2.shortBIV_t.test_DomMol <- t.test((real.short.bivData  %>% filter(subsp == "Do
 ```{r Q2.totSC.glm, echo=FALSE}
 
 Q2.glm_mus.av_totSC_M4 <- glm(mean.skel ~ subsp * strain, data= totSC.mouse.av.table %>% filter(sex == "male"))
-sum.Q2.glm_mus.av_totSC_M4  <- summary(Q2.glm_mus.av_totSC_M1)$coefficients
+sum.Q2.glm_mus.av_totSC_M4  <- summary(Q2.glm_mus.av_totSC_M4)$coefficients
 
 #sum.Q2.glm_mus.av_totSC_M4$coefficients[,4]   pvalues of all effects
 #sum.Q2.glm_mus.av_totSC_M4$coefficients[,1]  coefficients of all effects
@@ -2603,11 +2609,12 @@ Rec.group_BivData_F1post_Ttest <- t.test(
 #all of these are M4
 
 Q2.glm_mus.av_1COpos_M4 <- glm(norm.first.foci.pos ~ subsp * strain, data= mouse.avs_4MM %>% filter(sex == "male"))
-sum.Q2.glm_mus.av_1COpos_M1  <- summary(Q2.glm_mus.av_1COpos_M1)$coefficients
+sum.Q2.glm_mus.av_1COpos_M4  <- summary(Q2.glm_mus.av_1COpos_M4)$coefficients
 #summary(Q2.glm_mus.av_1COpos_M1)$coefficients[,4]
 
+
 #with.chrm.legth  ?
-Q2.glm_mus.av_1COpos_M4 <- glm(norm.first.foci.pos ~ subsp * strain, data= mouse.avs_4MM %>% filter(sex == "male"))
+#Q2.glm_mus.av_1COpos_M4 <- glm(norm.first.foci.pos ~ subsp * strain, data= mouse.avs_4MM %>% filter(sex == "male"))
 
 
 #M4.2 (just strain)
@@ -2616,27 +2623,6 @@ sum.Q2.glm_mus.av_1COpos_M4.2 <- summary(Q2.glm_mus.av_1COpos_M4.2)$coefficients
 
 ```
 
-```{r Q2.1COpos.show.MOL, echo=FALSE}
-
-#(mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Mol") %>% filter(Rec.group == #"0"))$norm.first.foci.pos
-
-mus.av1COpos.plot <- ggplot(data= mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Mol"),
-                      aes(x= mouse, y = norm.first.foci.pos))+geom_point()
-
-
-#+facet_wrap(~mouse, scales = "free")
-
-single.biv_1COpos.plot_Mol <- ggplot(data= Curated_BivData %>%  filter(sex == "male") %>%  filter(subsp == "Mol") %>%  filter(hand.foci.count == "1") %>%  filter(chromosomeLength < 100),
-                      aes(x= fileName, y = PER_Foci_1, color=chromosomeLength))+geom_point()+facet_wrap(~mouse, scales = "free") + ylim(c(0,1))
-
-#+scale_color_manual(values=colors_of_strains)
-
-
-single.biv_1COpos.plot_Dom <- ggplot(data= Curated_BivData %>% filter(sex == "male") %>%filter(subsp == "Dom") %>%  filter(hand.foci.count == "1"),
-                      aes(x= fileName, y = PER_Foci_1, color=strain ))+geom_point()+facet_wrap(~mouse, scales = "free") + ylim(c(0,1))+scale_color_manual(values=colors_of_strains)
-
-#CHRM.length is very significant-- some of the same subsp and strains are sig     
-```
 
 ```{r Q2.1CO.pos_glm.chrm.Length, echo=FALSE}
 #remove this cell, 
@@ -2698,6 +2684,7 @@ mouse.av.long.biv.table$Rec.group <- ifelse(grepl("PWD", mouse.av.long.biv.table
                             ifelse(grepl("MSM", mouse.av.long.biv.table$strain), 1,
                              ifelse(grepl("SKIVE", mouse.av.long.biv.table$strain), 1, 0)) )
 ```
+
 
 ```{r Q2.1COpos.LOG.glm, echo=FALSE, eval=FALSE}
 
@@ -2832,7 +2819,7 @@ t.test_mouse.av.IFD_ABS_MOL <- t.test(  (mouse.avs_4MM %>% filter(Rec.group == "
 
 #M4.ABS
 Q2.M4glm_IFD.raw <- glm(mean_IFD.2CO_ABS ~ subsp * strain, data= mouse.avs_4MM %>% filter(sex == "male")    )
-sum.Q2.M1glm_IFD.raw <- summary(Q2.M4glm_IFD.raw) 
+sum.Q2.M4glm_IFD.raw <- summary(Q2.M4glm_IFD.raw) 
 
 #M4.PER
 Q2.M4glm_IFD.PER <- glm(mean_IFD.2CO_PER ~ subsp * strain, data= mouse.avs_4MM %>% filter(sex == "male") )
@@ -2842,7 +2829,7 @@ sum.Q2.M4glm_IFD.PER <- summary(Q2.M4glm_IFD.PER)
 
 #M4.2.raw
 Q2.M4.2glm_IFD.raw <- glm(mean_IFD.2CO_ABS ~ strain, data= mouse.avs_4MM %>% filter(sex == "male"))
-Sum.Q2.M2glm_IFD.raw <- summary(Q2.M2glm_IFD.raw)
+Sum.Q2.M4.2glm_IFD.raw <- summary(Q2.M4.2glm_IFD.raw)
 
 Q2.M4.2glm_IFD.PER <- glm(mean_IFD.2CO_PER ~ strain, data= mouse.avs_4MM %>% filter(sex == "male"))
 sum.Q2.M4.2glm_IFD.PER <- summary(Q2.M4.2glm_IFD.PER)
@@ -2850,30 +2837,29 @@ sum.Q2.M4.2glm_IFD.PER <- summary(Q2.M4.2glm_IFD.PER)
 
 #within subspecies
 #Dom
-Q2.glm.M2_IFD_Dom <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Dom",])
-#summary(Q2.glm.M2_IFD_Dom)
+Q2.glm.M4.2_IFD_Dom <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Dom",])
+#summary(Q2.glm.M4.2_IFD_Dom)
 
 #Musc
-Q2.glm.M2_IFD_Musc <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",])
-#summary(Q2.glm.M2_IFD_Musc)
+Q2.glm.M4.2_IFD_Musc <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",])
+#summary(Q2.glm.M4.2_IFD_Musc)
 
 #Mol
-Q2.glm.M2_IFD_Mol <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",])
-#summary(Q2.glm.M2_IFD_Mol)
+Q2.glm.M4.2_IFD_Mol <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",])
+#summary(Q2.glm.M4.2_IFD_Mol)
 
 
 #Dom
-Q2.glm.M2_IFD.PER_Dom <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Dom",])
-#summary(Q2.glm.M2_IFD.PER_Dom) 
+Q2.glm.M4.2_IFD.PER_Dom <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Dom",])
+#summary(Q2.glm.M4.2_IFD.PER_Dom) 
 
 #Musc
-Q2.glm.M2_IFD.PER_Musc <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",])
-#summary(Q2.glm.M2_IFD.PER_Musc) 
+Q2.glm.M4.2_IFD.PER_Musc <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",])
+#summary(Q2.glm.M4.2_IFD.PER_Musc) 
 
 #Mol
-Q2.glm.M2_IFD.PER_Mol <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",])
-#summary(Q2.glm.M2_IFD.PER_Mol)
-
+Q2.glm.M4.2_IFD.PER_Mol <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",])
+#summary(Q2.glm.M4.2_IFD.PER_Mol)
 ```
 
 ```{r Q2.IFD.glm.chrmLength, echo=FALSE, eval=FALSE}
@@ -3111,13 +3097,11 @@ Short.removed_BivData_IFD.ABS_Ttest_mus.av <- t.test(close.IFD.rates.mus.rate$me
 ```
 
 
-
-
 # SAVE the data
 
 ```{r Save.File, echo=FALSE}
 #save Rdata
 save.image("~./MLH1repo/data/Results_setup_4.21.20.RData")
-#save.image("data/BivData_4_PCA.RData")
+
 ```
 

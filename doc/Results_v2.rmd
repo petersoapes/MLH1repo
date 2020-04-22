@@ -34,11 +34,9 @@ options(digits=2)
 
 setwd("~.")#switch over to here()
 
-load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_4.21.20.RData")
-#load(file = "C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.31.20.RData")
-#2.2.20
-#load(file="C:/Users/April/Documents/MLH1repo/data/CleanBivData_1.27.20.RData")
-#load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/CleanBivData_1.27.20.RData")
+#load(file = here("data", "MLH1_data_setup_4.21.20.RData") )
+
+load(file = "~./MLH1repo/data/Results_setup_4.21.20.RData")
 
 load(file="~./MLH1repo/data/CleanBivData_6.3.20.RData")
 
@@ -58,11 +56,6 @@ SC.skel = read.csv("~./MLH1repo/data/SCskel_output_feb20.csv", header = TRUE, st
 #load(file="C:/Users/April/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.5.20.RData")#added batch18
 #load(file="C:/Users/April/Documents/MLH1repo/data/CleanBivData_1.28.20.RData")
 #load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/CleanBivData_1.28.20.RData")
-
-#this MLH1 only goes up to batch16!
-#load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#batch18
-#load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#fixing bugs, formating
-
 
 #load(file="data/MetaData.RData") #this was replacing most updated data file
 
@@ -243,7 +236,7 @@ female.specific.plot <- ggplot(female_mouse.avs_for.analysis, aes(x = as.factor(
 
 ```
 
-```{r male.show.plots, echo=FALSE, fig.width = 4, fig.height=2.5, warning=FALSE, include=FALSE}
+```{r male.show.plots, echo=FALSE, fig.width = 4, fig.height=2.5, warning=FALSE}
 #try customize the plot size
 
 male_mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
@@ -257,28 +250,26 @@ male_mouse.av <- add_subsp(male_mouse.av)
 male_mouse.av <- add_species(male_mouse.av)
 
 #just.male_mouse.av <-  male_mouse.av %>% filter(sex== "male") %>% #filter(species == "M.musculus") 
+#just.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(species == "M.musculus") 
 
-
-just.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(species == "M.musculus") 
-
-just.male_mouse.av$sex <- factor(just.male_mouse.av$sex, ordered = FALSE)
-just.male_mouse.av$strain <- factor(just.male_mouse.av$strain, ordered = FALSE)
-just.male_mouse.av$subsp <- factor(just.male_mouse.av$subsp, ordered = FALSE)
-just.male_mouse.av$species <- factor(just.male_mouse.av$species, ordered = FALSE)
+#just.male_mouse.av$sex <- factor(just.male_mouse.av$sex, ordered = FALSE)
+#just.male_mouse.av$strain <- factor(just.male_mouse.av$strain, ordered = FALSE)
+#just.male_mouse.av$subsp <- factor(just.male_mouse.av$subsp, ordered = FALSE)
+#just.male_mouse.av$species <- factor(just.male_mouse.av$species, ordered = FALSE)
 
 #table( droplevels(just.male_mouse.av$strain) )
 #there are cast strains too
 
-Musc.male_mouse.av <-  just.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Musc")
+#Musc.male_mouse.av <-  just.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Musc")
 
 #fomo.male_mouse.av
 
-male.plot <- ggplot(just.male_mouse.av, aes(x = as.factor(strain), y = mean_co, color= strain))+geom_jitter( alpha=0.5, width = .2) +geom_boxplot()+ ggtitle("Male mouse mean")+scale_color_manual(values=colors_of_strains)+ylim(c(20,34))+theme(legend.position="none",
-  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-  panel.background = element_blank(), axis.line=element_line(colour = "black"))+theme(axis.text.x = element_text(angle = 45, hjust = 1))
-male.plot
+#male.plot <- ggplot(just.male_mouse.av, aes(x = as.factor(strain), y = mean_co, color= strain))+geom_jitter( alpha=0.5, width = .2) +geom_boxplot()+ ggtitle("Male mouse mean")+scale_color_manual(values=colors_of_strains)+ylim(c(20,34))+theme(legend.position="none",
+#  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+#  panel.background = element_blank(), axis.line=element_line(colour = "black"))+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+#male.plot
 
-musc.male.plot <- ggplot(Musc.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc male of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,34))
+#musc.male.plot <- ggplot(Musc.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc male of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,34))
 
 ```
 
@@ -2775,6 +2766,42 @@ summary(log.reg_1CO_pos_biv)
 # Q1. Sex Differences in CO Interference (IFD)
 
 
+```{r Q1.IFD.triangle, echo=FALSE}
+
+#make triangle for the IFD measures (try doing female top male bottom)
+#Curated_BivData[Curated_BivData$hand.foci.count == 2,]
+
+#remove grey background
+#add diagonal
+#
+
+IFD.Male.DOM.top.tri.plot <- ggplot( (Curated_BivData %>% filter(sex == "male") %>% filter(hand.foci.count == 2) %>% filter(subsp == "Dom") ),
+  aes(y = rev(PER_Foci_2), x= PER_Foci_1, color=strain))+
+  geom_jitter(alpha=.4)+
+  ggtitle("Normalized IFD\nDom")+
+  scale_color_manual(values=colors_of_strains)+xlim(c(0,1))+ylim(c(0,1))+
+  theme(legend.position="none")+theme_classic()+geom_abline(intercept = 0, slope = 1)
+
+
+
+IFD.Male.DOM.tri.plot
+
+
+basey.base <- plot( y = (Curated_BivData %>% filter(sex == "male") %>% filter(hand.foci.count == 2) %>% filter(subsp == "Dom") )$PER_Foci_2, x= (Curated_BivData %>% filter(sex == "male") %>% filter(hand.foci.count == 2) %>% filter(subsp == "Dom") )$PER_Foci_1 )
+
+
+```
+
+
+```{r Q1.show.IFD_female.male.comparison, echo=FALSE}
+
+#compare female IFD patterns which have telomeric bias (more similar to males)
+
+
+```
+
+
+
 ```{r Q1.IFD_show.IFD_99, echo=FALSE, warning=FALSE, message=FALSE}
 
 #first draft of the IFD comparisons
@@ -3892,43 +3919,6 @@ Q2.shortBIV_t.test_DomMol <- t.test((real.short.bivData  %>% filter(subsp == "Do
 
 
 
-```{r Q2.totSC.glm, echo=FALSE}
-
-Q2.glm_mus.av_totSC_M4 <- glm(mean.skel ~ subsp * strain, data= totSC.mouse.av.table %>% filter(sex == "male"))
-sum.Q2.glm_mus.av_totSC_M4  <- summary(Q2.glm_mus.av_totSC_M1)$coefficients
-
-#sum.Q2.glm_mus.av_totSC_M4$coefficients[,4]   pvalues of all effects
-#sum.Q2.glm_mus.av_totSC_M4$coefficients[,1]  coefficients of all effects
-#round(sum.Q2.glm_mus.av_totSC_M4$coefficients[,c(1,4)], 6)
-
-#M4.2? (removed subspecies?)
-
-Q2.glm_mus.av_totSC_M4.2 <- glm(mean.skel ~ strain, data= totSC.mouse.av.table %>% filter(sex == "male"))
-sum.Q2.glm_mus.av_totSC_M4.2  <- summary(Q2.glm_mus.av_totSC_M4.2)
-#round(summary(sum.Q2.glm_mus.av_totSC_M2)$coefficients[,c(1,4)], 6)
-
-totSC.mouse.av.table <- add_strain(totSC.mouse.av.table)
-totSC.mouse.av.table <- add_sex(totSC.mouse.av.table)
-totSC.mouse.av.table <- add_subsp(totSC.mouse.av.table)
-#within subspecies values
-
-#Dom
-Q2.glm_mus.av_totSC_M4.2_DOM <- glm(mean.skel ~ strain, data= totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Dom"))
-sum.Q2.glm_mus.av_totSC_M4.2_DOM  <- summary(Q2.glm_mus.av_totSC_M4.2_DOM)
-#there are significant strain effects in DOM,
-
-
-#Musc
-Q2.glm_mus.av_totSC_M4.2_MUSC <- glm(mean.skel ~ strain, data= totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Musc") )
-sum.Q2.glm_mus.av_totSC_M4.2_MUSC  <- summary(Q2.glm_mus.av_totSC_M4.2_MUSC)
-#KAZ -- is the only significant effect
-
-#Mol
-Q2.glm_mus.av_totSC_M4.2_MOL <- glm(mean.skel ~ strain, data= totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Mol") )
-sum.Q2.glm_mus.av_totSC_M4.2_MOL  <- summary(Q2.glm_mus.av_totSC_M4.2_MOL)
-
-```
-
 
 ```{r Q2.glm.SC.long, echo=FALSE}
 
@@ -4357,14 +4347,14 @@ fomo.male_mouse.av$sex <- factor(fomo.male_mouse.av$sex, ordered = FALSE)
 fomo.male_mouse.av$strain <- factor(fomo.male_mouse.av$strain, ordered = FALSE)
 fomo.male_mouse.av$species <- factor(fomo.male_mouse.av$species, ordered = FALSE)
 
-table( droplevels(fomo.male_mouse.av$strain) )
+#table( droplevels(fomo.male_mouse.av$strain) )
 #there are cast strains too
 
 
-Musc.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Musc")
+#Musc.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Musc")
 
-musc.male.plot <- ggplot(Musc.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc male of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,34))
-musc.male.plot
+#musc.male.plot <- ggplot( ( male_mouse.av %>% filter(species == "M.musculus") ), aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc male of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,34))
+#musc.male.plot
 
 # + theme(axis.title.x=element_blank(),
 #        axis.text.x=element_blank(),
@@ -4387,13 +4377,16 @@ Dom.male.plot
 ```
 
 
-Confirming the basic predictions, there is a positive correlation between mean MLH1 foci per cell and total SC ( Spearmans' r = `r cor( totSC.mouse.av.table$mean.skel, totSC.mouse.av.table$mean.MLH1, method = c("spearman") )`; p = `r cor.test(totSC.mouse.av.table$mean.skel, totSC.mouse.av.table$mean.MLH1, method=c("spearman") )$p.value`). Nevertheless, mean total SC only partially differentiates high-recombination and low-recombination strains (Figure X).  **Bret's note on positive correlation, 'A correlation across mice, across strains, or both?** While high-recombination strains have significantly more SC area in the total dataset (t-test; p = 0.01 -- `r Q2tot.sc_t.test_High.Low$p.value`), separate tests by strain show that only within _molossinus_ are high- and low-recombination strains significantly different (t-test; molossinus: p = 0.03 -- `r Q2tot.sc_t.test_High.Low_Mol$p.value`; musculus: p = 0.87  -- `r Q2tot.sc_t.test_High.Low_Musc$p.value`). 
+Confirming the basic predictions, there is a positive correlation between mean MLH1 foci per cell and total SC ( Spearmans' r = `r cor( totSC.mouse.av.table$mean.skel, totSC.mouse.av.table$mean.MLH1, method = c("spearman") )`; 
+<no mean.MLH1>
+
+p = `r cor.test(totSC.mouse.av.table$mean.skel, totSC.mouse.av.table$mean.MLH1, method=c("spearman") )$p.value`). Nevertheless, mean total SC only partially differentiates high-recombination and low-recombination strains (Figure X).  **Bret's note on positive correlation, 'A correlation across mice, across strains, or both?** While high-recombination strains have significantly more SC area in the total dataset (t-test; p = 0.01 -- `r Q2tot.sc_t.test_High.Low$p.value`), separate tests by strain show that only within _molossinus_ are high- and low-recombination strains significantly different (t-test; molossinus: p = 0.03 -- `r Q2tot.sc_t.test_High.Low_Mol$p.value`; musculus: p = 0.87  -- `r Q2tot.sc_t.test_High.Low_Musc$p.value`). 
 **the values above are diferent between editions**
 
 Additionally, the means for the reduced (short and long) bivalent datasets are not significantly different between high-recombination and low-recombination strains (t-test; short: p = 0.88 -- `r Q2short.biv_t.test_High.Low$p.value`; long: p = 0.18 -- `r Q2long.biv_t.test_High.Low$p.value`).
 
 **the values between versions are slightly different**
-In a general linear model with total SC as the dependent variable, two subspecies effects are significant (p = musculus 1.2410^{-6} -- `r sum.Q2.glm_mus.av_totSC_M1[,4][2]`, molossinus p = 10^{-6} -- `r sum.Q2.glm_mus.av_totSC_M1[,4][3]`). In general linear models with reduced bivalent means as dependent variables, several subspecies and strain effects reach significance (p < 0.05) but they are not consistent across models, indicating to some extent the chromatin compaction evolution is decoupled from evolution in mean MLH1 foci per cell.   **Bret's comment; How can you differentiate between this biological conclusion and uncertainty due to the size of the datasets and statistical approaches?**  
+In a general linear model with total SC as the dependent variable, two subspecies effects are significant (p = musculus 1.2410^{-6} -- `r sum.Q2.glm_mus.av_totSC_M4[,4][2]`, molossinus p = 10^{-6} -- `r sum.Q2.glm_mus.av_totSC_M4[,4][3]`). In general linear models with reduced bivalent means as dependent variables, several subspecies and strain effects reach significance (p < 0.05) but they are not consistent across models, indicating to some extent the chromatin compaction evolution is decoupled from evolution in mean MLH1 foci per cell.   **Bret's comment; How can you differentiate between this biological conclusion and uncertainty due to the size of the datasets and statistical approaches?**  
 
 
 # Q2.1CO rec landscape evolution is decoupled from gwRR evolution
@@ -4466,6 +4459,11 @@ The normalized 1CO position is not significantly different between high-recombin
 
 # Q2 Evolution of interference is associated with genome wide recombination rate evolution
 
+```{r Q2.triangle.IFD, echo=FALSE}
+
+```
+
+
 
 ```{r Q2.show.IFD, echo=FALSE, warning = FALSE}
 #subset
@@ -4483,6 +4481,7 @@ biv.IFDs_PER_by.group <- ggplot(male.biv.2CO, aes(y = IFD1_PER, x= mouse, color=
   scale_color_manual(values=colors_of_strains)+ facet_wrap(subsp~Rec.group, scales = "free")+theme(legend.position="none", axis.text.x = element_blank())+ylim(c(0,1.1))
 
 ```
+
 
 ```{r Q2.IFD.glm.test, echo=FALSE}
 
