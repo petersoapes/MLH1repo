@@ -107,6 +107,30 @@ early zygotene defined as seperate centromere pairing -- mostly complete axis si
 
 ### MLH1 (Analytical Framework)
 
+**M1s code** 
+
+MLH1var_M1 <- lmer( var ~ subsp * sex +(1|strain), data=DF.HetC.MixedModel.HQ )
+MLH1var_M1.reduce.sex <- lmer( var ~ subsp  +(1|strain), data=DF.HetC.MixedModel.HQ )
+MLH1var_M1.reduce.subp <- lmer( var ~ sex  +(1|strain), data=DF.HetC.MixedModel.HQ )
+
+summary(MLH1var_M1)
+LmerMLH1_VAR_int <- drop1(MLH1var_M1, test="Chisq")$`Pr(Chi)`[2]
+LmerMLH1_VAR_sex <- anova(MLH1var_M1, MLH1var_M1.reduce.sex)$`Pr(>Chisq)`[2]
+LmerMLH1_VAR_subsp <- anova(MLH1var_M1, MLH1var_M1.reduce.subp)$`Pr(>Chisq)`[2]
+LmerMLH1_VAR_strain <- exactRLRT(MLH1var_M1)$p.value
+
+LmerMLH1_VAR_results <- data.frame(sub.sp = LmerMLH1_VAR_subsp,
+sex.results =  LmerMLH1_VAR_sex, interaction.pval = LmerMLH1_VAR_int,  rand.pval = LmerMLH1_VAR_strain)
+
+
+tested coefficients from the mixed models (using the lmer() function) with chisquare test between full and reduced models for mixed. the random effects were tested with the exactRLRT()
+
+
+M2 to M4 are glm -- use lm()
+
+MLH1var_M2 <- lm( var ~ subsp * sex * strain,  data=DF.HetC.MixedModel.HQ )
+MLH1var_M2_sum <- summary(MLH1var_M2)
+
 ```{r MLH1.analysis, echo=FALSE}
 
 #1.certeria
@@ -163,6 +187,8 @@ In addition to mouse mean of MLH1 count per cell
 **M3. Linear Model** $$mouse \ av.\ dependant\ variable\ ~=~ sex * strain + \varepsilon$$
 
 **M4. Linear Model** $$sex\ specific\ mouse \ av.\ dependant\ variable\ ~=~ subsp * strain + \varepsilon$$
+
+**M4.2** removed the subspecies coefficient for 
 
 This model allows us to estimate and test the fixed effects (sex and subsp), and variation in mean MLH1 counts due to strain effect. We use the subspecies term as a way to quantify between group variation (or divergence) and the random strain effect to quantify within group variation (or polymorphism). (in a sex specific manner). From the mixed model the estimates of heterochiasmy (sexual dimorphism) are a combination of subspecies and strain specific sex effects.
 
