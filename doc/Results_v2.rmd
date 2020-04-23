@@ -17,6 +17,7 @@ bibliography: refs_Main_Report.bib
 
 ```{r setup, echo=FALSE, include = FALSE}
 library(knitr)
+library(kableExtra)
 library(ggplot2)
 #library(pwr)
 library(plyr)
@@ -708,12 +709,17 @@ The results are similar: sex is the strongest effect (p < **smallNumber** `r rou
 
 # DSB. Evolution of genome-wide recombination rate is associated with evolution of double strand breaks
 
+- update figure
+
+- make table, save in figure folder, print head here
+
+- remove cody blocks
+
 
 ```{r DMC1.setup, echo=FALSE}
 #load DMC1 csv
 #DMC1.DF <- read.csv("~./DMC1/newJuviQuant.csv", header = TRUE)
 DMC1.DF <- read.csv("~./MLH1repo/data/DMC1newJuviQuant.csv", header = TRUE)
-
 
 DMC1.DF$fileName <- DMC1.DF$Original.Name
 DMC1.DF <- add_mouse(DMC1.DF)
@@ -730,7 +736,7 @@ DMC1.mean.obs.L <- ddply(.data=DMC1.DF[DMC1.DF$stage == "L",],
                  ncells = length(fileName),
                  mean.count = mean( total.count)
 )
-DMC1.mean.obs.L$stage <- "L"
+DMC1.mean.obs.L$stage <- "early Z"
 
 DMC1.mean.obs.Z <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Z",],
                  .(category),
@@ -738,12 +744,11 @@ DMC1.mean.obs.Z <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Z",],
                  ncells = length(fileName),
                  mean.count = mean( total.count)
 )
-DMC1.mean.obs.Z$stage <- "Z"
+DMC1.mean.obs.Z$stage <- "late Z"
 
 DMC1.mean.table <- rbind(DMC1.mean.obs.L,DMC1.mean.obs.Z)
 
-#write.table(DMC1.mean.table, "~./MLH1repo/DMC1.mean.table.csv", sep=",",
-#            row.names = FALSE)
+
 
 DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
                           ifelse(grepl("G",DMC1.DF$strain), "Low",
@@ -753,11 +758,10 @@ DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
                ifelse(grepl("MSM", DMC1.DF$strain), "High","")))))
 ```
 
+
+
 ```{r MAIN.DMC1.plot, echo=FALSE, warning=FALSE}
-#think of better color scheme
-#make the jitter col thinner or make the stacked dots.
-#remember that box-plots add outlier dots.
-#change y labels
+DMC1.DF$stage 
 
 #experimenting with ggboplot
 everyday <- ggboxplot(DMC1.DF[DMC1.DF$stage != "P",], x = "strain", y = "total.count",
@@ -814,50 +818,6 @@ ttest.ZtoL.Low <- t.test(DMC1.Low.goup$total.count[(DMC1.Low.goup$stage == "L")]
                DMC1.Low.goup$total.count[(DMC1.Low.goup$stage == "Z")]  )
 ```
 
-```{r plot.t.test, echo=FALSE, include=FALSE}
-
-  #this will add neat bars, but still need to figure out what groups ect it's actually using
-#THE stat_compare function adds a arm thing and pvalue for 
-#  stat_compare_means(comparisons = my_comparisons)
-
-#status - legend, expression y-axis, facet, facet_wrap SYMBOL
-#legend - stage. y=total count, FACet strain
-
-
-#add column to distinguish high vs low rec strains
-DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
-                          ifelse(grepl("G",DMC1.DF$strain), "Low",
-                                 
-              ifelse(grepl("KAZ", DMC1.DF$strain), "Low",
-            ifelse(grepl("PWD", DMC1.DF$strain), "High",
-               ifelse(grepl("MSM", DMC1.DF$strain), "High","")))))
-
-DMC1.DF$rec_group <- as.factor(DMC1.DF$rec_group)
-
-                   
-# annotation table with adjusted pvals and y-position of the labels
-
-anno_df = compare_means(total.count ~ rec_group, group.by = "stage", data = DMC1.DF[DMC1.DF$stage != "P",],method = "t.test") %>% mutate(y_pos = 300)
-#
-
-DMC1.bxlt_High.to.Low <- ggplot(DMC1.DF[DMC1.DF$stage != "P",], aes(x=rec_group, y=total.count)) + 
-  geom_boxplot(position=position_dodge()) + 
-  geom_point(aes(color=stage), position=position_jitterdodge()) + 
-  facet_wrap(~stage, nrow=1) + 
-  ggsignif::geom_signif(
-    data=anno_df, 
-    aes(xmin=group1, xmax=group2, annotations=p.adj, y_position=y_pos), 
-    manual=TRUE
-  )+ggtitle("Comparison of DMC1 means across high and low recombing groups")+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(), axis.line = element_line(colour = "black"))
-
-#example for ggplot+ test from here
-#https://github.com/kassambara/ggpubr/issues/65
-
-#https://www.r-bloggers.com/add-p-values-and-significance-levels-to-ggplots/
-
-```
-
 ```{r DMC1_t.tests, echo=FALSE, warning=FALSE}
 #2. t-tests for the DMC1 counts 
 #need to account for sample sizes when comparing t.tests (KAZ and G don't have equal across )
@@ -892,24 +852,42 @@ ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.D
 #Kaz Z are higher than Dom
 ```
 
-```{r DMC1_anova, echo=FALSE, warning=FALSE}
-#1. ANOVA, is there a difference in DMC1 counts across strains?
 
-#unorder strain
-DMC1.DF$strain <- factor(DMC1.DF$strain, levels = c("G","WSB","KAZ","PWD","MSM"), ordered = FALSE )
+```{r DMC1_MLH1.MAIN_TABLE, echo=FALSE, warning = FALSE}
 
-mod.L <- lm(total.count ~ strain, data = DMC1.DF[DMC1.DF$stage == "L",])
-mod.Z <- lm(total.count ~ strain, data = DMC1.DF[DMC1.DF$stage == "Z",])
+MLH1.DMC1.L_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.L, method = c("pearson"))#MLH1.DMC1.Z_cor
 
-l.anova.pval <- anova(mod.L)$`Pr(>F)`[1] #0.0002701 ***
-z.anova.pval <- anova(mod.Z)$`Pr(>F)`[1] #NS
+MLH1.DMC1.Z_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.Z, method = c("pearson"))#0.2793237
 
-#anova's aren't appropriate for 2 samples... re-do the anova
-#so that it's compareing more than just 2 categories -- or delete
+##RATIOS
+DMC1table.main$MLH1.L_ratio <- DMC1table.main$mean.MLH1/ DMC1table.main$mean.count.L 
+DMC1table.main$MLH1.Z_ratio <- DMC1table.main$mean.MLH1 / DMC1table.main$mean.count.Z
+  
+#colnames(DMC1table.main) <- c("category", "mean.MLH1", "", "", "")
+WSB_DMC1.Z_CO_ratio <-   ( DMC1table.main %>% filter(category == "WSB male") )$mean.count.L / (DMC1table.main %>% filter(category == "WSB male"))$mean.MLH1
+  
+G_DMC1.Z_CO_ratio <-   ( DMC1table.main %>% filter(category == "G male") )$mean.count.L / (DMC1table.main %>% filter(category == "G male"))$mean.MLH1
+
+MSM_DMC1.Z_CO_ratio <- ( DMC1table.main %>% filter(category == "MSM male") )$mean.count.L / (DMC1table.main %>% filter(category == "MSM male"))$mean.MLH1
+
+PWD_DMC1.Z_CO_ratio <-( DMC1table.main %>% filter(category == "PWD male") )$mean.count.L / (DMC1table.main %>% filter(category == "PWD male"))$mean.MLH1
+
+DMC1table.main$category <- factor(DMC1table.main$category, levels = c("WSB male","G male","KAZ male",               "PWD male","MSM male"), ordered = TRUE )
+
+
+
+DMC1.Lratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G male" | category == "WSB male" | category == "KAZ male" ) ) )$MLH1.L_ratio, 
+                (DMC1table.main %>% filter(  ( category == "PWD male" | category == "MSM male") ) )$MLH1.L_ratio        )
+                               
+
+DMC1.Zratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G male" | category == "WSB male" | category == "KAZ male" ) ) )$MLH1.Z_ratio, 
+                (DMC1table.main %>% filter(  ( category == "PWD male" | category == "MSM male") ) )$MLH1.Z_ratio        )
 
 ```
 
-```{r DMC1_MLH1.MAIN_TABLE, echo=FALSE, warning = FALSE}
+
+```{r DMC1.table, echo=FALSE}
+
 #make category averages from AP_mouse_table.HQ
 mean.MLH1.obs <- ddply(.data=AP_mouse_table.HQ,
                  .(category),
@@ -924,8 +902,6 @@ DMC1.target.strains <- subset(mean.MLH1.obs, category == "G male" |
                   category == "MSM male" |
                     category == "PWD male")
 #attach this mini DF to the DMC1 data
-
-
 DMC1.mean.obs.L$mean.count.L <- DMC1.mean.obs.L$mean.count
 DMC1.mean.obs.Z$mean.count.Z <- DMC1.mean.obs.Z$mean.count
 
@@ -934,49 +910,20 @@ DMC1table <- merge(DMC1.mean.obs.L, DMC1.mean.obs.Z, by="category")
 
 DMC1table.main <- merge(DMC1.target.strains, DMC1table, by="category")
 
-MLH1.DMC1.L_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.L, method = c("pearson"))#MLH1.DMC1.Z_cor
-
-MLH1.DMC1.Z_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.Z, method = c("pearson"))#0.2793237
-
-##RATIOS
-DMC1table.main$MLH1.L_ratio <- DMC1table.main$mean.MLH1/ DMC1table.main$mean.count.L 
-DMC1table.main$MLH1.Z_ratio <- DMC1table.main$mean.MLH1 / DMC1table.main$mean.count.Z
-  
-#colnames(DMC1table.main) <- c("category", "mean.MLH1", "", "", "")
-
-#DMC1.mean.table
-DMC1.mean.table.99 <- subset(DMC1table.main, select= -c(var.MLH1,  mean.count.x,  mean.count.y, stage.x, stage.y))
-
-colnames(DMC1.mean.table.99) <- c("category","mean.MLH1","ncells.L","mean.L",
-                  "ncells.Z", "mean.Z", "MLH1.L_ratio", "MLH1.Z_ratio")
-
-
-WSB_DMC1.Z_CO_ratio <-   ( DMC1table.main %>% filter(category == "WSB male") )$mean.count.L / (DMC1table.main %>% filter(category == "WSB male"))$mean.MLH1
-  
-G_DMC1.Z_CO_ratio <-   ( DMC1table.main %>% filter(category == "G male") )$mean.count.L / (DMC1table.main %>% filter(category == "G male"))$mean.MLH1
-
-MSM_DMC1.Z_CO_ratio <- ( DMC1table.main %>% filter(category == "MSM male") )$mean.count.L / (DMC1table.main %>% filter(category == "MSM male"))$mean.MLH1
-
-PWD_DMC1.Z_CO_ratio <-( DMC1table.main %>% filter(category == "PWD male") )$mean.count.L / (DMC1table.main %>% filter(category == "PWD male"))$mean.MLH1
-
-
-
-DMC1table.main$category <- factor(DMC1table.main$category, levels = c("WSB male","G male","KAZ male",               "PWD male","MSM male"), ordered = TRUE )
 
 DMC1table.main <- DMC1table.main[order(DMC1table.main$category),]
 
-#MAIN TABLE, headers need to be fixed, remove var.MLH1
-#try adding double decker colume names / lines for early Z and late Z
-#kable(head(DMC1table.main),  caption = "Table X. DMC1 foci counts per cell summary")
+#DMC1.mean.table
+DMC1table.main99 <- subset(DMC1table.main, select= -c(stage.x, var.MLH1, stage.y, mean.count.x, mean.count.y))
 
+DMC1table.main99 <-  DMC1table.main[, c("category","mean.MLH1","ncells.x","mean.count.L", "MLH1.L_ratio", "ncells.y","mean.count.Z", "MLH1.Z_ratio"),  drop=FALSE]
 
-DMC1.Lratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G male" | category == "WSB male" | category == "KAZ male" ) ) )$MLH1.L_ratio, 
-                (DMC1table.main %>% filter(  ( category == "PWD male" | category == "MSM male") ) )$MLH1.L_ratio        )
-                               
+colnames(DMC1table.main99) <- c("category", "mean MLH1",    "ncells",     "mean DMC1", "MLH1:DMC1 ratio", "ncells",     "mean DMC1", "MLH1:DMC1 ratio")
 
-DMC1.Zratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G male" | category == "WSB male" | category == "KAZ male" ) ) )$MLH1.Z_ratio, 
-                (DMC1table.main %>% filter(  ( category == "PWD male" | category == "MSM male") ) )$MLH1.Z_ratio        )
-
+kable(DMC1table.main99, row.names = F) %>%
+  kable_styling() %>%
+  add_header_above(c(" " = 2, "Early Zygotene" = 3, "Late Zygotene" = 3)) %>%
+  scroll_box(width = "800px", height = "200px")
 ```
 
 
@@ -2777,7 +2724,7 @@ summary(log.reg_1CO_pos_biv)
 ```
 
 
-```{r with.cow, echo=FALSE, warning=FALSE}
+```{r with.cow, echo=FALSE, warning=FALSE, message=FALSE}
 library(cowplot)
 
 top.triangle <- function() {
@@ -2802,10 +2749,32 @@ bottom.triangle <- function() {
 
 #plot_grid(top.triangle, bottom.triangle, ncol=1)
 
-plot_grid(top.triangle, bottom.triangle, align = "v", rel_widths = c(1.3, 1.3))
+#plot_grid(top.triangle, bottom.triangle, align = "v", rel_widths = c(1.3, 1.3))
 
 ```
 
+
+```{r another.triangle, echo=FALSE, fig.width = 5, fig.height=5}
+
+Curated_BivData <- Curated_BivData %>% filter(PER_Foci_2 < 1.01)
+
+
+with( (Curated_BivData %>% filter(strain == "G") ), { 
+  plot(  c( (Curated_BivData %>% filter(sex == "male") %>% filter(strain == "G") %>% filter(hand.foci.count == 2))$PER_Foci_2,
+              (Curated_BivData %>% filter(strain == "G") %>% filter(sex == "female") %>% filter(hand.foci.count == 2))$PER_Foci_1),
+                     
+                     c(   (Curated_BivData %>% filter(sex == "male") %>% filter(strain == "G") %>% filter(hand.foci.count == 2) )$PER_Foci_1, 
+                       
+                       (Curated_BivData %>% filter(strain == "G") %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_2), 
+          xlab = "Position1", ylab = "Position2", asp = 1, main="G IFD distributions"); 
+  axis(4, las = 1, pos=1); #right side
+  axis(side = 3, las = 1, pos=1); #
+  segments(0, 0, 1, 1); abline(v = 0:1, h = 0:1) })
+
+
+```
+
+reverse the axis 
 
 
 ```{r Q1.IFD.triangle, echo=FALSE}
