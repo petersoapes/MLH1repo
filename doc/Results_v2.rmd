@@ -709,11 +709,6 @@ The results are similar: sex is the strongest effect (p < **smallNumber** `r rou
 
 # DSB. Evolution of genome-wide recombination rate is associated with evolution of double strand breaks
 
-- update figure
-
-- make table, save in figure folder, print head here
-
-- remove cody blocks
 
 
 ```{r DMC1.setup, echo=FALSE}
@@ -729,7 +724,7 @@ DMC1.DF <- add_subsp(DMC1.DF)
 DMC1.DF <- DMC1.DF[DMC1.DF$stage != "P",]
 
 #make DMC1 table
-DMC1.mean.obs.L <- ddply(.data=DMC1.DF[DMC1.DF$stage == "L",],
+DMC1.mean.obs.L <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Early",],
                  .(category),
                  summarize, 
                  
@@ -738,7 +733,7 @@ DMC1.mean.obs.L <- ddply(.data=DMC1.DF[DMC1.DF$stage == "L",],
 )
 DMC1.mean.obs.L$stage <- "early Z"
 
-DMC1.mean.obs.Z <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Z",],
+DMC1.mean.obs.Z <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Late",],
                  .(category),
                  summarize, 
                  ncells = length(fileName),
@@ -747,8 +742,6 @@ DMC1.mean.obs.Z <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Z",],
 DMC1.mean.obs.Z$stage <- "late Z"
 
 DMC1.mean.table <- rbind(DMC1.mean.obs.L,DMC1.mean.obs.Z)
-
-
 
 DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
                           ifelse(grepl("G",DMC1.DF$strain), "Low",
@@ -759,9 +752,7 @@ DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
 ```
 
 
-
 ```{r MAIN.DMC1.plot, echo=FALSE, warning=FALSE}
-DMC1.DF$stage 
 
 #experimenting with ggboplot
 everyday <- ggboxplot(DMC1.DF[DMC1.DF$stage != "P",], x = "strain", y = "total.count",
@@ -776,16 +767,16 @@ DMC1.DF$strain<- factor(DMC1.DF$strain, levels =c("LEW",
 
 
 DMC1.boxplot <- ggplot(aes(x=strain, y=total.count, color=stage), data=DMC1.DF[DMC1.DF$stage != "P",])+
-  geom_boxplot(alpha=.5) +geom_jitter()+ggtitle("DMC1 averages in juvenile mice")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  geom_boxplot(alpha=.5) +geom_jitter()+ggtitle("DMC1 averages in juvenile mice\nZygotene spermatogcytes")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 DMC1.boxplot
 ```
 
+
 ```{r plot.stage.ttest, echo=FALSE, warning=FALSE}
 
 anno_df_stage = compare_means(total.count ~ stage, group.by = "rec_group", data = DMC1.DF[DMC1.DF$stage != "P",],method = "t.test") %>% mutate(y_pos = 300)
-#
 
 DMC1.bxlt_Z_to_L <- ggplot(DMC1.DF[DMC1.DF$stage != "P",], aes(x=stage, y=total.count)) + 
   geom_boxplot(position=position_dodge()) + 
@@ -802,21 +793,22 @@ DMC1.bxlt_Z_to_L <- ggplot(DMC1.DF[DMC1.DF$stage != "P",], aes(x=stage, y=total.
 
 #Musc.mouse.av <-  Mouse.Table_BivData_4MM %>%  filter(subsp == "Musc") 
 
-ttest.ZtoL <- t.test(DMC1.DF$total.count[(DMC1.DF$stage == "L")],
-               DMC1.DF$total.count[(DMC1.DF$stage == "Z")]  )
+ttest.ZtoL <- t.test(DMC1.DF$total.count[(DMC1.DF$stage == "Early")],
+               DMC1.DF$total.count[(DMC1.DF$stage == "Late")]  )
 
 
 DMC1.High.goup <-  DMC1.DF %>%  filter(rec_group == "High") 
 
-ttest.ZtoL.high <- t.test(DMC1.High.goup$total.count[(DMC1.High.goup$stage == "L")],
-               DMC1.High.goup$total.count[(DMC1.High.goup$stage == "Z")]  )
+ttest.ZtoL.high <- t.test(DMC1.High.goup$total.count[(DMC1.High.goup$stage == "Early")],
+               DMC1.High.goup$total.count[(DMC1.High.goup$stage == "Late")]  )
 
 
 DMC1.Low.goup <-  DMC1.DF %>%  filter(rec_group == "Low") 
 
-ttest.ZtoL.Low <- t.test(DMC1.Low.goup$total.count[(DMC1.Low.goup$stage == "L")],
-               DMC1.Low.goup$total.count[(DMC1.Low.goup$stage == "Z")]  )
+ttest.ZtoL.Low <- t.test(DMC1.Low.goup$total.count[(DMC1.Low.goup$stage == "Early")],
+               DMC1.Low.goup$total.count[(DMC1.Low.goup$stage == "Late")]  )
 ```
+
 
 ```{r DMC1_t.tests, echo=FALSE, warning=FALSE}
 #2. t-tests for the DMC1 counts 
@@ -825,44 +817,41 @@ ttest.ZtoL.Low <- t.test(DMC1.Low.goup$total.count[(DMC1.Low.goup$stage == "L")]
 
 
 #high vs low group (L)
-ttest.HighLow.L.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
-               DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
+ttest.HighLow.L.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Early") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "Early") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
 # p-value =  0.002145
 
 
 #high vs low group (Z)
-ttest.HighLow.Z.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
-               DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
+ttest.HighLow.Z.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Late") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "Late") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
 # p-value = 0.6628
 
 
 #dom vs musc (L) (2 subsp vs)
-ttest.subsp.L <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "L")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "L")] )
+ttest.subsp.L <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Early")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Early")] )
 # p-value = 0.003016
 
 #dom vs musc (Z)
-ttest.subsp.Z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Z")] )
+ttest.subsp.Z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Late")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Late")] )
 #p-value = 0.09588
 
 #KAZ vs Dom (Z) (only 1 L cell)
-ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], 
-      DMC1.DF$total.count[(DMC1.DF$strain == "KAZ") & (DMC1.DF$stage == "Z")] )
+ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Late")], 
+      DMC1.DF$total.count[(DMC1.DF$strain == "KAZ") & (DMC1.DF$stage == "Late")] )
 
 #p-value = 0.004148
 #Kaz Z are higher than Dom
 ```
 
 
-```{r DMC1_MLH1.MAIN_TABLE, echo=FALSE, warning = FALSE}
+```{r DMC1_more.calqs, echo=FALSE, warning = FALSE}
 
 MLH1.DMC1.L_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.L, method = c("pearson"))#MLH1.DMC1.Z_cor
 
 MLH1.DMC1.Z_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.Z, method = c("pearson"))#0.2793237
 
-##RATIOS
-DMC1table.main$MLH1.L_ratio <- DMC1table.main$mean.MLH1/ DMC1table.main$mean.count.L 
-DMC1table.main$MLH1.Z_ratio <- DMC1table.main$mean.MLH1 / DMC1table.main$mean.count.Z
-  
+ 
 #colnames(DMC1table.main) <- c("category", "mean.MLH1", "", "", "")
 WSB_DMC1.Z_CO_ratio <-   ( DMC1table.main %>% filter(category == "WSB male") )$mean.count.L / (DMC1table.main %>% filter(category == "WSB male"))$mean.MLH1
   
@@ -886,7 +875,10 @@ DMC1.Zratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G mal
 ```
 
 
-```{r DMC1.table, echo=FALSE}
+```{r DMC1.table, echo=FALSE, message=FALSE}
+##RATIOS
+DMC1table.main$MLH1.L_ratio <- DMC1table.main$mean.MLH1/ DMC1table.main$mean.count.L 
+DMC1table.main$MLH1.Z_ratio <- DMC1table.main$mean.MLH1 / DMC1table.main$mean.count.Z
 
 #make category averages from AP_mouse_table.HQ
 mean.MLH1.obs <- ddply(.data=AP_mouse_table.HQ,
@@ -901,30 +893,32 @@ DMC1.target.strains <- subset(mean.MLH1.obs, category == "G male" |
                      category == "KAZ male" |
                   category == "MSM male" |
                     category == "PWD male")
+
 #attach this mini DF to the DMC1 data
 DMC1.mean.obs.L$mean.count.L <- DMC1.mean.obs.L$mean.count
 DMC1.mean.obs.Z$mean.count.Z <- DMC1.mean.obs.Z$mean.count
 
-
 DMC1table <- merge(DMC1.mean.obs.L, DMC1.mean.obs.Z, by="category")
 
-DMC1table.main <- merge(DMC1.target.strains, DMC1table, by="category")
-
+DMC1table.main88 <- merge(DMC1.target.strains, DMC1table, by="category")
 
 DMC1table.main <- DMC1table.main[order(DMC1table.main$category),]
 
 #DMC1.mean.table
 DMC1table.main99 <- subset(DMC1table.main, select= -c(stage.x, var.MLH1, stage.y, mean.count.x, mean.count.y))
 
-DMC1table.main99 <-  DMC1table.main[, c("category","mean.MLH1","ncells.x","mean.count.L", "MLH1.L_ratio", "ncells.y","mean.count.Z", "MLH1.Z_ratio"),  drop=FALSE]
+DMC1table.main99 <-  DMC1table.main99[,c("category","mean.MLH1","ncells.x","mean.count.L", "MLH1.L_ratio", "ncells.y","mean.count.Z", "MLH1.Z_ratio"),  drop=FALSE]
 
 colnames(DMC1table.main99) <- c("category", "mean MLH1",    "ncells",     "mean DMC1", "MLH1:DMC1 ratio", "ncells",     "mean DMC1", "MLH1:DMC1 ratio")
 
-kable(DMC1table.main99, row.names = F) %>%
+kable(DMC1table.main99, row.names = F, caption = "DMC1 measures") %>%
   kable_styling() %>%
   add_header_above(c(" " = 2, "Early Zygotene" = 3, "Late Zygotene" = 3)) %>%
   scroll_box(width = "800px", height = "200px")
+
 ```
+
+
 
 
 In an attempt to localize the male-specific evolution of crossover number to steps of the meiotic pathway, we counted foci from a marker for double strand breaks (DSBs), DMC1, in prophase spermatocytes. DMC1 foci were scored from a total of `r sum( (DMC1.mean.table %>%  filter(stage == "L") )$ncells)` early zygotene-stage and `r sum( (DMC1.mean.table %>%  filter(stage == "Z") )$ncells)` late zygotene-stage spermatocytes from juvenile mice (12 to 18 days) from three low-recombination strains (musculus^KAZ^ , domesticus^WSB^ , and domesticus^G^) and two high-recombination strains (musculus^PWD^ and molossinus^MSM^).  
@@ -2724,7 +2718,7 @@ summary(log.reg_1CO_pos_biv)
 ```
 
 
-```{r with.cow, echo=FALSE, warning=FALSE, message=FALSE}
+```{r with.cow, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
 library(cowplot)
 
 top.triangle <- function() {
@@ -2734,9 +2728,7 @@ top.triangle <- function() {
   axis(side = 2, las = 1, pos=0)
   axis(side = 3, las = 1, pos=1)
   abline(coef = c(0,1))
-  
 }
-
 
 bottom.triangle <- function() {
   plot( PER_Foci_1 ~ PER_Foci_2, data = (Curated_BivData %>% filter(sex == "female") %>% filter(hand.foci.count == 2) %>% filter(subsp == "Dom") ), 
@@ -2746,15 +2738,10 @@ bottom.triangle <- function() {
   abline(coef = c(0,1))
 }
 
-
-#plot_grid(top.triangle, bottom.triangle, ncol=1)
-
-#plot_grid(top.triangle, bottom.triangle, align = "v", rel_widths = c(1.3, 1.3))
-
 ```
 
 
-```{r another.triangle, echo=FALSE, fig.width = 5, fig.height=5}
+```{r another.triangle, echo=FALSE, fig.width = 5, fig.height=5, eval=FALSE}
 
 Curated_BivData <- Curated_BivData %>% filter(PER_Foci_2 < 1.01)
 
@@ -2776,45 +2763,185 @@ with( (Curated_BivData %>% filter(strain == "G") ), {
 
 reverse the axis 
 
+```{r updated.triangl.plots, echo=FALSE, message=FALSE, warning=FALSE}
+my.data <- data.frame(my.x=c(.2, .4, .6, .1), my.y=c(.3, .5, .7, .9))
+x.dist <- .5
+my.data.2 <- transform(my.data, my.y=my.y + x.dist)
 
-```{r Q1.IFD.triangle, echo=FALSE}
-
-#make triangle for the IFD measures (try doing female top male bottom)
-#Curated_BivData[Curated_BivData$hand.foci.count == 2,]
-
-#remove grey background
-#add diagona
-
-#trying with base R
+#x_dist is a value for spacing the trianlges, remeber that the data values need
+#to be adjusted as well
+#the rest of the positions are slightly off
 
 
-
-plot( PER_Foci_2 ~ PER_Foci_1, data = (Curated_BivData %>% filter(sex == "female") %>% filter(hand.foci.count == 2) %>% filter(subsp == "Dom") ), 
-      axes = FALSE, ylab = 'Foci2', xlab = NA, main='Foci1',
-      xlim=c(0,1), ylim=c(0,1),  xaxt="n", yaxt="n" )
-
-axis(side = 2, las = 1, pos=0)
-axis(side = 3, las = 1, pos=1)
-abline(coef = c(0,1))
+#make a loop to enter/push the merge triangles into a empty list
 
 
-#bottom triangle, Female
-plot( PER_Foci_1 ~ PER_Foci_2, data = (Curated_BivData %>% filter(sex == "female") %>% filter(hand.foci.count == 2) %>% filter(subsp == "Dom") ), 
-      axes = FALSE, xlab = NA, ylab = NA, xlim=c(0,1), ylim=c(0,1),  xaxt="n", yaxt="n" )
-axis(side = 1, las = 1, pos=0)
-axis(4, las = 1, pos=1) #flip label to right side
-abline(coef = c(0,1))
+#Top is female
+top.triangle2 <- function() {
+  #top-y position is male Pos2
+  plot(  (Curated_BivData %>% filter(strain == "KAZ") %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_2 ~ 
+    #top-x position is female Pos1     
+    (Curated_BivData %>% filter(strain == "KAZ") %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_1, 
+       
+       data= (Curated_BivData %>% filter(sex == "female") %>% filter(strain == "KAZ") %>% filter(hand.foci.count == 2) ), 
+       col =  "coral4",
+       axes=FALSE, ylab='', xlab="", 
+       main='', xlim=c(0, 1), ylim=c(0, 1), xaxt="n", yaxt="n", asp=1)
+  mtext("KAZ IFD Distributions", 3, 5, font=2, cex=1.3, adj=.5)
+  
+  mtext("Female Position.2", 2, .75)
+  mtext("Female Position.1", 3, 2)
+  axis(side=2, las=1, pos=0)
+  axis(side=3, las=1, pos=1)
+  lines(0:1, 0:1)
+}
 
-#use cowplot or another way to paste these together
+#bottom is male
+bottom.triangle2 <- function() {
+    #bottom-y position is male Pos1
+  points(  (Curated_BivData %>% filter(strain == "KAZ") %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_1 ~ 
+    #bottom-x position is male Pos2     
+    (Curated_BivData %>% filter(strain == "KAZ") %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_2,
+
+         data=(Curated_BivData %>% filter(sex == "male") %>% filter(strain == "KAZ") %>% filter(hand.foci.count == 2) ), 
+         
+    col =  "coral4",
+         xpd=TRUE)
+  mtext("Male Position.2", 1, 1.5, at=mean(par()$usr[1:2])) #  + x.dist
+  mtext("Male Position.1", 4, 3)#, padj=par()$usr[1]
+  x.at <- axisTicks(par()$usr[1:2], 0) #+ x.dist
+  axis(side=1, las=1, pos=0, at=x.at, 
+       labels=F, xpd=TRUE)
+  mtext(seq(0, 1, .2), 1, 0, at=x.at)
+  axis(4, las=1, pos=1) # + x.dist
+  lines(0:1, 0:1, xpd=TRUE)# + x.dist
+
+  }
+
+
+png("~./MLH1repo/doc/figureFiles/KAZ.triangle.png", width=650, height=500)
+op <- par(mar=c(3, 4, 8, 12) + 0.1, oma=c(2, 0, 0, 2))
+top.triangle2()
+bottom.triangle2()
+par(op)
+dev.off()
+
 
 ```
 
 
-```{r Q1.show.IFD_female.male.comparison, echo=FALSE}
+```{r auto.loop.ifd, echo=FALSE}
 
-#compare female IFD patterns which have telomeric bias (more similar to males)
+#don't think I need this loop
+for(i in 1:length(auto_curate_DF$strain )){
+  auto_curate_DF$quant_status[i] <- ifelse( is.element(auto_curate_DF$strain[i], exclude_mice_list), "exclude", NA)
+  }
+
+#big loop for automating the IFD triangles
+only.male.strains <- c("F1", "PERC", "CZECH", "AST", "TOM", "HMI", "SPRET", "CAROLI", "other")
+auto_curate_DF <- Curated_BivData[ ! Curated_BivData$strain %in% only.male.strains, ]
+
+df_strain_list <- split(auto_curate_DF, (auto_curate_DF$strain))
+df_strain_list <- df_strain_list[ -c(4,10,11,12,13,14,15,16,17,18,19) ]
+#make a new empty df. create a ddply thing with mean calculations (this is like a list for matching up later)
+
+for(i in 1:(length(df_strain_list))){
+  current.strain <- as.character(df_strain_list[[i]]$strain[1])
+  #declare file
+  png(paste0("~./MLH1repo/doc/figureFiles/test.triangle_", current.strain, ".png"),  width=650, height=500)
+
+  #Top is female
+top.triangle2 <- function() {
+  #top-y position is male Pos2
+  plot(  (Curated_BivData %>% filter(strain == current.strain  ) %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_2 ~ 
+    #top-x position is female Pos1     
+    (Curated_BivData %>% filter(strain == current.strain   ) %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_1, 
+       
+       data= (Curated_BivData %>% filter(sex == "female") %>% filter(strain == current.strain) %>% filter(hand.foci.count == 2) ), 
+       col =  colors_of_strains[current.strain],
+       axes=FALSE, ylab='', xlab="", 
+       main= "IFD Distribution",  xlim=c(0, 1), ylim=c(0, 1), xaxt="n", yaxt="n", asp=1)
+  
+  mtext(current.strain, 3, 5, font=2, cex=1.3, adj=.5)
+  
+  mtext("Female Position.2", 2, .75)
+  mtext("Female Position.1", 3, 2)
+  axis(side=2, las=1, pos=0)
+  axis(side=3, las=1, pos=1)
+  lines(0:1, 0:1)
+  }
+  
+bottom.triangle2 <- function() {
+    #bottom-y position is male Pos1
+  points(  (Curated_BivData %>% filter(strain == current.strain) %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_1 ~ 
+    #bottom-x position is male Pos2     
+    (Curated_BivData %>% filter(strain == current.strain) %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_2,
+
+         data=(Curated_BivData %>% filter(sex == "male") %>% filter(strain == current.strain) %>% filter(hand.foci.count == 2) ), 
+         
+    col =  colors_of_strains[current.strain], #this might not be working right
+         xpd=TRUE)
+  mtext("Male Position.2", 1, 1.5, at=mean(par()$usr[1:2])) #  + x.dist
+  mtext("Male Position.1", 4, 3)#, padj=par()$usr[1]
+  x.at <- axisTicks(par()$usr[1:2], 0) #+ x.dist
+  axis(side=1, las=1, pos=0, at=x.at, 
+       labels=F, xpd=TRUE)
+  mtext(seq(0, 1, .2), 1, 0, at=x.at)
+  axis(4, las=1, pos=1) # + x.dist
+  lines(0:1, 0:1, xpd=TRUE)# + x.dist
+
+  }
+  
+  op <- par(mar=c(3, 4, 8, 12) + 0.1, oma=c(2, 0, 0, 2))
+  top.triangle2()
+  bottom.triangle2() #not working
+  par(op)
+  dev.off()
+  }
+
+```
 
 
+
+
+```{r Q1.IFD_load.triangles, echo=FALSE, message=FALSE, warning=FALSE}
+
+library(png)
+
+G.triangle.png <- readPNG("~./MLH1repo/doc/figureFiles/G.triangle.png")
+WSB.triangle.png <- readPNG("~./MLH1repo/doc/figureFiles/WSB.triangle.png")
+LEW.triangle.png <- readPNG("~./MLH1repo/doc/figureFiles/LEW.triangle.png")
+
+
+#make empty DF for ggplot object
+empty.DF <- data.frame(col1 = c(1,3), col2 = c(1,3) )
+
+#make an empty ggplot thing, then background ontop
+WSB.triangle.ggplot <- ggplot(empty.DF, aes(x = col1, y = col2)) +
+  background_image(WSB.triangle.png) + theme(axis.title.x=element_blank(),
+ axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
+                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
+
+G.triangle.ggplot <- ggplot(empty.DF, aes(x = col1, y = col2)) +
+  background_image(G.triangle.png) + theme(axis.title.x=element_blank(),
+ axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
+                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
+
+LEW.triangle.ggplot <- ggplot(empty.DF, aes(x = col1, y = col2)) +
+  background_image(LEW.triangle.png) + theme(axis.title.x=element_blank(),
+ axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
+                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
+
+
+library("cowplot")
+fig1  <- ggdraw() +
+  draw_plot(WSB.triangle.ggplot, x=0, y=0, width=.45, height=.45) +
+  draw_plot(G.triangle.ggplot,   x=0, y=.4, width=.45, height=.45) +
+  draw_plot(LEW.triangle.ggplot, x=0, y=.6, width=.45, height=.45)
+
+fig1
+
+#ggsave("~./WildMiceMadison/results/Figure1.png")
 ```
 
 
@@ -2837,7 +2964,7 @@ P1.by.P2_plot <- ggplot(Curated_BivData.22, aes(y = rev(PER_Foci_2), x= PER_Foci
 #each point is a 2CO, with the F1 and F2 position 
 #based on plot from Dourad et al (Mercier)
 
-P1.by.P2_plot_raw.WSB <- ggplot(Curated_BivData.22 %>% filter(strain == "WSB"),
+P1.by.P2_plot_raw.WSB <- ggplot(Curated_BivData.22 %>% filter(strain == "LEW"),
     aes(y = Foci2, x= Foci1, color=strain))+
   geom_jitter(alpha=.5)+
   ggtitle("Raw IFD WSB")+
@@ -2887,6 +3014,7 @@ first.IFD.plot_PER <- ggplot(Curated_BivData.22 %>% filter(chromosomeLength < 15
 
 #+theme(legend.position="none")
 ```
+
 
 ```{r Q1.IFD_IFD.old.plots, echo=FALSE, eval=FALSE, warning=FALSE, message=FALSE}
 #long SC Long_biv_mouse.avs_4MM
