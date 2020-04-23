@@ -1597,22 +1597,22 @@ DMC1.DF <- add_subsp(DMC1.DF)
 DMC1.DF <- DMC1.DF[DMC1.DF$stage != "P",]
 
 #make DMC1 table
-DMC1.mean.obs.L <- ddply(.data=DMC1.DF[DMC1.DF$stage == "L",],
+DMC1.mean.obs.L <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Early",],
                  .(category),
                  summarize, 
                  
                  ncells = length(fileName),
                  mean.count = mean( total.count)
 )
-DMC1.mean.obs.L$stage <- "L"
+DMC1.mean.obs.L$stage <- "Early"
 
-DMC1.mean.obs.Z <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Z",],
+DMC1.mean.obs.Z <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Late",],
                  .(category),
                  summarize, 
                  ncells = length(fileName),
                  mean.count = mean( total.count)
 )
-DMC1.mean.obs.Z$stage <- "Z"
+DMC1.mean.obs.Z$stage <- "Late"
 
 DMC1.mean.table <- rbind(DMC1.mean.obs.L,DMC1.mean.obs.Z)
 
@@ -1652,28 +1652,28 @@ DMC1.target.strains <- subset(mean.MLH1.obs, category == "G male" |
 
 
 #high vs low group (L)
-ttest.HighLow.L.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
-               DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
+ttest.HighLow.L.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Early") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "Early") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
 # p-value =  0.002145
 
 
 #high vs low group (Z)
-ttest.HighLow.Z.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
-               DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
+ttest.HighLow.Z.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Late") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "Late") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
 # p-value = 0.6628
 
 
 #dom vs musc (L) (2 subsp vs)
-ttest.subsp.L <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "L")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "L")] )
+ttest.subsp.L <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Early")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Early")] )
 # p-value = 0.003016
 
 #dom vs musc (Z)
-ttest.subsp.Z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Z")] )
+ttest.subsp.Z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Late")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Late")] )
 #p-value = 0.09588
 
 #KAZ vs Dom (Z) (only 1 L cell)
-ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], 
-      DMC1.DF$total.count[(DMC1.DF$strain == "KAZ") & (DMC1.DF$stage == "Z")] )
+ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Late")], 
+      DMC1.DF$total.count[(DMC1.DF$strain == "KAZ") & (DMC1.DF$stage == "Late")] )
 
 #p-value = 0.004148
 #Kaz Z are higher than Dom
@@ -1736,6 +1736,150 @@ DMC1.Zratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G mal
                 (DMC1table.main %>% filter(  ( category == "PWD male" | category == "MSM male") ) )$MLH1.Z_ratio        )
 
 ```
+
+
+-----
+
+```{r DMC1.setup, echo=FALSE}
+#load DMC1 csv
+#DMC1.DF <- read.csv("~./DMC1/newJuviQuant.csv", header = TRUE)
+DMC1.DF <- read.csv("~./MLH1repo/data/DMC1newJuviQuant.csv", header = TRUE)
+
+
+DMC1.DF$fileName <- DMC1.DF$Original.Name
+DMC1.DF <- add_mouse(DMC1.DF)
+DMC1.DF <- add_strain(DMC1.DF)
+DMC1.DF <- add_category(DMC1.DF)
+DMC1.DF <- add_subsp(DMC1.DF)
+DMC1.DF <- DMC1.DF[DMC1.DF$stage != "P",]
+
+#make DMC1 table
+DMC1.mean.obs.L <- ddply(.data=DMC1.DF[DMC1.DF$stage == "L",],
+                 .(category),
+                 summarize, 
+                 
+                 ncells = length(fileName),
+                 mean.count = mean( total.count)
+)
+DMC1.mean.obs.L$stage <- "L"
+
+DMC1.mean.obs.Z <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Z",],
+                 .(category),
+                 summarize, 
+                 ncells = length(fileName),
+                 mean.count = mean( total.count)
+)
+DMC1.mean.obs.Z$stage <- "Z"
+
+DMC1.mean.table <- rbind(DMC1.mean.obs.L,DMC1.mean.obs.Z)
+
+#write.table(DMC1.mean.table, "~./MLH1repo/DMC1.mean.table.csv", sep=",",
+#            row.names = FALSE)
+
+DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
+                          ifelse(grepl("G",DMC1.DF$strain), "Low",
+                                 
+              ifelse(grepl("KAZ", DMC1.DF$strain), "Low",
+            ifelse(grepl("PWD", DMC1.DF$strain), "High",
+               ifelse(grepl("MSM", DMC1.DF$strain), "High","")))))
+```
+
+```{r MAIN.DMC1.plot, echo=FALSE, warning=FALSE}
+#think of better color scheme
+#make the jitter col thinner or make the stacked dots.
+#remember that box-plots add outlier dots.
+#change y labels
+
+#experimenting with ggboplot
+everyday <- ggboxplot(DMC1.DF[DMC1.DF$stage != "P",], x = "strain", y = "total.count",
+          color = "stage", palette = "jco",
+          add = "jitter", short.panel.labs = FALSE)
+  #library gpubr has functions to add in sig/test bars.
+
+#change order
+
+DMC1.DF$strain<- factor(DMC1.DF$strain, levels =c("LEW",
+                      "WSB","G", "KAZ", "SKIVE","PWD","MSM"), order=T )
+
+
+DMC1.boxplot <- ggplot(aes(x=strain, y=total.count, color=stage), data=DMC1.DF[DMC1.DF$stage != "P",])+
+  geom_boxplot(alpha=.5) +geom_jitter()+ggtitle("DMC1 averages in juvenile mice")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+DMC1.boxplot
+```
+
+```{r plot.stage.ttest, echo=FALSE, warning=FALSE}
+
+anno_df_stage = compare_means(total.count ~ stage, group.by = "rec_group", data = DMC1.DF[DMC1.DF$stage != "P",],method = "t.test") %>% mutate(y_pos = 300)
+#
+
+DMC1.bxlt_Z_to_L <- ggplot(DMC1.DF[DMC1.DF$stage != "P",], aes(x=stage, y=total.count)) + 
+  geom_boxplot(position=position_dodge()) + 
+  geom_point(aes(color=rec_group), position=position_jitterdodge()) + 
+  
+  #facet_wrap(~stage, nrow=1) + 
+  
+  ggsignif::geom_signif(
+    data=anno_df_stage, 
+    aes(xmin=group1, xmax=group2, annotations=p.adj, y_position=y_pos), 
+    manual=TRUE
+  )+ggtitle("Comparison of DMC1 means across high and low recombing groups")+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+#Musc.mouse.av <-  Mouse.Table_BivData_4MM %>%  filter(subsp == "Musc") 
+
+ttest.ZtoL <- t.test(DMC1.DF$total.count[(DMC1.DF$stage == "L")],
+               DMC1.DF$total.count[(DMC1.DF$stage == "Z")]  )
+
+
+DMC1.High.goup <-  DMC1.DF %>%  filter(rec_group == "High") 
+
+ttest.ZtoL.high <- t.test(DMC1.High.goup$total.count[(DMC1.High.goup$stage == "L")],
+               DMC1.High.goup$total.count[(DMC1.High.goup$stage == "Z")]  )
+
+
+DMC1.Low.goup <-  DMC1.DF %>%  filter(rec_group == "Low") 
+
+ttest.ZtoL.Low <- t.test(DMC1.Low.goup$total.count[(DMC1.Low.goup$stage == "L")],
+               DMC1.Low.goup$total.count[(DMC1.Low.goup$stage == "Z")]  )
+```
+
+```{r DMC1_t.tests, echo=FALSE, warning=FALSE}
+#2. t-tests for the DMC1 counts 
+#need to account for sample sizes when comparing t.tests (KAZ and G don't have equal across )
+#best case scnario -- more microscoping to get ~20 cells for each stage by strain combo
+
+
+#high vs low group (L)
+ttest.HighLow.L.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
+# p-value =  0.002145
+
+
+#high vs low group (Z)
+ttest.HighLow.Z.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
+# p-value = 0.6628
+
+
+#dom vs musc (L) (2 subsp vs)
+ttest.subsp.L <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "L")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "L")] )
+# p-value = 0.003016
+
+#dom vs musc (Z)
+ttest.subsp.Z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Z")] )
+#p-value = 0.09588
+
+#KAZ vs Dom (Z) (only 1 L cell)
+ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], 
+      DMC1.DF$total.count[(DMC1.DF$strain == "KAZ") & (DMC1.DF$stage == "Z")] )
+
+#p-value = 0.004148
+#Kaz Z are higher than Dom
+```
+
+
 
 
 #Q2 section
