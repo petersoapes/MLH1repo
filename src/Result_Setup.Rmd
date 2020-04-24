@@ -1364,7 +1364,7 @@ summ.MLH1.M2.glm.strain.fixed.full <- summary(MLH1.M2.glm.strain.fixed.full)
 
 remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC")
 
-MLH1.M3.strain.fixed <- lm(mean_co ~ sex * strain, data=DF.HetC.MixedModel.HQ[  ! DF.HetC.MixedModel.HQ$strain %in% remove_strains,])
+MLH1.M3.strain.fixed <- glm(mean_co ~ sex * strain, data=DF.HetC.MixedModel.HQ[  ! DF.HetC.MixedModel.HQ$strain %in% remove_strains,])
 
 summ.MLH1.M3.strain.fixed <- summary(MLH1.M3.strain.fixed)
 
@@ -1486,28 +1486,28 @@ standardize the lm's and glms!
 #not including this model for now / brivity
 #$$mouse CO metric  ~=~ subsp * sex * strain + \varepsilon$$
 
-MLH1var_M2 <- lm( var ~ subsp * sex * strain,  data=DF.HetC.MixedModel.HQ )
+MLH1var_M2 <- glm( var ~ subsp * sex * strain,  data=DF.HetC.MixedModel.HQ )
 MLH1var_M2_sum <- summary(MLH1var_M2)
 
 #summary(MLH1var_M2)
 #anova(MLH1var_M2)  
 #as.data.frame( round(summary(MLH1var_M2)$coefficients, 6)) #table of p values for coefficients.
 
-MLH1cv_M2 <- lm(cV ~ subsp*sex*strain, data=DF.HetC.MixedModel.HQ)
+MLH1cv_M2 <- glm(cV ~ subsp*sex*strain, data=DF.HetC.MixedModel.HQ)
 
 #summary(MLH1cv_M3)
 #anova(MLH1cv_M2)
 #as.data.frame( round(summary(MLH1cv_M2)$coefficients, 6))
 
 #Q12 var
-MLH1var_M2_Q12 <- lm( var ~ subsp*sex*strain,  data=Q12_mouse_table_w.Ages )
+MLH1var_M2_Q12 <- glm( var ~ subsp*sex*strain,  data=Q12_mouse_table_w.Ages )
 
 #summary(MLH1var_M3_Q12)
 #anova(MLH1var_M2_Q12)  
 #as.data.frame( round(summary(MLH1var_M2_Q12)$coefficients, 6))
 
 #Q12 cv
-MLH1cv_M2_Q12 <- lm( cV ~ subsp*sex*strain, data=Q12_mouse_table_w.Ages )
+MLH1cv_M2_Q12 <- glm( cV ~ subsp*sex*strain, data=Q12_mouse_table_w.Ages )
 
 #summary(MLH1cv_M2_Q12)
 #anova(MLH1cv_M2_Q12)#sex large F
@@ -1535,15 +1535,14 @@ MLH1cv_M4_Q12 <- glm( cV ~ sex*strain, data=Q12_mouse_table_w.Ages )
 #round(summary(MLH1cv_M4_Q12)$coefficients[,c(1,4)], 6)
 ```
 
-```{r MLH1.var.M4}
-
+```{r MLH1.var.M4, echo=FALSE}
 #male
 glmMLH1Var_M4.male <- glm( var ~ subsp * strain,  data= (DF.HetC.MixedModel.HQ %>% filter(sex == "male") ) )
 
 
 #female
 glmMLH1Var_M4.female <- glm( var ~ subsp * strain,  data= (DF.HetC.MixedModel.HQ %>% filter(sex == "female") ) )
-
+sum.glmMLH1Var_M4.female <- summary(glmMLH1Var_M4.female)
 
 glmMLH1Var_M4.femaleQ12 <- glm( var ~ subsp * strain,  data= (Q12_mouse_table_w.Ages %>% filter(sex == "female") ) )
 

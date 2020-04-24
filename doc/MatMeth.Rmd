@@ -2,18 +2,21 @@
 title: ''
 date: '`r Sys.Date()`'
 output:
+  word_document:
+    toc: yes
+    toc_depth: '5'
+  pdf_document:
+    toc: yes
+    toc_depth: '5'
   html_document:
     toc: yes
     toc_depth: '5'
     toc_float: yes
-  pdf_document:
-    toc: yes
-    toc_depth: '5'
-  word_document:
-    toc: yes
-    toc_depth: '5'
 bibliography: refs_Main_Report.bib
 ---
+
+
+
 
 #Material Methods Draft v1
 
@@ -88,11 +91,10 @@ Following a 30 minute blocking wash in ABD, each slide was incubated with 60ul o
 
 Images were capture using a Zeiss Axioplan 2 microscope with AxioLab camera and Axio Vision software (Zeiss, Cambridge, UK). Preprocessing, including cropping, noise reduction, and histogram adjustments, was performed using Photoshop (v13.0). Image file names were anonymized before manual scoring of MLH1 or DMC1 foci using photoshop.
 
-### Analysis
+### Statistical Analysis
 
 We tested for **effects** on mean MLH1 counts per cell; across mulitple mouse rooms, ages of mature males and differnces between embryos and neonates. No effects were found (Supplemental section).
 
-### DMC1
 
 ```{r DMC1.section.outline, echo=FALSE, include=FALSE}
 #cell certeria, number, t.test
@@ -105,31 +107,6 @@ SC morphology and CREST/centromere number was used to stage spermatocytes **Cert
 early zygotene defined as seperate centromere pairing -- mostly complete axis signal. late zygotene judged as -- low degree of centromere pairing -- and more homologous pairing (but not fully synapsis). Differences in DMC1 counts per cell were tested by ttests.
 <numbers of cell?>
 
-### MLH1 (Analytical Framework)
-
-**M1s code** 
-
-MLH1var_M1 <- lmer( var ~ subsp * sex +(1|strain), data=DF.HetC.MixedModel.HQ )
-MLH1var_M1.reduce.sex <- lmer( var ~ subsp  +(1|strain), data=DF.HetC.MixedModel.HQ )
-MLH1var_M1.reduce.subp <- lmer( var ~ sex  +(1|strain), data=DF.HetC.MixedModel.HQ )
-
-summary(MLH1var_M1)
-LmerMLH1_VAR_int <- drop1(MLH1var_M1, test="Chisq")$`Pr(Chi)`[2]
-LmerMLH1_VAR_sex <- anova(MLH1var_M1, MLH1var_M1.reduce.sex)$`Pr(>Chisq)`[2]
-LmerMLH1_VAR_subsp <- anova(MLH1var_M1, MLH1var_M1.reduce.subp)$`Pr(>Chisq)`[2]
-LmerMLH1_VAR_strain <- exactRLRT(MLH1var_M1)$p.value
-
-LmerMLH1_VAR_results <- data.frame(sub.sp = LmerMLH1_VAR_subsp,
-sex.results =  LmerMLH1_VAR_sex, interaction.pval = LmerMLH1_VAR_int,  rand.pval = LmerMLH1_VAR_strain)
-
-
-tested coefficients from the mixed models (using the lmer() function) with chisquare test between full and reduced models for mixed. the random effects were tested with the exactRLRT()
-
-
-M2 to M4 are glm -- use lm()
-
-MLH1var_M2 <- lm( var ~ subsp * sex * strain,  data=DF.HetC.MixedModel.HQ )
-MLH1var_M2_sum <- summary(MLH1var_M2)
 
 ```{r MLH1.analysis, echo=FALSE}
 
@@ -144,62 +121,37 @@ MLH1var_M2_sum <- summary(MLH1var_M2)
 ```
 
 
-Terminology Note, leptonema, zygonema, and pachynema diplonema diakinesis, are the stage names.
--ene endings refer to the cells/units within the cell stage? (I think)
+<Terminology Note, leptonema, zygonema, and pachynema diplonema diakinesis, are the stage names.   -ene endings refer to the cells/units within the cell stage? (I think)>
+
+**certeria**  MLH1 foci were quantified from cells with intact and complete karyotypes (19 acrocentric bivalents and XY for spermatocytes or 20 acrocentric bivalents for oocytes) and distinct MLH1 foci. A quality score, between 1 to 5, was assigned to each cell based on staining quality and general spread of bivalents. With scores of 1 and 2 having the highest quality. Cells and coded as a score of 5 were excluded from the final analysis. The distributions of MLH1 counts per cell was assessed for normality (supplemental figure). MLH1 foci located on the XY in spermatocytes were excluded from this study.
 
 
-**certeria**  MLH1 foci were quantified from cells with intact and compelete karyotypes (19 acrocentric bivalents and XY for spermatocytes or 20 acrocentric bivalents for oocytes) and distinct MLH1 foci. A quality score, between 1 to 5, was asigned to each cell based on staining quality and general spread of bivalents. <cell with small defects were included -- and coded as a score of 5 - but these cell weren't included in the final analysis.>  The distributions of MLH1 counts per cell was assessed for normality (supplemental figure). 
-
-**the XY foci is not counted / analyzed in this study**
-
--Background for setting up/organizing models -- (heiarchal nature of multiple strains within subspecies -- ) - hierarchical nature of categories for inviual mouse averages ()
-
--(primary focus is mean MLH1 count per cell - at the mouse observation level - apply to more meiocyte traits)
-
-**partioning variation in recombination rate**
-
--Our goal -- design an utilize a mixed model for our analytical framework - which leverages / accounts for the hierarchical/nested nature of categories across all the individual mice (e.g. sex, strain subspecies).
-
-<The mean, variance and coefficient of variance for MLH1 counts per cell were calculated for each mouse (in R).>
-
-The use of wild derived inbred strains enabled us to design an utilize a mixed model for our analytical framework. We built our model to predict the strain average MLH1 count per cell. 
-
-**X package used to test the fixed effects, Z package used to test the random effects.**
-
-The main effects and their interaction of subspecies and sex were coded as fixed. 
-
-strain (or genetic background) was coded as a **random** effect to reflect a random sample of natural genetic variation from each subspecies.
-
-In addition to mouse mean of MLH1 count per cell
-**to expand the analysis of meiotic features** We applied the following models to several dependant variables (mouse averages) <consider a figure/diagram>
-
- the mouse average of variance in crossover count per cell, 
- 
- mouse mean total SC per cell, mouse mean single SC length, mouse mean IFD^norm^ and IFD^raw^, and position of crossover for single crossover bivalents. 
+**M1 Mixed Model** $$mouse \ av.\ dependant\ variable\ ~=~ subsp * sex + rand(strain) + \varepsilon $$
 
 
+**M2 Linear Model** $$mouse \ av.\ dependant\ variable\ ~=~ subsp * sex * strain + \varepsilon$$
 
 
-**M1. Mixed Model** $$mouse \ av.\ dependant\ variable\ ~=~ subsp * sex + rand(strain) + \varepsilon $$
-
-**M2. Linear Model** $$mouse \ av.\ dependant\ variable\ ~=~ subsp * sex * strain + \varepsilon$$
-
-**M3. Linear Model** $$mouse \ av.\ dependant\ variable\ ~=~ sex * strain + \varepsilon$$
-
-**M4. Linear Model** $$sex\ specific\ mouse \ av.\ dependant\ variable\ ~=~ subsp * strain + \varepsilon$$
-
-**M4.2** removed the subspecies coefficient for 
-
-This model allows us to estimate and test the fixed effects (sex and subsp), and variation in mean MLH1 counts due to strain effect. We use the subspecies term as a way to quantify between group variation (or divergence) and the random strain effect to quantify within group variation (or polymorphism). (in a sex specific manner). From the mixed model the estimates of heterochiasmy (sexual dimorphism) are a combination of subspecies and strain specific sex effects.
-
-We chose to use a **mixed model framework** to interpret the patterns of variation, built using the lmer4 package (cite) in R (v3.5.2)[@Rstudio].
-
-We used x package for testing significance of fixed effects and V package for testing significance of (strain) random variables (strain).
+**M3 Linear Model** $$mouse \ av.\ dependant\ variable\ ~=~ sex * strain + \varepsilon$$
 
 
-### Single bivalent charaecterization
+**M4 Linear Model** $$sex\ specific\ mouse \ av.\ dependant\ variable\ ~=~ subsp * strain + \varepsilon$$
 
-**combine any X and XY issue with reduced dataset** An additional challenge of the MLH1 framework is that the identities of individual autosomes and the XX in females cannot be easily obtained (the male XY is distinct).
+
+**M4.2 Linear Model** $$sex\ specific\ mouse \ av.\ dependant\ variable\ ~=~  strain + \varepsilon$$
+
+
+Straight forward comparisons of groups (strain, sex) were done through t.tests().
+
+We built the full mixed model (**M1**) to interpret the patterns of variation using the lmer() from the lmer4 package (cite) in R (v3.5.2)[@Rstudio]. Strain was coded as a random effect and tested using exactRLRT() to reflect a random sample of natural genetic variation from each subspecies. The main effects, subspecies, strain, and interaction were coded as fixed and tested by a chi-square test comparing the full and reduced models using drop1() and anova().
+
+This model allows us to estimate and test the fixed effects (sex and subsp), and variation in mean MLH1 counts due to strain effect. We use the subspecies term as a way to quantify between group variation (or divergence) and the random strain effect to quantify within group variation (or polymorphism) in a sex specific manner. The remaining general linear models, (**M2-M3**), were used to follow up on results from the full mixed model. The general linear models, **M4** were used to analyze sex specific data sets.
+
+Our goal was to design an analytical framework which accounts for the nested nature across categories across all the individual mice (e.g. sex, strain subspecies) and can be applied to multiple (meiotic traits) dependent variables. In addition to the MLH1 count variables for individual mice, mean MLH1 count per cell, variance and coefficient of variance for MLH1 count per cell, we analyzed SC based features: mouse average of total SC per cell, mouse average of single SC length, mouse mean IFD^norm^ and IFD^raw^ for double crossover chromosomes, and the average position of crossover for single crossover bivalents. 
+
+These traits were choosen because they are markers of phenomena in the recombinaiton pathway and provide more detailed information about the recombination landscape. In order to examine crossover interference, inter-focal distance (IFD) was measured from the single bivalents containing two crossovers. Normalized measures were calculated by the position divided by the length of the SC for that single bivalent.
+
+
 
 ```{r single.biv.chr, echo=FALSE, include=FALSE}
 
@@ -218,48 +170,20 @@ We used x package for testing significance of fixed effects and V package for te
 # IFD / interference
 ```
 
+To characterize the SC lengths across bivalents, two image analysis algorithms were used to quantify SC area for individual cells [@wang_2019_sc] and for individual bivalents [@peterson2019]. Both apply a 'skeletonizing' transformation to the synapsed chromosomes which produces a single pixel wide 'trace' of the original chromosome shape. Hand measures of SC/pactyene chromosomes were performed by using ImageJ/Fiji (v1.52) [@fiji].
 
-To charaecterize the SC length of individual chromosomes which is a marker of chromatin compaction <from MLH1 stained cells>, two image analysis algorithms were used to specifically (measure indiviual cells) [@wang_2019_sc] and indiviaul chromosomes [@peterson2019]. Both apply a 'skeletonizing' transformation to the synapsed chromosomes which transforms the chromosome space into a single pixel wide 'trace' of the originial chromosom shape. Hand measures of SC/pactyene chromosomes were performed by using ImageJ/Fiji (v1.52) [@fiji].
+The **total SC** per cell was quantified from the pachtyene cell images. To remove erroneous SC isolation, outliers were visually assessed at the mouse level and removed from the data set. Mouse means were calculated from cell-wide total SC lengths in `r length(  (MLH1.merge.Skel %>% filter(species == "M.musculus") %>% filter(subsp != "Cast")  )$Random.Name)` out of `r length(  (MLH1_data %>% filter(species == "M.musculus") %>% filter(subsp != "Cast")  )$Random.Name)` cells with MLH1 counts (Figure X).
 
-The **total SC** per cell (all bivalents) was quantified across single cell images. Mouse means were calculated from cell-wide total SC lengths in 2,984 -- `r length(  (MLH1.merge.Skel %>% filter(species == "M.musculus") %>% filter(subsp != "Cast")  )$Random.Name)` out of 3,680 -- `r length(  (MLH1_data %>% filter(species == "M.musculus") %>% filter(subsp != "Cast")  )$Random.Name)` cells with MLH1 counts (Figure X). the mouse average total sc was applied to the model framework.  <how else was this analyzed?!> 
+The **DNA CrossOver** algorithm isolates single straightened bivalents/chromosomes shapes from an image, and returns SC length, and location of green and blue signal, reflecting MLH1 foci and cetromere signal respectively. This algorithm substantially speeds the accurate measurement of bivalents, but has the limitation that not all bivalents per cell can be isolated due to overlapping bivalents. In this data set, isolation rates per cell (the number of all bivalents per cell) range from `r min(algorithm.stat.category$mean_pass.rate)` (molossinus^MSM^ male) to `r max(algorithm.stat.category$mean_pass.rate)` (musculus^KAZ^ female). 
 
-**walk through how outliers are removed**
+A curation step was applied to the total single bivalent data set to remove poor measures from the algorithm. From the total set of cell images, `r length(unique(new.Curate.FULL.org %>% filter(SC.pass == "1"))$fileName )` bivalent objects were isolated by the image analysis software. After a human curation step , `r length(unique(new.Curate.FULL.org %>% filter(hand.foci.count != ""))$Obj.ID )` single-bivalent observations remained. The accuracy of the algorithm is high compared to hand measures after this curation step ([@peterson2019])).
 
-
-##### DNACrossover
-
-The **DNA CrossOver** algorithm isolates single straightened bivalents/chromosomes shapes from an image, and returns SC length, and location of green and blue signal, reflecting MLH1 foci and cetromere signal respectively. This algorithm substantially speeds the accurate measurement of bivalents, but has the limitation that not all bivalents per cell can be isolated due to overlapping bivalents. In this dataset, isolation rates per cell range from `r min(algorithm.stat.category$mean_pass.rate)` -- 0.51 (molossinus^MSM^ male) to `r max(algorithm.stat.category$mean_pass.rate)`-- 0.72 (musculus^KAZ^ female). 
-
-A curation step is applied to the total single bivalent dataset to remove poor isolation/segmentation instances. From the total set of cell images, `r length(unique(new.Curate.FULL.org %>% filter(SC.pass == "1"))$fileName )` -- 10,458 bivalent objects were isolated by the image analysis software. After a human curation step ([@peterson2019]), `r length(unique(new.Curate.FULL.org %>% filter(hand.foci.count != ""))$Obj.ID )` -- 9,829 single-bivalent observations remained.
-
-#main traits
-
-**This dataset is used to charaecterize single bivalent traits**
-
-The number of MLH1 foci on single chromosomes was quantified from the curated bivalent dataset to better understand the total recombination landscape. The **proportions** of single and double crossover bivalents were tested across mouse categories by chi-sqaure tests with the prop.test function. 
-
-**other traits** were also charaecterized -- SC length (a marker for chromatin compaction), foci position (raw and normalized), and interfocal distance a marker for interference, these traits were fit into the main models (as mentioned above).
-In addition to fiting the mouse means into the models discribed above, t.tests were used to test the means between sexes and groups.
-
-
-**IFD, Interference** In order to examine interference, Interfocal distance was measured from the single bivalent data sets. - This metric is closer to measures of interference from linkage maps which are also removed from physical scales in that they measure frequencies of crossovers. Crossover interference is stronger in male specific linkage maps compared to female maps in a variety of species (ref).  **IFD^norm^**
-
-
-
-**SC Length model**
-
-- **Linear model M1 ** $$mouse \ average \ bivalent metric ~=~ subsp * strain + \varepsilon $$  
-
-- **Linear model M2 ** $$mouse \ average \ bivalent metric ~=~ strain + \varepsilon $$  
+From the curated single bivalent data set the **proportions** of bivalents by crossover number were quantified and tested by chi-square tests with the prop.test(). 
 
 
 **REDUCED DATASET**
 
-To account for confounding effects of sex chromosomes from pooled samples of bivalents, we considered a reduced dataset including only bivalents with SC lengths below the 2nd quartile (for SC length) in each cell. This dataset included the four or five shortest bivalents  and excluded the X bivalent in oocytes. A total of 678 -- `r sum(Q1.real.short_mouse_table$n_obs)` 'short' bivalents were isolated from 103 -- `r sum(  (Q1.real.short_mouse_table  %>% filter(sex=="female") )$ncells)` oocytes and 37 -- `r sum(  (Q1.real.short_mouse_table  %>% filter(sex=="male") )$ncells)` spermatocytes. Although this smaller dataset has decreased power, it offers a more comparable set of single bivalents to compare between the sexes.  
-
-- The long bivalent and short bivalent data sets were compiled by calculating the 1st and 4th quartille of SC lengths for each cell with at least 16 bivalent measures. Bivalents from each cell were assigned into the long and short bins based on these SC Length cut offs.
-
-Using the single bivalent dataset, the within cell distribution of bivalent SC lengths from cells with at least 17 isolated chromosome measures. The longest and shortest 4 to 5 chromosomes within each cell were identified by calculating the fourth and second quartille.
+To account for confounding effects of sex chromosomes from pooled samples of bivalents, we considered a reduced data set including only bivalents with SC lengths below the 2nd quartile in cells with at least 17 of 20 single bivalent measures. The 'short bivalent' data set included the four or five shortest bivalents, and excluded the X bivalent in oocytes. A total of 678 -- `r sum(Q1.real.short_mouse_table$n_obs)` 'short' bivalents were isolated from 103 -- `r sum(  (Q1.real.short_mouse_table  %>% filter(sex=="female") )$ncells)` oocytes and 37 -- `r sum(  (Q1.real.short_mouse_table  %>% filter(sex=="male") )$ncells)` spermatocytes. Although this smaller data set has decreased power, it offers a more comparable set of single bivalents to compare between the sexes.  A 'long bivalent' data set was calculated as above the 4th quartille in SC lengths per cell.
 
 
 
