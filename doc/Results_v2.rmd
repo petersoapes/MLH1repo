@@ -29,7 +29,7 @@ library(nlme)
 library(RLRsim)
 library(ggpubr)
 library(reshape2)
-#library(patchwork)
+library(patchwork)
 
 options(digits=2)
 
@@ -37,7 +37,7 @@ setwd("~.")#switch over to here()
 
 #load(file = here("data", "MLH1_data_setup_4.21.20.RData") )
 
-load(file = "~./MLH1repo/data/Results_setup_4.21.20.RData")
+load(file = "~./MLH1repo/data/Results_setup_4.24.20.RData")
 
 load(file="~./MLH1repo/data/CleanBivData_6.3.20.RData")
 
@@ -221,19 +221,15 @@ female_mouse.avs_for.analysis$sex <- factor(female_mouse.avs_for.analysis$sex, o
 female_mouse.avs_for.analysis$strain <- factor(female_mouse.avs_for.analysis$strain, ordered = FALSE)
 female_mouse.avs_for.analysis$species <- factor(female_mouse.avs_for.analysis$species, ordered = FALSE)
 
-#table( droplevels(female_mouse.avs_for.analysis$strain) )
-#there are cast strains too
-
-
 Musc.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Musc")
 
 female.specific.plot <- ggplot(female_mouse.avs_for.analysis, aes(x = as.factor(strain), y = mean_co, color= strain))+ geom_boxplot()+  geom_jitter(aes( alpha=0.5), width = .2 )+ ggtitle("Female mouse av")+scale_color_manual(values=colors_of_strains)+ylim(c(20,34))+
   theme(legend.position="none",
+      axis.text.x=element_blank(), axis.title.x = element_blank(), axis.ticks.x = element_blank(),
   panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-  panel.background = element_blank(), axis.line=element_line(colour = "black"))+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  panel.background = element_blank(), axis.line=element_line(colour = "black"))
 
-#female.specific.plot
-
+#+theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
 
@@ -260,17 +256,16 @@ male_mouse.av <- add_species(male_mouse.av)
 
 #table( droplevels(just.male_mouse.av$strain) )
 #there are cast strains too
-
 #Musc.male_mouse.av <-  just.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Musc")
-
 #fomo.male_mouse.av
 
-#male.plot <- ggplot(just.male_mouse.av, aes(x = as.factor(strain), y = mean_co, color= strain))+geom_jitter( alpha=0.5, width = .2) +geom_boxplot()+ ggtitle("Male mouse mean")+scale_color_manual(values=colors_of_strains)+ylim(c(20,34))+theme(legend.position="none",
-#  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-#  panel.background = element_blank(), axis.line=element_line(colour = "black"))+theme(axis.text.x = element_text(angle = 45, hjust = 1))
-#male.plot
+male.plot <- ggplot(just.male_mouse.av, aes(x = as.factor(strain), y = mean_co, color= strain))+geom_jitter( alpha=0.5, width = .2) +geom_boxplot()+ ggtitle("Male mouse mean")+scale_color_manual(values=colors_of_strains)+ylim(c(20,34))+
+  theme(legend.position="none", axis.text.x=element_blank(), axis.title.x = element_blank(), axis.ticks.x = element_blank(), 
+  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line=element_line(colour = "black"))
 
-#musc.male.plot <- ggplot(Musc.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = mean_co, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc male of MLH1 distributions")+scale_color_manual(values=colors_of_strains)+ylim(c(20,34))
+
+#+theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
 
@@ -278,15 +273,17 @@ male_mouse.av <- add_species(male_mouse.av)
 #merge the 3 plots
 #try patchwork
 
+
 #Fig1_v1_strain + female.specific.plot + male.plot
 
 #Fig1_v1_strain + female.specific.plot - male.plot + plot_layout(ncol=1)
-#Fig1_v1_strain / (female.specific.plot + male.plot )
+Fig1_v1_strain / (female.specific.plot + male.plot )
 
-#(p1 | p2 | p3)/p4
 ```
 
-```{r main.fig1s, echo=FALSE, include=FALSE}
+
+
+```{r main.fig1s, echo=FALSE}
 strain.table.HQ_Fig_F <-  strain.table.HQ_Fig %>% filter(sex == "female") %>% filter(strain != "CAST" & strain != "SPRET" & strain != "SPIC" )
 
 Fig1_Female <- ggplot(strain.table.HQ_Fig_F, aes(y=mean_co, x=strain, color=strain, shape=sex))+ 
@@ -516,8 +513,6 @@ Dom.female.VAR.plot
 
 ```
 
-
-
 <!-- male section -->
 
 ```{r male.strain.table, echo=FALSE}
@@ -542,7 +537,6 @@ M.strain.table <- ddply(fomo.male_mouse.av, c("strain"), summarise,
 ```
 
 
-
 ```{r mouse.var.plots.male, echo=FALSE, fig.width = 4, fig.height=2.5, include=FALSE, include=FALSE, eval=FALSE}
 
 #variance plots
@@ -561,15 +555,20 @@ Dom.male.VAR.plot <- ggplot(Dom.male_mouse.av, aes(color= strain))+geom_jitter(a
 
 
 To situate variation in recombination rate within an evolutionary framework, we fit a series of models including subspecies, strain, and sex, to mean MLH1 foci counts from `r length(DF.HetC.MixedModel.HQ$mean_co)` mice. We began with a full mixed model (M1, see Methods), which showed that strain 
-(random effect p < `r MLH1.MMlmer_results$rand.pval`   **someSmallNumber**), sex (p = `r MLH1.MMlmer_results$sex.results`), subspecies (p=`r MLH1.MMlmer_results$sub.sp`), and subspecies sex (p = `r MLH1.MMlmer_results$interaction.pval`) each significantly affect recombination rate. 
-
+(random effect p < `r MLH1.MMlmer_results$rand.pval` -- `r 1/1000000` someSmallNumber), sex (p = `r MLH1.MMlmer_results$sex.results`), subspecies (p=`r MLH1.MMlmer_results$sub.sp`), and subspecies sex (p = `r MLH1.MMlmer_results$interaction.pval`) each significantly affect recombination rate. 
 
 After a general linear model including all factors as fixed effects (M2) revealed only weak contributions of subspecies, we focused on additional models designed to illuminate the role of strain and sex. A general linear model with these two variables (M3) identified two strains with particularly strong effects on recombination rate: musculus^MSM^ (p= `r summ.MLH1.M3.strain.fixed$coefficients[,4][6]`)
 and domesticus^G^ (`r summ.MLH1.M3.strain.fixed$coefficients[,4][3]`). In addition, two strains exhibit strain-by-sex interactions:  molossinus^MSM^  (`r summ.MLH1.M3.strain.fixed$coefficients[,4][13]`) and musculus^PWD^ (`r summ.MLH1.M3.strain.fixed$coefficients[,4][12]`). 
 
 
-We next fit general linear models separately for `r length(fomo.male_mouse.av$mouse)` males and `r length(female_mouse.avs_for.analysis$mouse)` females (M4  **male specific, M2? rename the code for these models**). In the male dataset, three strains significantly affect recombination rate: musculus^PWD^ ((glm; p = `r sum_MLH1.male.specific.glm.M2$coefficients[5,][4]`; effect = 
-`r MLH1.male.specific.glm.M2$coefficients[5]` -- ~ 5 foci), and musculus^SKIVE^ (glm; p = 0.01; `r sum_MLH1.male.specific.glm.M2$coefficients[8,][4]` -- effect = `r MLH1.male.specific.glm.M2$coefficients[8]` -- ~7 foci), and  _molossinus^MSM^_ (glm; p=`r sum_MLH1.male.specific.glm.M2$coefficients[6,][4]`; effect  `r MLH1.male.specific.glm.M2$coefficients[6]` ~ 2 foci). These three strains point to rapid evolution in recombination rate in spermatocytes; we subsequently refer to them collectively as "high-recombination" strains.  Analysis of the female dataset points to four strains with significant effects on recombination rate: domesticus^G^ (p = `r sum_MLH1.female.spc.glm.M2$coefficients[2,][4]`), molossinus^MSM^ (p = `r sum_MLH1.female.spc.glm.M2$coefficients[5,][4]`), domesticus^LEW^ (p = `r sum_MLH1.female.spc.glm.M2$coefficients[3,][4]`), and musculus^PWD^ (p= `r sum_MLH1.female.spc.glm.M2$coefficients[4,][4]`). Strain effect sizes in females are modest in magnitude (ranging from 1 to 4 foci) compared to those in males. 
+We next fit general linear models separately for `r length(fomo.male_mouse.av$mouse)` males and `r length(female_mouse.avs_for.analysis$mouse)` females (M4  **male specific, M2? rename the code for these models**). 
+
+In the male dataset, three strains significantly affect recombination rate: musculus^PWD^ ((glm; p = `r sum_MLH1.male.glm.M4$coefficients[5,][8]`; effect = 
+`r sum_MLH1.male.glm.M4$coefficients[8]` -- ~ 5 foci), and 
+musculus^SKIVE^ (glm; p = 0.01; `r sum_MLH1.male.glm.M4$coefficients[5,][10]` -- effect = `r sum_MLH1.male.glm.M4$coefficients[10]` -- ~2 foci), and  _molossinus^MSM^_ (glm; p=`r sum_MLH1.male.glm.M4$coefficients[5,][9]`; effect  `r sum_MLH1.male.glm.M4$coefficients[9]` ~ 7 foci). 
+
+
+These three strains point to rapid evolution in recombination rate in spermatocytes; we subsequently refer to them collectively as "high-recombination" strains.  Analysis of the female dataset points to four strains with significant effects on recombination rate: domesticus^G^ (p = `r sum_MLH1.female.spc.glm.M2$coefficients[2,][4]`), molossinus^MSM^ (p = `r sum_MLH1.female.spc.glm.M2$coefficients[5,][4]`), domesticus^LEW^ (p = `r sum_MLH1.female.spc.glm.M2$coefficients[3,][4]`), and musculus^PWD^ (p= `r sum_MLH1.female.spc.glm.M2$coefficients[4,][4]`). Strain effect sizes in females are modest in magnitude (ranging from 1 to 4 foci) compared to those in males. 
 
 <in the above section reorder the strains by the effect sizes>
 
@@ -924,7 +923,7 @@ kable(DMC1table.main99, row.names = F, caption = "DMC1 measures") %>%
 In an attempt to localize the male-specific evolution of crossover number to steps of the meiotic pathway, we counted foci from a marker for double strand breaks (DSBs), DMC1, in prophase spermatocytes. DMC1 foci were scored from a total of `r sum( (DMC1.mean.table %>%  filter(stage == "L") )$ncells)` early zygotene-stage and `r sum( (DMC1.mean.table %>%  filter(stage == "Z") )$ncells)` late zygotene-stage spermatocytes from juvenile mice (12 to 18 days) from three low-recombination strains (musculus^KAZ^ , domesticus^WSB^ , and domesticus^G^) and two high-recombination strains (musculus^PWD^ and molossinus^MSM^).  
 
 
-The high-recombination strains have significantly more DMC1 foci than the low-recombination strains in early zygotene cells (t-test, p<**someSmallNumber** -- `r ttest.HighLow.L.pval`). In contrast, the two strain groups do not differ in DMC1 foci counted in late zygotene cells (t-test, p = 0.66 --- `r ttest.HighLow.Z.pval`). 
+The high-recombination strains have significantly more DMC1 foci than the low-recombination strains in early zygotene cells (t-test, p< someSmallNumber -- `r 1/1000000` -- `r ttest.HighLow.L.pval`). In contrast, the two strain groups do not differ in DMC1 foci counted in late zygotene cells (t-test, p = 0.66 --- `r ttest.HighLow.Z.pval`). 
 
 [@cole2012] suggest that early Z counts for DMC1 are most relevant for predicting CO number.
 (CO homeostasis -- robustness )
@@ -2718,111 +2717,50 @@ summary(log.reg_1CO_pos_biv)
 ```
 
 
-```{r with.cow, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
-library(cowplot)
-
-top.triangle <- function() {
-  plot( PER_Foci_2 ~ PER_Foci_1, data = (Curated_BivData %>% filter(sex == "female") %>% filter(hand.foci.count == 2) %>% filter(subsp == "Dom") ), 
-      axes = FALSE, ylab = 'Foci2', xlab = NA, main='Foci1',
-      xlim=c(0,1), ylim=c(0,1),  xaxt="n", yaxt="n" )
-  axis(side = 2, las = 1, pos=0)
-  axis(side = 3, las = 1, pos=1)
-  abline(coef = c(0,1))
-}
-
-bottom.triangle <- function() {
-  plot( PER_Foci_1 ~ PER_Foci_2, data = (Curated_BivData %>% filter(sex == "female") %>% filter(hand.foci.count == 2) %>% filter(subsp == "Dom") ), 
-      axes = FALSE, xlab = NA, ylab = NA, xlim=c(0,1), ylim=c(0,1),  xaxt="n", yaxt="n" )
-  axis(side = 1, las = 1, pos=0)
-  axis(4, las = 1, pos=1) #flip label to right side
-  abline(coef = c(0,1))
-}
-
-```
-
-
-```{r another.triangle, echo=FALSE, fig.width = 5, fig.height=5, eval=FALSE}
-
-Curated_BivData <- Curated_BivData %>% filter(PER_Foci_2 < 1.01)
-
-
-with( (Curated_BivData %>% filter(strain == "G") ), { 
-  plot(  c( (Curated_BivData %>% filter(sex == "male") %>% filter(strain == "G") %>% filter(hand.foci.count == 2))$PER_Foci_2,
-              (Curated_BivData %>% filter(strain == "G") %>% filter(sex == "female") %>% filter(hand.foci.count == 2))$PER_Foci_1),
-                     
-                     c(   (Curated_BivData %>% filter(sex == "male") %>% filter(strain == "G") %>% filter(hand.foci.count == 2) )$PER_Foci_1, 
-                       
-                       (Curated_BivData %>% filter(strain == "G") %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_2), 
-          xlab = "Position1", ylab = "Position2", asp = 1, main="G IFD distributions"); 
-  axis(4, las = 1, pos=1); #right side
-  axis(side = 3, las = 1, pos=1); #
-  segments(0, 0, 1, 1); abline(v = 0:1, h = 0:1) })
-
-
-```
-
-reverse the axis 
-
-```{r updated.triangl.plots, echo=FALSE, message=FALSE, warning=FALSE}
-my.data <- data.frame(my.x=c(.2, .4, .6, .1), my.y=c(.3, .5, .7, .9))
-x.dist <- .5
-my.data.2 <- transform(my.data, my.y=my.y + x.dist)
-
-#x_dist is a value for spacing the trianlges, remeber that the data values need
-#to be adjusted as well
-#the rest of the positions are slightly off
-
-
-#make a loop to enter/push the merge triangles into a empty list
-
+```{r triangle.IFD.auto.loop.ifd, echo=FALSE, eval=FALSE}
 
 #Top is female
 top.triangle2 <- function() {
   #top-y position is male Pos2
-  plot(  (Curated_BivData %>% filter(strain == "KAZ") %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_2 ~ 
+  plot(  (Curated_BivData %>% filter(strain == "WSB"  ) %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_2 ~ 
     #top-x position is female Pos1     
-    (Curated_BivData %>% filter(strain == "KAZ") %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_1, 
+    (Curated_BivData %>% filter(strain == "WSB"   ) %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_1, 
        
-       data= (Curated_BivData %>% filter(sex == "female") %>% filter(strain == "KAZ") %>% filter(hand.foci.count == 2) ), 
-       col =  "coral4",
+       data= (Curated_BivData %>% filter(sex == "female") %>% filter(strain == "WSB") %>% filter(hand.foci.count == 2) ), 
+       col =  colors_of_strains["WSB"],
        axes=FALSE, ylab='', xlab="", 
-       main='', xlim=c(0, 1), ylim=c(0, 1), xaxt="n", yaxt="n", asp=1)
-  mtext("KAZ IFD Distributions", 3, 5, font=2, cex=1.3, adj=.5)
+       main= "IFD Distribution",  xlim=c(0, 1), ylim=c(0, 1), xaxt="n", yaxt="n", asp=1)
   
+  mtext("WSB", 3, 5, font=2, cex=1.3, adj=.5)
   mtext("Female Position.2", 2, .75)
   mtext("Female Position.1", 3, 2)
   axis(side=2, las=1, pos=0)
   axis(side=3, las=1, pos=1)
   lines(0:1, 0:1)
-}
-
-#bottom is male
+  }
+  
 bottom.triangle2 <- function() {
     #bottom-y position is male Pos1
-  points(  (Curated_BivData %>% filter(strain == "KAZ") %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_1 ~ 
+  points(  (Curated_BivData %>% filter(strain == "WSB") %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_1 ~ 
     #bottom-x position is male Pos2     
-    (Curated_BivData %>% filter(strain == "KAZ") %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_2,
+    (Curated_BivData %>% filter(strain == "WSB") %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_2,
 
-         data=(Curated_BivData %>% filter(sex == "male") %>% filter(strain == "KAZ") %>% filter(hand.foci.count == 2) ), 
+         data=(Curated_BivData %>% filter(sex == "male") %>% filter(strain == "WSB") %>% filter(hand.foci.count == 2) ), 
          
-    col =  "coral4",
-         xpd=TRUE)
+    col =  colors_of_strains["WSB"], xpd=TRUE)
   mtext("Male Position.2", 1, 1.5, at=mean(par()$usr[1:2])) #  + x.dist
   mtext("Male Position.1", 4, 3)#, padj=par()$usr[1]
   x.at <- axisTicks(par()$usr[1:2], 0) #+ x.dist
-  axis(side=1, las=1, pos=0, at=x.at, 
-       labels=F, xpd=TRUE)
+  axis(side=1, las=1, pos=0, at=x.at, labels=F, xpd=TRUE)
   mtext(seq(0, 1, .2), 1, 0, at=x.at)
   axis(4, las=1, pos=1) # + x.dist
   lines(0:1, 0:1, xpd=TRUE)# + x.dist
-
   }
 
-
-png("~./MLH1repo/doc/figureFiles/KAZ.triangle.png", width=650, height=500)
+  
+#par(mar=c(1,1,1,1))
 op <- par(mar=c(3, 4, 8, 12) + 0.1, oma=c(2, 0, 0, 2))
-top.triangle2()
-bottom.triangle2()
+plot(top.triangle2(), bottom.triangle2() ) #not working
 par(op)
 dev.off()
 
@@ -2830,12 +2768,8 @@ dev.off()
 ```
 
 
-```{r auto.loop.ifd, echo=FALSE}
-
-#don't think I need this loop
-for(i in 1:length(auto_curate_DF$strain )){
-  auto_curate_DF$quant_status[i] <- ifelse( is.element(auto_curate_DF$strain[i], exclude_mice_list), "exclude", NA)
-  }
+```{r double.tri.rewrite, echo=FALSE, eval=FALSE}
+#good function, saves to file, can't reproduce in rmd
 
 #big loop for automating the IFD triangles
 only.male.strains <- c("F1", "PERC", "CZECH", "AST", "TOM", "HMI", "SPRET", "CAROLI", "other")
@@ -2845,73 +2779,69 @@ df_strain_list <- split(auto_curate_DF, (auto_curate_DF$strain))
 df_strain_list <- df_strain_list[ -c(4,10,11,12,13,14,15,16,17,18,19) ]
 #make a new empty df. create a ddply thing with mean calculations (this is like a list for matching up later)
 
-for(i in 1:(length(df_strain_list))){
-  current.strain <- as.character(df_strain_list[[i]]$strain[1])
-  #declare file
-  png(paste0("~./MLH1repo/doc/figureFiles/test.triangle_", current.strain, ".png"),  width=650, height=500)
-
-  #Top is female
-top.triangle2 <- function() {
-  #top-y position is male Pos2
-  plot(  (Curated_BivData %>% filter(strain == current.strain  ) %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_2 ~ 
-    #top-x position is female Pos1     
-    (Curated_BivData %>% filter(strain == current.strain   ) %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_1, 
-       
-       data= (Curated_BivData %>% filter(sex == "female") %>% filter(strain == current.strain) %>% filter(hand.foci.count == 2) ), 
-       col =  colors_of_strains[current.strain],
-       axes=FALSE, ylab='', xlab="", 
-       main= "IFD Distribution",  xlim=c(0, 1), ylim=c(0, 1), xaxt="n", yaxt="n", asp=1)
-  
-  mtext(current.strain, 3, 5, font=2, cex=1.3, adj=.5)
-  
-  mtext("Female Position.2", 2, .75)
-  mtext("Female Position.1", 3, 2)
+#this works
+top.triangle2 <- function(my.y, my.x, my.data) {
+  plot(my.y ~ my.x, data= my.data, axes=FALSE, ylab='', xlab="", 
+       main='', xlim=c(0, 1), ylim=c(0, 1), xaxt="n", yaxt="n", asp=1,
+       col =  colors_of_strains[current.strain])
+  mtext(current.strain, 3, 5, font=2, cex=1.3, adj=.95)
+  mtext("Position.2.Female", 2, .75)
+  mtext("Position.1.Female", 3, 2)
   axis(side=2, las=1, pos=0)
   axis(side=3, las=1, pos=1)
   lines(0:1, 0:1)
-  }
-  
-bottom.triangle2 <- function() {
-    #bottom-y position is male Pos1
-  points(  (Curated_BivData %>% filter(strain == current.strain) %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_1 ~ 
-    #bottom-x position is male Pos2     
-    (Curated_BivData %>% filter(strain == current.strain) %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_2,
+}
 
-         data=(Curated_BivData %>% filter(sex == "male") %>% filter(strain == current.strain) %>% filter(hand.foci.count == 2) ), 
-         
-    col =  colors_of_strains[current.strain], #this might not be working right
-         xpd=TRUE)
-  mtext("Male Position.2", 1, 1.5, at=mean(par()$usr[1:2])) #  + x.dist
-  mtext("Male Position.1", 4, 3)#, padj=par()$usr[1]
-  x.at <- axisTicks(par()$usr[1:2], 0) #+ x.dist
+bottom.triangle2 <- function(my.y, my.x, my.data){
+  points(my.x ~ my.y, data=my.data, xpd=TRUE, 
+          col =  colors_of_strains[current.strain])
+  
+  mtext("Position.2.Male", 1, 1.5, at=mean(par()$usr[1:2]) + x.dist)
+  mtext("Position.1.Male", 4, 3, padj=par()$usr[1] + 10)
+  x.at <- axisTicks(par()$usr[1:2], 0) + x.dist
   axis(side=1, las=1, pos=0, at=x.at, 
        labels=F, xpd=TRUE)
   mtext(seq(0, 1, .2), 1, 0, at=x.at)
-  axis(4, las=1, pos=1) # + x.dist
-  lines(0:1, 0:1, xpd=TRUE)# + x.dist
+  axis(4, las=1, pos=1 + x.dist)
+  lines(0:1 + x.dist, 0:1, xpd=TRUE)
+}
 
-  }
+x.dist <- .5
+
+for(i in 1:(length(df_strain_list))){
+  print(i)
+  current.strain <- as.character(df_strain_list[[i]]$strain[1])
+  
+  #declare file
+  png(paste0("~./MLH1repo/doc/figureFiles/test.triangle_", current.strain, ".png"),  width=650, height=500)
+  
+  
+  my.data = (Curated_BivData %>% filter(strain == current.strain) %>% filter(hand.foci.count == 2) )
+    
+  my.x.top = (Curated_BivData %>% filter(strain == current.strain) %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_1 
+  
+  my.y.top = (Curated_BivData %>% filter(strain == current.strain) %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_2
+  
+  my.x.bottom = (Curated_BivData %>% filter(strain == current.strain) %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_1  
+  
+  my.y.bottom = (Curated_BivData %>% filter(strain == current.strain) %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_2
   
   op <- par(mar=c(3, 4, 8, 12) + 0.1, oma=c(2, 0, 0, 2))
-  top.triangle2()
-  bottom.triangle2() #not working
+  top.triangle2(my.y.top, my.x.top, my.data)
+  bottom.triangle2(my.y.bottom+x.dist, my.x.bottom, my.data) #x.dist
   par(op)
   dev.off()
-  }
+}
 
 ```
 
 
-
-
-```{r Q1.IFD_load.triangles, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Q1.IFD_load.triangles, echo=FALSE, message=FALSE, warning=FALSE, fig.cap = "Example of Sex differences in IFD distributions"}
 
 library(png)
 
-G.triangle.png <- readPNG("~./MLH1repo/doc/figureFiles/G.triangle.png")
-WSB.triangle.png <- readPNG("~./MLH1repo/doc/figureFiles/WSB.triangle.png")
-LEW.triangle.png <- readPNG("~./MLH1repo/doc/figureFiles/LEW.triangle.png")
-
+#load all the files / arrange the plots from above 
+WSB.triangle.png <- readPNG("~./MLH1repo/doc/figureFiles/test.triangle_WSB.png")
 
 #make empty DF for ggplot object
 empty.DF <- data.frame(col1 = c(1,3), col2 = c(1,3) )
@@ -2922,24 +2852,15 @@ WSB.triangle.ggplot <- ggplot(empty.DF, aes(x = col1, y = col2)) +
  axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
                                   axis.text.y=element_blank(),axis.ticks.y=element_blank() )
 
-G.triangle.ggplot <- ggplot(empty.DF, aes(x = col1, y = col2)) +
-  background_image(G.triangle.png) + theme(axis.title.x=element_blank(),
- axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
-                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
-
-LEW.triangle.ggplot <- ggplot(empty.DF, aes(x = col1, y = col2)) +
-  background_image(LEW.triangle.png) + theme(axis.title.x=element_blank(),
- axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
-                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
+#show wsb as example
+WSB.triangle.ggplot
 
 
-library("cowplot")
-fig1  <- ggdraw() +
-  draw_plot(WSB.triangle.ggplot, x=0, y=0, width=.45, height=.45) +
-  draw_plot(G.triangle.ggplot,   x=0, y=.4, width=.45, height=.45) +
-  draw_plot(LEW.triangle.ggplot, x=0, y=.6, width=.45, height=.45)
-
-fig1
+#library("cowplot")
+#fig1  <- ggdraw() +
+#  draw_plot(WSB.triangle.ggplot, x=0, y=0, width=.45, height=.45) +
+#  draw_plot(G.triangle.ggplot,   x=0, y=.4, width=.45, height=.45) +
+#  draw_plot(LEW.triangle.ggplot, x=0, y=.6, width=.45, height=.45)
 
 #ggsave("~./WildMiceMadison/results/Figure1.png")
 ```

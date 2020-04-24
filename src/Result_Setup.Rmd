@@ -1398,41 +1398,43 @@ sum_MLH1.female.spc.glm.M2 <- summary(MLH1.female.spc.glm.M2)
 
 
 ```{r Male.specific.glm, echo=FALSE}
-# 1 way anova, is at least 1 strain different from the rest?
-# given a lm, how sig is the strain effect
-glm.male.strain.subsp <- glm(mean_co ~ subsp * strain, data= just.male_mouse.av)
 
-#summry.male.strain.effects <- summary(glm.male.strain.subsp)
+#these are M4
+#M4
+MLH1.male.glm.M4 <- glm(mean_co ~ subsp * strain, data= just.male_mouse.av)
+sum_MLH1.male.glm.M4 <- summary(MLH1.male.glm.M4)
 #round(summry.male.strain.effects$coefficients[,c(1,4)], 5)
+
+#sum_MLH1.male.specific.glm.M2$coefficients[5,][4]
+
+#PWD, SKIVE, MSM
+#8,9,10
 
 #write.table(summry.male.strain.effects$coefficients , "~./MLH1repo/summry.male.strain.effects.csv", sep=",",row.names = TRUE)
 
-#1. determine which strain effects are sig
-
-#M2
-MLH1.male.specific.glm.M2 <- glm(mean_co ~ strain, data= just.male_mouse.av)
-sum_MLH1.male.specific.glm.M2 <- summary(MLH1.male.specific.glm.M2)
+#M4.2
+MLH1.male.glm.M4.2 <- glm(mean_co ~ strain, data= just.male_mouse.av)
+sum_MLH1.male.glm.M4.2 <- summary(MLH1.male.glm.M4.2)
 
 #round(lm.male.strain_sum$coefficients[,c(1,4)], 5)
 
 #write.table(lm.male.strain_sum$coefficients , "~./MLH1repo/lm.male.strain_sum.csv", sep=",",row.names = TRUE)
 
-#even when all the other male strains are added -- the same result; PWD, MSM and SKIVE strain effects are significant.
 ```
 
 ```{r MALE.SPECIFIC.variance.model, echo=FALSE}
 ## within mouse variance models 
-lmVAR.male.strain.subsp <- lm(var ~ subsp * strain, data= just.male_mouse.av)
+lmVAR.male.strain.subsp <- glm(var ~ subsp * strain, data= just.male_mouse.av)
 summry.male.strain.VAReffects <- summary(lmVAR.male.strain.subsp)
 #round(summry.male.strain.VAReffects$coefficients[,c(1,4)], 5)
 
 #all p values kinda high, MSM and TOM are slightly sig
-lmVAR.male.strain <- lm(var ~ strain, data= just.male_mouse.av)
+lmVAR.male.strain <- glm(var ~ strain, data= just.male_mouse.av)
 lmVAR.male.strain_sum <- summary(lmVAR.male.strain)
 #round(lmVAR.male.strain_sum$coefficients[,c(1,4)], 5)
 #non sig
 
-lmcv.male.strain <- lm(cV ~ strain, data= just.male_mouse.av)
+lmcv.male.strain <- glm(cV ~ strain, data= just.male_mouse.av)
 lmcv.male.strain_sum <- summary(lmcv.male.strain)
 #round(lmcv.male.strain_sum$coefficients[,c(1,4)], 5)
 #HMI sig for cv model -- in the other model, CAST subsp and TOM strain are slightly significant
@@ -1440,12 +1442,12 @@ lmcv.male.strain_sum <- summary(lmcv.male.strain)
 #Q12
 Q12_male_table <-  Q12_mouse_table_w.Ages %>% filter(sex == "male")
 
-lm.m1.Q12_male <- lm(var ~ subsp * strain, data= Q12_male_table)
+lm.m1.Q12_male <- glm(var ~ subsp * strain, data= Q12_male_table)
 lm.m1.Q12_male_sum <- summary(lm.m1.Q12_male)
 #round(lm.m1.Q12_male_sum$coefficients[,c(1,4)], 5)
 #NS
 
-lm.m2.Q12_male <- lm(var ~ strain, data= Q12_male_table)
+lm.m2.Q12_male <- glm(var ~ strain, data= Q12_male_table)
 lm.m2.Q12VAR.male_sum <- summary(lm.m2.Q12_male)
 #round(lm.m2.Q12VAR.male_sum$coefficients[,c(1,4)], 5)
 #NS
@@ -1581,13 +1583,12 @@ lm.m2.Q12_female.cv_sum <- summary(lm.m2.Q12_female.cv)
 
 main table (DMC1.mean.table), t.tests  , ratios
 
-set up, t.tests, correlations
+set up, t.tests, correlations, says there are duplicate titles
 
-```{r DMC1.setup, echo=FALSE}
+```{r DMC1.setup1, echo=FALSE}
 #load DMC1 csv
 #DMC1.DF <- read.csv("~./DMC1/newJuviQuant.csv", header = TRUE)
 DMC1.DF <- read.csv("~./MLH1repo/data/DMC1newJuviQuant.csv", header = TRUE)
-
 
 DMC1.DF$fileName <- DMC1.DF$Original.Name
 DMC1.DF <- add_mouse(DMC1.DF)
@@ -1640,12 +1641,10 @@ DMC1.target.strains <- subset(mean.MLH1.obs, category == "G male" |
                   category == "MSM male" |
                     category == "PWD male")
 #attach this mini DF to the DMC1 data
-
-
 ```
 
 
-```{r DMC1_t.tests, echo=FALSE, warning=FALSE}
+```{r DMC1_t.tests1, echo=FALSE, warning=FALSE}
 #2. t-tests for the DMC1 counts 
 #need to account for sample sizes when comparing t.tests (KAZ and G don't have equal across )
 #best case scnario -- more microscoping to get ~20 cells for each stage by strain combo
@@ -1680,7 +1679,7 @@ ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.D
 ```
 
 
-```{r DMC1.rand.calq, echo=FALSE}
+```{r DMC1.rand.calq1, echo=FALSE}
 
 DMC1.mean.obs.L$mean.count.L <- DMC1.mean.obs.L$mean.count
 DMC1.mean.obs.Z$mean.count.Z <- DMC1.mean.obs.Z$mean.count
@@ -1696,7 +1695,7 @@ MLH1.DMC1.Z_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.Z, me
 ```
 
 
-```{r DMC1.ratios, echo=FALSE}
+```{r DMC1.ratios1, echo=FALSE}
 
 ##RATIOS
 DMC1table.main$MLH1.L_ratio <- DMC1table.main$mean.MLH1/ DMC1table.main$mean.count.L 
@@ -1740,7 +1739,7 @@ DMC1.Zratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G mal
 
 -----
 
-```{r DMC1.setup, echo=FALSE}
+```{r DMC1.setup, echo=FALSE, eval=FALSE}
 #load DMC1 csv
 #DMC1.DF <- read.csv("~./DMC1/newJuviQuant.csv", header = TRUE)
 DMC1.DF <- read.csv("~./MLH1repo/data/DMC1newJuviQuant.csv", header = TRUE)
@@ -1784,7 +1783,7 @@ DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
                ifelse(grepl("MSM", DMC1.DF$strain), "High","")))))
 ```
 
-```{r MAIN.DMC1.plot, echo=FALSE, warning=FALSE}
+```{r MAIN.DMC1.plot, echo=FALSE, warning=FALSE, eval=FALSE}
 #think of better color scheme
 #make the jitter col thinner or make the stacked dots.
 #remember that box-plots add outlier dots.
@@ -1809,7 +1808,7 @@ DMC1.boxplot <- ggplot(aes(x=strain, y=total.count, color=stage), data=DMC1.DF[D
 DMC1.boxplot
 ```
 
-```{r plot.stage.ttest, echo=FALSE, warning=FALSE}
+```{r plot.stage.ttest, echo=FALSE, warning=FALSE, eval=FALSE}
 
 anno_df_stage = compare_means(total.count ~ stage, group.by = "rec_group", data = DMC1.DF[DMC1.DF$stage != "P",],method = "t.test") %>% mutate(y_pos = 300)
 #
@@ -1845,7 +1844,7 @@ ttest.ZtoL.Low <- t.test(DMC1.Low.goup$total.count[(DMC1.Low.goup$stage == "L")]
                DMC1.Low.goup$total.count[(DMC1.Low.goup$stage == "Z")]  )
 ```
 
-```{r DMC1_t.tests, echo=FALSE, warning=FALSE}
+```{r DMC1_t.tests, echo=FALSE, warning=FALSE, eval=FALSE}
 #2. t-tests for the DMC1 counts 
 #need to account for sample sizes when comparing t.tests (KAZ and G don't have equal across )
 #best case scnario -- more microscoping to get ~20 cells for each stage by strain combo
@@ -3245,7 +3244,7 @@ Short.removed_BivData_IFD.ABS_Ttest_mus.av <- t.test(close.IFD.rates.mus.rate$me
 
 ```{r Save.File, echo=FALSE}
 #save Rdata
-save.image("~./MLH1repo/data/Results_setup_4.21.20.RData")
+save.image("~./MLH1repo/data/Results_setup_4.24.20.RData")
 
 ```
 
