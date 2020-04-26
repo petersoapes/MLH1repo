@@ -27,7 +27,7 @@ options(digits=2)
 setwd("~.")#switch over to here()
 
 
-load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_4.21.20.RData")
+load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_4.26.20.RData")
 #load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_2.24.20.RData")
 #load(file = "C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.31.20.RData")
 
@@ -114,6 +114,7 @@ var.plot <- ggplot(AP_mouse_table.HQ_target, aes(y=var, x = sex, color=sex))+geo
 
 ```
 
+
 ```{r misc.setup, echo=FALSE}
 
 colors_of_strains <- c('WSB'= "#56B4E9",'G' ='cadetblue','LEW'= 'lightblue','PERC'= 'blue',
@@ -163,7 +164,7 @@ Curated_BivData$Rec.group_alt <- ifelse(grepl("PWD male", Curated_BivData$catego
 ```
 
 
-```{r Q1.rbar, echo=FALSE}
+```{r Q1.rbar, echo=FALSE, eval=FALSE}
 
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
@@ -275,6 +276,8 @@ Dom.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(sub
 
 ```{r MLH1.MIXED.MODEL.setup, echo=FALSE, warning=FALSE, eval=TRUE}
 #DF.HetC.MixedModel.HQ
+
+#no mice removed for low cell numbers?
 
 DF.HetC.MixedModel <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$species == "M.musculus",]
 
@@ -680,13 +683,11 @@ AST.mean.MLH1.obs <- ddply(.data=HetC.AST,
                  var.MLH1 = var( nMLH1.foci)
 )
 AST.HETC.val <- AST.mean.MLH1.obs$mean.MLH1[1] / AST.mean.MLH1.obs$mean.MLH1[2]
-
-
 #Molosinus
 
 #MSM
 HetC.MSM <- MLH1_data[(MLH1_data$strain == "MSM")&(MLH1_data$quality < 5),]
-unique(HetC.MSM$mouse)
+#unique(HetC.MSM$mouse)
 
 #non-passing mice
 MSM.remove.mice <- c("12sep16_MSM_f3")
