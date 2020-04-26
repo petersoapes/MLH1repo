@@ -8,11 +8,6 @@ output: html_document
 
 to Do
 
-- rm Peromycus data BivData!!
-
-- code Mol as discint subsp
-
-- make sure to remove some of the juvi mice!! from the AP_mouse table
 
 - format the DF for applying to Mixed models
 
@@ -40,7 +35,7 @@ meta.data = read.csv(here("data", "/clean.Meta.Data.txt"),sep = "\t", header=TRU
 #remove all MAD (peromyscus) from meta.data
 meta.data <- meta.data[ !grepl("MAD", meta.data$mouse) , ]
 
-MLH1_data = read.csv(here("data", "/MLH1/AnonData.csv"), header=TRUE)
+MLH1_data = read.csv(here("data", "/AnonData_formated.csv"), header=TRUE)
 
 source(here("src", "/CommonFunc_MLH1repo.R") )
 
@@ -146,12 +141,12 @@ color_chrm_class <- c( '0' = "#00BFC4", '1' = "#7CAE00", '2' = "#F8766D", '3' = 
 
 #add Rec group,
 
-Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
-                              ifelse(grepl("MSM male", Curated_BivData$category), 1,
-                                ifelse(grepl("SKIVE male", Curated_BivData$category), 1, 0)))
+#Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
+#                              ifelse(grepl("MSM male", Curated_BivData$category), 1,
+#                                ifelse(grepl("SKIVE male", Curated_BivData$category), 1, 0)))
 
-Curated_BivData$Rec.group_alt <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
-                              ifelse(grepl("MSM male", Curated_BivData$category), 1, 0))
+#Curated_BivData$Rec.group_alt <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
+#                              ifelse(grepl("MSM male", Curated_BivData$category), 1, 0))
 ```
 
 
@@ -226,11 +221,13 @@ I have made a list of the old mice, but from the effect document the older mice 
 
 the excluded TOM, had low quality cells, only 4. The exclude AST, had low poor quality cells, there are 3 other mice.  The excluded CZECH males are poor quality (but near the mean). There are 3 other males.
 
+
 ```{r adj_nMLH1, echo=FALSE}
 #add a column with male adjusted MLH1 values (+1 to all males)
 MLH1_data$adj_nMLH1.foci <- ifelse(MLH1_data$sex=="male", MLH1_data$nMLH1.foci+1, MLH1_data$nMLH1.foci)
 MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
 ```
+
 
 ```{r reorder.DF, echo=FALSE}
 #this is most important for plotting
@@ -315,7 +312,6 @@ Make mouse level tables  (re think this name, AP to distinguish BD -- but this i
 ```{r all.data.table, echo=FALSE}
 
 #make the table with ALL MLH1 obs
-
 FULL_mouse_table_MLH1 <- ddply(MLH1_data, c("mouse"), summarise,
                         
                         Nmice = length(unique(mouse)),
@@ -326,7 +322,6 @@ FULL_mouse_table_MLH1 <- ddply(MLH1_data, c("mouse"), summarise,
                         sd   = round(sd(nMLH1.foci), 3),
                         se   = round(sd / sqrt(Ncells), 3)
 )
-
 
 ```
 
@@ -616,6 +611,7 @@ update the dissection document (that makes the meta.data DF)
 
  number of mice are in the main DF (discribe the results for missing mice)
 
+Number of cells per mouse, (were any mice excluded for low numbers of cells?) (were all cells pooled?)
 
 
 ## Mouse Ages
@@ -688,7 +684,7 @@ work on cleaning up all other df with bad names
 #BD data and Peromyscus data
 #rm(c(BD_MLH1_data, BDmouse_level_table, MLH1_data.hq) )
 
-save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_4.21.20.RData")
+save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_4.26.20.RData")
 
 #  OutPut: big large MLH1_data (AP's) df, big DF of BD with just the mice I want.
 #  MLH1_data_table, means and variance of AP and BD MLH1 values. made from seperate tables from AP and BD data.
