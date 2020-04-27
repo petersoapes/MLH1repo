@@ -773,6 +773,7 @@ HetC_strain_table$mean_co.y <- as.numeric(HetC_strain_table$mean_co.y)
 
 ```
 
+
 ```{r juvimice.list, echo=FALSE}
 juvi_mice <- c(
   "30dec14_WSB_m2","30dec14_WSB_m4","30dec14_WSB_m1","30dec14_WSB_m3","30dec14_WSB_m5",
@@ -789,10 +790,8 @@ juvi_mice <- c(
 
 ```
 
-```{r CurBiv.Mouse.av.TABLE, echo=FALSE}
 
-#this block should be in the data set up
-#the mouse averages will be used
+```{r CurBiv.Mouse.av.TABLE, echo=FALSE}
 
 #18jul19_31may19_SKIVE_m2_sp1_13.2_rev_8 is missing the 1CO position -- remove for now
 cleanCurated_BivData <- cleanCurated_BivData %>% filter(fileName != "18jul19_31may19_SKIVE_m2_sp1_13.2_rev_8")
@@ -802,35 +801,49 @@ cleanCurated_BivData <- cleanCurated_BivData %>% filter(fileName != "18jul19_31m
 
 mouse.avs_4MM <- ddply(cleanCurated_BivData, c("mouse"), summarise,
                         Nmice = length(unique(mouse)),
-                        Ncells  = length(Obj.ID),
+                        Ncells  = length(unique( fileName) ),
+                        nbiv = length(Obj.ID),
                        
-                      # mean_CO = mean()
-                       
-                        mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
+                        mean_SC = as.numeric(format(round(mean(chromosomeLength), 3), nsmall=3) ),
                         cV = cv(chromosomeLength),
                         var = as.numeric(format(round(   var(chromosomeLength),3), nsmall=3) ),
                         sd   = round(sd(chromosomeLength), 3),
                         se   = round(sd / sqrt(Ncells), 3),
+                     
+              #can't figure out how to get this format to work  
+                       n0CO = sum(length( which(hand.foci.count == 0) )  ),
+                       n1CO = sum(length( which(hand.foci.count == 1) )  ),
+                      n2CO = sum(length( which(hand.foci.count == 2) )  ),
+                      n3CO = sum(length( which(hand.foci.count == 3) )  ),
+              #     
+                  proportion_0CO = (n0CO / nbiv),
+                  proportion_1CO = (n1CO / nbiv),
+                 proportion_2CO = (n2CO / nbiv),
+                     proportion_3CO = (n3CO / nbiv),
+                  
+                  #calq mean.sc by chrm class
+                 mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                mean.SC_4CO = mean(chromosomeLength[which(hand.foci.count == 4)], na.rm = TRUE),
                        
-                       #calq mean.sc by chrm class
-                       mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                       mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                       mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                       mean.SC_4CO = mean(chromosomeLength[which(hand.foci.count == 4)], na.rm = TRUE),
-                       
+                #mean 1CO.pos
+                mean_1CO.pos = mean(Foci1[which(hand.foci.count == 1)], na.rm = TRUE),
+                mean_1CO.pos.PER = mean(PER_Foci_1[which(hand.foci.count == 1)], na.rm = TRUE),
+                #CO position things, requires the melt?
+              norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)]),
+              
                 # IFD things
-                #  mean_IFD_ABS = as.numeric(format(round(  mean(IFD1_ABS, na.rm = TRUE), 3 ), nsmall=3) ),
-                # mean_IFD_PER = as.numeric(format(round(  mean(IFD1_PER, na.rm = TRUE), 3 ), nsmall=3) ),
+            #  mean_IFD_ABS = as.numeric(format(round(mean(IFD1_ABS, na.rm =TRUE), 3), nsmall=3)),
+            # mean_IFD_PER = as.numeric(format(round(mean(IFD1_PER, na.rm = TRUE), 3), nsmall=3)),
                  
                  mean_IFD.2CO_ABS = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
                  mean_IFD.2CO_PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
                   
-                       #CO position things, requires the melt?
-              norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)]),
+
                   
               #sis.co.ten!!
               mean.siscoten = mean(SisCoTen, na.rm=TRUE),
-              
               mean.siscoten_1CO = mean(SisCoTen[which(hand.foci.count == 1)], na.rm = TRUE),
               mean.siscoten_2CO = mean(SisCoTen[which(hand.foci.count == 2)], na.rm = TRUE),
               mean.siscoten_3CO = mean(SisCoTen[which(hand.foci.count == 3)], na.rm = TRUE),
@@ -867,6 +880,40 @@ mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD male", mouse.avs_4MM$category), 1,
 
 mouse.avs_4MM$Rec.group.exclu <- ifelse(grepl("PWD male", mouse.avs_4MM$category), 1, 
                                 ifelse(grepl("MSM male", mouse.avs_4MM$category), 1, 0))
+
+mouse.BivData.Table <- mouse.avs_4MM
+
+```
+
+
+```{r strain.curated.biv, echo=FALSE}
+
+strain.BivData.Table <- ddply(mouse.BivData.Table, c("strain", "sex"), summarise,
+                        
+                        Nmice = length(Nmice),
+                        Ncells  = sum(Ncells), #might not to be sum
+                        mean.SC = mean(mean_SC),
+                        var.SC = mean(var), #mouse average variance of bivalent per mouse
+                        
+                        #chrm classes
+                        av.proportion_0CO = mean(proportion_0CO),
+                        av.proportion_1CO = mean(proportion_1CO),
+                        av.proportion_2CO = mean(proportion_2CO),
+                        av.proportion_3CO = mean(proportion_3CO),
+                        
+                        #1CO pos
+                        mean.1CO.pos = mean(mean_1CO.pos),
+                        
+                        #mean.IFD
+                        mean.IFD.ABS = mean(mean_IFD.2CO_ABS),
+                        mean.IFD.PER = mean(mean_IFD.2CO_PER)
+                        
+                        )
+
+#add
+strain.BivData.Table <- add_subsp(strain.BivData.Table)
+strain.BivData.Table <- add_species(strain.BivData.Table)
+                      
 
 ```
 
@@ -906,14 +953,22 @@ algorithm.stat.category <- ddply(cell.level.BivData_table, c("sex", "strain"), s
 
 RENAME the curate bivdata below
 
+
+```{r Q1.Short.Long_biv.setup, echo=FALSE}
+
+#REAL.long_mouse_table
+#REAL.short_mouse_table
+
+#make the Q1 strain list
+Q1.real.short_mouse_table <- REAL.short_mouse_table %>% filter( (strain != "CZECH") & (strain != "MOLF") )
+
+Q1.real.long_mouse_table <- REAL.long_mouse_table %>% filter( (strain != "CZECH") & (strain != "MOLF") )
+
+```
+
+
 ```{r Q1.biv.data_table.4MM.Male, echo=FALSE, eval=FALSE}
 
-#add this to setup
-
-#remove female, 
-#add back in the BIVDATA from strains which were  removed for the sex-specific comparisons
-
-#Curated_BivData_male  -- RE
 
 male.av_4MM <- ddply(cleanCurated_BivData, c("mouse"), summarise,
                         Nmice = length(unique(mouse)),
@@ -972,6 +1027,7 @@ mouse.avs_4MM <- male.av_4MM[! male.av_4MM$mouse  %in% juvi_mice, ]
 
 ```
 
+
 ```{r totSC_setup, echo=FALSE}
 #SC.skel
 #"anon.batch" "rand_name"  "bin_size"   "skel_size" , all batches included
@@ -1005,6 +1061,7 @@ MLH1.merge.Skel$skel_size <- as.numeric(MLH1.merge.Skel$skel_size)
 MLH1.merge.Skel <- MLH1.merge.Skel  %>% filter(bin_size < 60000)
 
 ```
+
 
 ```{r totSC.viz4outliers, echo=FALSE}
 
@@ -1135,6 +1192,7 @@ MLH1.merge.Skel <- add_species(MLH1.merge.Skel)
 
 ```
 
+
 ```{r tot.skel.table, echo=FALSE}
 
 MLH1.merge.Skel$nMLH1.foci <- as.numeric(MLH1.merge.Skel$nMLH1.foci)
@@ -1149,6 +1207,7 @@ totSC.mouse.av.table <- ddply(.data=MLH1.merge.Skel,
                  var.MLH1 = var( nMLH1.foci, na.rm = TRUE),
                  
                  mean.skel = mean(skel_size, na.rm = TRUE),
+                 var.skel = var(skel_size, na.rm = TRUE),
                 #se for skel
                 
                  mean.bin =  mean(bin_size, na.rm = TRUE)
@@ -1179,12 +1238,14 @@ tot.SC_juvi.male <- totSC.mouse.av.table[totSC.mouse.av.table$mouse  %in% juvi_m
 
 totSC.mouse.av.table <- totSC.mouse.av.table[! totSC.mouse.av.table$mouse  %in% juvi_mice, ] 
 
+#
 totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain !="F1" & strain !="SPIC" & strain !=  "CAROLI" & strain !="SPRET"& strain !="HMI"& strain !="PERC")
 
 ```
 
 
-```{r tot.SC.setup, echo = FALSE}
+
+```{r tot.SC_strain.setup, echo = FALSE}
 
 totSC.strain.av.table <- ddply(.data=totSC.mouse.av.table, 
                  .(sex,strain),
@@ -1196,6 +1257,7 @@ totSC.strain.av.table <- ddply(.data=totSC.mouse.av.table,
                 # var.MLH1 = var( nMLH1.foci, na.rm = TRUE),
                  
                  mean.skel = mean(mean.skel, na.rm = TRUE),
+               # var.skel = var(mean.skel, na.rm = TRUE), #average mouse variance
                  mean.bin =  mean(mean.bin, na.rm = TRUE)
                  
 )
@@ -1299,18 +1361,6 @@ REAL.long_mouse_table$Rec.group.exclu <- ifelse(grepl("PWD male", REAL.long_mous
 
 # Datasubsets
 
-
-```{r Q1.Short.Long_biv.setup, echo=FALSE}
-
-#REAL.long_mouse_table
-#REAL.short_mouse_table
-
-#make the Q1 strain list
-Q1.real.short_mouse_table <- REAL.short_mouse_table %>% filter( (strain != "CZECH") & (strain != "MOLF") )
-
-Q1.real.long_mouse_table <- REAL.long_mouse_table %>% filter( (strain != "CZECH") & (strain != "MOLF") )
-
-```
 
 
 # MLH1 models
@@ -1878,6 +1928,19 @@ ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.D
 #Kaz Z are higher than Dom
 ```
 
+
+
+
+
+# Q1 single bivalent section
+
+
+```{r Q1.single.biv_position_table, echo=FALSE}
+#strain averages for single bivalent 
+#
+colnames(Curated_BivData99)
+
+```
 
 
 
@@ -3238,6 +3301,8 @@ Short.removed_BivData_IFD.PER_Ttest_mus.av$p.value
 Short.removed_BivData_IFD.ABS_Ttest_mus.av <- t.test(close.IFD.rates.mus.rate$mean.absIFD_short.rm[close.IFD.rates.mus.rate$Rec.group == 1], 
                                  close.IFD.rates.mus.rate$mean.absIFD_short.rm[close.IFD.rates.mus.rate$Rec.group == 0])
 ```
+
+
 
 
 # SAVE the data
