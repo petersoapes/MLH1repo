@@ -1,16 +1,15 @@
 ---
 title: "MLH1 Results Outline"
-date: 
+date: 'null'
 output:
-  word_document:
-    toc: yes
-    toc_depth: '5'
   html_document:
     df_print: paged
     toc: yes
     toc_depth: '5'
     toc_float: yes
-- \linenumbers
+  word_document:
+    toc: yes
+    toc_depth: '5'
 bibliography: refs_Main_Report.bib
 ---
 
@@ -34,6 +33,7 @@ library(ggpubr)
 library(reshape2)
 library(patchwork)
 library(pander)
+library("xlsx")
 
 options(digits=2)
 
@@ -128,6 +128,7 @@ all.cell.MM.HQ <- ddply(.data=DF.HetC.MixedModel.HQ,
 )
 
 ```
+
 
 ```{r table.for.plot, echo=FALSE, warning=FALSE}
 #why do I add in a different table?
@@ -273,6 +274,7 @@ male.plot <- ggplot(just.male_mouse.av, aes(x = as.factor(strain), y = mean_co, 
 
 ```
 
+
 ```{r three.plots, echo=FALSE, warning=FALSE}
 #merge the 3 plots
 #try patchwork
@@ -284,39 +286,6 @@ male.plot <- ggplot(just.male_mouse.av, aes(x = as.factor(strain), y = mean_co, 
 Fig1_v1_strain / (female.specific.plot + male.plot )
 
 ```
-
-
-```{r MAIN.TABLE1, echo=FALSE, eval=TRUE }
-#DMC1table.main99 <-  DMC1table.main99[,c("category","mean.MLH1","ncells.x","mean.count.L", "MLH1.L_ratio", "ncells.y","mean.count.Z", "MLH1.Z_ratio"),  drop=FALSE]
-
-#colnames(DMC1table.main99) <- c("category", "mean MLH1",    "ncells",     "mean DMC1", "MLH1:DMC1 ratio", "ncells",     "mean DMC1", "MLH1:DMC1 ratio")
-
-#kable(DMC1table.main99, row.names = F, caption = "DMC1 measures") %>%
-#  kable_styling() %>%
-#  add_header_above(c(" " = 2, "Early Zygotene" = 3, "Late Zygotene" = 3)) %>%
-#  scroll_box(width = "800px", height = "200px")
-
-
-#write the full table to a supplemental table
-#show the head (or shortened)
-
-#kable(table(AP_mouse_table.HQ$category), col.names = c("Category", "mice"), label = "Number of mice by category" )
-
-#kable(strain.table.HQ_Fig, "latex")
-
-df.strain.table <- strain.table.HQ_Fig
-
-#kable(df.strain.table)
-
-pander(df.strain.table)
-
-#kable(strain.table.HQ_Fig, col.names = c("Subspecies", "Strain","Sex", "Number of Mice", "Number of Cells", "Mean MLH1 count per cell", "cV", "Var", "sd", "se"), caption = "Strain Level Summary Statistics" )  %>%
-#  kable_styling() %>%
-#  scroll_box(width = "800px", height = "200px")
-
-#kable(table(MLH1_data$category), col.names = c("Category","Cells"), label = "Number of Cells by category" )
-```
-
 
 
 ```{r rand.misc, echo=FALSE, include=FALSE, eval=FALSE}
@@ -386,7 +355,7 @@ female.musc.mice.table <- ddply(female.musc.cells, c("sex"), summarise,
 ```
 
 
-# genome-wide recombination rate estimates for both sexes
+# Genome-wide recombination rate estimates for both sexes
 
 <notes about figure; make sure the order highlights the difference (mol, musc, dom). Clean up the axis and titles. Resizing might be an issue too.>
 
@@ -527,6 +496,35 @@ Dom.male.VAR.plot <- ggplot(Dom.male_mouse.av, aes(color= strain))+geom_jitter(a
 ```
 
 
+
+```{r MAIN.TABLE1, echo=FALSE, eval=TRUE}
+#write the full table to a supplemental table
+#show the head (or shortened)
+#kable(table(AP_mouse_table.HQ$category), col.names = c("Category", "mice"), label = "Number of mice by category" )
+#kable(strain.table.HQ_Fig, "latex")
+
+df.strain.table <- strain.table.HQ_Fig
+#kable(df.strain.table)
+#pander(df.strain.table)
+
+#reorder the df.strain.table
+#species, subspecies, strain
+
+#code for reording column names...
+#DMC1table.main99 <-  DMC1table.main99[,c("category","mean.MLH1","ncells.x","mean.count.L", "MLH1.L_ratio", #"ncells.y","mean.count.Z", "MLH1.Z_ratio"),  drop=FALSE]
+
+#write.xlsx(df.strain.table, file = "Results_Table.xlsx", sheetName = "MLH1.results", append = T, row.names = F)
+
+kable(strain.table.HQ_Fig, col.names = c("Subspecies", "Strain","Sex", "Number of Mice", "Number of Cells", "Mean MLH1 count per cell", "cV", "Var", "sd", "se"), caption = "Strain Level Summary Statistics" )  %>%
+  kable_styling() %>%
+  scroll_box(width = "800px", height = "200px")
+
+#kable(table(MLH1_data$category), col.names = c("Category","Cells"), label = "Number of Cells by category" )
+```
+
+
+
+
 # Partitioning variation in recombination rate
 
 
@@ -657,7 +655,6 @@ MLH1var_M3_Q12_sum <- summary(MLH1var_M3_Q12)
 ```
 
 
-
 Counting MLH1 foci in multiple oocytes for each female and multiple spermatocytes for each male allowed us to examine determinants of the within-mouse variance in recombination rate. To do this, we considered the same models as above, but replaced mean MLH1 foci count with within-mouse variance in MLH1 foci count as the dependent variable. Sex is the only variable that significantly affects recombination rate in both the mixed model (M1) (p < `r 1/1000000` -- `r round(LmerMLH1_VAR_results$sex.results, 5)`) and general linear models (M2) (p = `r MLH1var_M2_sum$coefficients[,4][9]`) and M3 (p = `r round(glmMLH1Var_M3_sum$coefficients[,4][2], 5)`). 
 
 In general, females have almost twice as much variance in MLH1 foci per cell compared to males (Figure 1). Since estimates of within-mouse variance may be more susceptible to technical error from the staining protocol, we repeated the analyses using a subset of cells with higher quality scores (quality score 1 and 2, see Materials and Methods).  The results are similar: sex is the strongest effect (M1 p < `r 1/1000000` `r round(LmerMLH1_M1_Q12_VAR_results$sex.results, 5)`; M2 p = `r  round(sum.MLH1var_M2_Q12$coefficients[,4][4], 5)`;  also M3 p = `r MLH1var_M3_Q12_sum$coefficients[,4][2]`). When both quality-curated and full datasets are considered, strain does not significantly and consistently affect variance in MLH1 foci count per cell in either sex. These results suggest that within-mouse variance in recombination rate evolves independently of mean recombination rate.
@@ -746,13 +743,16 @@ DMC1table.main99 <-  DMC1table.main99[,c("category","mean.MLH1","ncells.x","mean
 
 colnames(DMC1table.main99) <- c("category", "mean MLH1",    "ncells",     "mean DMC1", "MLH1:DMC1 ratio", "ncells",     "mean DMC1", "MLH1:DMC1 ratio")
 
-#kable(DMC1table.main99, row.names = F, caption = "DMC1 measures") %>%
-#  kable_styling() %>%
-#  add_header_above(c(" " = 2, "Early Zygotene" = 3, "Late Zygotene" = 3)) %>%
-#  scroll_box(width = "800px", height = "200px")
+kable(DMC1table.main99, row.names = F, caption = "DMC1 measures") %>%
+  kable_styling() %>%
+  add_header_above(c(" " = 2, "Early Zygotene" = 3, "Late Zygotene" = 3)) %>%
+  scroll_box(width = "800px", height = "200px")
 
-pander(DMC1table.main99)
+#pander is better for word
+#pander(DMC1table.main99, row.names = F)
 
+#write table
+#write.xlsx(DMC1table.main99,file = "Results_Table.xlsx",sheetName = "DMC1.results", append = FALSE, row.names=F)
 ```
 
 ```{r MAIN.DMC1.plot, echo=FALSE, warning=FALSE}
@@ -877,9 +877,6 @@ DMC1.Zratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G mal
 
 ```
 
-
-  
-  
   
 In an attempt to localize the male-specific evolution of crossover number to steps of the meiotic pathway, we counted foci from a marker for double strand breaks (DSBs), DMC1, in prophase spermatocytes. DMC1 foci were scored from a total of `r sum( (DMC1.mean.table %>%  filter(stage == "Early") )$ncells)` early zygotene-stage and `r sum( (DMC1.mean.table %>%  filter(stage == "Late") )$ncells)` late zygotene-stage spermatocytes from three low-recombination strains (musculus^KAZ^ , domesticus^WSB^ , and domesticus^G^) and two high-recombination strains (musculus^PWD^ and molossinus^MSM^).  
 
@@ -896,100 +893,11 @@ This comparison raises the possibility that the evolution of crossover number is
 
 <the birer et al ratios for strain average DMC1: MLH1 were 5.6 cast. 6.6 C3H, 7.3 B6>
 
-<Bret's Q, ANOVA is not appropriate for 2 samples unless it's specilaized somehow>
-
-
-
-```{r DMC1.subsampling, echo=FALSE, eval = FALSE, include = FALSE}
-
-#Subsampling code -- don't report
- 
-#The number of observations are not quite equal across strains and cell stages, so I ran permutations sampling 25 cells from the high and low recombining groups of cells. Below are the distributions of p values for permuted t-tests from sampling 25 cells from the pooled high and low recombining groups. Permutations were done for both cell stages. The actual p value is in red. 
-
-#The observed p value does not fall outside of the permuted distribution with assumes equal cell sampling.
-
-#recreate the DMC1 data by subsampling ~9 or lowest cell number from 
-# the 2 groups
-
-#make the 2 pools
-High.L.pool <- DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ]
-High.Z.pool <- DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ]
-
-Low.L.pool <- DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]
-Low.Z.pool <- DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]
-
-
-#permute drawing / subsampling and performing the t-test
-#put the p.value results into a DF!
-
-
-#permut.SC.cv.diff  <- as.data.frame(
-#sample(THE.DF, SAMPLE.SIZE, REPLACE?)
-
-#permuting samples -- and re-licating t-tests
-
-#nrep <- 1000
-
-#permuting samples to replicate the t.test across cell stages from high and low with equal sample sizes.
-bunchOpvals.L <- replicate(1000, 
-    # t.test
-    t.test( sample(High.L.pool, 25, replace = FALSE),
-            sample(Low.L.pool, 25, replace = FALSE), var.equal = FALSE )$p.value
-          )
-bunchOpvals.L <- as.data.frame(bunchOpvals.L)
-bunchOpvals.L$stage <- "L"
-
-bunchOpvals.Z <- replicate(1000, 
-    # t.test
-    t.test( sample(High.Z.pool, 25, replace = FALSE),
-            sample(Low.Z.pool, 25, replace = FALSE), var.equal = FALSE)$p.value
-          )
-
-bunchOpvals.Z <- as.data.frame(bunchOpvals.Z)
-bunchOpvals.Z$stage <- "Z"
-
-#could merge the lists of p-values
-replicated.Ttests <- cbind(bunchOpvals.L, bunchOpvals.Z)
-#have to melt, the rbinded dataframe to get the cols 'stage' and 'pvale'
-
-
-#ASSUMPTIONS; normality, equal variance
-
-#plot the lists of pvals in histogram? compare to the observed pvalue to get a sense as of how much sample size shifts the pvalues.
-
-#plot.pvals.L <- ggplot(bunchOpvals.L, aes(bunchOpvals.L) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Leptotene")+geom_vline(xintercept=ttest.HighLow.L$p.value, linetype="dotted", color="red")
-
-
-#plot.pvals.Z <- ggplot(bunchOpvals.Z, aes(bunchOpvals.Z) )+geom_histogram(bins = 50)+ ggtitle("1000 rep t-tests sample size 25, High vs Low Zygotene")+geom_vline(xintercept=ttest.HighLow.Z$p.value, linetype="dotted", color="red")
-#plot.pvals.L
-#plot.pvals.Z
-
-
-#The t.test( ) function produces a variety of t-tests. Unlike most statistical packages, the default assumes #unequal variance and applies the Welsh df modification.
-#n use the var.equal = TRUE
-#https://www.statmethods.net/stats/ttest.html
-```
-
-```{r normality, echo=FALSE, warning=FALSE, eval=FALSE}
-#these are histogram plots for testing Normality shape -- move to supplemenatry section
-#- check that distributions are close to normal
-#- check for equal variance.
-
-DMC1.histogram <- ggplot(DMC1.DF, aes(total.count, fill = stage)) + geom_histogram(alpha = 0.4)+facet_wrap(~strain)+ ggtitle("DMC1 histogram")
-
-#checking equal variance, https://www.statmethods.net/stats/anovaAssumptions.html
-#bartlet's test, Levine's test
-```
-
 
 # Evolution of genome-wide recombination rate is reflected at the single chromosome level
 
 
 ```{r algorithm_performance_stats, echo=FALSE}
-
-#sort by category, 
-#compare total boxes and rate passed
-#Curated_BivData  -- pass rate?
 
 #number of mice, number of cells
 #mean number of isolate bivs per cell,
@@ -1526,21 +1434,30 @@ Q1.totSC.mouse.av.table <- Q1.totSC.mouse.av.table %>%
 
 Q1.totSC.mouse.av.table <- with(Q1.totSC.mouse.av.table, Q1.totSC.mouse.av.table[order(sex, strain),])
 
-#add category mean
-#totSC.strain.av.table %>% filter
-#totsc.dom_tot.sc <- Q1.totSC.mouse.av.table %>% filter( subsp == "Dom" )
-#totsc_strain.av.dom <- totSC.strain.av.table %>% filter( subsp == "Dom" )
 
-Tot.SC_mouse.av_ALL <- ggplot(data= Q1.totSC.mouse.av.table, aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
-  facet_wrap(sex~subsp, scales="free", ncol = 3)+ 
+
+#COPY THIS CODE TO BELOW
+#Q1.SC.long.mouse_scatter_boxplot <- ggplot( Q1.real.long_mouse_table, aes(y = mean_SC, x = sex, color=strain)) + geom_jitter()+ geom_boxplot(alpha=.2) +scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales="free")+ylim(c(75,150) )+ggtitle("Mouse average SC Length \n long bivalent dataset")
+
+
+#Q1.SC.short.mouse_scatter_boxplot <- ggplot( Q1.real.short_mouse_table, aes(y = mean_SC, x = sex, color=strain)) + geom_jitter()+ geom_boxplot(alpha=.2) +scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales="free")+ylim(c(20,115) )+ggtitle("Mouse average SC Length \n short bivalent dataset")
+
+
+#change this plot to look like the short bivalent plot -- boxplots + mouse points
+Tot.SC_mouse.av_ALL <- ggplot(data= Q1.totSC.mouse.av.table, aes(y = mean.skel, x=sex, color=strain))+
+  scale_color_manual(values=colors_of_strains)+
   
-  geom_hline(data =totSC.strain.av.table, aes(yintercept=mean.skel) )+
+  facet_wrap(~subsp, scales="free", ncol = 3)+ 
+  geom_jitter()+ geom_boxplot(alpha=.2)+ 
+  #geom_hline(data =totSC.strain.av.table, aes(yintercept=mean.skel) )+
   
-  theme(axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank())+  ylim(c(1000,2600 ))+ggtitle("Mouse av. total SC area") + theme(legend.position="none")
+  theme(axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank())+  ylim(c(1000,2600 ))+ggtitle("Mouse av. total SC area") + 
+  #change the white themes
+  theme(legend.position="none")
 
 Tot.SC_mouse.av_ALL
 
-#full dataset --- 
+
 
 totsc.musc <- Q1.totSC.mouse.av.table %>% filter( subsp == "Musc" )
 totsc_strain.av.msc <- totSC.strain.av.table %>% filter( subsp == "Musc" )
@@ -1562,6 +1479,23 @@ Tot.SC_mouse.av_Mol <- ggplot(data= totsc.mol, aes(y = mean.skel, x=mouse, color
   geom_hline(data =totsc_strain.av.mol, aes(yintercept=mean.skel) )+
   
   theme(axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank())+  ylim(c(1000,3000 ))+ggtitle("Mouse av. total SC area")
+
+```
+
+
+```{r Q1.total_SC.table, echo=FALSE}
+
+totSC.strain.av.table <-  totSC.strain.av.table[,c("subsp","strain", "sex","nmice","ncells","mean.skel"),  drop=T]
+
+#head of table
+#see the DMC1 code
+
+kable(totSC.strain.av.table, row.names = F, caption = "caption") %>%
+  kable_styling() %>%
+  scroll_box(width = "800px", height = "200px")
+
+#add variance
+#write.xlsx(totSC.strain.av.table, file = "Results_Table.xlsx", sheetName = "Total.SC.results", append = TRUE, row.names = F)
 
 ```
 
@@ -1861,6 +1795,7 @@ Q12.Tot.SC_mouse.av_Mol <- ggplot(data= totSC_Q12_mouse.av.table %>% filter(subs
 
 
 ```{r show.long.biv, echo=FALSE, include=FALSE}
+
 #mouse av
 Q1.SC.long.mouse_scatter_boxplot <- ggplot( Q1.real.long_mouse_table, aes(y = mean_SC, x = sex, color=strain)) + geom_jitter()+ geom_boxplot(alpha=.2) +scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales="free")+ylim(c(75,150) )+ggtitle("Mouse average SC Length \n long bivalent dataset")
 
@@ -2146,380 +2081,7 @@ Q1.av.long.biv_scatr_box   <- ggplot(REAL.long_mouse_table  , aes(x=sex, y=mean_
 Q1.av.short.biv_scatr_box   <- ggplot(REAL.short_mouse_table, aes(x=sex, y=mean_F1pos_PER, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= mean_F1pos_PER ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nShort Biv")
 ```
 
-```{r show.siscoten, echo=FALSE, eval=FALSE}
-#think of a good way to display this
 
-sis.co.ten.plot_WSB_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(sex~strain)
-sis.co.ten.plot_WSB_female
-
-sis.co.ten.plot_WSB_male <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB male",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(sex~strain)
-sis.co.ten.plot_WSB_male
-
-sis.co.ten.plot_LEW_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "LEW female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(sex~strain)
-#sis.co.ten.plot_LEW_female
-
-sis.co.ten.plot_LEW_male <- ggplot(data = Curated_BivData[Curated_BivData$category == "LEW male",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(sex~strain)
-#sis.co.ten.plot_LEW_male
-
-
-sis.co.ten.plot_PWD_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(sex~strain)
-#sis.co.ten.plot_PWD_female
-
-
-sis.co.ten.plot_PWD_male <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD male",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(sex~strain)
-#sis.co.ten.plot_PWD_male
-
-
-Curated_BivData <- Curated_BivData[Curated_BivData$hand.foci.count < 5,]
-Curated_BivData <- Curated_BivData[!(is.na(Curated_BivData$hand.foci.count) | Curated_BivData$hand.foci.count==""), ]
-
-
-jitter_siscoten_PWDf <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD female",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ ggtitle("PWD female Sis.co.ten")+
-  geom_jitter()+facet_wrap(sex~strain)
-#jitter_siscoten_PWDf
-
-jitter_siscoten_PWDm <- ggplot(data = Curated_BivData[Curated_BivData$category == "PWD male",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ggtitle("PWD male sis.co.ten")+
-  geom_jitter()+facet_wrap(sex~strain)
-#jitter_siscoten_PWDm
-
-jitter_siscoten_WSBf <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB female",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ggtitle("WSB female sis.co.ten")+
-  geom_jitter()+facet_wrap(sex~strain)
-#jitter_siscoten_WSBf
-
-jitter_siscoten_WSBm <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB male",], aes(y=SisCoTen, x=hand.foci.count, color = as.factor(hand.foci.count) ))+ggtitle("WSB male sis.co.ten")+
-  geom_jitter()+facet_wrap(sex~strain)
-#jitter_siscoten_WSBm
-```
-
-```{r show.norm.siscoten, echo=FALSE, eval=FALSE}
-Curated_BivData$nrm.siscoten <- Curated_BivData$SisCoTen/Curated_BivData$chromosomeLength
-
-Nrm.sis.co.ten.plot_WSB <- ggplot(data = Curated_BivData[Curated_BivData$strain == "WSB",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n WSB")+theme(legend.position="none")
-Nrm.sis.co.ten.plot_WSB
-
-Nrm.sis.co.ten.plot_G <- ggplot(data = Curated_BivData[Curated_BivData$strain == "G",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n G")+theme(legend.position="none")
-Nrm.sis.co.ten.plot_G
-
-
-Nrm.sis.co.ten.plot_LEW <- ggplot(data = Curated_BivData[Curated_BivData$strain == "LEW",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten\nLEW")+theme(legend.position="none")
-Nrm.sis.co.ten.plot_LEW
-
-
-
-Nrm.sis.co.ten.plot_PWD <- ggplot(data = Curated_BivData[Curated_BivData$strain == "PWD",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n PWD")+theme(legend.position="none")
-Nrm.sis.co.ten.plot_PWD
-
-
-Nrm.sis.co.ten.plot_KAZ <- ggplot(data = Curated_BivData[Curated_BivData$strain == "KAZ",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n KAZ")+theme(legend.position="none")
-Nrm.sis.co.ten.plot_KAZ
-
-
-Nrm.sis.co.ten.plot_SKIVE <- ggplot(data = Curated_BivData[Curated_BivData$strain == "PWD",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n SKIVE")+theme(legend.position="none")
-Nrm.sis.co.ten.plot_SKIVE
-
-Nrm.sis.co.ten.plot_MSM <- ggplot(data = Curated_BivData[Curated_BivData$strain == "MSM",], aes(y=SisCoTen/chromosomeLength, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(~sex)+ggtitle("Normalized siscoten \n MSM")+theme(legend.position="none")
-Nrm.sis.co.ten.plot_MSM
-
-```
-
-```{r sis.co.ten.test_HetC, echo=FALSE, eval=FALSE}
-
-#glm for siscoten
-#mouse.avs_4MM  - mouse averages with mean sis.co.ten
-#MM
-lme_MM_siscoten <- lme(mean.siscoten ~ subsp * sex, data= mouse.avs_4MM, random=list(strain=pdDiag(~sex) ) )
-as.data.frame( round(  summary(lme_MM_siscoten)$tTable, 6 ) )
-
-#sex and sex*subsp interaction effect are significant for mean sis.co.ten
-lmer_MM_siscoten <- lmer(mean.siscoten ~ subsp * sex + (1|strain), data=mouse.avs_4MM, REML = TRUE)
-#anova(lmer_MM_siscoten) 
-
-#thing1  <- summary(lmer_MM_siscoten)
-#drop1(lmer_MM_siscoten, test="Chisq") 
-
-rand_siscoten_MM <- exactRLRT(lmer_MM_siscoten)
-rand_siscoten_MM
-#slightly sig
-```
-
-```{r siscoten.test.poly, echo=FALSE, eval=FALSE}
-
-#move this to the set up blocks
-
-mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD", mouse.avs_4MM$strain), 1, 
-                            ifelse(grepl("MSM", mouse.avs_4MM$strain), 1,
-                             ifelse(grepl("SKIVE", mouse.avs_4MM$strain), 1, 0)) )
-
-#test high vs low Musc strains
-#mouse.avs_4MM
-```
-
-```{r log.reg_siscoten, echo=FALSE, eval=FALSE}
-
-#replace the table
-
-male_mouse.av$Rec.group <- ifelse(grepl("PWD", male_mouse.av$strain), 1, 
-                            ifelse(grepl("MSM", male_mouse.av$strain), 1,
-                             ifelse(grepl("SKIVE", male_mouse.av$strain), 1, 0)) )
-
-Male.poly.Mouse.Table_BivData_4MM$Rec.group <- ifelse(grepl("PWD", Male.poly.Mouse.Table_BivData_4MM$strain), 1, 
-                            ifelse(grepl("MSM", Male.poly.Mouse.Table_BivData_4MM$strain), 1,
-                             ifelse(grepl("SKIVE", Male.poly.Mouse.Table_BivData_4MM$strain), 1, 0)) )
-
-#SISCOTEN
-#mouse av, norm.first foci is from 1CO bivalents
-
-log.reg_SIS.co.ten_mouse.av <- glm(Rec.group ~ mean.siscoten, 
-                           
-                                 data=Male.poly.Mouse.Table_BivData_4MM[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc"),], family=binomial(link="logit"))
-summary(log.reg_SIS.co.ten_mouse.av)
-
-
-#single biv level
-log.reg_Sis.co.ten_biv <- glm(Rec.group ~ SisCoTen, 
-                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
-
-summary(log.reg_Sis.co.ten_biv)
-
-```
-
-```{r t.test_sis.co.ten,echo=FALSE, eval=FALSE}
-
-#bivData -- 
-
-t.test_mouse.av_siscoten <- t.test(
-  
-  Male.poly.Mouse.Table_BivData_4MM$mean.siscoten[(mouse.avs_4MM$Rec.group == 1)],
-  
-  Male.poly.Mouse.Table_BivData_4MM$mean.siscoten[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc") &(Male.poly.Mouse.Table_BivData_4MM$Rec.group == 0)] 
-  )
-
-#1CO
-t.test_mouse.av_siscoten_1CO <- t.test( 
-  Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_1CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")& (Male.poly.Mouse.Table_BivData_4MM$Rec.group == 1)], 
- 
-   Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_1CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")& (Male.poly.Mouse.Table_BivData_4MM$Rec.group == 0)]
-  )
-
-#2CO
-t.test_mouse.av_siscoten_2CO <- t.test( 
-  Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_2CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")&(Male.poly.Mouse.Table_BivData_4MM$Rec.group == 1)], 
- 
-   Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_2CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")& (Male.poly.Mouse.Table_BivData_4MM$Rec.group == 0)]
-  )
-
-#3CO
-t.test_mouse.av_siscoten_3CO <- t.test( 
-  Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_3CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")& (Male.poly.Mouse.Table_BivData_4MM$Rec.group == 1)], 
- 
-   Male.poly.Mouse.Table_BivData_4MM$mean.siscoten_3CO[(Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc")&(Male.poly.Mouse.Table_BivData_4MM$Rec.group == 0)]
-  )
-
-
-
-####
-#Single Biv Level -- from the main 
-#pull the single BivData -- MUSC
-
-#check that these have the extra male strains
-
-t.test_single.biv_siscoten <- t.test( 
-  
-  Curated_BivData$SisCoTen[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")& (Curated_BivData$Rec.group == 1)], 
- 
-   Curated_BivData$SisCoTen[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")& (Curated_BivData$Rec.group == 0)]
-  )
-
-#1CO
-mouse.avs_4MM$mean.siscoten_2CO
-
-```
-
-```{r telo.dist, echo=FALSE, eval=FALSE}
-
-sis.co.ten.plot_WSB_female <- ggplot(data = Curated_BivData[Curated_BivData$category == "WSB female",], aes(y=SisCoTen, x=chromosomeLength, color = as.factor(hand.foci.count) ))+
-  geom_point()+facet_wrap(sex~strain)
-
-Curated_BivData <- Curated_BivData[Curated_BivData$hand.foci.count < 5,]
-Curated_BivData <- Curated_BivData[!(is.na(Curated_BivData$hand.foci.count) | Curated_BivData$hand.foci.count==""), ]
-
-
-telo.dist_boxplots <- ggplot(Curated_BivData, aes(x= hand.foci.count, y=telo_dist ) )+ geom_boxplot(aes( fill=hand.foci.count, group=strain), alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("boxy plots")+ ylim(c(0, 150))
-
-
-telo_jitter <- ggplot(Curated_BivData, aes(x= strain, y=telo_dist, color=as.factor(hand.foci.count) ) )+ geom_jitter(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("raw telomere distance")+ ylim(c(0, 150))
-telo_jitter
-
-
-nrm.telo_jitter <- ggplot(Curated_BivData, aes(x= strain, y=telo_dist_PER, color=as.factor(hand.foci.count) ) )+ geom_jitter(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("Normalized telomere distance")+ylim(c(0,1.2))
-nrm.telo_jitter
-
-#why do a different number of rows removed each time??
-```
-
-```{r MM.telo, echo=FALSE, eval=FALSE}
-#HetC
-
-lme_MM_telo.dist <- lmer(mean.telo.dist ~ subsp * sex + (1|strain), data= Mouse.Table_BivData_4MM )
-drop1(lme_MM_telo.dist, test="Chisq")
-as.data.frame( round(  summary(lme_MM_telo.dist)$coefficients, 6 ) )
-
-#sex and sex*subsp interaction effect are significant for mean sis.co.ten
-
-lmer_MM_telo.dist <- lmer(mean.telo.dist ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE)
-#anova(lmer_MM_siscoten) 
-
-#thing1  <- summary(lmer_MM_siscoten)
-drop1(lmer_MM_telo.dist, test="Chisq") 
-rand_telo.dist_MM <- exactRLRT(lmer_MM_telo.dist)
-rand_telo.dist_MM
-```
-
-```{r log.reg_telo.dist, echo=FALSE, eval=FALSE}
-
-Mouse.Table_BivData_4MM$Rec.group <- ifelse(grepl("PWD male", Mouse.Table_BivData_4MM$category), 1, 
-                            ifelse(grepl("MSM male", Mouse.Table_BivData_4MM$category), 1,
-                             ifelse(grepl("SKIVE male", Mouse.Table_BivData_4MM$category), 1, 0)) )
-
-
-#TELO.DIST
-#mouse av, norm.first foci is from 1CO bivalents
-log.reg_Telo.Dist_mouse.av <- glm(Rec.group ~ mean.telo.dist, 
-                           
-                                 data=Mouse.Table_BivData_4MM[(Mouse.Table_BivData_4MM$subsp == "Musc")&(Mouse.Table_BivData_4MM$sex == "male"),], family=binomial(link="logit"))
-summary(log.reg_Telo.Dist_mouse.av)
-
-
-#single biv level
-log.reg_Telo.Dist_biv <- glm(Rec.group ~ telo_dist, 
-                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
-
-summary(log.reg_Telo.Dist_biv)
-
-
-#PER versions
-log.reg_Telo.Dist.PER_biv <- glm(Rec.group ~ telo_dist_PER, 
-                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
-
-summary(log.reg_Telo.Dist.PER_biv)
-```
-
-```{r t.test_Telo.Dist, echo=FALSE, eval=FALSE}
-
-#mouse av
-t.test_mouse.av_telo.dist <- t.test(
-  
-  Mouse.Table_BivData_4MM$mean.telo.dist[(Mouse.Table_BivData_4MM$Rec.group == 1)],
-  
-  Mouse.Table_BivData_4MM$mean.telo.dist[(Mouse.Table_BivData_4MM$sex == "male") & (Mouse.Table_BivData_4MM$subsp == "Musc") &(Mouse.Table_BivData_4MM$Rec.group == 0)] 
-  )
-
-
-#Single Biv Level
-single.biv_t.test_Telo.Dist <- t.test( 
-  
-  Curated_BivData$telo_dist[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 1)], 
- 
-   Curated_BivData$telo_dist[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 0)]
-  )
-   
-#Telo Dist PER
-single.biv_t.test_Telo.Dist_PER <- t.test( 
-  
-  Curated_BivData$telo_dist_PER[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")& (Curated_BivData$Rec.group == 1)], 
- 
-   Curated_BivData$telo_dist_PER[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 0)]
-  )
-   
-```
-
-```{r cent.dist_show, echo=FALSE, eval=FALSE}
-cent.dist_boxplots <- ggplot(Curated_BivData, aes(x= strain, y=dis.cent ) )+ geom_boxplot(aes( fill=hand.foci.count, group=strain), alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("raw centromere distance")+ ylim(c(0, 150))
-
-
-cent.dist_jitter <- ggplot(Curated_BivData, aes(x= strain, y=dis.cent, color=as.factor(hand.foci.count) ) )+ geom_jitter(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("raw centromere dist")+ ylim(c(0, 200))
-cent.dist_jitter
-
-norm.cent.dist_jitter <- ggplot(Curated_BivData, aes(x= strain, y=dis.cent.PER, color=as.factor(hand.foci.count) ) )+ geom_jitter(alpha=.2) + facet_wrap(sex~subsp, ncol=2, scales="free")+ggtitle("Normalized centromere distance")+ylim(c(0,1.2))
-norm.cent.dist_jitter
-
-```
-
-```{r MM.cent.dist, echo=FALSE, eval=FALSE}
-
-lme_MM_cent.dist <- lme(mean.cent.dist ~ subsp * sex, data= Mouse.Table_BivData_4MM, random=list(strain=pdDiag(~sex) ) )
-as.data.frame( round(  summary(lme_MM_cent.dist)$tTable, 6 ) )
-
-lmer_MM_cent.dist <- lmer(mean.cent.dist ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE)
-
-exactRLRT(lmer_MM_cent.dist)
-```
-
-```{r log.reg_CENT.dist, echo=FALSE, eval=FALSE}
-
-#CENT.DIST
-#mouse av, norm.first foci is from 1CO bivalents
-log.reg_CENT.Dist_mouse.av <- glm(Rec.group ~ mean.cent.dist, 
-                           
-                                 data=Mouse.Table_BivData_4MM[(Mouse.Table_BivData_4MM$subsp == "Musc")&(Mouse.Table_BivData_4MM$sex == "male"),], family=binomial(link="logit"))
-summary(log.reg_CENT.Dist_mouse.av)
-
-
-#single biv level
-log.reg_CENT.Dist_biv <- glm(Rec.group ~ dis.cent, 
-                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
-
-summary(log.reg_CENT.Dist_biv)
-
-
-#PER versions
-log.reg_CENT.Dist.PER_biv <- glm(Rec.group ~ dis.cent.PER, 
-                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male"),], family=binomial(link="logit"))
-
-summary(log.reg_CENT.Dist.PER_biv)
-```
-
-```{r t.test_CENT.Dist, echo=FALSE, eval=FALSE}
-#CENT.DIST
-#mouse av
-t.test_mouse.av_Cent.dist <- t.test(
-  
-  Mouse.Table_BivData_4MM$mean.cent.dist[(Mouse.Table_BivData_4MM$Rec.group == 1)],
-  
-  Mouse.Table_BivData_4MM$mean.cent.dist[(Mouse.Table_BivData_4MM$sex == "male") & (Mouse.Table_BivData_4MM$subsp == "Musc") &(Mouse.Table_BivData_4MM$Rec.group == 0)] 
-  )
-
-
-#Single Biv Level
-single.biv_t.test_Cent.Dist <- t.test( 
-  
-  Curated_BivData$dis.cent[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 1)], 
- 
-   Curated_BivData$dis.cent[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 0)]
-  )
-   
-#Cent Dist PER
-single.biv_t.test_Cent.Dist_PER <- t.test( 
-  
-  Curated_BivData$dis.cent.PER[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male") & (Curated_BivData$Rec.group == 1)], 
- 
-   Curated_BivData$dis.cent.PER[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")& (Curated_BivData$Rec.group == 0)]
-  )
-   
-```
 
 ```{r Q1.CO1_foci_pos_boxplot, echo=FALSE, eval=FALSE}
 
@@ -2575,74 +2137,6 @@ anova(Sardell.mo.PWD,Sardell.mo.PWD_R.dis.telo) #p= v low
 anova(Sardell.mo.PWD_R.dis.cent, Sardell.mo.PWD_R.dis.telo) #p = 1
 
 #or AIC(model1,model2)
-
-```
-
-```{r Q1.mean.nrmF1_table, echo=FALSE, eval=FALSE}
-
-#make a table for the sex specific values of the normalized F1 positions
-
-#for strain, sex -- Curated_BivData
-#or (Mouse.Table_BivData_4MM)
-#norm.first.foci.pos
-Q1.normF1.pos_table <- ddply(Mouse.Table_BivData_4MM, c("strain","sex"), summarise,
-                  
-                    mean_1CO_nrm.pos = mean(norm.first.foci.pos, na.rm = TRUE), 
-                  n1CO = sum(n1CO )
-
-)
-
-```
-
-```{r norm.CO.pos_longBiv, echo=FALSE, eval=FALSE}
-
-#real.long.bivData
-#MELT_Curated_BivData
-
-#these isn't long.biv data
-MELT_long_biv <- MELT_Curated_BivData[ MELT_Curated_BivData$Obj.ID %in% real.long.bivData$Obj.ID, ]
-
-real.long.bivData
-MELT_Curated_BivData.1CO <- MELT_Curated_BivData[MELT_Curated_BivData$hand.foci.count < 2, ]
-MELT_Curated_BivData.1CO <- MELT_Curated_BivData.1CO[MELT_Curated_BivData.1CO$PER.Foci.Pos < 1.01, ]
-
-MELT_long_biv <- MELT_Curated_BivData[ MELT_Curated_BivData$Obj.ID %in% real.long.bivData$Obj.ID, ]
-
-
-MELT_long_biv <- add_sex(MELT_long_biv)
-MELT_long_biv <- add_strain(MELT_long_biv)
-MELT_long_biv <- add_subsp(MELT_long_biv)
-MELT_long_biv <- add_category(MELT_long_biv)
-
-
-long.biv_Dom.male <- MELT_long_biv[ (MELT_long_biv$subsp == "Dom") & (MELT_long_biv$sex == "male"), ]
-
-Dom.male_MELT_long <- ggplot( long.biv_Dom.male, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Dom male long biv\nNormalized Foci Positions")+scale_fill_manual(values=colors_of_strains)
-Dom.male_MELT_long
-
-
-long.biv_Musc.male <- MELT_long_biv[ (MELT_long_biv$subsp == "Musc") & (MELT_long_biv$sex == "male"), ]
-
-Musc_male_MELT_long <- ggplot( long.biv_Musc.male, aes(x=PER.Foci.Pos, fill=strain) ) + geom_density(alpha=.2) + facet_wrap(~hand.foci.count, ncol=1)+ggtitle("Musc male long biv\nNormalized Foci Positions")+scale_fill_manual(values=colors_of_strains)
-Musc_male_MELT_long
-
-#there are v few observations in this dataset
-```
-
-```{r Q1.log.reg.CO1_pos, echo=FALSE, eval=FALSE}
-
-#LOGISTIC REGRESSION for FOCI POSITION
-
-#mouse av, norm.first foci is from 1CO bivalents
-log.reg_1CO_pos_mouse.av <- glm(Rec.group ~ norm.first.foci.pos, 
-                            data=mouse.avs_4MM[(mouse.avs_4MM$subsp == "Musc")&(mouse.avs_4MM$sex == "male"),], family=binomial(link="logit"))
-summary(log.reg_1CO_pos_mouse.av)
-
-
-#single biv level
-log.reg_1CO_pos_biv <- glm(Rec.group ~ PER_Foci_1, 
-                            data=Curated_BivData[(Curated_BivData$subsp == "Musc")&(Curated_BivData$sex == "male")&(Curated_BivData$hand.foci.count == 1),], family=binomial(link="logit"))
-summary(log.reg_1CO_pos_biv)
 
 ```
 
@@ -2712,9 +2206,9 @@ dev.off()
 ```
 
 
-```{r double.tri.rewrite, echo=FALSE, eval=FALSE}
-#good function, saves to file, can't reproduce in rmd
+```{r double.tri.rewrite, fig.width = 6.5, fig.height=5}
 
+#good function, saves to file, can't reproduce in rmd ..width=650, height=500
 #big loop for automating the IFD triangles
 only.male.strains <- c("F1", "PERC", "CZECH", "AST", "TOM", "HMI", "SPRET", "CAROLI", "other")
 auto_curate_DF <- Curated_BivData[ ! Curated_BivData$strain %in% only.male.strains, ]
@@ -2741,7 +2235,7 @@ bottom.triangle2 <- function(my.y, my.x, my.data){
           col =  colors_of_strains[current.strain])
   
   mtext("Position.2.Male", 1, 1.5, at=mean(par()$usr[1:2]) + x.dist)
-  mtext("Position.1.Male", 4, 3, padj=par()$usr[1] + 10)
+  mtext("Position.1.Male", 4, 3, padj=par()$usr[1] +  7)
   x.at <- axisTicks(par()$usr[1:2], 0) + x.dist
   axis(side=1, las=1, pos=0, at=x.at, 
        labels=F, xpd=TRUE)
@@ -2751,14 +2245,15 @@ bottom.triangle2 <- function(my.y, my.x, my.data){
 }
 
 x.dist <- .5
+RP <- list()
 
 for(i in 1:(length(df_strain_list))){
-  print(i)
+  #print(i)
   current.strain <- as.character(df_strain_list[[i]]$strain[1])
   
-  #declare file
-  png(paste0("~./MLH1repo/doc/figureFiles/test.triangle_", current.strain, ".png"),  width=650, height=500)
-  
+  #declare file for saving png
+  #png(paste0("~./MLH1repo/doc/figureFiles/test.triangle_", current.strain, ".png"),  width=650, height=500)
+  plot.new()
   
   my.data = (Curated_BivData %>% filter(strain == current.strain) %>% filter(hand.foci.count == 2) )
     
@@ -2771,13 +2266,36 @@ for(i in 1:(length(df_strain_list))){
   my.y.bottom = (Curated_BivData %>% filter(strain == current.strain) %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_2
   
   op <- par(mar=c(3, 4, 8, 12) + 0.1, oma=c(2, 0, 0, 2))
+  
   top.triangle2(my.y.top, my.x.top, my.data)
+  
   bottom.triangle2(my.y.bottom+x.dist, my.x.bottom, my.data) #x.dist
+ 
+  #try recordPlot(),
+
+
+  #x.plot.list[[i]] <- function(){top.triangle2(my.y.top, my.x.top, my.data)}
+  #x.plot.list.b[[i]] <- function(){top.triangle2(my.y.top, my.x.top, my.data), bottom.triangle2(my.y.bottom+x.dist, my.x.bottom, my.data)}
+  # p <- recordPlot()
+  #grid.echo()
+  #a <- grid.grab()
+  
   par(op)
+  RP[[i]] <- recordPlot()
   dev.off()
 }
+ 
+
+#for(ee in 1:7){
+#  #print(ee)
+#  RP[[ee]]
+#  plot.new()
+#}
+
 
 ```
+
+
 
 
 ```{r Q1.IFD_load.triangles, echo=FALSE, message=FALSE, warning=FALSE, fig.cap = "Example of Sex differences in IFD distributions"}
@@ -3058,330 +2576,6 @@ nrm.IFD_sex.comp_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="LEW" 
 
 ```
 
-```{r Q1.IFD_gamma, echo=FALSE, message=FALSE}
-library(EnvStats)
-#cleanCurated_BivData
-
-#all.female.multi <- (cleanCurated_BivData %>% filter(sex == "female") %>% filter(hand.foci.count > 1) %>%
-#                       filter( !is.na( IFD1_ABS) ))  #$IFD1_ABS
-
-
-#this MELT BIVDATA should be good to go
-MELT.IFD.BIVDATA <- melt(cleanCurated_BivData[,c("fileName", "chromosomeLength","centromere_ABS_Position", "centromere_PER_Position",
-                            "Obj.ID","hand.foci.count",
-                            "mouse","category","strain", "sex", "Rec.group",
-                            "IFD1_ABS","IFD2_ABS","IFD3_ABS")], 
-           
-             id=c("fileName", "chromosomeLength","centromere_ABS_Position", "centromere_PER_Position",
-                            "Obj.ID","hand.foci.count",
-                            "mouse","category","strain", "sex", "Rec.group"))
-#rename the cols and clean up
-MELT.IFD.BIVDATA <- MELT.IFD.BIVDATA[(!is.na(MELT.IFD.BIVDATA$value)),]
-
-colnames(MELT.IFD.BIVDATA) <- c("fileName", "chromosomeLength","centromere_ABS_Position", "centromere_PER_Position",
-                            "Obj.ID","hand.foci.count",
-                            "mouse","category","strain", "sex", "Rec.group", 
-                               "whichIFD", "IFDval") 
-
-MELT.IFD.BIVDATA$Nrm.IFD <- MELT.IFD.BIVDATA$IFDval / MELT.IFD.BIVDATA$chromosomeLength
-
-#START isolating all the types of IFDs
-
-#all.female.multi$mycol <- apply(all.female.multi[,c('IFD1_ABS','IFD2_ABS','IFD3_ABS')], 1, function(x) x[!is.na(x)][1])
-
-all.female.IFDs <- MELT.IFD.BIVDATA %>% filter(sex == "female")#1697
-
-all.male.IFDs <- MELT.IFD.BIVDATA %>% filter(sex == "male")#1392
-
-#shape and scale parameter
-
-#gamma fits
-FULL.female.gamma <- egamma( all.female.IFDs$IFDval, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#3.8
-
-#gamma fits
-FULL.male.gamma <- egamma( all.male.IFDs$IFDval, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#shape  5.4
-#male, stronger interference
-
-WSB.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "WSB")  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#3.1, 3.73 (raw, PER) (n=252)
-
-WSB.2CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "WSB") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#3.6, 5.10 (raw, PER) (n=186)
-#try the short and long bivalents dataset
-
-WSB.3CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "WSB") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#3, 3.237 (raw, PER) (n=60)
-
-
-#gamma fits
-WSB.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "WSB")  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#3.5,  5.1 (raw, PER) (n= 109)  
-
-WSB.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "WSB") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#3.9, 3.9 (raw, PER)  (n=107)
-#there are 0 3CO and 2  4CO bivalents -- this causes a greater difference in the PER based value
-
-```
-
-```{r Q1.gamma.IFD, echo=FALSE, message=FALSE}
-female.gamma <- egamma( (all.female.IFDs )$IFDval, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-f2CO.female.gamma <- egamma( (all.female.IFDs  %>% filter(hand.foci.count == 2)  )$IFDval, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-f3CO.female.gamma <- egamma( (all.female.IFDs %>%  filter(hand.foci.count == 3)  )$IFDval, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-f4CO.female.gamma <- egamma( (all.female.IFDs %>%  filter(hand.foci.count == 4)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-###
-PWD.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "PWD")  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#3.8, 4.844 (raw, nrm)  (n = 357)
-PWD.2CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "PWD") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#3.8, 6.746 (raw, nrm) (n = 285)
-PWD.3CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "PWD") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#3, 3.628 (n = 72)
-
-KAZ.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "KAZ")  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-
-KAZ.2CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "KAZ") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-
-KAZ.3CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "KAZ") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-#####
-SKIVE.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "SKIVE")  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-SKIVE.2CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "SKIVE") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-SKIVE.3CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "SKIVE") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-##
-MSM.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "MSM")  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-MSM.2CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "MSM") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-MSM.3CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "MSM") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-MSM.4CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "MSM") %>% filter(hand.foci.count == 4)  )$IFDval, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-
-######
-G.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "G")  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-G.2CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "G") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-G.3CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "G") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-G.4CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "G") %>% filter(hand.foci.count == 4)  )$IFDval, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-######
-LEW.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "LEW")  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-LEW.2CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "LEW") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-LEW.3CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "LEW") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-LEW.4CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "LEW") %>% filter(hand.foci.count == 4)  )$IFDval, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-######
-WSB.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "WSB")  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-WSB.2CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "WSB") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-WSB.3CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "WSB") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-WSB.4CO.female.gamma <- egamma( (all.female.IFDs %>% filter(strain == "WSB") %>% filter(hand.foci.count == 4)  )$IFDval, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-```
-
-```{r Q1.male.IFD_gamma, echo=FALSE, message=FALSE}
-#gamma fits
-male.gamma <- egamma( (all.male.IFDs )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-m2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-m3CO.male.gamma <- egamma( (all.male.IFDs %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE,         ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-###
-#gamma fits
-PWD.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "PWD")  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#8.1, 11.74 (n=318) (lots of variation when I apply sample size of 18)
-
-PWD.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "PWD") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#10.3, 16.962, (n=300)
-
-PWD.3CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "PWD") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#2.9, 3.4, (n=18)
-
-####
-KAZ.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "KAZ")  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-KAZ.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "KAZ") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-KAZ.3CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "KAZ") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-###
-SKIVE.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "SKIVE")  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-SKIVE.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "SKIVE") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-SKIVE.3CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "SKIVE") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-
-###
-MSM.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "MSM")  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-MSM.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "MSM") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE,     ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-MSM.3CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "MSM") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-###
-MOLF.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "MOLF")  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-MOLF.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "MOLF") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-MOLF.3CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "MOLF") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-###
-G.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "G")  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-G.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "G") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-G.3CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "G") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-###
-LEW.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "LEW")  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-LEW.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "LEW") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-LEW.3CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "LEW") %>% filter(hand.foci.count == 3)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-
-###
-WSB.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "WSB")  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-#
-WSB.2CO.male.gamma <- egamma( (all.male.IFDs %>% filter(strain == "WSB") %>% filter(hand.foci.count == 2)  )$Nrm.IFD, method = "mle", ci = TRUE, 
-                            ci.type = "two-sided", ci.method = "normal.approx", 
-                            normal.approx.transform = "kulkarni.powar", conf.level = 0.95)
-```
 
 ```{r Q1.IFD.lmer.M1, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -3449,6 +2643,13 @@ Mixed models and general linear models of IFD^norm^ support the inference of str
 In summary, controlling for differences in chromatin compaction (SC length) using IFDnorm indicates that interference is stronger in males, whereas consideration of IFD^raw^ shows that the sexes exhibit a similar level of interference on the physical (SC) scale.  While the comparisons of the IFD^norm^ metrics can reveal more general recombination landscape patterns while controlling for the underlying differences in chromatin compaction and SC length.
 
 <moved a section on relationship of linkage maps to Discussion (or Methods)>  
+
+```{r Q1.single.biv.table, echo=FALSE}
+
+#strain.BivData.Table
+
+```
+
 
 
 ```{r Q1.IFD.plot, echo=FALSE}
@@ -4001,93 +3202,6 @@ sum.glmQ2_short.biv_M2_MUSC <- summary(glmQ2_short.biv_M2_MUSC)
 ```
 
 
-```{r Q2.SC.logreg.chrmClass_BivData, echo=FALSE, include=FALSE, eval=FALSE}
-
-log.SC_male_chrm.class_all <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2,  family=binomial(link="logit"))
-
-summary(log.SC_male_chrm.class_all)
-
-
-#use the 1CO or 2CO DF
-Bivalent_1o2_WSB <-  Bivalent_1o2 %>% filter(strain == "WSB")
-
-log.SC_male_chrm.class.WSB <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_WSB,  family=binomial(link="logit"))
-
-summary(log.SC_male_chrm.class.WSB)
-
-
-Bivalent_1o2_G <-  Bivalent_1o2 %>% filter(strain == "G") 
-log.SC_chrm.class.G <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_G,  family=binomial(link="logit"))
-summary(log.SC_chrm.class.G)
-
-
-Bivalent_1o2_LEW <-  Bivalent_1o2 %>% filter(strain == "LEW") 
-log.SC_chrm.class.LEW <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_LEW,  family=binomial(link="logit"))
-summary(log.SC_chrm.class.LEW)
-
-
-Bivalent_1o2_PWD <-  Bivalent_1o2 %>% filter(strain == "PWD") 
-log.SC_chrm.class.PWD <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_PWD,  family=binomial(link="logit"))
-summary(log.SC_chrm.class.PWD)
-
-
-Bivalent_1o2_SKIVE <-  Bivalent_1o2 %>% filter(strain == "SKIVE") 
-log.SC_chrm.class.SKIVE <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_SKIVE,  family=binomial(link="logit"))
-summary(log.SC_chrm.class.SKIVE)
-
-
-Bivalent_1o2_KAZ <-  Bivalent_1o2 %>% filter(strain == "KAZ") 
-log.SC_chrm.class.KAZ <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_KAZ,  family=binomial(link="logit"))
-summary(log.SC_chrm.class.KAZ)
-
-
-Bivalent_1o2_CZECH <-  Bivalent_1o2 %>% filter(strain == "CZECH") 
-log.SC_chrm.class.CZECH <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_CZECH,  family=binomial(link="logit"))
-summary(log.SC_chrm.class.CZECH)
-
-Bivalent_1o2_MSM <-  Bivalent_1o2 %>% filter(strain == "MSM") 
-log.SC_chrm.class.MSM <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_MSM,  family=binomial(link="logit"))
-summary(log.SC_chrm.class.MSM)
-
-
-Bivalent_1o2_MOLF <-  Bivalent_1o2 %>% filter(strain == "MOLF")
-log.SC_chrm.class.MOLF <- glm(chrm.class ~ chromosomeLength,
-              data=Bivalent_1o2_MOLF,  family=binomial(link="logit"))
-summary(log.SC_chrm.class.MOLF)
-
-```
-
-
-```{r Q2.logreg.plots, echo=FALSE, include=FALSE, eval=FALSE}
-
-log.reg.chrm.class_all.strains <- ggplot(Bivalent_1o2,
-                          aes(x=chromosomeLength, y=chrm.class)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("Chrm Class prediction (1CO or 2CO)")+facet_wrap(subsp~ strain)
-log.reg.chrm.class_all.strains
-
-
-
-WSB.log.reg.chrm.class <- ggplot(Bivalent_1o2_WSB,
-                          aes(x=chromosomeLength, y=chrm.class)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("Chrm Class prediction (1CO or 2CO, WSB)")+facet_wrap(~subsp)
-
-
-MSMlog.reg.chrm.class <- ggplot(Bivalent_1o2_MSM,
-                          aes(x=chromosomeLength, y=chrm.class)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("MSM Chrm Class prediction (1CO or 2CO)")+facet_wrap(~subsp)
-
-
-PWDlog.reg.chrm.class <- ggplot(Bivalent_1o2_PWD,
-                          aes(x=chromosomeLength, y=chrm.class)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("PWD Chrm Class prediction (1CO or 2CO)")+facet_wrap(~subsp)
-
-```
-
 
 ```{r Q2.SC.Chrm.Class, echo=FALSE, include=FALSE, eval=FALSE}
 #REMOVE COMPARES ACROSS FROM FULL BIVDAAT
@@ -4217,6 +3331,7 @@ Rec.group.mouse.SC.2CO_Ttest$p.value  #p-value = 0.03428
 
 ```
 
+
 ```{r log.reg_SC.length, echo=FALSE, include=FALSE}
 #REMOVE THIS COMPARES FROM FULL BIV DATA
 
@@ -4286,6 +3401,7 @@ log.reg_SC.length_BIV_3CO <- glm(Rec.group ~ chromosomeLength,
 #summary(log.reg_SC.length_BIV_3CO)
 ```
 
+
 ```{r Q2.SC_class.rec.group_setup, echo=FALSE, include=FALSE}
 #REMOVE THIS, IT uses total bivalent data
 
@@ -4338,6 +3454,7 @@ mouse.av.SC.high.rec <- add_subsp(mouse.av.SC.high.rec)
 mouse.av.SC.high.rec$strain <- factor(mouse.av.SC.high.rec$strain, ordered = FALSE)
 mouse.av.SC.high.rec$add_subsp <- factor(mouse.av.SC.high.rec$subsp, ordered = FALSE)
 ```
+
 
 ```{r male.show.plotsEXample, echo=FALSE, eval=FALSE}
 male_mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
