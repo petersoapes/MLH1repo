@@ -34,6 +34,14 @@ library(reshape2)
 library(patchwork)
 library(pander)
 library("xlsx")
+library(png)
+#library(tidyverse)
+library(png)
+library(grid)
+library(gridBase)
+library(gridExtra)
+library(dplyr)
+library(cowplot)
 
 options(digits=2)
 
@@ -2155,58 +2163,7 @@ anova(Sardell.mo.PWD_R.dis.cent, Sardell.mo.PWD_R.dis.telo) #p = 1
 ```
 
 
-```{r triangle.IFD.auto.loop.ifd, echo=FALSE, eval=FALSE}
-
-#Top is female
-top.triangle2 <- function() {
-  #top-y position is male Pos2
-  plot(  (Curated_BivData %>% filter(strain == "WSB"  ) %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_2 ~ 
-    #top-x position is female Pos1     
-    (Curated_BivData %>% filter(strain == "WSB"   ) %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_1, 
-       
-       data= (Curated_BivData %>% filter(sex == "female") %>% filter(strain == "WSB") %>% filter(hand.foci.count == 2) ), 
-       col =  colors_of_strains["WSB"],
-       axes=FALSE, ylab='', xlab="", 
-       main= "IFD Distribution",  xlim=c(0, 1), ylim=c(0, 1), xaxt="n", yaxt="n", asp=1)
-  
-  mtext("WSB", 3, 5, font=2, cex=1.3, adj=.5)
-  mtext("Female Position.2", 2, .75)
-  mtext("Female Position.1", 3, 2)
-  axis(side=2, las=1, pos=0)
-  axis(side=3, las=1, pos=1)
-  lines(0:1, 0:1)
-  }
-  
-bottom.triangle2 <- function() {
-    #bottom-y position is male Pos1
-  points(  (Curated_BivData %>% filter(strain == "WSB") %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_1 ~ 
-    #bottom-x position is male Pos2     
-    (Curated_BivData %>% filter(strain == "WSB") %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_2,
-
-         data=(Curated_BivData %>% filter(sex == "male") %>% filter(strain == "WSB") %>% filter(hand.foci.count == 2) ), 
-         
-    col =  colors_of_strains["WSB"], xpd=TRUE)
-  mtext("Male Position.2", 1, 1.5, at=mean(par()$usr[1:2])) #  + x.dist
-  mtext("Male Position.1", 4, 3)#, padj=par()$usr[1]
-  x.at <- axisTicks(par()$usr[1:2], 0) #+ x.dist
-  axis(side=1, las=1, pos=0, at=x.at, labels=F, xpd=TRUE)
-  mtext(seq(0, 1, .2), 1, 0, at=x.at)
-  axis(4, las=1, pos=1) # + x.dist
-  lines(0:1, 0:1, xpd=TRUE)# + x.dist
-  }
-
-  
-#par(mar=c(1,1,1,1))
-op <- par(mar=c(3, 4, 8, 12) + 0.1, oma=c(2, 0, 0, 2))
-plot(top.triangle2(), bottom.triangle2() ) #not working
-par(op)
-dev.off()
-
-
-```
-
-
-```{r double.tri.rewrite, fig.width = 6.5, fig.height=5}
+```{r double.tri.rewrite, echo=FALSE}
 
 #good function, saves to file, can't reproduce in rmd ..width=650, height=500
 #big loop for automating the IFD triangles
@@ -2222,9 +2179,11 @@ top.triangle2 <- function(my.y, my.x, my.data) {
   plot(my.y ~ my.x, data= my.data, axes=FALSE, ylab='', xlab="", 
        main='', xlim=c(0, 1), ylim=c(0, 1), xaxt="n", yaxt="n", asp=1,
        col =  colors_of_strains[current.strain])
+  
   mtext(current.strain, 3, 5, font=2, cex=1.3, adj=.95)
   mtext("Position.2.Female", 2, .75)
   mtext("Position.1.Female", 3, 2)
+  
   axis(side=2, las=1, pos=0)
   axis(side=3, las=1, pos=1)
   lines(0:1, 0:1)
@@ -2244,7 +2203,7 @@ bottom.triangle2 <- function(my.y, my.x, my.data){
   lines(0:1 + x.dist, 0:1, xpd=TRUE)
 }
 
-x.dist <- .5
+x.dist <- .25
 RP <- list()
 
 for(i in 1:(length(df_strain_list))){
@@ -2252,7 +2211,8 @@ for(i in 1:(length(df_strain_list))){
   current.strain <- as.character(df_strain_list[[i]]$strain[1])
   
   #declare file for saving png
-  #png(paste0("~./MLH1repo/doc/figureFiles/test.triangle_", current.strain, ".png"),  width=650, height=500)
+  png(paste0("~./MLH1repo/doc/figureFiles/IFD.triangle_", current.strain, ".png"),  width=650, height=500, res=100)
+  
   plot.new()
   
   my.data = (Curated_BivData %>% filter(strain == current.strain) %>% filter(hand.foci.count == 2) )
@@ -2265,68 +2225,51 @@ for(i in 1:(length(df_strain_list))){
   
   my.y.bottom = (Curated_BivData %>% filter(strain == current.strain) %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_2
   
-  op <- par(mar=c(3, 4, 8, 12) + 0.1, oma=c(2, 0, 0, 2))
+  #adjusting this mar lowers the margins
+  op <- par(mar=c(1.5, 2, 4, 6) + 0.1, oma=c(2, 0, 0, 2))
   
   top.triangle2(my.y.top, my.x.top, my.data)
   
   bottom.triangle2(my.y.bottom+x.dist, my.x.bottom, my.data) #x.dist
- 
-  #try recordPlot(),
 
-
-  #x.plot.list[[i]] <- function(){top.triangle2(my.y.top, my.x.top, my.data)}
-  #x.plot.list.b[[i]] <- function(){top.triangle2(my.y.top, my.x.top, my.data), bottom.triangle2(my.y.bottom+x.dist, my.x.bottom, my.data)}
-  # p <- recordPlot()
-  #grid.echo()
-  #a <- grid.grab()
-  
   par(op)
   RP[[i]] <- recordPlot()
   dev.off()
 }
  
-
-#for(ee in 1:7){
-#  #print(ee)
-#  RP[[ee]]
-#  plot.new()
-#}
+#testing <- plot_grid( rasterGrob(RP[[1]]), rasterGrob(RP[[2]]), rasterGrob(RP[[3]]),
+#                   rasterGrob(RP[[4]]), rasterGrob(RP[[5]]), rasterGrob(RP[[6]]),
+#                   rasterGrob(RP[[7]]),                     labels="AUTO")
+#ggsave(filename = "~./MLH1repo/doc/figureFiles/test.triangle_all.png", plot = testing, 
+#       width = 10, height = 10)
 
 
 ```
-
-
 
 
 ```{r Q1.IFD_load.triangles, echo=FALSE, message=FALSE, warning=FALSE, fig.cap = "Example of Sex differences in IFD distributions"}
 
-library(png)
+
+plot1.WSB <- readPNG('~/MLH1repo/doc/figureFiles/IFD.triangle_WSB.png')
+plot2.LEW <- readPNG('~/MLH1repo/doc/figureFiles/IFD.triangle_LEW.png')
+plot3.G <- readPNG('~/MLH1repo/doc/figureFiles/IFD.triangle_G.png')
+
+plot4.KAZ <- readPNG('~/MLH1repo/doc/figureFiles/IFD.triangle_KAZ.png')
+plot5.SKIVE <- readPNG('~/MLH1repo/doc/figureFiles/IFD.triangle_SKIVE.png')
+plot6.PWD <- readPNG('~/MLH1repo/doc/figureFiles/IFD.triangle_PWD.png')
+
+plot7.MSM <- readPNG('~/MLH1repo/doc/figureFiles/IFD.triangle_MSM.png')
+
+
+grid.arrange(rasterGrob(plot1.WSB), rasterGrob(plot2.LEW), rasterGrob(plot3.G),
+             rasterGrob(plot4.KAZ), rasterGrob(plot5.SKIVE), rasterGrob(plot6.PWD),
+             rasterGrob(plot7.MSM), 
+             ncol=3)
 
 #load all the files / arrange the plots from above 
-WSB.triangle.png <- readPNG("~./MLH1repo/doc/figureFiles/test.triangle_WSB.png")
+#WSB.triangle.png <- readPNG("~./MLH1repo/doc/figureFiles/test.triangle_WSB.png")
 
-#make empty DF for ggplot object
-empty.DF <- data.frame(col1 = c(1,3), col2 = c(1,3) )
-
-#make an empty ggplot thing, then background ontop
-WSB.triangle.ggplot <- ggplot(empty.DF, aes(x = col1, y = col2)) +
-  background_image(WSB.triangle.png) + theme(axis.title.x=element_blank(),
- axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
-                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
-
-#show wsb as example
-WSB.triangle.ggplot
-
-
-#library("cowplot")
-#fig1  <- ggdraw() +
-#  draw_plot(WSB.triangle.ggplot, x=0, y=0, width=.45, height=.45) +
-#  draw_plot(G.triangle.ggplot,   x=0, y=.4, width=.45, height=.45) +
-#  draw_plot(LEW.triangle.ggplot, x=0, y=.6, width=.45, height=.45)
-
-#ggsave("~./WildMiceMadison/results/Figure1.png")
 ```
-
 
 
 ```{r Q1.IFD_show.IFD_99, echo=FALSE, warning=FALSE, message=FALSE}
@@ -2650,16 +2593,6 @@ In summary, controlling for differences in chromatin compaction (SC length) usin
 
 ```
 
-
-
-```{r Q1.IFD.plot, echo=FALSE}
-
-#make interference plots of IFD, position p1 by p2
-
-
-
-
-```
 
 ```{r Comp_Ratios, echo=FALSE}
 
@@ -3650,6 +3583,86 @@ Q2.glm.M2_IFD.PER_Musc <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.T
 #Mol
 Q2.glm.M2_IFD.PER_Mol <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",])
 #summary(Q2.glm.M2_IFD.PER_Mol)
+
+```
+
+
+```{r Q2.double.tri.rewrite, echo=FALSE}
+#choose the categories to compare 
+#all male strains
+#just bottom triangles?
+
+#good function, saves to file, can't reproduce in rmd ..width=650, height=500
+#big loop for automating the IFD triangles
+Q2.males.IFD <- c("F1", "other")
+Q2.auto_curate_DF <- Curated_BivData[ ! Curated_BivData$strain %in% Q2.males.IFD, ]
+
+Q2.df_strain_list <- split(Q2.auto_curate_DF, (Q2.auto_curate_DF$strain))
+Q2.df_strain_list <- Q2.df_strain_list[ -c(4,10,11,12,13,14,15,16,17,18,19) ]
+
+
+#this works
+Q2.bottom.triangle2 <- function(my.y, my.x, my.data){
+  points(my.x ~ my.y, data=my.data, xpd=TRUE, 
+          col =  colors_of_strains[current.strain])
+  
+  mtext("Position.2.Male", 1, 1.5, at=mean(par()$usr[1:2]))
+  mtext("Position.1.Male", 4, 3, padj=par()$usr[1] +4)
+  x.at <- axisTicks(par()$usr[1:2], 0)
+  axis(side=1, las=1, pos=0, at=x.at, 
+       labels=F, xpd=TRUE)
+  mtext(seq(0, 1, .2), 1, 0, at=x.at)
+  axis(4, las=1, pos=1)
+  lines(0:1, 0:1, xpd=TRUE)
+}
+
+#figure out to move up the bottom axis text
+
+x.dist <- .25
+RP <- list()
+
+for(i in 1:(length(Q2.df_strain_list))){
+  #print(i)
+  current.strain <- as.character(Q2.df_strain_list[[i]]$strain[1])
+  
+  #declare file for saving png
+  png(paste0("~./MLH1repo/doc/figureFiles/Q2.IFD.triangle_", current.strain, ".png"),  width=650, height=500, res=100)
+  plot.new()
+  
+  my.data = (Curated_BivData %>% filter(strain == current.strain) %>% filter(hand.foci.count == 2) )
+  my.x.bottom = (Curated_BivData %>% filter(strain == current.strain) %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_1 
+  my.y.bottom = (Curated_BivData %>% filter(strain == current.strain) %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_2
+  
+  #adjusting this mar lowers the margins
+  op <- par(mar=c(1.5, 2, 4, 6), oma=c(2, 0, 0, 2))
+  
+  Q2.bottom.triangle2(my.y.bottom, my.x.bottom, my.data) #x.dist
+
+  par(op)
+  RP[[i]] <- recordPlot()
+  dev.off()
+}
+ 
+```
+
+
+```{r Q2.IFD_load.triangles, echo=FALSE, message=FALSE, warning=FALSE}
+
+Q2.plot1.WSB <- readPNG('~/MLH1repo/doc/figureFiles/Q2.IFD.triangle_WSB.png')
+Q2.plot2.LEW <- readPNG('~/MLH1repo/doc/figureFiles/Q2.IFD.triangle_LEW.png')
+Q2.plot3.G <- readPNG('~/MLH1repo/doc/figureFiles/Q2.IFD.triangle_G.png')
+
+Q2.plot4.KAZ <- readPNG('~/MLH1repo/doc/figureFiles/Q2.IFD.triangle_KAZ.png')
+Q2.plot5.SKIVE <- readPNG('~/MLH1repo/doc/figureFiles/Q2.IFD.triangle_SKIVE.png')
+Q2.plot6.PWD <- readPNG('~/MLH1repo/doc/figureFiles/Q2.IFD.triangle_PWD.png')
+
+Q2.plot7.MSM <- readPNG('~/MLH1repo/doc/figureFiles/Q2.IFD.triangle_MSM.png')
+Q2.plot8.MOLF <- readPNG('~/MLH1repo/doc/figureFiles/Q2.IFD.triangle_MOLF.png')
+
+grid.arrange(rasterGrob(Q2.plot1.WSB), rasterGrob(Q2.plot2.LEW), rasterGrob(Q2.plot3.G),
+             rasterGrob(Q2.plot4.KAZ), rasterGrob(Q2.plot5.SKIVE), rasterGrob(Q2.plot6.PWD),
+             rasterGrob(Q2.plot7.MSM), rasterGrob(Q2.plot8.MOLF), 
+             ncol=3)
 
 ```
 
