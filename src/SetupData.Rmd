@@ -2,16 +2,17 @@
 title: "Setting up Data"
 author: "April Peterson"
 date: "`r format(Sys.time(), '%d %B %Y')`"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 
 to Do
 
+- try calq correlation of MLH1 counts across duplicates
 
 - format the DF for applying to Mixed models
-
-- rm all of BD data?
 
 - try coding i) date image for each cell image, ii) most recent image date for each mouse
 
@@ -24,57 +25,75 @@ library(ggplot2)
 library(knitr)
 library(kableExtra)
 library(here)
-
+library(xlsx)
 #knitr::opts_chunk$set(echo = FALSE)
 
 #opts_knit$set(root.dir = "~./MLH1repo/")
 #setwd("~./MLH1repo/")
 
-meta.data = read.csv(here("data", "/clean.Meta.Data.txt"),sep = "\t", header=TRUE)
-
+meta.data = read.csv(here("data", "/clean.Meta.Data.txt"), sep = "\t", header=TRUE)
 #remove all MAD (peromyscus) from meta.data
-meta.data <- meta.data[ !grepl("MAD", meta.data$mouse) , ]
-
-MLH1_data = read.csv(here("data", "/AnonData_formated.csv"), header=TRUE)
-
-MLH1_data2 <- MLH1_data[ !grepl("MAD", MLH1_data$mouse) , ]
+#meta.data <- meta.data[ !grepl("MAD", meta.data$mouse) , ]
 
 source(here("src", "/CommonFunc_MLH1repo.R") )
 
+#MLH1_data = read.csv(here("data", "/AnonData.csv"), sep="\t", header=TRUE)
+#read.csv was breaking things
+MLH1_data = read.xlsx2(here("data", "/AnonData_formated.xlsx"), header=TRUE, 1)
+
+#formating the original anon file
+#MLH1_data = read.xlsx2(here("data", "/AnonData.xlsx"), header=TRUE, 1)
+#MLH1_data$fileName <- (MLH1_data$Original.Name)
+
+#MLH1_data <- add_mouse(MLH1_data)
+#MLH1_data <- add_category(MLH1_data)
+#MLH1_data <- add_strain(MLH1_data)
+#MLH1_data <- add_sex(MLH1_data)
+#MLH1_data <- add_subsp(MLH1_data)
+#MLH1_data <- add_species(MLH1_data)
+#write csv to MLH1 file
+#write.xlsx2(MLH1_data, "AnonData_formated.xlsx", sheetName="Sheet1",
+#  col.names=TRUE, row.names=FALSE, append=FALSE)
 ```
 
 ```{r MLH1.DF.setup, warning=FALSE, echo=FALSE}
 
 original_DF = MLH1_data
-original_DF$fileName <- (original_DF$Original.Name)
-
-source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
-original_DF <- add_mouse(original_DF)
-original_DF <- add_strain(original_DF)
-original_DF <- add_category(original_DF)
-original_DF <- add_sex(original_DF)
-
-
-#check for duplicated data, make duplicated data DF for repeatability
-#anyDuplicated(original_DF$fileName)#219
-#orig_DF <- original_DF[duplicated(original_DF$Original.Name),]
-#these just produce 1 set of the duplicated 
 
 #isolate the duplicates (fileName) from main MLH1 DFs
 n_occur <- data.frame(table(original_DF$fileName))
 #n_occur[n_occur$Freq > 1,] displays the dups
 original_DF_duplicates <- original_DF[original_DF$fileName %in% n_occur$Var1[n_occur$Freq > 1],]#2 is the max freq of duplicates, 
+
 #use the above DF for quantifying repeatability in the Main_report.Rmd
 #duplicates are cells counted twice
 
 #are there duplicated filenames+batch
 original_DF_duplicates$unique.key <-  paste(original_DF_duplicates$fileName, original_DF_duplicates$Batch, sep = "_")
-#anyDuplicated(original_DF_duplicates$unique.key)#31 duplicated fileName_batch ... really 2?
+
+anyDuplicated(original_DF_duplicates$unique.key)#31 duplicated fileName_batch and batch number -- 
 
 #remove duplicates from original as well
 original_DF <- original_DF %>% distinct(Original.Name, .keep_all = TRUE)#5216 to 4983
 
+#calculate the correlation across duplicates. First issue is to match up and organize the matching 
+#for each fileName - make cols, for MLH1-1 and MLH1-2
+#remove Xs, for fileName with 
+original_DF_duplicates <- original_DF_duplicates[!grepl("X", original_DF_duplicates$X),]
+#make a new DF -- with one fileName and the MLH1-1 and MLH1-2
+#  (duplicate / dostinct fileName )
+
+
+
+#keep just 1 of duplicates from MLH1_data
+#MLH1_data <- MLH1_data[duplicated(MLH1_data$fileName),]
+MLH1_data <- MLH1_data %>% distinct(fileName, .keep_all = TRUE)
+
 ```
+
+`r length(original_DF_duplicates$Random.Name)` rows are marked as duplicate.
+
+
 
 ```{r clean_MLH1_data, echo=FALSE}
 #Clean up main DF, MLH1_data
@@ -85,8 +104,6 @@ MLH1_data <- MLH1_data %>% distinct(Original.Name, .keep_all = TRUE)#5216 to 498
 
 MLH1_data$Original.Name <- as.character(MLH1_data$Original.Name)
 MLH1_data$fileName <- (MLH1_data$Original.Name)
-
-source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
 #these introduce NAs
 MLH1_data$n <- as.character(MLH1_data$n)
@@ -104,14 +121,6 @@ MLH1_data <- MLH1_data[!(is.na(MLH1_data$nMLH1.foci) | MLH1_data$nMLH1.foci=="")
 MLH1_data <- MLH1_data[MLH1_data$nMLH1.foci != "X",]
 MLH1_data <- MLH1_data[MLH1_data$nMLH1.foci != "x",]
 
-
-MLH1_data <- add_mouse(MLH1_data)
-MLH1_data <- add_category(MLH1_data)
-MLH1_data <- add_strain(MLH1_data)
-MLH1_data <- add_sex(MLH1_data)
-MLH1_data <- add_subsp(MLH1_data)
-#add species
-MLH1_data <- add_species(MLH1_data)
 ```
 
 
@@ -139,16 +148,6 @@ colors_of_strains <- c('WSB'= "#56B4E9",'G' ='cadetblue','LEW'= 'lightblue','PER
 color_chrm_class <- c( '0' = "#00BFC4", '1' = "#7CAE00", '2' = "#F8766D", '3' = "#C77CFF", '4'= "#F564E3")
 #4!!
 
-#show_col(hue_pal()(5))
-
-#add Rec group,
-
-#Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
-#                              ifelse(grepl("MSM male", Curated_BivData$category), 1,
-#                                ifelse(grepl("SKIVE male", Curated_BivData$category), 1, 0)))
-
-#Curated_BivData$Rec.group_alt <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
-#                              ifelse(grepl("MSM male", Curated_BivData$category), 1, 0))
 ```
 
 
@@ -686,7 +685,7 @@ work on cleaning up all other df with bad names
 #BD data and Peromyscus data
 #rm(c(BD_MLH1_data, BDmouse_level_table, MLH1_data.hq) )
 
-save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_4.26.20.RData")
+save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_5.5.20.RData")
 
 #  OutPut: big large MLH1_data (AP's) df, big DF of BD with just the mice I want.
 #  MLH1_data_table, means and variance of AP and BD MLH1 values. made from seperate tables from AP and BD data.
