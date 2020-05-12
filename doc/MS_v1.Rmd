@@ -249,22 +249,30 @@ Fig1_v1_strain <- ggplot(strain.table.HQ_Fig, aes(y=mean_co, x=strain, color=str
 #remove y labfor male 
  
    #segments
-  annotate("segment", x=.75, xend=4.5, y=19.5, yend=19.5, colour="black", size=1)+
-  #Musc
-  annotate("segment", x= 5.5, xend=10.2, y=19.5, yend=19.5, colour="black", size=1)
+  annotate("segment", x=.75, xend=2.3, y=19.5, yend=19.5, colour="black", size=1)+
+  
+  #Musc, 30
+  annotate("segment", x= 3, xend=5.2, y=30, yend=30, colour="black", size=1)+
+  
   #mol
-#  annotate("segment", x=11, xend=12.25, y=19.5, yend=19.5, colour="black", size=1)+
-  #cast
-#  annotate("segment", x=13, xend=14, y=19.5, yend=19.5, colour="black", size=1)+
-  #outgroups
- # annotate("segment", x=14.5, xend=16, y=19.5, yend=19.5, colour="black", size=1)+
-  #label
+  annotate("segment", x=5.5, xend=8.1, y=19.5, yend=19.5, colour="black", size=1)+
+  
+  
+  annotate("segment", x=8.5, xend=8.8, y=30, yend=30, colour="black", size=1)+
 
- #   annotate("text", x = c(2,4.4,6,8, 10), #list of all x points 
-   #        y = c(18.5,18.5,33,18.5, 18.5),
+  
+  annotate("segment",x=9.5,xend=11.2, y=19.5, yend=19.5, colour="black", size=1)+
+  #spret
+
+  annotate("segment",x=9.5,xend=11.2, y=30, yend=30, colour="black", size=1)+
+  #spic
+  
+  #label
+    annotate("text", x = c(1.2,3.9,6.3,8,10, 11), #list of all x points 
+           y = c(18.5, 31, 18.5, 31, 18.5, 31),
            
-  # label = c("M. m. domesticus","M. m. musculus", "M. m. molossinus", "M. m. castaneus", "Outgroups"),
-    #       fontface = 'italic', hjust = 0.5, size=3.5)
+   label = c("M. m. molossinus","M. m. musculus", "M. m. domesticus", "M. m. castaneus", "M. spretus", "M. spicilegus"),
+           fontface = 'italic', hjust = 0.5, size=3.5)
 
 ```
 
@@ -315,83 +323,57 @@ male.plot <- ggplot(just.male_mouse.av, aes(x = as.factor(strain), y = mean_co, 
 
 ```
 
+```{r MLH1.cell.examples, echo=FALSE}
+
+male.MLH1.cell.ex <- readPNG('~/MLH1repo/doc/figureFiles/MLH1.male.cell_ex.png')
+
+female.MLH1.cell.ex <- readPNG('~/MLH1repo/doc/figureFiles/MLH1.female_cell.ex.png')
+
+empty.DF <- data.frame(col1 = c(1,3), col2 = c(1,3) )
+
+#Cell GGPLOT
+library(ggpubr)
+
+maleMLH1.cell.obj <- ggplot(empty.DF, aes(x = col1, y = col2)) +
+  background_image(male.MLH1.cell.ex) + theme(axis.title.x=element_blank(),
+     axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
+
+
+femaleMLH1.cell.obj <- ggplot(empty.DF, aes(x = col1, y = col2)) +
+  background_image(female.MLH1.cell.ex) + theme(axis.title.x=element_blank(),
+     axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
+
+```
+
+
 ```{r Figure1.Main.plot.three.plots, echo=FALSE, warning=FALSE, fig.width=7, fig.cap='*Figure 1 Mean MLH1 count distributions by strain.* A) Strain averages of MLH1 counts per cell. B) Female specific MLH1 count distributions. C)	Male specific MLH1 counts per cell.', message=FALSE}
 
-Figure1.main.plot <- Fig1_v1_strain / (female.specific.plot + male.plot )
 
-Figure1.main.plot + plot_annotation(
-  title = '',
-  subtitle = '',
-  caption = ''
-) + plot_annotation(tag_levels = 'A')
+#try cowplot for more control of sizing
+library("cowplot")
 
+MLH1.Figure1  <- ggdraw() +
+  draw_plot(Fig1_v1_strain, x = 0, y = .55, width=1, height=.45)+
+  
+  draw_plot(female.specific.plot, x=0, y=0, width=.5,height= .55)+
+  draw_plot(femaleMLH1.cell.obj, x=.32, y=.32, width=.19,height= .19)+
+  
+  draw_plot(male.plot, x=.5, y = 0,  width = .5, height = .55)+
+  draw_plot(maleMLH1.cell.obj, x=.85, y = .32,  width = .19, height=.19)+
+ 
+  draw_plot_label(label = c("A", "B", "C"), size = 14,
+                  x = c(0, 0, .49), y = c(1, .55, 0.55) )
+
+MLH1.Figure1
+#add the cell images
+
+ggsave("~/MLH1repo/doc/Figure1.png")
 ```
 
-```{r rand.misc, echo=FALSE, include=FALSE, eval=FALSE}
-#str(AP_mouse_table_w.Ages)
-
-AP_mouse_table.HQ$var <- as.numeric(AP_mouse_table.HQ$var)
-
-#remove sex.x == na, and strain.x=na or F1
-AP_mouse_table.HQ <- AP_mouse_table.HQ[!(is.na(AP_mouse_table.HQ$sex) | AP_mouse_table.HQ$sex==""), ]
-
-AP_mouse_table.HQ <- AP_mouse_table.HQ[!(is.na(AP_mouse_table.HQ$var) | AP_mouse_table.HQ$var==""), ]
-#plot variance and mean (facet sex)
-
-AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[!( AP_mouse_table_w.Ages$strain.x =="F1"), ]
-
-VandMean.mouse <- ggplot(aes(x=mean_co, y = var), data=AP_mouse_table.HQ )+geom_point(aes(color=strain))+facet_wrap(~sex)+ggtitle("mouse MLH1 averages; variance by mean")
-
-cVandMean.mouse <- ggplot(aes(x=mean_co, y = cV), data=AP_mouse_table.HQ )+geom_point(aes(color=strain))+facet_wrap(~sex)+ggtitle("mouse MLH1 averages; cV by means")
-
-#str(AP_mouse_table.HQ)
-
-cor(AP_mouse_table.HQ$mean_co[AP_mouse_table.HQ$sex == "female"], AP_mouse_table.HQ$var[AP_mouse_table.HQ$sex == "female"])
-#[1] 0.5750399
-cor(AP_mouse_table.HQ$mean_co[AP_mouse_table.HQ$sex == "male"], AP_mouse_table.HQ$var[AP_mouse_table.HQ$sex == "male"])
-#0.321601
-
-cor(AP_mouse_table.HQ$mean_co[AP_mouse_table.HQ$sex == "female"], AP_mouse_table.HQ$cV[AP_mouse_table.HQ$sex == "female"])
-# 0.3515544
-cor(AP_mouse_table.HQ$mean_co[AP_mouse_table.HQ$sex == "male"], AP_mouse_table.HQ$cV[AP_mouse_table.HQ$sex == "male"])
-#-0.03713536
-
-cor.test(AP_mouse_table.HQ$mean_co[AP_mouse_table.HQ$sex == "male"], 
-    AP_mouse_table.HQ$var[AP_mouse_table.HQ$sex == "male"] )
-# p-value = 8.623e-09
-
-cor.test(AP_mouse_table.HQ$mean_co[AP_mouse_table.HQ$sex == "male"], 
-    AP_mouse_table.HQ$cV[AP_mouse_table.HQ$sex == "male"] )
 
 
-#remove mice with fewer than 10 cells
+updates for Figure 1, try shifting the lines up for B C
 
-AP_mouse_table.HQ.10plus <- AP_mouse_table.HQ[AP_mouse_table.HQ$Ncells >= 10,]
-
-VandMean.mouse.10plus <- ggplot(aes(x=mean_co, y = var), data=AP_mouse_table.HQ.10plus )+geom_point(aes(color=strain))+facet_wrap(~sex)+ggtitle("10 plus mouse MLH1 averages; variance by mean")
-
-cor(AP_mouse_table.HQ.10plus$mean_co[AP_mouse_table.HQ.10plus$sex == "female"], AP_mouse_table.HQ.10plus$cV[AP_mouse_table.HQ.10plus$sex == "female"])
-
-
-cor.test(AP_mouse_table.HQ.10plus$mean_co[AP_mouse_table.HQ.10plus$sex == "female"], 
-    AP_mouse_table.HQ.10plus$var[AP_mouse_table.HQ.10plus$sex == "female"] )
-
-
-
-#why did I male just a female table?
-female.musc.cells <- MLH1_data[( MLH1_data$sex == "female") & (MLH1_data$subsp == "Musc" ), ]
-
-female.musc.mice.table <- ddply(female.musc.cells, c("sex"), summarise,
-                        Nmice = length(unique(mouse)),
-                        Ncells  = length( nMLH1.foci),
-                        mean_co = as.numeric(format(round(  mean( nMLH1.foci), 3 ), nsmall=3) ),
-                        cV = cv( nMLH1.foci),
-                        var = format(round(   var( nMLH1.foci),3), nsmall=3),
-                        sd   = round(sd( nMLH1.foci), 3),
-                        se   = round(sd / sqrt(Ncells), 3)
-                        #quality?
-)
-```
 
 
 ## Genome-wide recombination rate estimates for both sexes
@@ -687,7 +669,7 @@ In general, females have almost twice as much variance in MLH1 foci per cell com
 <LmerMLH1_M1_Q12_VAR_results> <Bret's comment for below, are there differences between the curated and the full dataset? -- Q1 and full data set>
 
 
-## Evolution of genome-wide recombination rate is associated with evolution of double strand breaks
+## DMC1 Evolution of genome-wide recombination rate is associated with evolution of double strand breaks
 
 
 ```{r DMC1.setup, echo=FALSE}
@@ -782,10 +764,10 @@ write.xlsx2(DMC1table.main99, file = "DMC1.Results_Table.xlsx",sheetName = "DMC1
 
 ```{r DMC1.boxplot.plot, echo=FALSE, warning=FALSE}
 
-
 #change order
-DMC1.DF$strain<- factor(DMC1.DF$strain, levels =c("LEW",
-                      "WSB","G", "KAZ", "SKIVE","PWD","MSM"), order=T )
+
+DMC1.DF$strain<- factor(DMC1.DF$strain, levels =c(
+                      "WSB","G", "KAZ","PWD","MSM"), order=T )
 
 
 DMC1.boxplot <- ggplot(aes(x=strain, y=total.count, color=stage), data=DMC1.DF[DMC1.DF$stage != "P",])+
@@ -793,8 +775,15 @@ DMC1.boxplot <- ggplot(aes(x=strain, y=total.count, color=stage), data=DMC1.DF[D
   
     labs(y = "DMC1 count per Cell")+
   
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  scale_x_discrete( labels = c( expression( italic( domesticus^WSB) ), expression(  italic( domesticus^G) ), expression( italic( musculus^KAZ) ),
+ 
+     expression( italic(musculus^PWD)), expression( italic( molossinus^MSM) ) ) ) +
+
+  scale_color_discrete(name = "", labels = c("Late Zygotene", "Early Zygotene"))+
+                        
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position="top",
         panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x = element_blank())
+
 ```
 
 ```{r Main.plot.DMC1, echo=FALSE, fig.width=6.5, fig.height=5, fig.cap="*Figure 2 male DSB estimates* A) Example early zygotene spermatocyte spread, B) Example late zygotene spermatocyte spread. Green foci show DMC1. C)	Distribution of DMC1 counts per cell  by strains.", eval=FALSE}
@@ -803,6 +792,7 @@ png.DMC1.early.cell <- readPNG('~/MLH1repo/doc/figureFiles/cell.examples/DMC1.ea
 png.DMC1.late.cell <- readPNG('~/MLH1repo/doc/figureFiles/cell.examples/DMC1.late/good.late.cell.png')
 
 empty.DF <- data.frame(col1 = c(1,3), col2 = c(1,3) )
+
 #EMPTY GGPLOT
 Early.cell.obj <- ggplot(empty.DF, aes(x = col1, y = col2)) +
   background_image(png.DMC1.early.cell) + theme(axis.title.x=element_blank(),
@@ -814,16 +804,54 @@ Late.cell.obj <- ggplot(empty.DF, aes(x = col1, y = col2)) +
                          axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
                                   axis.text.y=element_blank(),axis.ticks.y=element_blank() )
 
-three.DMC1.plot <- { Early.cell.obj + Late.cell.obj  } / DMC1.boxplot + plot_layout(widths = 1)
+#cowplot
 
-#+ plot_layout(ncol = 2, widths = c(.65, .65), heights = c(.65, .65))
-#plot_layout(nrow = 2, widths = c(1), heights = c(.45) ) 
+DMC1.Figure2  <- ggdraw() +
+  draw_plot(Early.cell.obj, x=0, y=.5, width=.4,height= .45)+
+  draw_plot(Late.cell.obj, x=.5, y=.5,  width = .4, height = .45)+
+  draw_plot(DMC1.boxplot, x=0, y = 0,  width =1, height=.55)+
+ 
+  draw_plot_label(label = c("A", "B", "C"), size = 14,
+                  x = c(0, .49, 0), y = c(1,1, 0.55) )+
+#WSB
+  draw_line(
+    x = c(0.12, .23),
+    y = c( 0.01, .01),
+    color = colors_of_strains['WSB'], size=1
+  ) +
+  #G
+  draw_line(
+    x = c( 0.31, .42),
+    y = c(0.01, 0.01),
+    color = colors_of_strains['G'],size=1
+  ) +
+  #KAZ
+  draw_line(
+    x = c(0.49, .57),
+    y = c(0.01, 0.01),
+    color = colors_of_strains['KAZ'], size=1
+  ) +
+  #PWD
+  draw_line(
+    x = c(0.64, .73),
+    y = c(0.01, .01),
+    color = colors_of_strains['PWD'], size=1
+  ) +
+  #MSM
+  draw_line(
+    x = c(0.80, .91),
+    y = c(0.01, .01),
+    color = colors_of_strains['MSM'], size=1
+  )
+DMC1.Figure2
+#three.DMC1.plot <- { Early.cell.obj + Late.cell.obj  } / DMC1.boxplot + plot_layout(widths = 1)
 
-#plot_grid(mouse.av_totsc_male, X.by.texas, nrow=1, labels=c('A', 'B')) #Or #labels="AUTO"
+#three.DMC1.plot + plot_annotation(
+#  title = '',
+#  subtitle = '') + plot_annotation(tag_levels = 'A')
 
-three.DMC1.plot + plot_annotation(
-  title = '',
-  subtitle = '') + plot_annotation(tag_levels = 'A')
+ggsave("~/MLH1repo/doc/Figure2.png")
+
 ```
 
 ```{r plot.stage.ttest, echo=FALSE, warning=FALSE}
