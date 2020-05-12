@@ -76,7 +76,7 @@ Justify why the current number is enough -- or subsample -- to random equivilent
 6. consider integrating manual hand / whole cell measures (check for DUPs ect.)
 
 
-```{r setup, include=FALSE}
+```{r BivData.setup, include=FALSE}
 library(plyr)
 library(lattice)
 library(dplyr)
@@ -111,6 +111,9 @@ new.Curate.FULL.org <- add_category(new.Curate.FULL.org)
 
 new.Curate.FULL.org$Obj.ID <- paste(new.Curate.FULL.org$fileName, new.Curate.FULL.org$boxNumber, sep = "_")
 
+#add_mouse ect.
+
+
 #write files for basic stats to csv files
 #OG.cURATE.table.mouse <- table(new.Curate.FULL.org$mouse, new.Curate.FULL.org$SC.pass)
 #OG.cURATE.table.mouse <- add_strain(OG.cURATE.table.mouse)
@@ -122,6 +125,8 @@ OG.cURATE.table.category <- table(new.Curate.FULL.org$category, new.Curate.FULL.
 #            row.names = TRUE)
 #write.table(OG.cURATE.table.category, "~./MLH1repo/data/CurrentCuratedDataset_cat_21.1.20.csv", sep=",",
 #            row.names = TRUE)
+
+
 ```
 
 
@@ -222,6 +227,11 @@ Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category),
 Curated_BivData$Rec.group.exclu <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
                                 ifelse(grepl("MSM male", Curated_BivData$category), 1, 0))
 
+
+#write.xlsx2(MLH1.merge.Skel, "Total.SC_merge.MLH1.xlsx", sheetName = "Sheet1", 
+#            col.names = TRUE, row.names = FALSE, append = FALSE)
+
+
 ```
 
 Curated_BivData will be the master DF with most observations. DFs for mixed models and tests need to subsetted from this one.  
@@ -272,7 +282,7 @@ just.SC.length <- Curated_BivData[(Curated_BivData$Foci1 == ""),]
 ```
 
 
-```{r neg.IFD, echo=FALSE}
+```{r neg.IFD, echo=FALSE, eval=FALSE}
 
 #fixed a bug for the multi CO IFD
 
@@ -339,7 +349,7 @@ dup.curated <- add_mouse(dup.curated)
 
 ```{r remove.mice, echo=FALSE, eval=FALSE}
 
-#mice to remove from the Curated_BivData -- should be similar to the mice exclude from the MLH1 
+#mice to remove from the Curated_BivData -- should be similar to the mice exclude from the MLH1 (why?)
 
 #poor quality?
 
@@ -378,6 +388,20 @@ exmice.Curated_BivData <- Curated_BivData[ Curated_BivData$mouse %in% exclude_mi
 #old males
 
 ```
+
+after all of these chunks are run, save the excel file for Curated_BivData
+
+DUPs, negative IFDs, remove juvi and MLH1 exclude mice,
+
+There are 3 bivalents with Per.Foci2 > 1 (remove or go correct)
+
+```{r write.total.SC, echo=FALSE}
+
+#write.xlsx2(MLH1.merge.Skel, "Total.SC_merge.MLH1.xlsx", sheetName = "Sheet1", 
+#            col.names = TRUE, row.names = FALSE, append = FALSE)
+
+```
+
 
 
 I'm considering removing the same mice from the MLH1 counts, from the BivData, but this might -- limit the comparisons -- might be too stict. IF foci are bright and clear, SC/bivalents intact -- include.
@@ -429,9 +453,6 @@ wsb.SC.table <- ddply(WSB.Bivalents.DF, c("sex"), summarise,
                           
 )
 #can I plot these stats
-
-
-
 ```
 
 ```{r LEW.SC, echo=FALSE}
@@ -611,9 +632,6 @@ SKIVE.SC.table <- ddply(SKIVE.Bivalents.DF, c("sex"), summarise,
                   n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
                           
 )
-#can I plot these stats
-
-
 
 ```
 
@@ -1312,16 +1330,7 @@ Male.poly.Mouse.Table_BivData_4MM$sex <- droplevels(Male.poly.Mouse.Table_BivDat
 ```
 
 
-```{r Q1Q2.mouse.table, echo=FALSE}
-
-#How Do I apply quality score things to BivData?
-#make the same table but 
-
-
-```
-
 analysis using the mouse level table -- to justify that using mouse averages is a good idea.
-
 
 
 # Melt Position Table
