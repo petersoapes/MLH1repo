@@ -28,33 +28,23 @@ library(here)
 library(xlsx)
 #knitr::opts_chunk$set(echo = FALSE)
 
-#opts_knit$set(root.dir = "~./MLH1repo/")
-#setwd("~./MLH1repo/")
+opts_knit$set(root.dir = "~./MLH1repo/")
+setwd("~./MLH1repo/")
 
-meta.data = read.csv(here("data", "/clean.Meta.Data.txt"), sep = "\t", header=TRUE)
+meta.data = read.csv( "~./MLH1repo/data/clean.Meta.Data.txt", sep = "\t", header=TRUE)
 #remove all MAD (peromyscus) from meta.data
 #meta.data <- meta.data[ !grepl("MAD", meta.data$mouse) , ]
 
-source(here("src", "/CommonFunc_MLH1repo.R") )
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R" )
 
 #MLH1_data = read.csv(here("data", "/AnonData.csv"), sep="\t", header=TRUE)
 #read.csv was breaking things
-MLH1_data = read.xlsx2(here("data", "/AnonData_formated.xlsx"), header=TRUE, 1)
+MLH1_data = read.xlsx2("~./MLH1repo/data/AnonData_formated.xlsx", header=TRUE, 1)
 
-#formating the original anon file
-#MLH1_data = read.xlsx2(here("data", "/AnonData.xlsx"), header=TRUE, 1)
-#MLH1_data$fileName <- (MLH1_data$Original.Name)
+DMC1.DF <- read.csv("~./MLH1repo/data/DMC1newJuviQuant.csv", header = TRUE)
 
-#MLH1_data <- add_mouse(MLH1_data)
-#MLH1_data <- add_category(MLH1_data)
-#MLH1_data <- add_strain(MLH1_data)
-#MLH1_data <- add_sex(MLH1_data)
-#MLH1_data <- add_subsp(MLH1_data)
-#MLH1_data <- add_species(MLH1_data)
-#write csv to MLH1 file
-#write.xlsx2(MLH1_data, "AnonData_formated.xlsx", sheetName="Sheet1",
-#  col.names=TRUE, row.names=FALSE, append=FALSE)
 ```
+
 
 ```{r MLH1.DF.setup, warning=FALSE, echo=FALSE}
 
@@ -669,6 +659,51 @@ colors_of_strains <- c('WSB'= "#56B4E9",'G' ='cadetblue','LEW'= 'lightblue','PER
 ```
 
 
+#DMC1 Sections
+
+move the chunk below to setup
+
+```{r DMC1.setup, echo=FALSE}
+#load DMC1 csv
+#DMC1.DF <- read.csv("~./DMC1/newJuviQuant.csv", header = TRUE)
+
+
+DMC1.DF$fileName <- DMC1.DF$Original.Name
+DMC1.DF <- add_mouse(DMC1.DF)
+DMC1.DF <- add_strain(DMC1.DF)
+DMC1.DF <- add_category(DMC1.DF)
+DMC1.DF <- add_subsp(DMC1.DF)
+DMC1.DF <- DMC1.DF[DMC1.DF$stage != "P",]
+
+#make DMC1 table
+DMC1.mean.obs.L <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Early",],
+                 .(category),
+                 summarize, 
+                 
+                 ncells = length(fileName),
+                 mean.count = mean( total.count)
+)
+DMC1.mean.obs.L$stage <- "early Z"
+
+DMC1.mean.obs.Z <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Late",],
+                 .(category),
+                 summarize, 
+                 ncells = length(fileName),
+                 mean.count = mean( total.count)
+)
+DMC1.mean.obs.Z$stage <- "late Z"
+
+DMC1.mean.table <- rbind(DMC1.mean.obs.L,DMC1.mean.obs.Z)
+
+DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
+                          ifelse(grepl("G",DMC1.DF$strain), "Low",
+                                 
+              ifelse(grepl("KAZ", DMC1.DF$strain), "Low",
+            ifelse(grepl("PWD", DMC1.DF$strain), "High",
+               ifelse(grepl("MSM", DMC1.DF$strain), "High","")))))
+```
+
+
 
 # Saving Data file
 
@@ -685,7 +720,7 @@ work on cleaning up all other df with bad names
 #BD data and Peromyscus data
 #rm(c(BD_MLH1_data, BDmouse_level_table, MLH1_data.hq) )
 
-save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_5.5.20.RData")
+save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_5.12.20.RData")
 
 #  OutPut: big large MLH1_data (AP's) df, big DF of BD with just the mice I want.
 #  MLH1_data_table, means and variance of AP and BD MLH1 values. made from seperate tables from AP and BD data.
