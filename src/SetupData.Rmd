@@ -8,13 +8,6 @@ output:
 ---
 
 
-to Do
-
-- try calq correlation of MLH1 counts across duplicates
-
-- format the DF for applying to Mixed models
-
-- try coding i) date image for each cell image, ii) most recent image date for each mouse
 
 
 ```{r setup, include=FALSE}
@@ -26,6 +19,7 @@ library(knitr)
 library(kableExtra)
 library(here)
 library(xlsx)
+library(reshape2)
 #knitr::opts_chunk$set(echo = FALSE)
 
 opts_knit$set(root.dir = "~./MLH1repo/")
@@ -42,6 +36,15 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R" )
 MLH1_data = read.xlsx2("~./MLH1repo/data/AnonData_formated.xlsx", header=TRUE, 1)
 
 DMC1.DF <- read.csv("~./MLH1repo/data/DMC1newJuviQuant.csv", header = TRUE)
+
+#total SC -- the one file should be all I need?
+Total.SC_DF = read.xlsx2("~./MLH1repo/data/Total.SC_merge.MLH1.xlsx", header=TRUE, 1)
+
+#Curated Bivdata - this excel file is too big to work with read.xlsx2
+#Curated_BivData = read.xlsx2("~./MLH1repo/data/Curated_BivData.xlsx", header=TRUE, 1)
+
+Curated_BivData <-  read.csv("~./MLH1repo/data/Curated_BivData.csv", header=TRUE)
+
 
 ```
 
@@ -114,8 +117,10 @@ MLH1_data <- MLH1_data[MLH1_data$nMLH1.foci != "x",]
 ```
 
 
+
 ```{r misc.setup, echo=FALSE}
 
+#site for colors, #http://sape.inf.usi.ch/quick-reference/ggplot2/colour
 colors_of_strains <- c('WSB'= "#56B4E9",'G' ='cadetblue','LEW'= 'lightblue','PERC'= 'blue',
                        #blues
                        
@@ -213,10 +218,12 @@ I have made a list of the old mice, but from the effect document the older mice 
 the excluded TOM, had low quality cells, only 4. The exclude AST, had low poor quality cells, there are 3 other mice.  The excluded CZECH males are poor quality (but near the mean). There are 3 other males.
 
 
-```{r adj_nMLH1, echo=FALSE}
+```{r adj_nMLH1, echo=FALSE, eval=FALSE}
 #add a column with male adjusted MLH1 values (+1 to all males)
 MLH1_data$adj_nMLH1.foci <- ifelse(MLH1_data$sex=="male", MLH1_data$nMLH1.foci+1, MLH1_data$nMLH1.foci)
 MLH1_data$adj_nMLH1.foci <- as.numeric(MLH1_data$adj_nMLH1.foci)
+
+#adjusted MLH1 no longer used
 ```
 
 
@@ -229,10 +236,14 @@ MLH1_data <- MLH1_data %>%
   mutate(Original.Name = factor(Original.Name) )
 
 #order the batches in MLH1 and original
+#apply this ordering to all other DF?
+
 ```
 
-```{r kable.table, echo=FALSE}
-#table comparing number of images in quantification batches
+```{r Batch.Stats, echo=FALSE, eval=TRUE}
+#plot / table comparing number of images in quantification batches
+#basic visualization for number of images in batches
+
 #ToDo:  correct the case of all batches, better names
 #set an order to batches?
 original_batches <- as.data.frame(table(original_DF$Batch) ) #these look bad
@@ -300,7 +311,7 @@ MLH1_data$date.imaged <- as.Date(MLH1_data$image.string,  format='%d%b%y')
 
 Make mouse level tables  (re think this name, AP to distinguish BD -- but this isn't really an issue)
 
-```{r all.data.table, echo=FALSE}
+```{r all.data.table, echo=FALSE, eval=FALSE}
 
 #make the table with ALL MLH1 obs
 FULL_mouse_table_MLH1 <- ddply(MLH1_data, c("mouse"), summarise,
@@ -314,13 +325,18 @@ FULL_mouse_table_MLH1 <- ddply(MLH1_data, c("mouse"), summarise,
                         se   = round(sd / sqrt(Ncells), 3)
 )
 
+#NA cause by CAST female
+#this table isn't used much
 ```
 
 
-```{r mouse.table, echo=FALSE}
+```{r HQ.mouse.table, echo=FALSE}
 #Make a mouse level table 
 
-AP_mouse_table.MLH1_HQ <- ddply(MLH1_data[MLH1_data$quality < 5,], c("mouse"), summarise,
+#change name to Mouse.Table_HQ from #AP_mouse_table.MLH1_HQ
+#
+
+Mouse.Table_HQ <- ddply(MLH1_data[MLH1_data$quality < 5,], c("mouse"), summarise,
                         Nmice = length(unique(mouse)),
                         Ncells  = length(nMLH1.foci),
                         mean_co = as.numeric(format(round(  mean(nMLH1.foci, na.rm=TRUE), 3 ), nsmall=3) ),
@@ -335,15 +351,12 @@ AP_mouse_table.MLH1_HQ <- ddply(MLH1_data[MLH1_data$quality < 5,], c("mouse"), s
                         #quality?
 )
 
-#source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+Mouse.Table_HQ <- add_strain(Mouse.Table_HQ)
+Mouse.Table_HQ <- add_subsp(Mouse.Table_HQ)
+Mouse.Table_HQ <- add_sex(Mouse.Table_HQ)
+Mouse.Table_HQ <- add_category(Mouse.Table_HQ)
+Mouse.Table_HQ <- add_species(Mouse.Table_HQ)
 
-AP_mouse_table.MLH1_HQ <- add_strain(AP_mouse_table.MLH1_HQ)
-AP_mouse_table.MLH1_HQ <- add_subsp(AP_mouse_table.MLH1_HQ)
-AP_mouse_table.MLH1_HQ <- add_sex(AP_mouse_table.MLH1_HQ)
-AP_mouse_table.MLH1_HQ <- add_category(AP_mouse_table.MLH1_HQ)
-
-#add DOB to this table?
-mice.frm.meta <- AP_mouse_table.MLH1_HQ[as.character(AP_mouse_table.MLH1_HQ$mouse) %in% as.character(meta.data$mouse),]
 
 batch.mouse.count <- table(original_DF$mouse,original_DF$Batch) #mouse count by batch
 batch.mouse.count.DF <- as.data.frame(batch.mouse.count)#this has a dif str, 3 cols -- like it was melted
@@ -354,47 +367,37 @@ meta.data <- add_strain(meta.data)
 meta.data <- add_subsp(meta.data)
 meta.data <- add_sex(meta.data)
 meta.data <- add_category(meta.data)
+meta.data <- add_species(meta.data)
+
+
+#add DOB to this table?
+mice.frm.meta <- Mouse.Table_HQ[as.character(Mouse.Table_HQ$mouse) %in% as.character(meta.data$mouse),]
+
+Mouse.Table_HQ.OG <- Mouse.Table_HQ
+
+Mouse.Table_HQ <- Mouse.Table_HQ.OG
 
 #during merging -- try to just merge a few cols: 
-AP_mouse_table_w.Ages <- merge(AP_mouse_table.MLH1_HQ, meta.data)
+Mouse.Table_HQ <- merge(Mouse.Table_HQ, meta.data)
+#this removes ~28 mice
 
-#this should be transfering the image dataes!
-
-#don't use by, that makes duplicate cols
-# by.y = "mouse", by.x = "mouse", all = TRUE)
-#what are the differences between these two
-
-#remove mice without MLH1 obs
-AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[!(is.na(AP_mouse_table_w.Ages$Nmice) | AP_mouse_table_w.Ages$Nmice == ""), ]
-
-#remove cols with bad suffix
-#AP_mouse_table_w.Ages <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
-#                            subsp.y,subsp.x,
-#                    category.y,category.x, strain.x, strain.y,
-#                    mouse.1  )  )
-
-#add all the cols back
-AP_mouse_table_w.Ages <- add_strain(AP_mouse_table_w.Ages)
-AP_mouse_table_w.Ages <- add_subsp(AP_mouse_table_w.Ages)
-AP_mouse_table_w.Ages <- add_sex(AP_mouse_table_w.Ages)
-AP_mouse_table_w.Ages <- add_category(AP_mouse_table_w.Ages)
-AP_mouse_table_w.Ages <- add_species(AP_mouse_table_w.Ages)  
-
-#make sure they are all factors - this was breaking the kniting
-#AP_mouse_table.HQ$mouse <- as.factor(AP_mouse_table.HQ$mouse)
-#AP_mouse_table.HQ$sex <- as.factor(AP_mouse_table.HQ$sex)
-#AP_mouse_table.HQ$strain <- as.factor(AP_mouse_table.HQ$strain)
-#AP_mouse_table.HQ$subsp <-  as.factor(AP_mouse_table.HQ$subsp)
-
-old.mice.df <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$age.weeks > 25),]
+old.mice.df <- Mouse.Table_HQ[(Mouse.Table_HQ$age.weeks > 25),]
 #remove the NAs
 old.mice.df <- old.mice.df[!(is.na(old.mice.df$mouse) | old.mice.df$mouse==""), ]
 
+Mouse.Table_HQ <- Mouse.Table_HQ[ ! Mouse.Table_HQ$mouse %in% old.mice.df, ]
+
 
 #remove juvi mice via the list
-
 #remove bad ages
-#AP_mouse_table_w.Ages <- AP_mouse_table_w.Ages[( (AP_mouse_table_w.Ages$age.weeks < 25) &  (AP_mouse_table_w.Ages$age.days != 13) ) | #is.na(AP_mouse_table_w.Ages$age.weeks), ]
+#this is removing female
+
+#this removes everything but males in these categories
+#Mouse.Table_HQ <- Mouse.Table_HQ[ (Mouse.Table_HQ$sex == "female") | ( #(Mouse.Table_HQ$sex == "male") & (Mouse.Table_HQ$age.weeks < 25) & #(Mouse.Table_HQ$age.days != 13) ), ]
+
+#i don't understand why so many WSB female are removed..
+# | is.na(Mouse.Table_HQ$age.weeks) | (Mouse.Table_HQ$age.weeks == 0)
+
 ```
 
 Made up the main mouse level table:  
@@ -460,14 +463,14 @@ Q12_mouse_table_w.Ages <- add_category(Q12_mouse_table_w.Ages)
 Q12_mouse_table_w.Ages <- add_species(Q12_mouse_table_w.Ages)
 Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$species == "M.musculus",]
 
-#REMOVE EXTRA STRAINS
-Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$subsp != "Cast",]
+#REMOVE EXTRA STRAINS -- why?
+#Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$subsp != "Cast",]
 #remove musc strains
-Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$strain != "AST",]
-Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$strain != "TOM",]
+#Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$strain != "AST",]
+#Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$strain != "TOM",]
 #remove PERC, MOLF, CZECH, (no females)
-Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$strain != "CZECH",]
-Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$strain != "PERC",]
+#Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$strain != "CZECH",]
+#Q12_mouse_table_w.Ages <- Q12_mouse_table_w.Ages[Q12_mouse_table_w.Ages$strain != "PERC",]
 
 #REMOVE WRONG AGES
 #afriad this is removing NA's
@@ -516,25 +519,11 @@ Below I format the DF's for the models;
 i) HetC models: mouse averages, only strains with both sexes, no juvi males, only M.musculus. start with **AP_mouse_table**
 
 ```{r HetC.DF.4MM, echo=FALSE}
-#this block has so many fing errors
-
-#for the DF for use in the HetC Mixed Model
-#Which Start with the AP_mouse_table
 
 #variance is still chr
-AP_mouse_table_w.Ages$var <- as.numeric(AP_mouse_table_w.Ages$var)
+Mouse.Table_HQ$var <- as.numeric(Mouse.Table_HQ$var)
 
-#use the merged DF to filter by age 
-#AP_mouse_table_w.Ages$strain <- AP_mouse_table_w.Ages$strain.x
-#AP_mouse_table_w.Ages$sex <- AP_mouse_table_w.Ages$sex.x
-#AP_mouse_table_w.Ages$subsp <- AP_mouse_table_w.Ages$subsp.x
-#main file, make everything unordered factors
-
-#setwd("~./MLH1repo/src/")
-
-source(here("src","CommonFunc_MLH1repo.R") )
-AP_mouse_table_w.Ages <- add_species(AP_mouse_table_w.Ages)
-DF.HetC.MixedModel <- AP_mouse_table_w.Ages %>% filter(species == "M.musculus")
+DF.HetC.MixedModel <- Mouse.Table_HQ %>% filter(species == "M.musculus")
   
 #remove the extra merged cols
 #DF.HetC.MixedModel <- subset(DF.HetC.MixedModel, select= -c(sex.y,sex.x,
@@ -581,14 +570,12 @@ DF.HetC.MixedModel <- AP_mouse_table_w.Ages %>% filter(species == "M.musculus")
 
 #AP_mouse_table_w.Ages
 #use the above table to pull the male mouse levels
-mlh1male_mouse.av <-  AP_mouse_table_w.Ages %>% filter(sex== "male")
+mlh1male_mouse.av <-  Mouse.Table_HQ %>% filter(sex== "male")
 
 #add the Rec.group markers
-
 #mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD", mouse.avs_4MM$strain), 1, 
 #                            ifelse(grepl("MSM", mouse.avs_4MM$strain), 1,
 #                             ifelse(grepl("SKIVE", mouse.avs_4MM$strain), 1, 0)) )
-
 
 #formate the table for pluggin into models
 ```
@@ -615,9 +602,9 @@ Is there a detectable age effect?
 ```{r Age.Hists, echo=FALSE, warning=FALSE}
 #age.weeks col is missing
 
-male_mouse_table_w.Ages <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$sex == "male") &(AP_mouse_table_w.Ages$category != "other"),]
+male_mouse_table_w.Ages <- Mouse.Table_HQ[(Mouse.Table_HQ$sex == "male") &(Mouse.Table_HQ$category != "other"),]
 
-all.ages_plot <- ggplot(AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$sex == "male",], aes(age.weeks))+geom_histogram(binwidth = 3)+facet_wrap(~category)+ggtitle("Male Age Distributions")
+all.ages_plot <- ggplot(Mouse.Table_HQ[Mouse.Table_HQ$sex == "male",], aes(age.weeks))+geom_histogram(binwidth = 3)+facet_wrap(~category)+ggtitle("Male Age Distributions")
 all.ages_plot
 
 #male_mouse_table_w.good.ages <- male_mouse_table_w.Ages[male_mouse_table_w.Ages$age.weeks < 20,]
@@ -635,31 +622,7 @@ good.ages_plot <- ggplot(male_mouse_table_w.good.ages, aes(age.weeks))+geom_hist
 ```
 
 
-
-```{r color.scheme}
-#color scheme, #mouse colors
-#site for colors, #http://sape.inf.usi.ch/quick-reference/ggplot2/colour
-colors_of_strains <- c('WSB'= "#56B4E9",'G' ='cadetblue','LEW'= 'lightblue','PERC'= 'blue',
-                       #blues
-                       
-                       'PWD'= 'red2',
-                       'SKIVE'= 'coral1','KAZ'= 'coral4', 'TOM'= 'indianred1','AST' = 'red4',
-                       'CZECH'= 'indianred4',
-                       
-                       'MSM'= 'deeppink', 'MOLF'= 'hotpink', #mol are pinks, bc they are fancy mice
-                       
-                    'CAST'='green','HMI'= 'forestgreen', #greens
-                    
-                    'SPRET'='gold','SPIC'= 'goldenrod1', #browns? color of mounds?
-                    'CAROLI'='gold3',
-                    
-                    "F1"='grey', "other" = 'grey'
-                    )
-
-```
-
-
-#DMC1 Sections
+# DMC1 Section
 
 move the chunk below to setup
 
@@ -704,6 +667,702 @@ DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
 ```
 
 
+
+# BivData
+
+
+for these full curated, add all the labels and save them as excel files in the BivData setup file.
+
+full curated, reduced datasets
+
+Are the strain levels plots needed?
+
+
+Curated_BivData will be the master DF with most observations. DFs for mixed models and tests need to subsetted from this one.  
+
+
+```{r no.Foci.Pos, echo=FALSE}
+#no posittion
+#just.SC.length <- Curated_BivData[is.na(Curated_BivData$Foci1),] #NAs not registering
+just.SC.length <- Curated_BivData[(Curated_BivData$Foci1 == ""),]
+
+#table(just.SC.length$category)
+```
+
+
+
+Main files from this Script:  
+  
+  1. **Curated_BIVDATA**: cleaned up version of the passing, curated Bivalent measures  
+  
+  2.  **Foci_TRUE_Curated_Bivdata**: filterd version of the Curated_BivData file, but with only measures that have 'good' foci position information
+  
+  3. OG.Curate_FULL: original version of the Bivalent data (before 'failed' SC wiped away)  
+  
+  4. **MELT_ABS**: make melt version of foci positions for abs measuers
+  
+  5. CELL level table (full all mice) (use this to make long biv dataset)
+  
+  6. Long Biv Dataset
+
+  7. mouse table (full all mice)
+  
+  8. **Strain DFs** for Het models (summary strain DFs and tables?)
+  
+  9. **Mouse.Table_BivData_4MM** Mouse level table for HetC mixed models
+
+  9. **male Subsp DFs** for Polymorphism models **Male.poly.Mouse.Table_BivData_4MM**
+
+
+
+# Male specific BivData set
+
+not sure if SC.Length.male_table is used for anything.
+
+```{r male.sc.length.strain, echo=FALSE}
+
+#these measure ect should be in the male - mouse 
+#isolate all musc and male
+Curated_BivData_male <- Curated_BivData[ (Curated_BivData$sex == "male") & (Curated_BivData$species == "M.musculus"),]
+
+#make strain average table
+SC.Length.male_table <- ddply(Curated_BivData_male, c("strain"), summarise,
+                             mean_SC = mean(chromosomeLength),
+                              n_SC = length(Obj.ID),
+                   
+                   mean.SC_0CO = mean(chromosomeLength[which(hand.foci.count == 0)], na.rm = TRUE),
+                  n_0CO =  sum((hand.foci.count == 0), na.rm = TRUE ),
+                 # CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                  
+                   mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                    n_1CO = sum((hand.foci.count == 1), na.rm = TRUE),
+                  
+                   mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                   n_2CO = sum((hand.foci.count == 2), na.rm = TRUE),
+                  
+                  mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                  n_3CO = sum((hand.foci.count == 3), na.rm = TRUE)
+                          
+)
+
+```
+
+
+
+# Cell Level Table
+
+
+```{r cell.level.table, echo=FALSE}
+
+cell.level.BivData_table <- ddply(.data=Curated_BivData, 
+                       .(fileName),
+                       summarize, 
+                       boxs.IDd = max(boxNumber),
+                       nboxes_passed = length(boxNumber),
+                       
+                       Nbiv = length(Obj.ID), #if there are na's below -- it breaks
+                       CO0 =  sum(hand.foci.count == 0, na.rm=TRUE), 
+                       CO1 =  sum(hand.foci.count == 1, na.rm=TRUE), 
+                       CO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                       CO3 = sum(hand.foci.count == 3, na.rm=TRUE),
+                       CO4 = sum(hand.foci.count == 4, na.rm=TRUE),
+                       
+                       ncells = length(unique(fileName)),
+                       nbivs = length(unique(Obj.ID)),
+
+                       mean.SC_length = mean(chromosomeLength, na.rm = TRUE),
+                       var.SC_length = var(chromosomeLength),
+                       sd.SC_length   = round(sd(chromosomeLength), 3),
+                       se.SC_length   = round(sd.SC_length / sqrt(nbivs), 3), #check that nBivs is the right number
+ 
+                       cv.SC = cv(chromosomeLength),
+                       
+#AutoSC = sum( SC.length[which(blobjectClass != "XY")] ),
+                      mean.IFD_all = mean(   IFD1_ABS, na.rm = TRUE),
+
+                #this below might not be correct
+                     mean.IFD_2C0 = mean(   IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                     
+                       var.IFD_2CO = var( IFD1_ABS[which(hand.foci.count == 2)], na.rm=TRUE),
+                       #sd.IFD_2CO   = round(sd(IFD1, na.rm=TRUE), 3),
+                       #se.IFD_2CO   = round(sd.IFD / sqrt(nbivs), 3)
+
+#cent_dis
+                      mean_cent_dist = mean(dis.cent, na.rm=TRUE),
+                       Qar.4 = quantile(chromosomeLength, na.rm = TRUE)[[4]], #calq threshold for all cells, pull out 'almost.whole.cells' later
+                      Qar.3 = quantile(chromosomeLength, na.rm = TRUE)[[3]],
+                      Qar.2 = quantile(chromosomeLength, na.rm = TRUE)[[2]],
+                      Qar.1 = quantile(chromosomeLength, na.rm = TRUE)[[1]]
+
+                        )
+                      
+cell.level.BivData_table <- add_mouse(cell.level.BivData_table)
+cell.level.BivData_table <- add_sex(cell.level.BivData_table)
+cell.level.BivData_table <- add_strain(cell.level.BivData_table)
+cell.level.BivData_table <- add_category(cell.level.BivData_table)
+cell.level.BivData_table <- add_species(cell.level.BivData_table)
+
+#as.data.frame( head(cell.level.BivData_table) )
+#use quartille 2 as a min, on average it grabs 4 
+```
+
+
+
+```{r show.pass.rate, echo=FALSE}
+
+pass.rate.hist <- ggplot(cell.level.BivData_table, aes(x = nboxes_passed) )+geom_histogram(binwidth = 1, alpha=.6) + facet_wrap(~category)+ggtitle("number of objects ID'd per cell")
+pass.rate.hist
+
+```
+
+
+make histogram of the pass rate per cell.
+
+3 cells have manual measures and BivData measures. test error, need to match them up. There are 145 cells from the BivData set which are close to whole cells.  
+8jun15_23apr15_PWD_f2_sp1_20_rev, 29nov16_13nov16_MSM_m2_sp1_13_rev, 27oct16_31aug16_MSM_m1_sp1_9_rev
+
+
+# Reduced Bivalent Dataset (Long and Short)
+
+I want to make a dataset of 'longest' 25% chromosomes from cells with at least 16 segmented bivalents from a single cell. 
+
+
+```{r Reduced.Biv.DataSet.chrm.dataset, echo=FALSE}
+
+#1. Isolate bivalent measrues from 'almost whole cells'   (how many biv's are from cells with >15 bivalents)
+over_15_biv_cell_DF <- cell.level.BivData_table[cell.level.BivData_table$Nbiv >15, ]
+BivData_from_15biv_cells <- Curated_BivData[ Curated_BivData$fileName %in% over_15_biv_cell_DF$fileName, ]
+
+#check for blank obj.id
+BivData_from_15biv_cells$Obj.ID <- paste(BivData_from_15biv_cells$fileName, BivData_from_15biv_cells$boxNumber, sep = "_")
+
+#check for dup
+#length(duplicated(BivData_from_15biv_cells$Obj.ID))#2605
+#anyDuplicated(BivData_from_15biv_cells$Obj.ID)#1997
+#dups.dummy <- BivData_from_15biv_cells[duplicated(BivData_from_15biv_cells$Obj.ID),]
+#no duplicates
+
+#remove duplicate obj.ids
+#BivData_from_15biv_cells <- BivData_from_15biv_cells %>% distinct() #distinct doesn't work for chr type
+#BivData_from_15biv_cells <- BivData_from_15biv_cells[ ! BivData_from_15biv_cells$fileName %in% dups.dummy$fileName, ]
+
+#make sure obj.id and fileName are charcter for below
+BivData_from_15biv_cells$fileName <- as.character(BivData_from_15biv_cells$fileName)
+BivData_from_15biv_cells$Obj.ID <- as.character(BivData_from_15biv_cells$Obj.ID)
+
+missing_from_cell_table <- BivData_from_15biv_cells[!BivData_from_15biv_cells$fileName %in% cell.level.BivData_table$fileName, ] 
+#all these files stem from
+
+#these are bivalents which don't appear the in cell level table, which can break the loop
+BivData_from_15biv_cells <- BivData_from_15biv_cells[ ! BivData_from_15biv_cells$fileName %in% missing_from_cell_table$fileName, ]
+#final cleaned BivData table, 2428
+
+#2. calq the Q4 threshold
+#loop for greping the mouse from file name ect
+#each Q is a quartille
+
+#mini.now  <- BivData_from_15biv_cells[1:300,]
+
+for(  i in 1:length( unique(BivData_from_15biv_cells$Obj.ID) ) ){
+  
+
+  newfile.str = strsplit( BivData_from_15biv_cells$Obj.ID[i], "_" )[[1]][1:7]
+  new.egg <- paste0(newfile.str, collapse = "_")
+  
+  the.Q4 <- cell.level.BivData_table$Qar.4[ which( grepl(new.egg, cell.level.BivData_table$fileName ) )]
+  
+  the.Q3 <-cell.level.BivData_table$Qar.3[ which( grepl(new.egg, cell.level.BivData_table$fileName ) )]
+  
+  the.Q2 <-cell.level.BivData_table$Qar.2[ which( grepl(new.egg, cell.level.BivData_table$fileName ) )]
+  
+  the.Q1 <-cell.level.BivData_table$Qar.1[ which( grepl(new.egg, cell.level.BivData_table$fileName ) )]
+  
+  BivData_from_15biv_cells$cell.Q4[i] <- the.Q4
+    BivData_from_15biv_cells$cell.Q3[i] <- the.Q3
+  BivData_from_15biv_cells$cell.Q2[i] <- the.Q2
+  BivData_from_15biv_cells$cell.Q1[i] <- the.Q1
+    
+  the.FN <- as.character(cell.level.BivData_table$fileName[which(grepl(new.egg, cell.level.BivData_table$fileName ) )] )
+  
+  BivData_from_15biv_cells$Q4.FN[i] <- as.character(the.FN)
+  BivData_from_15biv_cells$Q1.FN[i] <- as.character(the.FN)
+}
+
+#3.mark which bivalents are above the threshold
+
+BivData_from_15biv_cells$long.Biv <- ifelse( (BivData_from_15biv_cells$chromosomeLength >= as.numeric(BivData_from_15biv_cells$cell.Q4)  ), "yes", "no" )
+
+real.long.bivData <- BivData_from_15biv_cells[BivData_from_15biv_cells$long.Biv == "yes",]#713 observations
+
+
+#isolate the short bivdata
+BivData_from_15biv_cells$short.Biv <- ifelse( (BivData_from_15biv_cells$chromosomeLength <= as.numeric(BivData_from_15biv_cells$cell.Q2)  ), "yes", "no" )
+
+real.short.bivData <- BivData_from_15biv_cells[BivData_from_15biv_cells$short.Biv == "yes",]# 708 much few than 
+
+```
+
+
+```{r Look.short.biv.data, echo=FALSE, include=FALSE, eval=FALSE}
+
+#showing SC lengths per cell, with lines for the quartille values.
+
+mini_G.15_15biv_FN <- BivData_from_15biv_cells %>% filter(category == "G male")
+#ploting short biv data
+G.15_15biv_male <- BivData_from_15biv_cells %>% filter(category == "G male")
+mini_G.15_15biv_FN <- sample( G.15_15biv_male$fileName, 10)
+mini_G.15_15biv  <- BivData_from_15biv_cells[BivData_from_15biv_cells$fileName %in% mini_G.15_15biv_FN, ] 
+
+
+ppll <- ggplot(mini_G.15_15biv, aes(x = fileName, y=chromosomeLength, color=mouse))+geom_jitter()+facet_wrap(~fileName, scales="free")+ theme(legend.position="none")+
+  geom_hline(aes(yintercept= cell.Q1), color='coral') + 
+  geom_hline(aes(yintercept= cell.Q2), color='red') +
+ geom_hline(aes(yintercept= cell.Q3), color='blue') +   ##actually Q3 might not be a real thing...
+ geom_hline(aes(yintercept= cell.Q4), color='black')  
+
+  #this plot shows that the Q1 is capturing only single values -- I should try Q2
+#use Q2 as a 
+```
+
+
+
+
+```{r table.long.biv, echo=FALSE}
+
+# make a table for the Mixed Models -- from the long.BivData
+# Calq mouse averages
+
+#add in all the other stats there are in the other tables
+
+Long.biv_mouse_table <- ddply(real.long.bivData, c("mouse"), summarise,
+                        
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(Obj.ID),
+                      
+                      mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
+                        cV = cv(chromosomeLength),
+                        var = as.numeric(format(round(   var(chromosomeLength),3), nsmall=3) ),
+                        sd   = round(sd(chromosomeLength), 3),
+                        se   = round(sd / sqrt(Ncells), 3),
+                        
+                        #SC lengths by class
+                        nCO0 =  sum(hand.foci.count == 0, na.rm=TRUE), 
+                      nCO1 =  sum(hand.foci.count == 1, na.rm=TRUE), 
+                       nCO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                       nCO3 = sum(hand.foci.count == 3, na.rm=TRUE),
+                       nCO4 = sum(hand.foci.count == 4, na.rm=TRUE),
+                       
+                      mean.siscoten_0CO = mean(SisCoTen[which(hand.foci.count == 0)], na.rm = TRUE),
+                      mean.siscoten_1CO = mean(SisCoTen[which(hand.foci.count == 1)], na.rm = TRUE),
+                     mean.siscoten_2CO = mean(SisCoTen[which(hand.foci.count == 2)], na.rm = TRUE),
+                      mean.siscoten_3CO = mean(SisCoTen[which(hand.foci.count == 3)], na.rm = TRUE),
+                      
+                #  mean_IFD_ABS = as.numeric(format(round(  mean(IFD1_ABS, na.rm = TRUE), 3 ), nsmall=3) ),
+                # mean_IFD_PER = as.numeric(format(round(  mean(IFD1_PER, na.rm = TRUE), 3 ), nsmall=3) ),
+                 
+                 mean_IFD.2CO_ABS = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                 mean_IFD.2CO_PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
+                  
+                       #CO position things, requires the melt?
+              norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)])
+                  
+        #          mean_siscoten = mean(siscoten)
+        #
+)
+#mouse averages for long.biv
+
+Long.biv_mouse_table <- add_sex(Long.biv_mouse_table)
+Long.biv_mouse_table <- add_strain(Long.biv_mouse_table)
+Long.biv_mouse_table <- add_subsp(Long.biv_mouse_table)
+Long.biv_mouse_table <- add_category(Long.biv_mouse_table)
+
+#unordered for the mixed models (move this to the MM blocks...?)
+Long.biv_mouse_table$subsp <- factor(Long.biv_mouse_table$subsp, ordered = FALSE)
+Long.biv_mouse_table$sex <- factor(Long.biv_mouse_table$sex, ordered = FALSE)
+Long.biv_mouse_table$strain <- factor(Long.biv_mouse_table$strain, ordered = FALSE)
+
+#rec group
+Long.biv_mouse_table$Rec.group <- ifelse(grepl("PWD", Long.biv_mouse_table$category), 1, 
+                            ifelse(grepl("MSM", Long.biv_mouse_table$category), 1,
+                             ifelse(grepl("SKIVE", Long.biv_mouse_table$category), 1, 0)) )
+
+#long.biv. 1) HetC  2) male.poly (the main factors are still unordered)
+
+#1) Long Biv for 
+#remove all the non-used strains!!
+Long.biv_mouse_table_HetC <- Long.biv_mouse_table
+
+Long.biv_mouse_table_HetC <- Long.biv_mouse_table_HetC[Long.biv_mouse_table$strain != "AST",]
+Long.biv_mouse_table_HetC <- Long.biv_mouse_table_HetC[Curated_BivData$strain != "TOM",]
+Long.biv_mouse_table_HetC <- Long.biv_mouse_table_HetC[Long.biv_mouse_table_HetC$strain != "CZECH",]
+Long.biv_mouse_table_HetC$strain <- droplevels(Long.biv_mouse_table_HetC$strain)
+
+#remove na's
+Long.biv_mouse_table_HetC <- Long.biv_mouse_table_HetC[!(is.na(Long.biv_mouse_table_HetC$mouse) | Long.biv_mouse_table_HetC$mouse==""), ]
+
+#table(droplevels( Long.biv_mouse_table_HetC$category) )  #for double checking
+
+#2) Long Biv for male.poly
+#just males, just Musculus
+Long.biv_mouse_table_male.poly <- Long.biv_mouse_table
+
+Long.biv_mouse_table_male.poly <- Long.biv_mouse_table_male.poly[Long.biv_mouse_table_male.poly$sex == "male",]
+
+#table(droplevels( Long.biv_mouse_table_male.poly$category) ) #for double checking
+```
+
+The above code chunk makes 2 mouse level tables; **Long.biv_mouse_table_HetC** and **Long.biv_mouse_table_male.poly**. Run these through the model systems.
+
+
+# Mouse Level Single BivData Table
+
+Mouse level tables are the main meat of the models. There will be several for use in different models. Format these tables for run the mixed models (unordered factors, ect).
+
+The block below creates clean.BivData, which removes ~600 rows if just SC measures
+(This might be important for the proportion code)
+
+```{r FULL.mouse.BivData.table, echo=FALSE}
+
+#length( Curated_BivData %>% filter(hand.foci.count == "NA") )#36
+
+table(Curated_BivData$hand.foci.count, exclude = NULL)
+#there are ~600 rows with SC and no hand foci count (blah)
+
+#remove bivalent entries without hand foci count values
+cleanCurated_BivData <-  Curated_BivData  %>%  filter(hand.foci.count  == 0 | hand.foci.count  == 1 |
+                                      hand.foci.count  == 2 | hand.foci.count  == 3 | hand.foci.count  == 4 )
+
+mouse.level.BivData_table <- ddply(.data=cleanCurated_BivData, 
+                       .(mouse),
+                       summarize, 
+                       
+                       ncells = length(unique(fileName)),
+                       
+                       boxs.IDd = max(boxNumber),
+                       nboxes_passed = length(boxNumber),
+                       
+                       Nbiv = length(Obj.ID), #if there are na's below -- it breaks
+                     
+                      tot.biv = length( !is.na(hand.foci.count) ),
+                       
+                       n0CO = sum( (hand.foci.count == 0), na.rm = TRUE ),
+                      n1CO = sum( (hand.foci.count == 1), na.rm = TRUE ),
+                      n2CO = sum( (hand.foci.count == 2), na.rm = TRUE ),
+                      n3CO = sum( (hand.foci.count == 3), na.rm = TRUE ),
+                      n4CO = sum(hand.foci.count == 4, na.rm=TRUE),
+
+                       mean.SC_length = mean(chromosomeLength, na.rm = TRUE),
+                       var.SC_length = var(chromosomeLength, na.rm = TRUE),
+                       sd.SC_length   = round(sd(chromosomeLength), 3),
+                       se.SC_length   = round(sd.SC_length / sqrt(Nbiv), 3),
+                       
+                       #sis.co.ten
+                       mean.sis.co.ten = mean(SisCoTen, na.rm = TRUE)
+)   
+
+
+mouse.level.BivData_table <- add_sex(mouse.level.BivData_table)
+mouse.level.BivData_table <- add_strain(mouse.level.BivData_table)
+mouse.level.BivData_table <- add_subsp(mouse.level.BivData_table)
+mouse.level.BivData_table <- add_category(mouse.level.BivData_table)
+
+#unordered for the mixed models (move this to the MM blocks...?)
+mouse.level.BivData_table$subsp <- factor(mouse.level.BivData_table$subsp, ordered = FALSE)
+mouse.level.BivData_table$sex <- factor(mouse.level.BivData_table$sex, ordered = FALSE)
+mouse.level.BivData_table$strain <- factor(mouse.level.BivData_table$strain, ordered = FALSE)
+
+
+mouse.level.BivData_table$Rec.group <- ifelse(grepl("PWD male", mouse.level.BivData_table$category), 1, 
+                              ifelse(grepl("MSM male", mouse.level.BivData_table$category), 1,
+                                 ifelse(grepl("SKIVE male", mouse.level.BivData_table$category), 1, 0)))
+```
+
+
+```{r mouse.table.HetC.MM, echo=FALSE}
+
+#this mouse level table -- should not have strains without female obs
+#only Mmusculus
+
+Mouse.Table_BivData_4MM <- ddply(Curated_BivData, c("mouse"), summarise,
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(  unique(fileName) ),
+                      tot.biv = length(Obj.ID),
+            
+                      n0CO = sum( (hand.foci.count == 0), na.rm = TRUE ),
+                      n1CO = sum( (hand.foci.count == 1), na.rm = TRUE ),
+                      n2CO = sum( (hand.foci.count == 2), na.rm = TRUE ),
+                      n3CO = sum( (hand.foci.count == 3), na.rm = TRUE ),
+                        
+                        mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
+                        cV = cv(chromosomeLength),
+                        var = as.numeric(format(round(   var(chromosomeLength),3), nsmall=3) ),
+                        sd   = round(sd(chromosomeLength), 3),
+                        se   = round(sd / sqrt(Ncells), 3),
+                       
+                       #calq mean.sc by chrm class
+                       mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                       mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                       mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                       mean.SC_4CO = mean(chromosomeLength[which(hand.foci.count == 4)], na.rm = TRUE),
+                       
+                # IFD things
+                #  mean_IFD_ABS = as.numeric(format(round(  mean(IFD1_ABS, na.rm = TRUE), 3 ), nsmall=3) ),
+                # mean_IFD_PER = as.numeric(format(round(  mean(IFD1_PER, na.rm = TRUE), 3 ), nsmall=3) ),
+                 
+                 mean_IFD.2CO_ABS = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                 mean_IFD.2CO_PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
+                  
+                       #CO position things, requires the melt?
+              norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)]),
+                  
+              #sis.co.ten!!
+              mean.siscoten = mean(SisCoTen, na.rm=TRUE),
+              
+              mean.siscoten_1CO = mean(SisCoTen[which(hand.foci.count == 1)], na.rm = TRUE),
+              mean.siscoten_2CO = mean(SisCoTen[which(hand.foci.count == 2)], na.rm = TRUE),
+              mean.siscoten_3CO = mean(SisCoTen[which(hand.foci.count == 3)], na.rm = TRUE),
+              
+              mean.telo.dist = mean(telo_dist, na.rm=TRUE),
+              mean.cent.dist = mean(dis.cent, na.rm=TRUE)
+)
+
+#
+Mouse.Table_BivData_4MM <- add_sex(Mouse.Table_BivData_4MM)
+Mouse.Table_BivData_4MM <- add_strain(Mouse.Table_BivData_4MM)
+Mouse.Table_BivData_4MM <- add_subsp(Mouse.Table_BivData_4MM)
+Mouse.Table_BivData_4MM <- add_category(Mouse.Table_BivData_4MM)
+Mouse.Table_BivData_4MM <- add_species(Mouse.Table_BivData_4MM)
+
+#unordered for the mixed models (move this to the MM blocks...?)
+Mouse.Table_BivData_4MM$subsp <- factor(Mouse.Table_BivData_4MM$subsp, ordered = FALSE)
+Mouse.Table_BivData_4MM$sex <- factor(Mouse.Table_BivData_4MM$sex, ordered = FALSE)
+Mouse.Table_BivData_4MM$strain <- factor(Mouse.Table_BivData_4MM$strain, ordered = FALSE)
+
+#remove all the non-used strains!!
+
+Mouse.Table_BivData_4MM <-  Mouse.Table_BivData_4MM %>%  filter(strain != "AST")  %>% filter(strain != "TOM")  %>% filter(strain != "CZECH")
+
+
+#Mouse.Table_BivData_4MM$strain <- droplevels(Mouse.Table_BivData_4MM$strain)
+#Mouse.Table_BivData_4MM <- Mouse.Table_BivData_4MM[(!is.na(Mouse.Table_BivData_4MM$mouse)),] #so many NAs still 
+
+Mouse.Table_BivData_4MM$Rec.group <- ifelse(grepl("PWD male", Mouse.Table_BivData_4MM$category), 1, 
+                              ifelse(grepl("MSM male", Mouse.Table_BivData_4MM$category), 1,
+                                 ifelse(grepl("SKIVE male", Mouse.Table_BivData_4MM$category), 1, 0)))
+
+```
+
+
+```{r mouse.table.Male.Poly, echo=FALSE}
+
+#this table will have male BivData
+#it will include Musc strains
+
+Curated_BivData_male <- Curated_BivData[Curated_BivData$sex == "male",]
+
+Male.poly.Mouse.Table_BivData_4MM <- ddply(Curated_BivData_male, c("mouse"), summarise,
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(Obj.ID),
+                       
+                      # mean_CO = mean()
+                       
+                        mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
+                        cV = cv(chromosomeLength),
+                        var = as.numeric(format(round(   var(chromosomeLength),3), nsmall=3) ),
+                        sd   = round(sd(chromosomeLength), 3),
+                        se   = round(sd / sqrt(Ncells), 3),
+                       
+                      n0CO = sum( (hand.foci.count == 0), na.rm = TRUE ),
+                      n1CO = sum( (hand.foci.count == 1), na.rm = TRUE ),
+                      n2CO = sum( (hand.foci.count == 2), na.rm = TRUE ),
+                      n3CO = sum( (hand.foci.count == 3), na.rm = TRUE ),
+                      
+                       #calq mean.sc by chrm class
+                       mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                       mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                       mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                       mean.SC_4CO = mean(chromosomeLength[which(hand.foci.count == 4)], na.rm = TRUE),
+                       
+                # IFD things
+                #  mean_IFD_ABS = as.numeric(format(round(  mean(IFD1_ABS, na.rm = TRUE), 3 ), nsmall=3) ),
+                # mean_IFD_PER = as.numeric(format(round(  mean(IFD1_PER, na.rm = TRUE), 3 ), nsmall=3) ),
+                 
+                 mean_IFD.2CO_ABS = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                 mean_IFD.2CO_PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
+                  
+                       #CO position things, requires the melt?
+              norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)]),
+                  
+              #sis.co.ten!!
+              mean.siscoten = mean(SisCoTen, na.rm=TRUE),
+              
+              mean.siscoten_1CO = mean(SisCoTen[which(hand.foci.count == 1)], na.rm = TRUE),
+              mean.siscoten_2CO = mean(SisCoTen[which(hand.foci.count == 2)], na.rm = TRUE),
+              mean.siscoten_3CO = mean(SisCoTen[which(hand.foci.count == 3)], na.rm = TRUE),
+              
+              mean.telo.dist = mean(telo_dist, na.rm=TRUE),
+              mean.cent.dist = mean(dis.cent, na.rm=TRUE)
+)
+
+Male.poly.Mouse.Table_BivData_4MM <- add_sex(Male.poly.Mouse.Table_BivData_4MM)
+Male.poly.Mouse.Table_BivData_4MM <- add_strain(Male.poly.Mouse.Table_BivData_4MM)
+Male.poly.Mouse.Table_BivData_4MM <- add_subsp(Male.poly.Mouse.Table_BivData_4MM)
+Male.poly.Mouse.Table_BivData_4MM <- add_category(Male.poly.Mouse.Table_BivData_4MM)
+
+#unordered for the mixed models (move this to the MM blocks...?)
+Male.poly.Mouse.Table_BivData_4MM$subsp <- factor(Male.poly.Mouse.Table_BivData_4MM$subsp, ordered = FALSE)
+Male.poly.Mouse.Table_BivData_4MM$sex <- factor(Male.poly.Mouse.Table_BivData_4MM$sex, ordered = FALSE)
+Male.poly.Mouse.Table_BivData_4MM$strain <- factor(Male.poly.Mouse.Table_BivData_4MM$strain, ordered = FALSE)
+
+#remove females
+Male.poly.Mouse.Table_BivData_4MM$sex <- droplevels(Male.poly.Mouse.Table_BivData_4MM$sex)
+
+```
+
+
+analysis using the mouse level table -- to justify that using mouse averages is a good idea.
+
+
+# Melt Position Table
+
+The BivData MELT DF is primarily for the nrmF1.pos plots/analysis. It is a Melted DF for raw and normalized foci positions from the Curated_BivData. 
+
+```{r MELT.block1, echo=FALSE}
+
+#not sure what the melt table is needed for
+col.names.list <- colnames(Curated_BivData)
+             
+#all of the cols to use
+MELT_Curated_BivData <-   melt(Curated_BivData[,c("fileName","chromosomeLength","centromere_ABS_Position","centromere_PER_Position",  "boxNumber", "Obj.ID", "SC.pass","foci.pass",              
+              "curated.1pass.0fail","curation.notes", "hand.foci.count","notes", "mouse", "category",      "strain",        "sex",           "subsp",         "species", "IFD3_ABS", "IFD1_ABS","IFD2_ABS","IFD1_PER",
+              #remoevd PER.Foci positions
+"dis.cent", "dis.cent.PER",  "telo_dist", "telo_dist_PER", "SisCoTen", "Rec.group",
+              #leave out the Foci
+                "Foci1","Foci2","Foci3", "Foci4")], 
+                 
+            id=c("fileName","chromosomeLength","centromere_ABS_Position","centromere_PER_Position",
+       "boxNumber", "Obj.ID", "SC.pass","foci.pass",              
+              "curated.1pass.0fail","curation.notes", "hand.foci.count",
+       
+       "notes", "mouse", 
+      "category","strain","sex","subsp","species", "IFD3_ABS","IFD1_ABS","IFD2_ABS","IFD1_PER",
+              #remoevd PER.Foci positions
+"dis.cent", "dis.cent.PER",  "telo_dist", "telo_dist_PER", "SisCoTen", "Rec.group"))
+
+MELT_Curated_BivData <- MELT_Curated_BivData[(!is.na(MELT_Curated_BivData$value)),]
+
+#this might not be right
+colnames(MELT_Curated_BivData) <- c( col.names.list[c(1:11, 16:26, 31:36)], "Foci_Type", "Pos")
+
+#
+MELT_Curated_BivData$Pos <- as.numeric(MELT_Curated_BivData$Pos)
+
+#calq normalized melt pos
+MELT_Curated_BivData$PER.Foci.Pos <- MELT_Curated_BivData$Pos / MELT_Curated_BivData$chromosomeLength
+
+MELT_Curated_BivData <- MELT_Curated_BivData[(!is.na(MELT_Curated_BivData$Pos)),]
+
+```
+
+
+
+```{r SHORT.biv_setup, echo=FALSE, eval=TRUE}
+
+#move to Data.setup
+
+#FROM q1
+#Q1.long.biv_1CO <-  real.long.bivData %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1) %>% filter(strain != "MOLF") %>% filter(strain != "CZECH")
+#Q1.short.biv_1CO <-  real.short.bivData %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1)%>% filter(strain != "MOLF") %>% filter(strain != "CZECH")
+#from Q2 IFD
+#male.long.biv.2CO_IFD <- real.long.bivData %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 2)
+##long biv
+#male.long.biv <- real.long.bivData %>% filter(sex== "male") %>% filter(species == "M.musculus") 
+#table( droplevels( male.long.biv$strain)  )
+
+#FROM q1 
+REAL.short_mouse_table <- ddply(real.short.bivData, c("mouse"), summarise,
+                        n_obs = length(Obj.ID),
+                        ncells = length(unique(fileName)),
+                         mean_SC = mean(chromosomeLength),
+                        
+                      mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                       mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                       mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                       mean.SC_4CO = mean(chromosomeLength[which(hand.foci.count == 4)], na.rm = TRUE),
+                        
+                      #make sure 1CO  
+                       #IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE
+                    mean_F1pos_ABS =  mean(Foci1[which(hand.foci.count == 1)]),
+                    mean_F1pos_PER =  mean(PER_Foci_1[which(hand.foci.count == 1)]),
+                           
+                      meanIFD2CO_raw = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                     meanIFD2CO_norm = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE)
+                                            
+                         )
+
+REAL.short_mouse_table <- add_sex(REAL.short_mouse_table)
+REAL.short_mouse_table <- add_strain(REAL.short_mouse_table)
+REAL.short_mouse_table <- add_subsp(REAL.short_mouse_table)
+REAL.short_mouse_table <- add_category(REAL.short_mouse_table)
+
+REAL.short_mouse_table$sex <- factor(REAL.short_mouse_table$sex, ordered = FALSE)
+REAL.short_mouse_table$strain <- factor(REAL.short_mouse_table$strain, ordered = FALSE)
+REAL.short_mouse_table$subsp <- factor(REAL.short_mouse_table$subsp, ordered = FALSE)
+
+#divide musc males into groups
+REAL.short_mouse_table$Rec.group <- ifelse(grepl("PWD male", REAL.short_mouse_table$category), 1, 
+                                  ifelse(grepl("MSM male", REAL.short_mouse_table$category), 1,
+                                  ifelse(grepl("SKIVE male", REAL.short_mouse_table$category), 1,
+                                           0)))
+
+###LONG BIV
+
+REAL.long_mouse_table <- ddply(real.long.bivData, c("mouse"), summarise,
+                       n_obs = length(Obj.ID),
+                        ncells = length(unique(fileName)),
+                         mean_SC = mean(chromosomeLength),
+                        
+                      mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
+                       mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
+                       mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
+                       mean.SC_4CO = mean(chromosomeLength[which(hand.foci.count == 4)], na.rm = TRUE),
+                        
+                      #make sure 1CO,  #IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE
+                    mean_F1pos_ABS =  mean(Foci1[which(hand.foci.count == 1)]),
+                    mean_F1pos_PER =  mean(PER_Foci_1[which(hand.foci.count == 1)]),
+                           
+                      meanIFD2CO_raw = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                     meanIFD2CO_norm = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE)
+                         )
+
+REAL.long_mouse_table <- add_sex(REAL.long_mouse_table)
+REAL.long_mouse_table <- add_strain(REAL.long_mouse_table)
+REAL.long_mouse_table <- add_subsp(REAL.long_mouse_table)
+REAL.long_mouse_table <- add_category(REAL.long_mouse_table)
+
+REAL.long_mouse_table$sex <- factor(REAL.long_mouse_table$sex, ordered = FALSE)
+REAL.long_mouse_table$strain <- factor(REAL.long_mouse_table$strain, ordered = FALSE)
+REAL.long_mouse_table$subsp <- factor(REAL.long_mouse_table$subsp, ordered = FALSE)
+
+#divide musc males into groups
+REAL.long_mouse_table$Rec.group <- ifelse(grepl("PWD male", REAL.long_mouse_table$category), 1, 
+                                  ifelse(grepl("MSM male", REAL.long_mouse_table$category), 1,
+                                  ifelse(grepl("SKIVE male", REAL.long_mouse_table$category), 1,
+                                           0)))
+
+
+#find which one 
+
+
+#REAL.short_mouse_table
+```
+
+
+
+
+# Total SC
+
+total sc is processed in the results setup.
 
 # Saving Data file
 

@@ -18,16 +18,18 @@ Main files from this Script:
   
   4. **MELT_ABS**: make melt version of foci positions for abs measuers
   
-  5. CELL level table (full all mice) (use this to make long biv dataset)
-  
-  6. Long Biv Dataset and short biv dataset
-
-  7. mouse table (full all mice)
   
   8. **Strain DFs** for Het models **Mouse.Table_BivData_4MM**
   
   9. **male Subsp DFs** for Polymorphism models **Male.poly.Mouse.Table_BivData_4MM**
 
+
+files that will be made in setup
+  5. CELL level table (full all mice) (use this to make long biv dataset)
+  
+  6. Long Biv Dataset and short biv dataset
+
+ 7. mouse table (full all mice)
 
 # Data setup and basic cleaning
 
@@ -112,8 +114,6 @@ new.Curate.FULL.org <- add_category(new.Curate.FULL.org)
 new.Curate.FULL.org$Obj.ID <- paste(new.Curate.FULL.org$fileName, new.Curate.FULL.org$boxNumber, sep = "_")
 
 #add_mouse ect.
-
-
 #write files for basic stats to csv files
 #OG.cURATE.table.mouse <- table(new.Curate.FULL.org$mouse, new.Curate.FULL.org$SC.pass)
 #OG.cURATE.table.mouse <- add_strain(OG.cURATE.table.mouse)
@@ -125,12 +125,10 @@ OG.cURATE.table.category <- table(new.Curate.FULL.org$category, new.Curate.FULL.
 #            row.names = TRUE)
 #write.table(OG.cURATE.table.category, "~./MLH1repo/data/CurrentCuratedDataset_cat_21.1.20.csv", sep=",",
 #            row.names = TRUE)
-
-
 ```
 
 
-```{r split.up.DF, echo=FALSE}
+```{r mk.Curate_BivData, echo=FALSE}
 #new.Curate.FULL to Curated_BivData
 
 #SC PASS
@@ -150,10 +148,7 @@ Curated_BivData <- add_species(Curated_BivData)
 
 #don't think I need this one
 #Foci_TRUE_Curate_BivData <-   Curated_BivData[(!is.na(Curated_BivData$hand.foci.count)),]
-```
 
-
-```{r set.type_Curated_BivData, echo=FALSE}
 ##change factor cols to numbers (factor -> chr -> number)
 Curated_BivData$centromere_ABS_Position <- as.character(Curated_BivData$centromere_ABS_Position)
 Curated_BivData$centromere_PER_Position <- as.character(Curated_BivData$centromere_PER_Position)
@@ -224,61 +219,26 @@ Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category),
                                   ifelse(grepl("SKIVE male", Curated_BivData$category), 1,
                                            0)))
 
-Curated_BivData$Rec.group.exclu <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
-                                ifelse(grepl("MSM male", Curated_BivData$category), 1, 0))
-
-
-#write.xlsx2(MLH1.merge.Skel, "Total.SC_merge.MLH1.xlsx", sheetName = "Sheet1", 
-#            col.names = TRUE, row.names = FALSE, append = FALSE)
-
-
+#remove bivalent entries without hand foci count values
+cleanCurated_BivData <-  Curated_BivData  %>%  filter(hand.foci.count  == 0 | hand.foci.count  == 1 |
+                                      hand.foci.count  == 2 | hand.foci.count  == 3 | hand.foci.count  == 4 )
 ```
 
 Curated_BivData will be the master DF with most observations. DFs for mixed models and tests need to subsetted from this one.  
 
 
-```{r no.Foci.Pos, echo=FALSE}
+```{r no.Foci.Pos, echo=FALSE, eval=FALSE}
 
 #no posittion
 #just.SC.length <- Curated_BivData[is.na(Curated_BivData$Foci1),] #NAs not registering
+
+#not sure why these are different DFs
+just.SC.length2 <- Curated_BivData %>% filter(Foci1 == " ")
 just.SC.length <- Curated_BivData[(Curated_BivData$Foci1 == ""),]
+#these are different than hand.foci.count
 
-#table(just.SC.length$category)
-
-#decide what to do with these lines
-#how will they be represented in Mat Methods?
-```
-
-
-```{r input.check,echo=FALSE}
-
-#10jan18_13jan17_LEW_f1_sp1_14_rev_12  '?'
-
-
-##calq the nromalized.siscoten, double check the negative values;  #13sep18_28jun18_MOLF_m1_sp1_18.1_rev_14, #27aug15_12jun15_WSB_m2_sp1_18_rev_18, #21nov17_16nov17_MSM_f3_sp1_3_rev_1
-
-#foci.pass = 2  #5aug17_14jul17_MSM_f1_sp1_13_rev_3
-#hand foci =0 but there is a foci position
-#too high hand foci count
-
-#check for mistakes that might have been made when inputing / curation process
-
-#hand foci > 4
-#foci pos > SC lengths
-#negative PER.foci.pos
-
-#it hink most (ALL) of these came from bug in my function (ugh)
-
-#Curated_BivData <- add_IFD(Curated_BivData)
-#negative.IFD <- Curated_BivData[which(Curated_BivData$IFD1_ABS < 0),]
-#caught 2
-#15mar16_16jan16_G_f1_sp1_4_rev
-#27mar16_6mar16_G_m3_sp1_12_rev
-
-#neg Nrm F1
-#negative.IFD2 <- Curated_BivData[which(Curated_BivData$PER_Foci_1 < 0),]
-#0 really?
-
+table(Curated_BivData$hand.foci.count, exclude = NULL)
+#there are ~600 rows with SC and no hand foci count (blah)
 ```
 
 
@@ -291,10 +251,104 @@ just.SC.length <- Curated_BivData[(Curated_BivData$Foci1 == ""),]
 #Curated_BivData <- add_IFD(Curated_BivData)
 #t.test.4CO <- Curated_BivData %>% filter(Obj.ID == "8feb17_4jan17_LEW_f1_sp1_3_rev_17")
 
-#neg.IFD <- Curated_BivData[Curated_BivData$IFD1_ABS < 0, ]
-#neg.ifd <- Curated_BivData %>% filter(hand.foci.count > 1) %>% filter(IFD3_ABS < 0 )
+neg.IFD <- Curated_BivData[Curated_BivData$IFD1_ABS < 0, ]
+neg.ifd <- Curated_BivData %>% filter(hand.foci.count > 1) %>% filter(IFD3_ABS < 0 )
+
+#same deal as above
+```
+
+
+
+```{r remove.DUP, echo=FALSE}
+
+#check for duplicates, and track them down
+anyDuplicated(new.Curate.FULL$Obj.ID)  #5335, #3467
+
+dup.curated <- Curated_BivData[duplicated(Curated_BivData$Obj.ID),] #784
+dup.curated <- add_mouse(dup.curated)
+
+#table(dup.curated$category)#MSM male, PWD male
+#obj.ID is not complete for all rows
+
+Curated_BivData_w.dup <- Curated_BivData
+
+Curated_BivData <- Curated_BivData %>% distinct(Obj.ID, .keep_all = TRUE)
+
+#which lines are duplicated
+#lots of PWD_female duplicated -- probably how I put together the curated files
+
+#new.Curate.FULL <- new.Curate.FULL.org[(new.Curate.FULL.org$SC.pass == 1 | new.Curate.FULL.org$SC.pass == 0),]
+#new.Curate.FULL <- droplevels(new.Curate.FULL)
+
+#new.Curate.FULL <- add_mouse(new.Curate.FULL)
+#new.Curate.FULL <- add_category(new.Curate.FULL)
+
+#pass.fail.table <- table(new.Curate.FULL$SC.pass, new.Curate.FULL$category)
+#this outsput shows the relative ratios of pass to fail biv segmentation
 
 ```
+
+Duplicates removed, `r length(Curated_BivData_w.dup$Obj.ID) - length(Curated_BivData$Obj.ID)`. most were MSM and PWD males.
+
+```{r remove.mice, echo=FALSE, eval=TRUE}
+
+#reaxamine these mice for if they should be included in 
+#this list is the same as setupData
+exclude_mice_list_MLH1 <- c("10mar15_WSB_m2", "8oct14_WSB_f1", "8oct14_WSB_f3", "18nov17_WSB_f5",
+                  "8jun15_G_f3", "8jun15_G_f4",
+                  "4jan17_LEW_f2",
+                  "8oct14_PWD_f3", "1apr15_PWD_f2", "8oct14_PWD_f5",
+                  "12sep16_MSM_f3","31aug16_MSM_m2",
+                  "27oct18_MOLF_m3",
+                  "26oct18_SKIVE_f1","26oct18_SKIVE_f2","26oct18_SKIVE_f3",
+                  
+#    Musc males
+    "27aug18_CZECH_m1","8jun18_CZECH_m1",
+               
+   "3sep18_AST_m1",
+              
+    "3jul18_TOM_m1","3sep18_TOM_m1",
+                "31jul17_HMI_m1","3sep18_HMI_m1","3sep18_HMI_m2",
+                 "21aug17_SPI_f1", "30may18_SPIC_f1", "30oct17_SPIC_m1", "8jun18_SPIC_m2"
+                  )
+#REaxamine and rename to exclude mice_BivData
+
+#Curated_BivData <- Curated_BivData[ ! Curated_BivData$mouse %in% exclude_mice_list, ]
+
+exmice.Curated_BivData <- Curated_BivData[ Curated_BivData$mouse %in% exclude_mice_list_MLH1, ]
+
+Curated_BivData <- Curated_BivData[ ! Curated_BivData$mouse %in% exclude_mice_list_MLH1, ]
+
+#juvi males
+#juvi.mice_DF <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$age.days < 15) & (AP_mouse_table_w.Ages$sex.y == "male"),]
+#juvi.mice_DF <- juvi.mice[!(is.na(juvi.mice$mouse) | juvi.mice$mouse==""), ]
+
+```
+
+
+`r length(exmice.Curated_BivData$Obj.ID)` rows removed for excluded mice.
+
+
+after all of these chunks are run, save the excel file for Curated_BivData
+
+DUPs, negative IFDs, remove juvi and MLH1 exclude mice,
+
+There are 3 bivalents with Per.Foci2 > 1 (remove or go correct)
+
+
+
+```{r write.Curated.BivData, echo=FALSE}
+
+#this file should have all the category columns, and pass the curation levels above
+
+#write.xlsx2(Curated_BivData, "Curated_BivData.xlsx", sheetName = "Sheet1", 
+#            col.names = TRUE, row.names = FALSE, append = FALSE)
+#this excel causes an error
+
+#write.csv(Curated_BivData, "Curated_BivData.csv",   row.names = FALSE)
+
+```
+
 
 
 Main files from this Script:  
@@ -320,90 +374,6 @@ Main files from this Script:
   9. **male Subsp DFs** for Polymorphism models **Male.poly.Mouse.Table_BivData_4MM**
 
 
-
-```{r CLEAN.UP.1, echo=FALSE, include=FALSE}
-
-#check for duplicates, and track them down
-anyDuplicated(new.Curate.FULL$Obj.ID)  #5335, #3467
-
-dup.curated <- new.Curate.FULL[duplicated(new.Curate.FULL$Obj.ID),] #784
-dup.curated <- add_mouse(dup.curated)
-
-#table(dup.curated$mouse)
-#1mar15_PWD_m1
-
-#which lines are duplicated
-#lots of PWD_female duplicated -- probably how I put together the curated files
-
-#new.Curate.FULL <- new.Curate.FULL.org[(new.Curate.FULL.org$SC.pass == 1 | new.Curate.FULL.org$SC.pass == 0),]
-#new.Curate.FULL <- droplevels(new.Curate.FULL)
-
-#new.Curate.FULL <- add_mouse(new.Curate.FULL)
-#new.Curate.FULL <- add_category(new.Curate.FULL)
-
-#pass.fail.table <- table(new.Curate.FULL$SC.pass, new.Curate.FULL$category)
-#this outsput shows the relative ratios of pass to fail biv segmentation
-
-```
-
-
-```{r remove.mice, echo=FALSE, eval=FALSE}
-
-#mice to remove from the Curated_BivData -- should be similar to the mice exclude from the MLH1 (why?)
-
-#poor quality?
-
-#reaxamine these mice for if they should be included in 
-exclude_mice_list_MLH1 <- c("10mar15_WSB_m2", "8oct14_WSB_f1", "8oct14_WSB_f3", "18nov17_WSB_f5",
-                  "8jun15_G_f3", "8jun15_G_f4",
-                  "4jan17_LEW_f2",
-                  "8oct14_PWD_f3", "1apr15_PWD_f2", "8oct14_PWD_f5",
-                  "12sep16_MSM_f3","31aug16_MSM_m2",
-                  "27oct18_MOLF_m3",
-                  "26oct18_SKIVE_f1","26oct18_SKIVE_f2","26oct18_SKIVE_f3",
-                  
-#    Musc males
-    "27aug18_CZECH_m1","8jun18_CZECH_m1",
-               
-   "3sep18_AST_m1",
-              
-    "3jul18_TOM_m1","3sep18_TOM_m1",
-  
-
-                "31jul17_HMI_m1","3sep18_HMI_m1","3sep18_HMI_m2",
-                 "21aug17_SPI_f1", "30may18_SPIC_f1", "30oct17_SPIC_m1", "8jun18_SPIC_m2"
-                  )
-#REaxamine and rename to exclude mice_BivData
-
-
-#Curated_BivData <- Curated_BivData[ ! Curated_BivData$mouse %in% exclude_mice_list, ]
-
-exmice.Curated_BivData <- Curated_BivData[ Curated_BivData$mouse %in% exclude_mice_list, ]
-
-
-#juvi males
-#juvi.mice_DF <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$age.days < 15) & (AP_mouse_table_w.Ages$sex.y == "male"),]
-#juvi.mice_DF <- juvi.mice[!(is.na(juvi.mice$mouse) | juvi.mice$mouse==""), ]
-
-#old males
-
-```
-
-after all of these chunks are run, save the excel file for Curated_BivData
-
-DUPs, negative IFDs, remove juvi and MLH1 exclude mice,
-
-There are 3 bivalents with Per.Foci2 > 1 (remove or go correct)
-
-```{r write.total.SC, echo=FALSE}
-
-#write.xlsx2(MLH1.merge.Skel, "Total.SC_merge.MLH1.xlsx", sheetName = "Sheet1", 
-#            col.names = TRUE, row.names = FALSE, append = FALSE)
-
-```
-
-
-
 I'm considering removing the same mice from the MLH1 counts, from the BivData, but this might -- limit the comparisons -- might be too stict. IF foci are bright and clear, SC/bivalents intact -- include.
 
 If it seems like primary reason for excluding is low cell number include bivalents
@@ -417,8 +387,6 @@ Con remove:
 - the reasons for poor quality of the exclude mice in above list, might be from 2-3 bad bivalents -- which are removed from the biv data during the curation process. 
 
 
-
-
 ## Strain specific BivData sets
 
 Compile dataframes for both sexes of each strain.
@@ -427,10 +395,10 @@ Compile dataframes for both sexes of each strain.
 #make the dataset
 WSB.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "WSB",]
 #correct and remove, 26dec17_18nov17_WSB_f4_sp1_12_rev_28, 26dec17_18nov17_WSB_f4_sp1_12_rev_27
-table(WSB.Bivalents.DF$sex, WSB.Bivalents.DF$hand.foci.count)
+table(WSB.Bivalents.DF$sex, WSB.Bivalents.DF$hand.foci.count, exclude = NULL)
 
 #plot the differences
-wsb.ploty <- ggplot(WSB.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()
+wsb.ploty <- ggplot(WSB.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle(WSB.Bivalents.DF$strain)
 wsb.ploty
 
 #make a table of the means and n ect
@@ -458,10 +426,10 @@ wsb.SC.table <- ddply(WSB.Bivalents.DF, c("sex"), summarise,
 ```{r LEW.SC, echo=FALSE}
 #make the dataset
 LEW.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "LEW",]
-table(LEW.Bivalents.DF$sex, LEW.Bivalents.DF$hand.foci.count)
+table(LEW.Bivalents.DF$sex, LEW.Bivalents.DF$hand.foci.count, exclude = NULL)
 
 #plot the differences
-LEW.ploty <- ggplot(LEW.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+LEW.ploty <- ggplot(LEW.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle(LEW.Bivalents.DF$strain)
 
 LEW.ploty
 #remove the NAs
@@ -494,10 +462,10 @@ LEW.SC.table <- ddply(LEW.Bivalents.DF, c("sex"), summarise,
 ```{r G.SC, echo=FALSE}
 #make the dataset
 G.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "G",]
-table(G.Bivalents.DF$sex, G.Bivalents.DF$hand.foci.count)
+table(G.Bivalents.DF$sex, G.Bivalents.DF$hand.foci.count, exclude = NULL)
 
 #plot the differences
-G.ploty <- ggplot(G.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+G.ploty <- ggplot(G.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle(G.Bivalents.DF$strain)
 
 G.ploty
 #remove the NAs
@@ -531,10 +499,10 @@ G.SC.table <- ddply(G.Bivalents.DF, c("sex"), summarise,
 ```{r PWD.SC, echo=FALSE}
 #make the dataset
 PWD.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "PWD",]
-table(PWD.Bivalents.DF$sex, PWD.Bivalents.DF$hand.foci.count)
+table(PWD.Bivalents.DF$sex, PWD.Bivalents.DF$hand.foci.count, exclude = NULL)
 
 #plot the differences
-PWD.ploty <- ggplot(PWD.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+PWD.ploty <- ggplot(PWD.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle(PWD.Bivalents.DF$strain)
 
 PWD.ploty
 #remove the NAs
@@ -568,10 +536,10 @@ PWD.SC.table <- ddply(PWD.Bivalents.DF, c("sex"), summarise,
 ```{r KAZ.SC, echo=FALSE}
 #make the dataset
 KAZ.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "KAZ",]
-table(KAZ.Bivalents.DF$sex, KAZ.Bivalents.DF$hand.foci.count)
+table(KAZ.Bivalents.DF$sex, KAZ.Bivalents.DF$hand.foci.count, exclude = NULL)
 
 #plot the differences
-KAZ.ploty <- ggplot(KAZ.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+KAZ.ploty <- ggplot(KAZ.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle(KAZ.Bivalents.DF$strain)
 
 KAZ.ploty
 #remove the NAs
@@ -604,10 +572,10 @@ KAZ.SC.table <- ddply(KAZ.Bivalents.DF, c("sex"), summarise,
 ```{r SKIVE.Sc, echo=FALSE}
 #make the dataset
 SKIVE.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "SKIVE",]
-table(SKIVE.Bivalents.DF$sex, SKIVE.Bivalents.DF$hand.foci.count)
+table(SKIVE.Bivalents.DF$sex, SKIVE.Bivalents.DF$hand.foci.count, exclude = NULL)
 
 #plot the differences
-SKIVE.ploty <- ggplot(SKIVE.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+SKIVE.ploty <- ggplot(SKIVE.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle(SKIVE.Bivalents.DF$strain)
 
 SKIVE.ploty
 #remove the NAs
@@ -638,10 +606,10 @@ SKIVE.SC.table <- ddply(SKIVE.Bivalents.DF, c("sex"), summarise,
 ```{r MSM.SC, echo=FALSE}
 #make the dataset
 MSM.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "MSM",]
-table(MSM.Bivalents.DF$sex, MSM.Bivalents.DF$hand.foci.count)
+table(MSM.Bivalents.DF$sex, MSM.Bivalents.DF$hand.foci.count, exclude = NULL)
 
 #plot the differences
-MSM.ploty <- ggplot(MSM.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+MSM.ploty <- ggplot(MSM.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle(MSM.Bivalents.DF$strain)
 
 MSM.ploty
 #remove the NAs
@@ -671,13 +639,13 @@ MSM.SC.table <- ddply(MSM.Bivalents.DF, c("sex"), summarise,
 
 ```
 
-```{r MOLF.SC, eval=FALSE}
+```{r MOLF.SC, echo=FALSE, eval=FALSE}
 #make the dataset
 MOLF.Bivalents.DF <- Curated_BivData[Curated_BivData$strain == "MOLF",]
-table(MOLF.Bivalents.DF$sex, MOLF.Bivalents.DF$hand.foci.count)
+table(MOLF.Bivalents.DF$sex, MOLF.Bivalents.DF$hand.foci.count, exclude = NULL)
 
 #plot the differences
-MOLF.ploty <- ggplot(MOLF.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("")
+MOLF.ploty <- ggplot(MOLF.Bivalents.DF,  aes(y=chromosomeLength, x = sex, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle(MOLF.Bivalents.DF$strain)
 
 MOLF.ploty
 #remove the NAs
@@ -709,6 +677,21 @@ MOLF.SC.table <- ddply(MOLF.Bivalents.DF, c("sex"), summarise,
 
 
 ## Male specific BivData set
+
+
+Redo the plots from above, just male data with strain on the x
+
+```{r BivLengths_by_strain, echo=FALSE}
+
+#set the order of strains
+
+
+BivLen.Male <- ggplot(
+  (Curated_BivData %>% filter(sex == "male") %>% filter(species == "M.musculus")),  aes(y=chromosomeLength, x = strain, color= as.factor(hand.foci.count)))+geom_jitter()+ggtitle("Male Single Bivalent Lengths")
+BivLen.Male
+```
+
+
 
 ```{r male.sc.length.strain, echo=FALSE}
 
@@ -932,7 +915,7 @@ as.data.frame(  table( droplevels( almost_whole_cell_BivData$fileName) ) )
 8jun15_23apr15_PWD_f2_sp1_20_rev, 29nov16_13nov16_MSM_m2_sp1_13_rev, 27oct16_31aug16_MSM_m1_sp1_9_rev
 
 
-# Long and Short BivData Set
+# reduced Long and Short BivData Set
 
 I want to make a dataset of 'longest' 25% chromosomes from cells with at least 16 segmented bivalents from a single cell. 
 
@@ -940,6 +923,8 @@ I want to make a dataset of 'longest' 25% chromosomes from cells with at least 1
 ```{r long.chrm.dataset, echo=FALSE}
 
 #1. Isolate bivalent measrues from 'almost whole cells'   (how many biv's are from cells with >15 bivalents)
+
+
 over_15_biv_cell_DF <- cell.level.BivData_table[cell.level.BivData_table$Nbiv >15, ]
 BivData_from_15biv_cells <- Curated_BivData[ Curated_BivData$fileName %in% over_15_biv_cell_DF$fileName, ]
 
@@ -1015,7 +1000,7 @@ real.short.bivData <- BivData_from_15biv_cells[BivData_from_15biv_cells$short.Bi
 ```
 
 
-```{r short.biv.data, echo=FALSE, include=FALSE, eval=FALSE}
+```{r short.biv.data, echo=FALSE, include=FALSE, eval=TRUE}
 
 #notes for short biv
 
@@ -1050,7 +1035,7 @@ The above blocks of code 1) isolates bivalents measures from cells with >15 segm
 Long.biv_mouse_table <- ddply(real.long.bivData, c("mouse"), summarise,
                         
                         Nmice = length(unique(mouse)),
-                        Ncells  = length(Obj.ID),
+                        nobs  = length(Obj.ID),
                       
                           mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
                       
@@ -1126,6 +1111,9 @@ Long.biv_mouse_table_male.poly <- Long.biv_mouse_table_male.poly[Long.biv_mouse_
 
 #table(droplevels( Long.biv_mouse_table_male.poly$category) ) #for double checking
 ```
+
+
+
 
 The above code chunk makes 2 mouse level tables; **Long.biv_mouse_table_HetC** and **Long.biv_mouse_table_male.poly**. Run these through the model systems.
 
@@ -1419,7 +1407,7 @@ cell.total_skel, cell.total_binary
 ```{r save.file}
 
 #save Rdata
-save.image("~./MLH1repo/data/CleanBivData_6.3.20.RData")
+save.image("~./MLH1repo/data/CleanBivData_5.12.20.RData")
 #save.image("data/BivData_4_PCA.RData")
 
 ```

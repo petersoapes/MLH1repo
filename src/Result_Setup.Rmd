@@ -6,7 +6,6 @@ output: html_document
 ---
 
 
-
 ```{r setup, echo=FALSE, include = FALSE}
 library(knitr)
 library(ggplot2)
@@ -23,11 +22,9 @@ library(reshape2)
 #library(patchwork)
 
 options(digits=2)
+#setwd("~.")
 
-setwd("~.")#switch over to here()
-
-
-load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_4.26.20.RData")
+load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_5.12.20.RData")
 #load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_2.24.20.RData")
 #load(file = "C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.31.20.RData")
 
@@ -35,7 +32,7 @@ load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_4.26.20.RData")
 #load(file="C:/Users/April/Documents/MLH1repo/data/CleanBivData_1.27.20.RData")
 #load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/CleanBivData_1.27.20.RData")
 
-load(file="~./MLH1repo/data/CleanBivData_6.3.20.RData")
+load(file="~./MLH1repo/data/CleanBivData_5.12.20.RData") #CleanBivData_5.12.20.RData
 
 load(file="~./MLH1repo/data/total_SC_30.12.19.RData")
 
@@ -71,7 +68,7 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
 <!-- Data Set Up Notes -->
 
-```{r organizing.data, echo=FALSE }
+```{r organizing.data, echo=FALSE}
 #set the order of another column, based on another variable. consistant order for ploting
 
 #Terminology Note, leptonema, zygonema, and pachynema diplonema diakinesis, are the stage names.
@@ -100,9 +97,6 @@ AP_category_table <-  ddply(.data=AP_mouse_table.HQ,
                                   
 )
 
-#there might be an error for changing wd
-#write.table(AP_category_table, "~./MLH1repo/strain_table_variances.csv", sep=",", row.names = FALSE)
-
 AP_mouse_table.HQ_target <- AP_mouse_table.HQ[!(is.na(AP_mouse_table.HQ$sex) | AP_mouse_table.HQ$sex==""), ]
 
 remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC")
@@ -111,55 +105,6 @@ AP_mouse_table.HQ_target <- AP_mouse_table.HQ_target[ ! AP_mouse_table.HQ_target
   
 var.plot <- ggplot(AP_mouse_table.HQ_target, aes(y=var, x = sex, color=sex))+geom_jitter()+facet_wrap(~strain)+ggtitle("Plots of mouse Variances for MLH1 counts")+
   scale_color_manual(values=c("royalblue", "limegreen"))+theme_bw()
-
-```
-
-
-```{r misc.setup, echo=FALSE}
-
-colors_of_strains <- c('WSB'= "#56B4E9",'G' ='cadetblue','LEW'= 'lightblue','PERC'= 'blue',
-                       #blues
-                       
-                       'PWD'= 'red2',
-                       'SKIVE'= 'coral1','KAZ'= 'coral4', 
-                       
-                       'TOM'= 'indianred1','AST' = 'tan2',
-                       'CZECH'= 'brown1',
-                       
-                       'MSM'= 'deeppink', 'MOLF'= 'hotpink', #mol are pinks, bc they are fancy mice
-                       
-                    'CAST'='green','HMI'= 'forestgreen', #greens
-                    
-                    'SPRET'='gold','SPIC'= 'goldenrod1', #browns? color of mounds?
-                    'CAROLI'='gold3',
-                    
-                    "F1"='grey', "other" = 'grey'
-                    )
-
-color_chrm_class <- c( '0' = "#00BFC4", '1' = "#7CAE00", '2' = "#F8766D", '3' = "#C77CFF", '4'= "#F564E3")
-#4!!
-
-#show_col(hue_pal()(5))
-
-#add Rec group,
-
-Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
-                              ifelse(grepl("MSM male", Curated_BivData$category), 1,
-                                ifelse(grepl("SKIVE male", Curated_BivData$category), 1, 0)))
-
-Curated_BivData$Rec.group_alt <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
-                              ifelse(grepl("MSM male", Curated_BivData$category), 1, 0))
-
-
-#apply this before ploting, to display strains in desired order
-#MLH1_data <- MLH1_data %>%
-#  arrange(strain, sex, category, mouse) %>%
-#  mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
-#MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
-
-# sort your dataframe, by the focal categories
-#MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
-
 
 ```
 
@@ -193,33 +138,19 @@ table_gamma_estimates <- read.csv("~./MLH1repo/table.csv", header = TRUE)
 
 raw.gamma_estimates <-  gamma_estimates %>% filter(type.IFD == "raw.IFD") %>% filter( (class == "2CO") | (class == "3CO") )
 
-table <- raw.gamma_estimates
 #write.table(table, "~./MLH1repo/table.csv", sep=",",row.names = TRUE)
-
 #write.table(summarize_rbar_table, "~./MLH1repo/RBAR.table.csv", sep=",",row.names = TRUE)
 
 #what comparison of IFD and rbar would be logical
 #plot rbar and gamma
 ll <- ggplot(table_gamma_estimates, aes(y=mean.rbar, x = all.biv.gamma, color = class, shape = sex ))+geom_point()+facet_wrap(~strain)+ ggtitle("")+ylim(c(0,.5))
 
-#mean rbars are up around 
-#SKIVE male have extra (very strong interference)
-#there's so much variance across the gamma estimates -- 
-#most all females seem to have stronger interfernce
-#there don't seem to be consistant patterns
-
-#this plot shows much higher 2CO interference (via the gamma estimat from nrmIFD) in high rec males
-#across other classes of bivalents 
-
-#most all other estiamtes of gamma estimates are around 4
-#
-
-#house mouse raw nu is around 11
 
 ```
 
 
-```{r MLH1.FEMALE.TABLE, echo=FALSE}
+```{r MLH1.FEMALE.TABLE, echo=FALSE, eval=TRUE}
+
 female_mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
                             subsp.y,subsp.x,
                     category.y,category.x, strain.x,
@@ -248,9 +179,9 @@ Dom.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female")
 ```
 
 
-```{r MLH1.MALE.TABLE, echo=FALSE}
-#AP_mouse_table.MLH1_HQ
+```{r MLH1.MALE.TABLE, echo=FALSE, eval=TRUE}
 
+#AP_mouse_table.MLH1_HQ
 #find the table that includes the las image data
 male_MLH1mouse.av <- AP_mouse_table_w.Ages
 
@@ -271,34 +202,26 @@ Musc.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(su
 Mol.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Mol")
 #Dom version 
 Dom.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Dom")
+
 ```
 
 
 ```{r MLH1.MIXED.MODEL.setup, echo=FALSE, warning=FALSE, eval=TRUE}
 #DF.HetC.MixedModel.HQ
-
 #no mice removed for low cell numbers?
+AP_mouse_table.HQ <- add_species(AP_mouse_table.HQ)
 
-DF.HetC.MixedModel <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$species == "M.musculus",]
+#DF.HetC.MixedModel <- add_species(DF.HetC.MixedModel)
+DF.HetC.MixedModel <- AP_mouse_table.HQ[AP_mouse_table.HQ$species == "M.musculus",]
+#DF.HetC.MixedModel
 
-#remove the extra merged cols
-#DF.HetC.MixedModel <- subset(DF.HetC.MixedModel, select= -c(sex.y,sex.x,
-#                            subsp.y,subsp.x,
-#                    category.y,category.x, strain.x,
-#                    strain.y, mouse.1  )  )
+DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel
 
-#AP_mouse_table excluide Qual5 cells
-DF.HetC.MixedModel.HQ <- AP_mouse_table.MLH1_HQ
-
-DF.HetC.MixedModel.HQ <- add_species(DF.HetC.MixedModel.HQ)
-
-#main df with variables coded as chr
+#main df with variables coded as chr, set false for the model
 DF.HetC.MixedModel.HQ$subsp <- factor(DF.HetC.MixedModel.HQ$subsp, ordered = FALSE)
 DF.HetC.MixedModel.HQ$sex <- factor(DF.HetC.MixedModel.HQ$sex, ordered = FALSE)
 DF.HetC.MixedModel.HQ$strain <- factor(DF.HetC.MixedModel.HQ$strain, ordered = FALSE)
-#DF.HetC.MixedModel.HQ$species <- factor(DF.HetC.MixedModel.HQ$species, ordered = FALSE)
-
-#kable(table(DF.HetC.MixedModel.HQ$sex, DF.HetC.MixedModel.HQ$strain))
+DF.HetC.MixedModel.HQ$species <- factor(DF.HetC.MixedModel.HQ$species, ordered = FALSE)
 
 
 all.cell.MM.HQ <- ddply(.data=DF.HetC.MixedModel.HQ,
@@ -306,7 +229,6 @@ all.cell.MM.HQ <- ddply(.data=DF.HetC.MixedModel.HQ,
                  summarize,
                  all.cells = sum(Ncells)
 )
-
 ```
 
 
@@ -362,38 +284,6 @@ MSM_male <- just.male_mouse.av %>% filter(strain == "MSM")
 
 SKIVE_male <-   just.male_mouse.av %>% filter(strain == "SKIVE")
 #mean(SKIVE_male$mean_co) /  
-```
-
-
-
-```{r MLH1.MIXED.MODEL.setup.2, echo=FALSE, warning=FALSE, eval=FALSE}
-#DF.HetC.MixedModel.HQ
-#this blck is duplicated in setupData.rm
-
-#https://rcompanion.org/handbook/G_03.html
-#testing random effects within lme
-
-DF.HetC.MixedModel <- AP_mouse_table_w.Ages[AP_mouse_table_w.Ages$species == "M.musculus",]
-
-#AP_mouse_table excluide Qual5 cells
-DF.HetC.MixedModel.HQ <- AP_mouse_table.MLH1_HQ
-DF.HetC.MixedModel.HQ <- add_species(DF.HetC.MixedModel.HQ)
-
-#main df with variables coded as chr
-DF.HetC.MixedModel.HQ$subsp <- factor(DF.HetC.MixedModel.HQ$subsp, ordered = FALSE)
-DF.HetC.MixedModel.HQ$sex <- factor(DF.HetC.MixedModel.HQ$sex, ordered = FALSE)
-DF.HetC.MixedModel.HQ$strain <- factor(DF.HetC.MixedModel.HQ$strain, ordered = FALSE)
-#DF.HetC.MixedModel.HQ$species <- factor(DF.HetC.MixedModel.HQ$species, ordered = FALSE)
-
-#kable(table(DF.HetC.MixedModel.HQ$sex, DF.HetC.MixedModel.HQ$strain))
-
-
-all.cell.MM.HQ <- ddply(.data=DF.HetC.MixedModel.HQ,
-                 .(sex, strain),
-                 summarize,
-                 all.cells = sum(Ncells)
-)
-
 ```
 
 
@@ -774,22 +664,6 @@ HetC_strain_table$mean_co.y <- as.numeric(HetC_strain_table$mean_co.y)
 ```
 
 
-```{r juvimice.list, echo=FALSE}
-juvi_mice <- c(
-  "30dec14_WSB_m2","30dec14_WSB_m4","30dec14_WSB_m1","30dec14_WSB_m3","30dec14_WSB_m5",
-  "30sep14_G_m1","30sep14_G_m2","30sep14_G_m3","30sep14_G_m4","30sep14_G_m5",
-  "12Feb17_LEW_m1","12Feb17_LEW_m2", "13sep17_LEW_m2", "13sep17_LEW_m1","13sep17_LEW_m3",
- 
-  "12sep17_PWD_m1","12sep17_PWD_m2","12sep17_PWD_m3",
-   "30Dec16_MSM_m2","30Dec16_MSM_m3","30Dec16_MSM_m1"
-  )
-
-#REMOVE JUVI mice
-#juvi.mouse_CurBiv_table <- mouse.avs_4MM[mouse.avs_4MM$mouse  %in% juvi_mice, ]  
-#mouse.avs_4MM <- mouse.avs_4MM[! mouse.avs_4MM$mouse  %in% juvi_mice, ] 
-
-```
-
 
 ```{r CurBiv.Mouse.av.TABLE, echo=FALSE}
 
@@ -839,9 +713,7 @@ mouse.avs_4MM <- ddply(cleanCurated_BivData, c("mouse"), summarise,
                  
                  mean_IFD.2CO_ABS = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
                  mean_IFD.2CO_PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
-                  
 
-                  
               #sis.co.ten!!
               mean.siscoten = mean(SisCoTen, na.rm=TRUE),
               mean.siscoten_1CO = mean(SisCoTen[which(hand.foci.count == 1)], na.rm = TRUE),
@@ -857,6 +729,7 @@ mouse.avs_4MM <- add_sex(mouse.avs_4MM)
 mouse.avs_4MM <- add_strain(mouse.avs_4MM)
 mouse.avs_4MM <- add_subsp(mouse.avs_4MM)
 mouse.avs_4MM <- add_category(mouse.avs_4MM)
+mouse.avs_4MM <- add_species(mouse.avs_4MM)
 
 #unordered for the mixed models (move this to the MM blocks...?)
 #keep order for the plots?
@@ -864,8 +737,6 @@ mouse.avs_4MM$subsp <- factor(mouse.avs_4MM$subsp, ordered = FALSE)
 mouse.avs_4MM$sex <- factor(mouse.avs_4MM$sex, ordered = FALSE)
 mouse.avs_4MM$strain <- factor(mouse.avs_4MM$strain, ordered = FALSE)
 
-#MAKE the same version of the TABLE but for the longest_biv_Dataset (when I get around to making it)
-#code if males are high or low?
 
 #REMOVE JUVI mice
 juvi.mouse_CurBiv_table <- mouse.avs_4MM[mouse.avs_4MM$mouse  %in% juvi_mice, ]  
@@ -877,12 +748,7 @@ mouse.avs_4MM$Rec.group <- ifelse(grepl("PWD male", mouse.avs_4MM$category), 1,
                                 ifelse(grepl("MSM male", mouse.avs_4MM$category), 1,
                                  ifelse(grepl("SKIVE male", mouse.avs_4MM$category), 1, 0)))
 
-
-mouse.avs_4MM$Rec.group.exclu <- ifelse(grepl("PWD male", mouse.avs_4MM$category), 1, 
-                                ifelse(grepl("MSM male", mouse.avs_4MM$category), 1, 0))
-
 mouse.BivData.Table <- mouse.avs_4MM
-
 ```
 
 
@@ -907,14 +773,11 @@ strain.BivData.Table <- ddply(mouse.BivData.Table, c("strain", "sex"), summarise
                         #mean.IFD
                         mean.IFD.ABS = mean(mean_IFD.2CO_ABS),
                         mean.IFD.PER = mean(mean_IFD.2CO_PER)
-                        
                         )
 
 #add
 strain.BivData.Table <- add_subsp(strain.BivData.Table)
 strain.BivData.Table <- add_species(strain.BivData.Table)
-                      
-
 ```
 
 
@@ -954,21 +817,7 @@ algorithm.stat.category <- ddply(cell.level.BivData_table, c("sex", "strain"), s
 RENAME the curate bivdata below
 
 
-```{r Q1.Short.Long_biv.setup, echo=FALSE}
-
-#REAL.long_mouse_table
-#REAL.short_mouse_table
-
-#make the Q1 strain list
-Q1.real.short_mouse_table <- REAL.short_mouse_table %>% filter( (strain != "CZECH") & (strain != "MOLF") )
-
-Q1.real.long_mouse_table <- REAL.long_mouse_table %>% filter( (strain != "CZECH") & (strain != "MOLF") )
-
-```
-
-
-```{r Q1.biv.data_table.4MM.Male, echo=FALSE, eval=FALSE}
-
+```{r Q1.biv.data_table.4MM.Male, echo=FALSE, eval=TRUE}
 
 male.av_4MM <- ddply(cleanCurated_BivData, c("mouse"), summarise,
                         Nmice = length(unique(mouse)),
@@ -1023,9 +872,530 @@ male.av_4MM$strain <- factor(male.av_4MM$strain, ordered = FALSE)
 
 #REMOVE JUVI mice
 juvi.from.male.biv_table <- male.av_4MM[male.av_4MM$mouse  %in% juvi_mice, ]  
-mouse.avs_4MM <- male.av_4MM[! male.av_4MM$mouse  %in% juvi_mice, ] 
+#mouse.avs_4MM <- male.av_4MM[! male.av_4MM$mouse  %in% juvi_mice, ] 
 
 ```
+
+
+
+# MLH1 models
+
+M1 - subsp, sex, (1 | strain)
+M2 - subsp, sex, strain
+M3 - sex, strain
+M4 - strain (sex specific)
+
+
+```{r MLH1co.lmer.MM1, echo=FALSE, waring=FALSE, message=FALSE, eval=TRUE}
+
+#this dataframe doesn't work
+
+#don't run here, run in the MS file
+#DF.HetC.MixedModel.HQ
+#DF.HetC.MixedModel.HQ <- subset()
+
+MLH1.MM.M1 <- lmer(mean_co ~ subsp * sex + (1|strain), data=DF.HetC.MixedModel.HQ) 
+MLH1.MM.M1.reduce.sex <- lmer( mean_co ~ subsp  +(1|strain), data=DF.HetC.MixedModel.HQ )
+MLH1.MM.M1.reduce.subp <- lmer( mean_co ~ sex  +(1|strain), data=DF.HetC.MixedModel.HQ )
+
+#summary(MLH1.MM.M1)$coefficients
+
+MLH1.MM_interaction <- drop1(MLH1.MM.M1, test="Chisq")$`Pr(Chi)`[2]
+MLH1.MM_sex <- anova(MLH1.MM.M1, MLH1.MM.M1.reduce.sex)$`Pr(>Chisq)`[2]
+MLH1.MM_subp <- anova(MLH1.MM.M1, MLH1.MM.M1.reduce.subp)$`Pr(>Chisq)`[2]
+MLH1.MM_strain<- MM.rand.pval <- exactRLRT(MLH1.MM.M1)$p.value 
+
+MLH1.MMlmer_results <- data.frame(sub.sp = MLH1.MM_subp, 
+sex.results =  MLH1.MM_sex, 
+               interaction.pval = MLH1.MM_interaction,  rand.pval = 
+MLH1.MM_strain)
+
+```
+
+```{r MLH1.glmM2, echo=FALSE, eval=TRUE}
+
+remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC")
+#AP_mouse_table.HQ_target <- AP_mouse_table.HQ_target[ ! AP_mouse_table.HQ_target$strain %in% remove_strains, ]
+#kkll <- DF.HetC.MixedModel.HQ[! DF.HetC.MixedModel.HQ$strain %in% remove_strains,]
+
+#strain = fixed
+MLH1.M2.glm.strain.fixed.full <- glm(mean_co ~ subsp * sex * strain, data=DF.HetC.MixedModel.HQ[  ! DF.HetC.MixedModel.HQ$strain %in% remove_strains,]   )
+
+summ.MLH1.M2.glm.strain.fixed.full <- summary(MLH1.M2.glm.strain.fixed.full)
+
+#table of just coeff anf pvalue
+#round(summ$coefficients[,c(1,4)],5 )
+
+#write.table(summ$coefficients , "~./MLH1repo/glm.strain.fixed.full.csv", sep=",",row.names = TRUE)
+```
+
+
+```{r MLH1.glm.M3, echo=FALSE, eval=TRUE}
+
+remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC")
+
+MLH1.M3.strain.fixed <- glm(mean_co ~ sex * strain, data=DF.HetC.MixedModel.HQ[  ! DF.HetC.MixedModel.HQ$strain %in% remove_strains,])
+
+summ.MLH1.M3.strain.fixed <- summary(MLH1.M3.strain.fixed)
+
+#round(summ.strain.fixed$coefficients[,c(1,4)],5)
+
+#write.table(summ.strain.fixed$coefficients , "~./MLH1repo/summ.strain.fixed.csv", sep=",",row.names = TRUE)
+```
+
+```{r Female.specific.glm, echo=FALSE, eval=TRUE}
+
+glm.female.strain.subsp <- glm(mean_co ~ subsp * strain, data= female_mouse.avs_for.analysis)
+
+summry.female.strain.effects <- summary(glm.female.strain.subsp)
+#round(summry.female.strain.effects$coefficients[,c(1,4)],5)
+#write.table(summry.female.strain.effects$coefficients, "~./MLH1repo/summry.female.strain.effects.csv", sep=",",row.names = TRUE)
+
+MLH1.female.spc.glm.M2 <- glm(mean_co ~ strain, data= female_mouse.avs_for.analysis)
+sum_MLH1.female.spc.glm.M2 <- summary(MLH1.female.spc.glm.M2)
+
+#round(lm.female.strain_sum$coefficients[,c(1,4)],5)
+
+#write.table(lm.female.strain_sum$coefficients, "~./MLH1repo/lm.female.strain.csv", sep=",",row.names = TRUE)
+```
+
+```{r Male.specific.glm, echo=FALSE, eval=TRUE}
+
+#these are M4
+#M4
+MLH1.male.glm.M4 <- glm(mean_co ~ subsp * strain, data= just.male_mouse.av)
+sum_MLH1.male.glm.M4 <- summary(MLH1.male.glm.M4)
+#round(summry.male.strain.effects$coefficients[,c(1,4)], 5)
+
+#sum_MLH1.male.specific.glm.M2$coefficients[5,][4]
+
+#PWD, SKIVE, MSM
+#8,9,10
+
+#write.table(summry.male.strain.effects$coefficients , "~./MLH1repo/summry.male.strain.effects.csv", sep=",",row.names = TRUE)
+
+#M4.2
+MLH1.male.glm.M4.2 <- glm(mean_co ~ strain, data= just.male_mouse.av)
+sum_MLH1.male.glm.M4.2 <- summary(MLH1.male.glm.M4.2)
+
+#round(lm.male.strain_sum$coefficients[,c(1,4)], 5)
+
+#write.table(lm.male.strain_sum$coefficients , "~./MLH1repo/lm.male.strain_sum.csv", sep=",",row.names = TRUE)
+
+```
+
+
+
+#MLH1 variance models
+
+M1 - subsp, sex, (1 | strain)  (lmer)
+M2 - subsp, sex, strain  (glm / lm?)
+M3 - sex, strain
+M4 - strain (sex specific)
+
+
+```{r M1.MLH1.var_cv, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+MLH1var_M1 <- lmer( var ~ subsp * sex +(1|strain), data=DF.HetC.MixedModel.HQ )
+MLH1var_M1.reduce.sex <- lmer( var ~ subsp  +(1|strain), data=DF.HetC.MixedModel.HQ )
+MLH1var_M1.reduce.subp <- lmer( var ~ sex  +(1|strain), data=DF.HetC.MixedModel.HQ )
+
+#summary(MLH1var_M1)
+LmerMLH1_VAR_int <- drop1(MLH1var_M1, test="Chisq")$`Pr(Chi)`[2]
+LmerMLH1_VAR_sex <- anova(MLH1var_M1, MLH1var_M1.reduce.sex)$`Pr(>Chisq)`[2]
+LmerMLH1_VAR_subsp <- anova(MLH1var_M1, MLH1var_M1.reduce.subp)$`Pr(>Chisq)`[2]
+LmerMLH1_VAR_strain <- exactRLRT(MLH1var_M1)$p.value
+
+LmerMLH1_VAR_results <- data.frame(sub.sp = LmerMLH1_VAR_subsp,
+sex.results =  LmerMLH1_VAR_sex, interaction.pval = LmerMLH1_VAR_int,  rand.pval = LmerMLH1_VAR_strain)
+
+```
+
+standardize the lm's and glms!
+
+```{r M2.MLH1.var, echo=FALSE, include=FALSE, eval=TRUE}
+#not including this model for now / brivity
+#$$mouse CO metric  ~=~ subsp * sex * strain + \varepsilon$$
+
+MLH1var_M2 <- glm( var ~ subsp * sex * strain,  data=DF.HetC.MixedModel.HQ )
+MLH1var_M2_sum <- summary(MLH1var_M2)
+
+#summary(MLH1var_M2)
+#anova(MLH1var_M2)  
+#as.data.frame( round(summary(MLH1var_M2)$coefficients, 6)) #table of p values for coefficients.
+
+MLH1cv_M2 <- glm(cV ~ subsp*sex*strain, data=DF.HetC.MixedModel.HQ)
+
+#summary(MLH1cv_M3)
+#anova(MLH1cv_M2)
+#as.data.frame( round(summary(MLH1cv_M2)$coefficients, 6))
+
+#Q12 var
+MLH1var_M2_Q12 <- glm( var ~ subsp*sex*strain,  data=Q12_mouse_table_w.Ages )
+
+#summary(MLH1var_M3_Q12)
+#anova(MLH1var_M2_Q12)  
+#as.data.frame( round(summary(MLH1var_M2_Q12)$coefficients, 6))
+
+#Q12 cv
+MLH1cv_M2_Q12 <- glm( cV ~ subsp*sex*strain, data=Q12_mouse_table_w.Ages )
+
+#summary(MLH1cv_M2_Q12)
+#anova(MLH1cv_M2_Q12)#sex large F
+#as.data.frame( round(summary(MLH1cv_M2_Q12)$coefficients, 6))
+```
+
+
+```{r M3.MLH1.var, echo=FALSE, eval=TRUE}
+glmMLH1Var_M3 <- glm( var ~ sex * strain,  data=DF.HetC.MixedModel.HQ )
+glmMLH1Var_M3_sum <- summary(glmMLH1Var_M3)
+#round(glmMLH1Var_M3_sum$coefficients[,c(1,4)], 5)
+
+MLH1cv_M3 <- glm(cV ~ sex * strain, data=DF.HetC.MixedModel.HQ)
+#summary(MLH1cv_M4)
+#round(summary(MLH1cv_M3)$coefficients[,c(1,4)], 6)
+
+### Q12 var
+MLH1var_M3_Q12 <- glm( var ~ sex*strain, data=Q12_mouse_table_w.Ages )
+MLH1var_M3_Q12_sum <- summary(MLH1var_M3_Q12)
+
+#as.data.frame( round(summary(MLH1var_M3_Q12)$coefficients[,c(1,4)], 6))
+#round(summary(MLH1var_M3_Q12)$coefficients[,c(1,4)], 6)
+
+#Q12 cv
+MLH1cv_M4_Q12 <- glm( cV ~ sex*strain, data=Q12_mouse_table_w.Ages )
+#round(summary(MLH1cv_M4_Q12)$coefficients[,c(1,4)], 6)
+```
+
+
+```{r MLH1.var.M4, echo=FALSE, eval=TRUE}
+#male
+glmMLH1Var_M4.male <- glm( var ~ subsp * strain,  data= (DF.HetC.MixedModel.HQ %>% filter(sex == "male") ) )
+
+
+#female
+glmMLH1Var_M4.female <- glm( var ~ subsp * strain,  data= (DF.HetC.MixedModel.HQ %>% filter(sex == "female") ) )
+sum.glmMLH1Var_M4.female <- summary(glmMLH1Var_M4.female)
+
+glmMLH1Var_M4.femaleQ12 <- glm( var ~ subsp * strain,  data= (Q12_mouse_table_w.Ages %>% filter(sex == "female") ) )
+
+```
+
+
+```{r FEMALE.VAR.MODELS, echo=FALSE, eval=TRUE}
+## within mouse variance models 
+lmVAR.female.strain.subsp <- glm(var ~ subsp * strain, data= female_mouse.avs_for.analysis)
+summry.female.strain.VAReffects <- summary(lmVAR.female.strain.subsp)
+
+lmVAR.female.strain <- glm(var ~ strain, data= female_mouse.avs_for.analysis)
+lmVAR.female.strain_sum <- summary(lmVAR.female.strain)
+
+#round( #round isn't working for this sumary
+#lmVAR.female.strain_sum$coefficients[,c(1,4)]
+#Q12
+Q12_female_table <-  Q12_mouse_table_w.Ages %>% filter(sex == "female")
+
+lm.m1.Q12_female <- glm(var ~ subsp * strain, data= Q12_female_table)
+lm.m1.Q12_female_sum <- summary(lm.m1.Q12_female)
+
+
+lm.m2.Q12_female <- glm(var ~ strain, data= Q12_female_table)
+lm.m2.Q12VAR.female_sum <- summary(lm.m2.Q12_female)#LEW changes to PWD
+
+lm.m2.Q12_female.cv <- glm(cV ~ strain, data= Q12_female_table)
+lm.m2.Q12_female.cv_sum <- summary(lm.m2.Q12_female.cv)
+
+#lm.m2.Q12VAR.female_sum$coefficients[,c(1,4)]
+#LEW sig
+
+```
+
+
+```{r MALE.SPECIFIC.variance.model, echo=FALSE, eval=TRUE}
+## within mouse variance models 
+lmVAR.male.strain.subsp <- glm(var ~ subsp * strain, data= just.male_mouse.av)
+summry.male.strain.VAReffects <- summary(lmVAR.male.strain.subsp)
+#round(summry.male.strain.VAReffects$coefficients[,c(1,4)], 5)
+
+#all p values kinda high, MSM and TOM are slightly sig
+lmVAR.male.strain <- glm(var ~ strain, data= just.male_mouse.av)
+lmVAR.male.strain_sum <- summary(lmVAR.male.strain)
+#round(lmVAR.male.strain_sum$coefficients[,c(1,4)], 5)
+#non sig
+
+lmcv.male.strain <- glm(cV ~ strain, data= just.male_mouse.av)
+lmcv.male.strain_sum <- summary(lmcv.male.strain)
+#round(lmcv.male.strain_sum$coefficients[,c(1,4)], 5)
+#HMI sig for cv model -- in the other model, CAST subsp and TOM strain are slightly significant
+
+#Q12
+Q12_male_table <-  Q12_mouse_table_w.Ages %>% filter(sex == "male")
+
+lm.m1.Q12_male <- glm(var ~ subsp * strain, data= Q12_male_table)
+lm.m1.Q12_male_sum <- summary(lm.m1.Q12_male)
+#round(lm.m1.Q12_male_sum$coefficients[,c(1,4)], 5)
+#NS
+
+lm.m2.Q12_male <- glm(var ~ strain, data= Q12_male_table)
+lm.m2.Q12VAR.male_sum <- summary(lm.m2.Q12_male)
+#round(lm.m2.Q12VAR.male_sum$coefficients[,c(1,4)], 5)
+#NS
+
+```
+
+
+
+# DMC1 Results
+
+main table (DMC1.mean.table), t.tests  , ratios
+
+set up, t.tests, correlations, says there are duplicate titles
+
+
+
+```{r DMC1_t.tests1, echo=FALSE, warning=FALSE}
+#2. t-tests for the DMC1 counts 
+#need to account for sample sizes when comparing t.tests (KAZ and G don't have equal across )
+#best case scnario -- more microscoping to get ~20 cells for each stage by strain combo
+
+
+#high vs low group (L)
+ttest.HighLow.L.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Early") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "Early") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
+# p-value =  0.002145
+
+
+#high vs low group (Z)
+ttest.HighLow.Z.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Late") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "Late") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
+# p-value = 0.6628
+
+
+#dom vs musc (L) (2 subsp vs)
+ttest.subsp.L <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Early")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Early")] )
+# p-value = 0.003016
+
+#dom vs musc (Z)
+ttest.subsp.Z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Late")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Late")] )
+#p-value = 0.09588
+
+#KAZ vs Dom (Z) (only 1 L cell)
+ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Late")], 
+      DMC1.DF$total.count[(DMC1.DF$strain == "KAZ") & (DMC1.DF$stage == "Late")] )
+
+#p-value = 0.004148
+#Kaz Z are higher than Dom
+```
+
+
+```{r DMC1.rand.calq1, echo=FALSE}
+
+DMC1.mean.obs.L$mean.count.L <- DMC1.mean.obs.L$mean.count
+DMC1.mean.obs.Z$mean.count.Z <- DMC1.mean.obs.Z$mean.count
+
+mean.MLH1.obs <- ddply(.data=Mouse.Table_HQ,
+                 .(category),
+                 summarize, 
+                 mean.MLH1 = mean(mean_co),
+                 var.MLH1 = var(mean_co)
+)
+
+
+DMC1.target.strains <- subset(mean.MLH1.obs, category == "G male" |
+                   category == "WSB male" |
+                     category == "KAZ male" |
+                  category == "MSM male" |
+                    category == "PWD male")
+
+DMC1table <- merge(DMC1.mean.obs.L, DMC1.mean.obs.Z, by="category")
+
+DMC1table.main <- merge(DMC1.target.strains, DMC1table, by="category")
+
+MLH1.DMC1.L_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.L, method = c("pearson"))#MLH1.DMC1.Z_cor
+
+MLH1.DMC1.Z_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.Z, method = c("pearson"))#0.2793237
+```
+
+
+```{r DMC1.ratios1, echo=FALSE}
+
+##RATIOS
+DMC1table.main$MLH1.L_ratio <- DMC1table.main$mean.MLH1/ DMC1table.main$mean.count.L 
+DMC1table.main$MLH1.Z_ratio <- DMC1table.main$mean.MLH1 / DMC1table.main$mean.count.Z
+  
+#colnames(DMC1table.main) <- c("category", "mean.MLH1", "", "", "")
+
+#DMC1.mean.table
+DMC1.mean.table.99 <- subset(DMC1table.main, select= -c(var.MLH1,  mean.count.x,  mean.count.y, stage.x, stage.y))
+
+colnames(DMC1.mean.table.99) <- c("category","mean.MLH1","ncells.L","mean.L",
+                  "ncells.Z", "mean.Z", "MLH1.L_ratio", "MLH1.Z_ratio")
+
+
+WSB_DMC1.Z_CO_ratio <-   ( DMC1table.main %>% filter(category == "WSB male") )$mean.count.L / (DMC1table.main %>% filter(category == "WSB male"))$mean.MLH1
+  
+G_DMC1.Z_CO_ratio <-   ( DMC1table.main %>% filter(category == "G male") )$mean.count.L / (DMC1table.main %>% filter(category == "G male"))$mean.MLH1
+
+MSM_DMC1.Z_CO_ratio <- ( DMC1table.main %>% filter(category == "MSM male") )$mean.count.L / (DMC1table.main %>% filter(category == "MSM male"))$mean.MLH1
+
+PWD_DMC1.Z_CO_ratio <-( DMC1table.main %>% filter(category == "PWD male") )$mean.count.L / (DMC1table.main %>% filter(category == "PWD male"))$mean.MLH1
+
+
+
+DMC1table.main$category <- factor(DMC1table.main$category, levels = c("WSB male","G male","KAZ male",               "PWD male","MSM male"), ordered = TRUE )
+
+DMC1table.main <- DMC1table.main[order(DMC1table.main$category),]
+
+kable(head(DMC1table.main),  caption = "Table X. DMC1 foci counts per cell summary")
+
+
+DMC1.Lratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G male" | category == "WSB male" | category == "KAZ male" ) ) )$MLH1.L_ratio, 
+                (DMC1table.main %>% filter(  ( category == "PWD male" | category == "MSM male") ) )$MLH1.L_ratio        )
+                               
+
+DMC1.Zratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G male" | category == "WSB male" | category == "KAZ male" ) ) )$MLH1.Z_ratio, 
+                (DMC1table.main %>% filter(  ( category == "PWD male" | category == "MSM male") ) )$MLH1.Z_ratio        )
+
+```
+
+
+-----
+
+```{r DMC1.setup, echo=FALSE, eval=FALSE}
+#load DMC1 csv
+#DMC1.DF <- read.csv("~./DMC1/newJuviQuant.csv", header = TRUE)
+DMC1.DF <- read.csv("~./MLH1repo/data/DMC1newJuviQuant.csv", header = TRUE)
+
+
+DMC1.DF$fileName <- DMC1.DF$Original.Name
+DMC1.DF <- add_mouse(DMC1.DF)
+DMC1.DF <- add_strain(DMC1.DF)
+DMC1.DF <- add_category(DMC1.DF)
+DMC1.DF <- add_subsp(DMC1.DF)
+DMC1.DF <- DMC1.DF[DMC1.DF$stage != "P",]
+
+#make DMC1 table
+DMC1.mean.obs.L <- ddply(.data=DMC1.DF[DMC1.DF$stage == "L",],
+                 .(category),
+                 summarize, 
+                 
+                 ncells = length(fileName),
+                 mean.count = mean( total.count)
+)
+DMC1.mean.obs.L$stage <- "L"
+
+DMC1.mean.obs.Z <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Z",],
+                 .(category),
+                 summarize, 
+                 ncells = length(fileName),
+                 mean.count = mean( total.count)
+)
+DMC1.mean.obs.Z$stage <- "Z"
+
+DMC1.mean.table <- rbind(DMC1.mean.obs.L,DMC1.mean.obs.Z)
+
+#write.table(DMC1.mean.table, "~./MLH1repo/DMC1.mean.table.csv", sep=",",
+#            row.names = FALSE)
+
+DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
+                          ifelse(grepl("G",DMC1.DF$strain), "Low",
+                                 
+              ifelse(grepl("KAZ", DMC1.DF$strain), "Low",
+            ifelse(grepl("PWD", DMC1.DF$strain), "High",
+               ifelse(grepl("MSM", DMC1.DF$strain), "High","")))))
+```
+
+```{r MAIN.DMC1.plot, echo=FALSE, warning=FALSE, eval=FALSE}
+#think of better color scheme
+#make the jitter col thinner or make the stacked dots.
+#remember that box-plots add outlier dots.
+#change y labels
+
+#experimenting with ggboplot
+everyday <- ggboxplot(DMC1.DF[DMC1.DF$stage != "P",], x = "strain", y = "total.count",
+          color = "stage", palette = "jco",
+          add = "jitter", short.panel.labs = FALSE)
+  #library gpubr has functions to add in sig/test bars.
+
+#change order
+
+DMC1.DF$strain<- factor(DMC1.DF$strain, levels =c("LEW",
+                      "WSB","G", "KAZ", "SKIVE","PWD","MSM"), order=T )
+
+```
+
+```{r plot.stage.ttest, echo=FALSE, warning=FALSE, eval=FALSE}
+
+anno_df_stage = compare_means(total.count ~ stage, group.by = "rec_group", data = DMC1.DF[DMC1.DF$stage != "P",],method = "t.test") %>% mutate(y_pos = 300)
+#
+
+DMC1.bxlt_Z_to_L <- ggplot(DMC1.DF[DMC1.DF$stage != "P",], aes(x=stage, y=total.count)) + 
+  geom_boxplot(position=position_dodge()) + 
+  geom_point(aes(color=rec_group), position=position_jitterdodge()) + 
+  
+  #facet_wrap(~stage, nrow=1) + 
+  
+  ggsignif::geom_signif(
+    data=anno_df_stage, 
+    aes(xmin=group1, xmax=group2, annotations=p.adj, y_position=y_pos), 
+    manual=TRUE
+  )+ggtitle("Comparison of DMC1 means across high and low recombing groups")+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+#Musc.mouse.av <-  Mouse.Table_BivData_4MM %>%  filter(subsp == "Musc") 
+
+ttest.ZtoL <- t.test(DMC1.DF$total.count[(DMC1.DF$stage == "L")],
+               DMC1.DF$total.count[(DMC1.DF$stage == "Z")]  )
+
+
+DMC1.High.goup <-  DMC1.DF %>%  filter(rec_group == "High") 
+
+ttest.ZtoL.high <- t.test(DMC1.High.goup$total.count[(DMC1.High.goup$stage == "L")],
+               DMC1.High.goup$total.count[(DMC1.High.goup$stage == "Z")]  )
+
+
+DMC1.Low.goup <-  DMC1.DF %>%  filter(rec_group == "Low") 
+
+ttest.ZtoL.Low <- t.test(DMC1.Low.goup$total.count[(DMC1.Low.goup$stage == "L")],
+               DMC1.Low.goup$total.count[(DMC1.Low.goup$stage == "Z")]  )
+```
+
+```{r DMC1_t.tests, echo=FALSE, warning=FALSE, eval=FALSE}
+#2. t-tests for the DMC1 counts 
+#need to account for sample sizes when comparing t.tests (KAZ and G don't have equal across )
+#best case scnario -- more microscoping to get ~20 cells for each stage by strain combo
+
+
+#high vs low group (L)
+ttest.HighLow.L.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
+# p-value =  0.002145
+
+
+#high vs low group (Z)
+ttest.HighLow.Z.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
+               DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
+# p-value = 0.6628
+
+
+#dom vs musc (L) (2 subsp vs)
+ttest.subsp.L <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "L")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "L")] )
+# p-value = 0.003016
+
+#dom vs musc (Z)
+ttest.subsp.Z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Z")] )
+#p-value = 0.09588
+
+#KAZ vs Dom (Z) (only 1 L cell)
+ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], 
+      DMC1.DF$total.count[(DMC1.DF$strain == "KAZ") & (DMC1.DF$stage == "Z")] )
+
+#p-value = 0.004148
+#Kaz Z are higher than Dom
+```
+
+
+
+# toal SC
 
 
 ```{r totSC_setup, echo=FALSE}
@@ -1194,6 +1564,7 @@ MLH1.merge.Skel <- add_species(MLH1.merge.Skel)
 
 
 ```{r tot.skel.table, echo=FALSE}
+#move to setup file
 
 MLH1.merge.Skel$nMLH1.foci <- as.numeric(MLH1.merge.Skel$nMLH1.foci)
 
@@ -1246,6 +1617,8 @@ totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain 
 
 
 ```{r tot.SC_strain.setup, echo = FALSE}
+#move to setup
+
 
 totSC.strain.av.table <- ddply(.data=totSC.mouse.av.table, 
                  .(sex,strain),
@@ -1266,683 +1639,197 @@ totSC.strain.av.table <- add_subsp(totSC.strain.av.table)
 
 ```
 
-```{r LONG.SHORT.biv_setup, echo=FALSE}
-
-#FROM q1
-#Q1.long.biv_1CO <-  real.long.bivData %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1) %>% filter(strain != "MOLF") %>% filter(strain != "CZECH")
-#Q1.short.biv_1CO <-  real.short.bivData %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1)%>% filter(strain != "MOLF") %>% filter(strain != "CZECH")
-#from Q2 IFD
-#male.long.biv.2CO_IFD <- real.long.bivData %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 2)
-##long biv
-#male.long.biv <- real.long.bivData %>% filter(sex== "male") %>% filter(species == "M.musculus") 
-#table( droplevels( male.long.biv$strain)  )
-
-#FROM q1 
-REAL.short_mouse_table <- ddply(real.short.bivData, c("mouse"), summarise,
-                        n_obs = length(Obj.ID),
-                        ncells = length(unique(fileName)),
-                         mean_SC = mean(chromosomeLength),
-                        
-                      mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                       mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                       mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                       mean.SC_4CO = mean(chromosomeLength[which(hand.foci.count == 4)], na.rm = TRUE),
-                        
-                      #make sure 1CO  
-                       #IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE
-                    mean_F1pos_ABS =  mean(Foci1[which(hand.foci.count == 1)]),
-                    mean_F1pos_PER =  mean(PER_Foci_1[which(hand.foci.count == 1)]),
-                           
-                      meanIFD2CO_raw = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
-                     meanIFD2CO_norm = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE)
-                                            
-                         )
-
-REAL.short_mouse_table <- add_sex(REAL.short_mouse_table)
-REAL.short_mouse_table <- add_strain(REAL.short_mouse_table)
-REAL.short_mouse_table <- add_subsp(REAL.short_mouse_table)
-REAL.short_mouse_table <- add_category(REAL.short_mouse_table)
-
-REAL.short_mouse_table$sex <- factor(REAL.short_mouse_table$sex, ordered = FALSE)
-REAL.short_mouse_table$strain <- factor(REAL.short_mouse_table$strain, ordered = FALSE)
-REAL.short_mouse_table$subsp <- factor(REAL.short_mouse_table$subsp, ordered = FALSE)
-
-#divide musc males into groups
-REAL.short_mouse_table$Rec.group <- ifelse(grepl("PWD male", REAL.short_mouse_table$category), 1, 
-                                  ifelse(grepl("MSM male", REAL.short_mouse_table$category), 1,
-                                  ifelse(grepl("SKIVE male", REAL.short_mouse_table$category), 1,
-                                           0)))
-
-REAL.short_mouse_table$Rec.group.exclu <- ifelse(grepl("PWD male", REAL.short_mouse_table$category), 1, 
-                                ifelse(grepl("MSM male", REAL.short_mouse_table$category), 1, 0))
-
-###LONG BIV
-
-REAL.long_mouse_table <- ddply(real.long.bivData, c("mouse"), summarise,
-                       n_obs = length(Obj.ID),
-                        ncells = length(unique(fileName)),
-                         mean_SC = mean(chromosomeLength),
-                        
-                      mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
-                       mean.SC_2CO = mean(chromosomeLength[which(hand.foci.count == 2)], na.rm = TRUE),
-                       mean.SC_3CO = mean(chromosomeLength[which(hand.foci.count == 3)], na.rm = TRUE),
-                       mean.SC_4CO = mean(chromosomeLength[which(hand.foci.count == 4)], na.rm = TRUE),
-                        
-                      #make sure 1CO,  #IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE
-                    mean_F1pos_ABS =  mean(Foci1[which(hand.foci.count == 1)]),
-                    mean_F1pos_PER =  mean(PER_Foci_1[which(hand.foci.count == 1)]),
-                           
-                      meanIFD2CO_raw = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
-                     meanIFD2CO_norm = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE)
-                         )
-
-REAL.long_mouse_table <- add_sex(REAL.long_mouse_table)
-REAL.long_mouse_table <- add_strain(REAL.long_mouse_table)
-REAL.long_mouse_table <- add_subsp(REAL.long_mouse_table)
-REAL.long_mouse_table <- add_category(REAL.long_mouse_table)
-
-REAL.long_mouse_table$sex <- factor(REAL.long_mouse_table$sex, ordered = FALSE)
-REAL.long_mouse_table$strain <- factor(REAL.long_mouse_table$strain, ordered = FALSE)
-REAL.long_mouse_table$subsp <- factor(REAL.long_mouse_table$subsp, ordered = FALSE)
-
-#divide musc males into groups
-REAL.long_mouse_table$Rec.group <- ifelse(grepl("PWD male", REAL.long_mouse_table$category), 1, 
-                                  ifelse(grepl("MSM male", REAL.long_mouse_table$category), 1,
-                                  ifelse(grepl("SKIVE male", REAL.long_mouse_table$category), 1,
-                                           0)))
-
-REAL.long_mouse_table$Rec.group.exclu <- ifelse(grepl("PWD male", REAL.long_mouse_table$category), 1, 
-                                ifelse(grepl("MSM male", REAL.long_mouse_table$category), 1, 0))
 
 
-#find which one 
-```
+```{r Q1.F1pos_long.short_setup, echo=FALSE, eval=TRUE}
 
-
-# Datasubsets
-
-
-
-# MLH1 models
-
-M1 - subsp, sex, (1 | strain)
-M2 - subsp, sex, strain
-M3 - sex, strain
-M4 - strain (sex specific)
-
-
-```{r MLH1co.lmer.MM1, echo=FALSE, waring=FALSE, message=FALSE}
-
-#DF.HetC.MixedModel.HQ
-
-MLH1.MM.M1 <- lmer(mean_co ~ subsp * sex + (1|strain), data=DF.HetC.MixedModel.HQ) 
-MLH1.MM.M1.reduce.sex <- lmer( mean_co ~ subsp  +(1|strain), data=DF.HetC.MixedModel.HQ )
-MLH1.MM.M1.reduce.subp <- lmer( mean_co ~ sex  +(1|strain), data=DF.HetC.MixedModel.HQ )
-
-#summary(MLH1.MM.M1)$coefficients
-
-MLH1.MM_interaction <- drop1(MLH1.MM.M1, test="Chisq")$`Pr(Chi)`[2]
-MLH1.MM_sex <- anova(MLH1.MM.M1, MLH1.MM.M1.reduce.sex)$`Pr(>Chisq)`[2]
-MLH1.MM_subp <- anova(MLH1.MM.M1, MLH1.MM.M1.reduce.subp)$`Pr(>Chisq)`[2]
-MLH1.MM_strain<- MM.rand.pval <- exactRLRT(MLH1.MM.M1)$p.value 
-
-MLH1.MMlmer_results <- data.frame(sub.sp = MLH1.MM_subp, 
-sex.results =  MLH1.MM_sex, 
-               interaction.pval = MLH1.MM_interaction,  rand.pval = 
-MLH1.MM_strain)
+Q1.long.biv_1CO <-  real.long.bivData %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1) %>% filter(strain != "MOLF") %>% filter(strain != "CZECH")
 
 ```
-
-```{r MLH1.glmM2, echo=FALSE}
-
-remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC")
-#AP_mouse_table.HQ_target <- AP_mouse_table.HQ_target[ ! AP_mouse_table.HQ_target$strain %in% remove_strains, ]
-#kkll <- DF.HetC.MixedModel.HQ[! DF.HetC.MixedModel.HQ$strain %in% remove_strains,]
-
-#strain = fixed
-MLH1.M2.glm.strain.fixed.full <- glm(mean_co ~ subsp * sex * strain, data=DF.HetC.MixedModel.HQ[  ! DF.HetC.MixedModel.HQ$strain %in% remove_strains,]   )
-
-summ.MLH1.M2.glm.strain.fixed.full <- summary(MLH1.M2.glm.strain.fixed.full)
-
-#table of just coeff anf pvalue
-#round(summ$coefficients[,c(1,4)],5 )
-
-#write.table(summ$coefficients , "~./MLH1repo/glm.strain.fixed.full.csv", sep=",",row.names = TRUE)
-```
-
-
-```{r MLH1.glm.M3, echo=FALSE}
-
-remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC")
-
-MLH1.M3.strain.fixed <- glm(mean_co ~ sex * strain, data=DF.HetC.MixedModel.HQ[  ! DF.HetC.MixedModel.HQ$strain %in% remove_strains,])
-
-summ.MLH1.M3.strain.fixed <- summary(MLH1.M3.strain.fixed)
-
-#round(summ.strain.fixed$coefficients[,c(1,4)],5)
-
-#write.table(summ.strain.fixed$coefficients , "~./MLH1repo/summ.strain.fixed.csv", sep=",",row.names = TRUE)
-```
-
-
-```{r MLH1.M4, echo=FALSE}
-
-```
-
-
-```{r Female.specific.glm, echo=FALSE}
-
-glm.female.strain.subsp <- glm(mean_co ~ subsp * strain, data= female_mouse.avs_for.analysis)
-
-summry.female.strain.effects <- summary(glm.female.strain.subsp)
-#round(summry.female.strain.effects$coefficients[,c(1,4)],5)
-#write.table(summry.female.strain.effects$coefficients, "~./MLH1repo/summry.female.strain.effects.csv", sep=",",row.names = TRUE)
-
-MLH1.female.spc.glm.M2 <- glm(mean_co ~ strain, data= female_mouse.avs_for.analysis)
-sum_MLH1.female.spc.glm.M2 <- summary(MLH1.female.spc.glm.M2)
-
-#round(lm.female.strain_sum$coefficients[,c(1,4)],5)
-
-#write.table(lm.female.strain_sum$coefficients, "~./MLH1repo/lm.female.strain.csv", sep=",",row.names = TRUE)
-```
-
-
-
-```{r Male.specific.glm, echo=FALSE}
-
-#these are M4
-#M4
-MLH1.male.glm.M4 <- glm(mean_co ~ subsp * strain, data= just.male_mouse.av)
-sum_MLH1.male.glm.M4 <- summary(MLH1.male.glm.M4)
-#round(summry.male.strain.effects$coefficients[,c(1,4)], 5)
-
-#sum_MLH1.male.specific.glm.M2$coefficients[5,][4]
-
-#PWD, SKIVE, MSM
-#8,9,10
-
-#write.table(summry.male.strain.effects$coefficients , "~./MLH1repo/summry.male.strain.effects.csv", sep=",",row.names = TRUE)
-
-#M4.2
-MLH1.male.glm.M4.2 <- glm(mean_co ~ strain, data= just.male_mouse.av)
-sum_MLH1.male.glm.M4.2 <- summary(MLH1.male.glm.M4.2)
-
-#round(lm.male.strain_sum$coefficients[,c(1,4)], 5)
-
-#write.table(lm.male.strain_sum$coefficients , "~./MLH1repo/lm.male.strain_sum.csv", sep=",",row.names = TRUE)
-
-```
-
-```{r MALE.SPECIFIC.variance.model, echo=FALSE}
-## within mouse variance models 
-lmVAR.male.strain.subsp <- glm(var ~ subsp * strain, data= just.male_mouse.av)
-summry.male.strain.VAReffects <- summary(lmVAR.male.strain.subsp)
-#round(summry.male.strain.VAReffects$coefficients[,c(1,4)], 5)
-
-#all p values kinda high, MSM and TOM are slightly sig
-lmVAR.male.strain <- glm(var ~ strain, data= just.male_mouse.av)
-lmVAR.male.strain_sum <- summary(lmVAR.male.strain)
-#round(lmVAR.male.strain_sum$coefficients[,c(1,4)], 5)
-#non sig
-
-lmcv.male.strain <- glm(cV ~ strain, data= just.male_mouse.av)
-lmcv.male.strain_sum <- summary(lmcv.male.strain)
-#round(lmcv.male.strain_sum$coefficients[,c(1,4)], 5)
-#HMI sig for cv model -- in the other model, CAST subsp and TOM strain are slightly significant
-
-#Q12
-Q12_male_table <-  Q12_mouse_table_w.Ages %>% filter(sex == "male")
-
-lm.m1.Q12_male <- glm(var ~ subsp * strain, data= Q12_male_table)
-lm.m1.Q12_male_sum <- summary(lm.m1.Q12_male)
-#round(lm.m1.Q12_male_sum$coefficients[,c(1,4)], 5)
-#NS
-
-lm.m2.Q12_male <- glm(var ~ strain, data= Q12_male_table)
-lm.m2.Q12VAR.male_sum <- summary(lm.m2.Q12_male)
-#round(lm.m2.Q12VAR.male_sum$coefficients[,c(1,4)], 5)
-#NS
-
-```
-
-
-
-#MLH1 variance models
-
-M1 - subsp, sex, (1 | strain)  (lmer)
-M2 - subsp, sex, strain  (glm / lm?)
-M3 - sex, strain
-M4 - strain (sex specific)
-
-
-```{r M1.MLH1.var_cv, echo=FALSE, warning=FALSE, message=FALSE}
-MLH1var_M1 <- lmer( var ~ subsp * sex +(1|strain), data=DF.HetC.MixedModel.HQ )
-MLH1var_M1.reduce.sex <- lmer( var ~ subsp  +(1|strain), data=DF.HetC.MixedModel.HQ )
-MLH1var_M1.reduce.subp <- lmer( var ~ sex  +(1|strain), data=DF.HetC.MixedModel.HQ )
-
-#summary(MLH1var_M1)
-LmerMLH1_VAR_int <- drop1(MLH1var_M1, test="Chisq")$`Pr(Chi)`[2]
-LmerMLH1_VAR_sex <- anova(MLH1var_M1, MLH1var_M1.reduce.sex)$`Pr(>Chisq)`[2]
-LmerMLH1_VAR_subsp <- anova(MLH1var_M1, MLH1var_M1.reduce.subp)$`Pr(>Chisq)`[2]
-LmerMLH1_VAR_strain <- exactRLRT(MLH1var_M1)$p.value
-
-LmerMLH1_VAR_results <- data.frame(sub.sp = LmerMLH1_VAR_subsp,
-sex.results =  LmerMLH1_VAR_sex, interaction.pval = LmerMLH1_VAR_int,  rand.pval = LmerMLH1_VAR_strain)
-
-```
-
-standardize the lm's and glms!
-
-```{r M2.MLH1.var, echo=FALSE, include=FALSE}
-#not including this model for now / brivity
-#$$mouse CO metric  ~=~ subsp * sex * strain + \varepsilon$$
-
-MLH1var_M2 <- glm( var ~ subsp * sex * strain,  data=DF.HetC.MixedModel.HQ )
-MLH1var_M2_sum <- summary(MLH1var_M2)
-
-#summary(MLH1var_M2)
-#anova(MLH1var_M2)  
-#as.data.frame( round(summary(MLH1var_M2)$coefficients, 6)) #table of p values for coefficients.
-
-MLH1cv_M2 <- glm(cV ~ subsp*sex*strain, data=DF.HetC.MixedModel.HQ)
-
-#summary(MLH1cv_M3)
-#anova(MLH1cv_M2)
-#as.data.frame( round(summary(MLH1cv_M2)$coefficients, 6))
-
-#Q12 var
-MLH1var_M2_Q12 <- glm( var ~ subsp*sex*strain,  data=Q12_mouse_table_w.Ages )
-
-#summary(MLH1var_M3_Q12)
-#anova(MLH1var_M2_Q12)  
-#as.data.frame( round(summary(MLH1var_M2_Q12)$coefficients, 6))
-
-#Q12 cv
-MLH1cv_M2_Q12 <- glm( cV ~ subsp*sex*strain, data=Q12_mouse_table_w.Ages )
-
-#summary(MLH1cv_M2_Q12)
-#anova(MLH1cv_M2_Q12)#sex large F
-#as.data.frame( round(summary(MLH1cv_M2_Q12)$coefficients, 6))
-```
-
-```{r M3.MLH1.var, echo=FALSE}
-glmMLH1Var_M3 <- glm( var ~ sex * strain,  data=DF.HetC.MixedModel.HQ )
-glmMLH1Var_M3_sum <- summary(glmMLH1Var_M3)
-#round(glmMLH1Var_M3_sum$coefficients[,c(1,4)], 5)
-
-MLH1cv_M3 <- glm(cV ~ sex * strain, data=DF.HetC.MixedModel.HQ)
-#summary(MLH1cv_M4)
-#round(summary(MLH1cv_M3)$coefficients[,c(1,4)], 6)
-
-### Q12 var
-MLH1var_M3_Q12 <- glm( var ~ sex*strain, data=Q12_mouse_table_w.Ages )
-MLH1var_M3_Q12_sum <- summary(MLH1var_M3_Q12)
-
-#as.data.frame( round(summary(MLH1var_M3_Q12)$coefficients[,c(1,4)], 6))
-#round(summary(MLH1var_M3_Q12)$coefficients[,c(1,4)], 6)
-
-#Q12 cv
-MLH1cv_M4_Q12 <- glm( cV ~ sex*strain, data=Q12_mouse_table_w.Ages )
-#round(summary(MLH1cv_M4_Q12)$coefficients[,c(1,4)], 6)
-```
-
-```{r MLH1.var.M4, echo=FALSE}
-#male
-glmMLH1Var_M4.male <- glm( var ~ subsp * strain,  data= (DF.HetC.MixedModel.HQ %>% filter(sex == "male") ) )
-
-
-#female
-glmMLH1Var_M4.female <- glm( var ~ subsp * strain,  data= (DF.HetC.MixedModel.HQ %>% filter(sex == "female") ) )
-sum.glmMLH1Var_M4.female <- summary(glmMLH1Var_M4.female)
-
-glmMLH1Var_M4.femaleQ12 <- glm( var ~ subsp * strain,  data= (Q12_mouse_table_w.Ages %>% filter(sex == "female") ) )
-
-```
-
-```{r FEMALE.VAR.MODELS, echo=FALSE}
-## within mouse variance models 
-lmVAR.female.strain.subsp <- glm(var ~ subsp * strain, data= female_mouse.avs_for.analysis)
-summry.female.strain.VAReffects <- summary(lmVAR.female.strain.subsp)
-
-lmVAR.female.strain <- glm(var ~ strain, data= female_mouse.avs_for.analysis)
-lmVAR.female.strain_sum <- summary(lmVAR.female.strain)
-
-#round( #round isn't working for this sumary
-#lmVAR.female.strain_sum$coefficients[,c(1,4)]
-#Q12
-Q12_female_table <-  Q12_mouse_table_w.Ages %>% filter(sex == "female")
-
-lm.m1.Q12_female <- glm(var ~ subsp * strain, data= Q12_female_table)
-lm.m1.Q12_female_sum <- summary(lm.m1.Q12_female)
-
-
-lm.m2.Q12_female <- glm(var ~ strain, data= Q12_female_table)
-lm.m2.Q12VAR.female_sum <- summary(lm.m2.Q12_female)#LEW changes to PWD
-
-lm.m2.Q12_female.cv <- glm(cV ~ strain, data= Q12_female_table)
-lm.m2.Q12_female.cv_sum <- summary(lm.m2.Q12_female.cv)
-
-#lm.m2.Q12VAR.female_sum$coefficients[,c(1,4)]
-#LEW sig
-
-```
-
-
-
-# DMC1 Results
-
-main table (DMC1.mean.table), t.tests  , ratios
-
-set up, t.tests, correlations, says there are duplicate titles
-
-```{r DMC1.setup1, echo=FALSE}
-#load DMC1 csv
-#DMC1.DF <- read.csv("~./DMC1/newJuviQuant.csv", header = TRUE)
-DMC1.DF <- read.csv("~./MLH1repo/data/DMC1newJuviQuant.csv", header = TRUE)
-
-DMC1.DF$fileName <- DMC1.DF$Original.Name
-DMC1.DF <- add_mouse(DMC1.DF)
-DMC1.DF <- add_strain(DMC1.DF)
-DMC1.DF <- add_category(DMC1.DF)
-DMC1.DF <- add_subsp(DMC1.DF)
-DMC1.DF <- DMC1.DF[DMC1.DF$stage != "P",]
-
-#make DMC1 table
-DMC1.mean.obs.L <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Early",],
-                 .(category),
-                 summarize, 
-                 
-                 ncells = length(fileName),
-                 mean.count = mean( total.count)
-)
-DMC1.mean.obs.L$stage <- "Early"
-
-DMC1.mean.obs.Z <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Late",],
-                 .(category),
-                 summarize, 
-                 ncells = length(fileName),
-                 mean.count = mean( total.count)
-)
-DMC1.mean.obs.Z$stage <- "Late"
-
-DMC1.mean.table <- rbind(DMC1.mean.obs.L,DMC1.mean.obs.Z)
-
-#write.table(DMC1.mean.table, "~./MLH1repo/DMC1.mean.table.csv", sep=",",
-#            row.names = FALSE)
-
-DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
-                          ifelse(grepl("G",DMC1.DF$strain), "Low",
-                                 
-              ifelse(grepl("KAZ", DMC1.DF$strain), "Low",
-            ifelse(grepl("PWD", DMC1.DF$strain), "High",
-               ifelse(grepl("MSM", DMC1.DF$strain), "High","")))))
-
-#make category averages from AP_mouse_table.HQ
-mean.MLH1.obs <- ddply(.data=AP_mouse_table.HQ,
-                 .(category),
-                 summarize, 
-                 mean.MLH1 = mean(mean_co),
-                 var.MLH1 = var(mean_co)
-)
-
-DMC1.target.strains <- subset(mean.MLH1.obs, category == "G male" |
-                   category == "WSB male" |
-                     category == "KAZ male" |
-                  category == "MSM male" |
-                    category == "PWD male")
-#attach this mini DF to the DMC1 data
-```
-
-
-```{r DMC1_t.tests1, echo=FALSE, warning=FALSE}
-#2. t-tests for the DMC1 counts 
-#need to account for sample sizes when comparing t.tests (KAZ and G don't have equal across )
-#best case scnario -- more microscoping to get ~20 cells for each stage by strain combo
-
-
-#high vs low group (L)
-ttest.HighLow.L.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Early") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
-               DMC1.DF$total.count[( (DMC1.DF$stage == "Early") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
-# p-value =  0.002145
-
-
-#high vs low group (Z)
-ttest.HighLow.Z.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Late") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
-               DMC1.DF$total.count[( (DMC1.DF$stage == "Late") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
-# p-value = 0.6628
-
-
-#dom vs musc (L) (2 subsp vs)
-ttest.subsp.L <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Early")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Early")] )
-# p-value = 0.003016
-
-#dom vs musc (Z)
-ttest.subsp.Z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Late")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Late")] )
-#p-value = 0.09588
-
-#KAZ vs Dom (Z) (only 1 L cell)
-ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Late")], 
-      DMC1.DF$total.count[(DMC1.DF$strain == "KAZ") & (DMC1.DF$stage == "Late")] )
-
-#p-value = 0.004148
-#Kaz Z are higher than Dom
-```
-
-
-```{r DMC1.rand.calq1, echo=FALSE}
-
-DMC1.mean.obs.L$mean.count.L <- DMC1.mean.obs.L$mean.count
-DMC1.mean.obs.Z$mean.count.Z <- DMC1.mean.obs.Z$mean.count
-
-
-DMC1table <- merge(DMC1.mean.obs.L, DMC1.mean.obs.Z, by="category")
-
-DMC1table.main <- merge(DMC1.target.strains, DMC1table, by="category")
-
-MLH1.DMC1.L_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.L, method = c("pearson"))#MLH1.DMC1.Z_cor
-
-MLH1.DMC1.Z_cor <- cor(DMC1table.main$mean.MLH1, DMC1table.main$mean.count.Z, method = c("pearson"))#0.2793237
-```
-
-
-```{r DMC1.ratios1, echo=FALSE}
-
-##RATIOS
-DMC1table.main$MLH1.L_ratio <- DMC1table.main$mean.MLH1/ DMC1table.main$mean.count.L 
-DMC1table.main$MLH1.Z_ratio <- DMC1table.main$mean.MLH1 / DMC1table.main$mean.count.Z
-  
-#colnames(DMC1table.main) <- c("category", "mean.MLH1", "", "", "")
-
-#DMC1.mean.table
-DMC1.mean.table.99 <- subset(DMC1table.main, select= -c(var.MLH1,  mean.count.x,  mean.count.y, stage.x, stage.y))
-
-colnames(DMC1.mean.table.99) <- c("category","mean.MLH1","ncells.L","mean.L",
-                  "ncells.Z", "mean.Z", "MLH1.L_ratio", "MLH1.Z_ratio")
-
-
-WSB_DMC1.Z_CO_ratio <-   ( DMC1table.main %>% filter(category == "WSB male") )$mean.count.L / (DMC1table.main %>% filter(category == "WSB male"))$mean.MLH1
-  
-G_DMC1.Z_CO_ratio <-   ( DMC1table.main %>% filter(category == "G male") )$mean.count.L / (DMC1table.main %>% filter(category == "G male"))$mean.MLH1
-
-MSM_DMC1.Z_CO_ratio <- ( DMC1table.main %>% filter(category == "MSM male") )$mean.count.L / (DMC1table.main %>% filter(category == "MSM male"))$mean.MLH1
-
-PWD_DMC1.Z_CO_ratio <-( DMC1table.main %>% filter(category == "PWD male") )$mean.count.L / (DMC1table.main %>% filter(category == "PWD male"))$mean.MLH1
-
-
-
-DMC1table.main$category <- factor(DMC1table.main$category, levels = c("WSB male","G male","KAZ male",               "PWD male","MSM male"), ordered = TRUE )
-
-DMC1table.main <- DMC1table.main[order(DMC1table.main$category),]
-
-kable(head(DMC1table.main),  caption = "Table X. DMC1 foci counts per cell summary")
-
-
-DMC1.Lratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G male" | category == "WSB male" | category == "KAZ male" ) ) )$MLH1.L_ratio, 
-                (DMC1table.main %>% filter(  ( category == "PWD male" | category == "MSM male") ) )$MLH1.L_ratio        )
-                               
-
-DMC1.Zratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G male" | category == "WSB male" | category == "KAZ male" ) ) )$MLH1.Z_ratio, 
-                (DMC1table.main %>% filter(  ( category == "PWD male" | category == "MSM male") ) )$MLH1.Z_ratio        )
-
-```
-
-
------
-
-```{r DMC1.setup, echo=FALSE, eval=FALSE}
-#load DMC1 csv
-#DMC1.DF <- read.csv("~./DMC1/newJuviQuant.csv", header = TRUE)
-DMC1.DF <- read.csv("~./MLH1repo/data/DMC1newJuviQuant.csv", header = TRUE)
-
-
-DMC1.DF$fileName <- DMC1.DF$Original.Name
-DMC1.DF <- add_mouse(DMC1.DF)
-DMC1.DF <- add_strain(DMC1.DF)
-DMC1.DF <- add_category(DMC1.DF)
-DMC1.DF <- add_subsp(DMC1.DF)
-DMC1.DF <- DMC1.DF[DMC1.DF$stage != "P",]
-
-#make DMC1 table
-DMC1.mean.obs.L <- ddply(.data=DMC1.DF[DMC1.DF$stage == "L",],
-                 .(category),
-                 summarize, 
-                 
-                 ncells = length(fileName),
-                 mean.count = mean( total.count)
-)
-DMC1.mean.obs.L$stage <- "L"
-
-DMC1.mean.obs.Z <- ddply(.data=DMC1.DF[DMC1.DF$stage == "Z",],
-                 .(category),
-                 summarize, 
-                 ncells = length(fileName),
-                 mean.count = mean( total.count)
-)
-DMC1.mean.obs.Z$stage <- "Z"
-
-DMC1.mean.table <- rbind(DMC1.mean.obs.L,DMC1.mean.obs.Z)
-
-#write.table(DMC1.mean.table, "~./MLH1repo/DMC1.mean.table.csv", sep=",",
-#            row.names = FALSE)
-
-DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
-                          ifelse(grepl("G",DMC1.DF$strain), "Low",
-                                 
-              ifelse(grepl("KAZ", DMC1.DF$strain), "Low",
-            ifelse(grepl("PWD", DMC1.DF$strain), "High",
-               ifelse(grepl("MSM", DMC1.DF$strain), "High","")))))
-```
-
-```{r MAIN.DMC1.plot, echo=FALSE, warning=FALSE, eval=FALSE}
-#think of better color scheme
-#make the jitter col thinner or make the stacked dots.
-#remember that box-plots add outlier dots.
-#change y labels
-
-#experimenting with ggboplot
-everyday <- ggboxplot(DMC1.DF[DMC1.DF$stage != "P",], x = "strain", y = "total.count",
-          color = "stage", palette = "jco",
-          add = "jitter", short.panel.labs = FALSE)
-  #library gpubr has functions to add in sig/test bars.
-
-#change order
-
-DMC1.DF$strain<- factor(DMC1.DF$strain, levels =c("LEW",
-                      "WSB","G", "KAZ", "SKIVE","PWD","MSM"), order=T )
-
-
-DMC1.boxplot <- ggplot(aes(x=strain, y=total.count, color=stage), data=DMC1.DF[DMC1.DF$stage != "P",])+
-  geom_boxplot(alpha=.5) +geom_jitter()+ggtitle("DMC1 averages in juvenile mice")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(), axis.line = element_line(colour = "black"))
-
-DMC1.boxplot
-```
-
-```{r plot.stage.ttest, echo=FALSE, warning=FALSE, eval=FALSE}
-
-anno_df_stage = compare_means(total.count ~ stage, group.by = "rec_group", data = DMC1.DF[DMC1.DF$stage != "P",],method = "t.test") %>% mutate(y_pos = 300)
-#
-
-DMC1.bxlt_Z_to_L <- ggplot(DMC1.DF[DMC1.DF$stage != "P",], aes(x=stage, y=total.count)) + 
-  geom_boxplot(position=position_dodge()) + 
-  geom_point(aes(color=rec_group), position=position_jitterdodge()) + 
-  
-  #facet_wrap(~stage, nrow=1) + 
-  
-  ggsignif::geom_signif(
-    data=anno_df_stage, 
-    aes(xmin=group1, xmax=group2, annotations=p.adj, y_position=y_pos), 
-    manual=TRUE
-  )+ggtitle("Comparison of DMC1 means across high and low recombing groups")+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(), axis.line = element_line(colour = "black"))
-
-#Musc.mouse.av <-  Mouse.Table_BivData_4MM %>%  filter(subsp == "Musc") 
-
-ttest.ZtoL <- t.test(DMC1.DF$total.count[(DMC1.DF$stage == "L")],
-               DMC1.DF$total.count[(DMC1.DF$stage == "Z")]  )
-
-
-DMC1.High.goup <-  DMC1.DF %>%  filter(rec_group == "High") 
-
-ttest.ZtoL.high <- t.test(DMC1.High.goup$total.count[(DMC1.High.goup$stage == "L")],
-               DMC1.High.goup$total.count[(DMC1.High.goup$stage == "Z")]  )
-
-
-DMC1.Low.goup <-  DMC1.DF %>%  filter(rec_group == "Low") 
-
-ttest.ZtoL.Low <- t.test(DMC1.Low.goup$total.count[(DMC1.Low.goup$stage == "L")],
-               DMC1.Low.goup$total.count[(DMC1.Low.goup$stage == "Z")]  )
-```
-
-```{r DMC1_t.tests, echo=FALSE, warning=FALSE, eval=FALSE}
-#2. t-tests for the DMC1 counts 
-#need to account for sample sizes when comparing t.tests (KAZ and G don't have equal across )
-#best case scnario -- more microscoping to get ~20 cells for each stage by strain combo
-
-
-#high vs low group (L)
-ttest.HighLow.L.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
-               DMC1.DF$total.count[( (DMC1.DF$stage == "L") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
-# p-value =  0.002145
-
-
-#high vs low group (Z)
-ttest.HighLow.Z.pval <- t.test(DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "MSM") | (DMC1.DF$strain == "PWD") ) )  ],
-               DMC1.DF$total.count[( (DMC1.DF$stage == "Z") & ( ( DMC1.DF$strain == "WSB") | (DMC1.DF$strain == "G") | (DMC1.DF$strain == "KAZ") ) )]    )$p.value
-# p-value = 0.6628
-
-
-#dom vs musc (L) (2 subsp vs)
-ttest.subsp.L <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "L")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "L")] )
-# p-value = 0.003016
-
-#dom vs musc (Z)
-ttest.subsp.Z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], DMC1.DF$total.count[(DMC1.DF$subsp == "Musc") & (DMC1.DF$stage == "Z")] )
-#p-value = 0.09588
-
-#KAZ vs Dom (Z) (only 1 L cell)
-ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.DF$stage == "Z")], 
-      DMC1.DF$total.count[(DMC1.DF$strain == "KAZ") & (DMC1.DF$stage == "Z")] )
-
-#p-value = 0.004148
-#Kaz Z are higher than Dom
-```
-
-
 
 
 
 # Q1 single bivalent section
 
 
-```{r Q1.single.biv_position_table, echo=FALSE}
+```{r Q1.single.biv_position_table, echo=FALSE, eval=FALSE}
 #strain averages for single bivalent 
 #
-colnames(Curated_BivData99)
+#colnames(Curated_BivData99)
 
 ```
 
 
+```{r table.long.biv, echo=FALSE}
+
+# make a table for the Mixed Models -- from the long.BivData
+# Calq mouse averages
+
+#add in all the other stats there are in the other tables
+
+Long.biv_mouse_table <- ddply(real.long.bivData, c("mouse"), summarise,
+                        
+                        Nmice = length(unique(mouse)),
+                        Ncells = length( unique(fileName) ),
+                        n_obs  = length(Obj.ID),
+                      
+                      mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
+                      
+                        cV = cv(chromosomeLength),
+                        var = as.numeric(format(round(   var(chromosomeLength),3), nsmall=3) ),
+                        sd   = round(sd(chromosomeLength), 3),
+                        se   = round(sd / sqrt(Ncells), 3),
+                        
+                        #SC lengths by class
+                        nCO0 =  sum(hand.foci.count == 0, na.rm=TRUE), 
+                      nCO1 =  sum(hand.foci.count == 1, na.rm=TRUE), 
+                       nCO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                       nCO3 = sum(hand.foci.count == 3, na.rm=TRUE),
+                       nCO4 = sum(hand.foci.count == 4, na.rm=TRUE),
+                       
+                      mean.siscoten_0CO = mean(SisCoTen[which(hand.foci.count == 0)], na.rm = TRUE),
+                      mean.siscoten_1CO = mean(SisCoTen[which(hand.foci.count == 1)], na.rm = TRUE),
+                     mean.siscoten_2CO = mean(SisCoTen[which(hand.foci.count == 2)], na.rm = TRUE),
+                      mean.siscoten_3CO = mean(SisCoTen[which(hand.foci.count == 3)], na.rm = TRUE),
+                      
+                #  mean_IFD_ABS = as.numeric(format(round(  mean(IFD1_ABS, na.rm = TRUE), 3 ), nsmall=3) ),
+                # mean_IFD_PER = as.numeric(format(round(  mean(IFD1_PER, na.rm = TRUE), 3 ), nsmall=3) ),
+                 
+                 mean_IFD.2CO_ABS = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                 mean_IFD.2CO_PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
+                  
+                       #CO position things, requires the melt?
+              norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)])
+                  
+        #          mean_siscoten = mean(siscoten)
+        #
+)
+#mouse averages for long.biv
+
+Long.biv_mouse_table <- add_sex(Long.biv_mouse_table)
+Long.biv_mouse_table <- add_strain(Long.biv_mouse_table)
+Long.biv_mouse_table <- add_subsp(Long.biv_mouse_table)
+Long.biv_mouse_table <- add_category(Long.biv_mouse_table)
+Long.biv_mouse_table <- add_species(Long.biv_mouse_table)
+
+#unordered for the mixed models (move this to the MM blocks...?)
+Long.biv_mouse_table$subsp <- factor(Long.biv_mouse_table$subsp, ordered = FALSE)
+Long.biv_mouse_table$sex <- factor(Long.biv_mouse_table$sex, ordered = FALSE)
+Long.biv_mouse_table$strain <- factor(Long.biv_mouse_table$strain, ordered = FALSE)
+
+#rec group
+Long.biv_mouse_table$Rec.group <- ifelse(grepl("PWD", Long.biv_mouse_table$category), 1, 
+                            ifelse(grepl("MSM", Long.biv_mouse_table$category), 1,
+                             ifelse(grepl("SKIVE", Long.biv_mouse_table$category), 1, 0)) )
+
+#long.biv. 1) HetC  2) male.poly (the main factors are still unordered)
+
+#1) Long Biv for 
+#remove all the non-used strains!!
+Long.biv_mouse_table_HetC <- Long.biv_mouse_table
+
+Long.biv_mouse_table_HetC <- Long.biv_mouse_table_HetC[Long.biv_mouse_table$strain != "AST",]
+Long.biv_mouse_table_HetC <- Long.biv_mouse_table_HetC[Curated_BivData$strain != "TOM",]
+Long.biv_mouse_table_HetC <- Long.biv_mouse_table_HetC[Long.biv_mouse_table_HetC$strain != "CZECH",]
+Long.biv_mouse_table_HetC$strain <- droplevels(Long.biv_mouse_table_HetC$strain)
+
+#remove na's
+Long.biv_mouse_table_HetC <- Long.biv_mouse_table_HetC[!(is.na(Long.biv_mouse_table_HetC$mouse) | Long.biv_mouse_table_HetC$mouse==""), ]
+
+#table(droplevels( Long.biv_mouse_table_HetC$category) )  #for double checking
+
+
+#2) Long Biv for male.poly
+#just males, just Musculus
+Long.biv_mouse_table_male.poly <- Long.biv_mouse_table
+
+Long.biv_mouse_table_male.poly <- Long.biv_mouse_table_male.poly[Long.biv_mouse_table_male.poly$sex == "male",]
+
+#table(droplevels( Long.biv_mouse_table_male.poly$category) ) #for double checking
+```
+
+
+```{r table.short.biv, echo=FALSE}
+
+#real.short.bivData
+
+#same chunk as above
+Short.biv_mouse_table <- ddply(real.short.bivData, c("mouse"), summarise,
+                        
+                        Nmice = length(unique(mouse)),
+                        Ncells = length( unique(fileName) ),
+                        n_obs  = length(Obj.ID),
+                      
+                      mean_SC = as.numeric(format(round(  mean(chromosomeLength), 3 ), nsmall=3) ),
+                      
+                        cV = cv(chromosomeLength),
+                        var = as.numeric(format(round(   var(chromosomeLength),3), nsmall=3) ),
+                        sd   = round(sd(chromosomeLength), 3),
+                        se   = round(sd / sqrt(Ncells), 3),
+                        
+                        #SC lengths by class
+                        nCO0 =  sum(hand.foci.count == 0, na.rm=TRUE), 
+                      nCO1 =  sum(hand.foci.count == 1, na.rm=TRUE), 
+                       nCO2 = sum(hand.foci.count == 2, na.rm=TRUE),
+                       nCO3 = sum(hand.foci.count == 3, na.rm=TRUE),
+                       nCO4 = sum(hand.foci.count == 4, na.rm=TRUE),
+                       
+                      mean.siscoten_0CO = mean(SisCoTen[which(hand.foci.count == 0)], na.rm = TRUE),
+                      mean.siscoten_1CO = mean(SisCoTen[which(hand.foci.count == 1)], na.rm = TRUE),
+                     mean.siscoten_2CO = mean(SisCoTen[which(hand.foci.count == 2)], na.rm = TRUE),
+                      mean.siscoten_3CO = mean(SisCoTen[which(hand.foci.count == 3)], na.rm = TRUE),
+                      
+                #  mean_IFD_ABS = as.numeric(format(round(  mean(IFD1_ABS, na.rm = TRUE), 3 ), nsmall=3) ),
+                # mean_IFD_PER = as.numeric(format(round(  mean(IFD1_PER, na.rm = TRUE), 3 ), nsmall=3) ),
+                 
+                 mean_IFD.2CO_ABS = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
+                 mean_IFD.2CO_PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
+                  
+                       #CO position things, requires the melt?
+              norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)])
+                  
+        #          mean_siscoten = mean(siscoten)
+        #
+)
+#mouse averages for 
+
+Short.biv_mouse_table <- add_sex(Short.biv_mouse_table)
+Short.biv_mouse_table <- add_strain(Short.biv_mouse_table)
+Short.biv_mouse_table <- add_subsp(Short.biv_mouse_table)
+Short.biv_mouse_table <- add_category(Short.biv_mouse_table)
+Short.biv_mouse_table <- add_species(Short.biv_mouse_table)
+
+#unordered for the mixed models (move this to the MM blocks...?)
+Short.biv_mouse_table$subsp <- factor(Long.biv_mouse_table$subsp, ordered = FALSE)
+Short.biv_mouse_table$sex <- factor(Long.biv_mouse_table$sex, ordered = FALSE)
+Short.biv_mouse_table$strain <- factor(Long.biv_mouse_table$strain, ordered = FALSE)
+
+#rec group
+Short.biv_mouse_table$Rec.group <- ifelse(grepl("PWD", Short.biv_mouse_table$category), 1, 
+                            ifelse(grepl("MSM", Short.biv_mouse_table$category), 1,
+                             ifelse(grepl("SKIVE", Short.biv_mouse_table$category), 1, 0)) )
+
+#long.biv. 1) HetC  2) male.poly (the main factors are still unordered)
+
+#1) Long Biv for 
+#remove all the non-used strains!!
+#Short.biv_mouse_table_HetC <- Short.biv_mouse_table
+
+#Short.biv_mouse_table_HetC <- Short.biv_mouse_table_HetC[Long.biv_mouse_table$strain != "AST",]
+
+#Short.biv_mouse_table_HetC <- Short.biv_mouse_table_HetC[Curated_BivData$strain != "TOM",]
+
+#Short.biv_mouse_table_HetC <- Short.biv_mouse_table_HetC[Long.biv_mouse_table_HetC$strain != "CZECH",]
+
+#Long.biv_mouse_table_HetC$strain <- droplevels(Long.biv_mouse_table_HetC$strain)
+
+#remove na's
+#Long.biv_mouse_table_HetC <- #Long.biv_mouse_table_HetC[!(is.na(Long.biv_mouse_table_HetC$mouse) | #Long.biv_mouse_table_HetC$mouse==""), ]
+
+```
+
+
+need to save this reduced dataset, Q1.real.short_mouse_table.
 
 #Q2 section
 
@@ -1989,9 +1876,6 @@ Q2mouse.av.long.biv.table$Rec.group <- ifelse(grepl("PWD", Q2mouse.av.long.biv.t
                                   ifelse(grepl("SKIVE", Q2mouse.av.long.biv.table$strain), 1,
                                            0)))
 
-Q2mouse.av.long.biv.table$Rec.group.exclu <- ifelse(grepl("PWD", Q2mouse.av.long.biv.table$strain), 1, 
-                                ifelse(grepl("MSM", Q2mouse.av.long.biv.table$strain), 1, 0))
-
 
 male.short.biv <- real.short.bivData %>% filter(sex== "male")
 
@@ -2016,8 +1900,6 @@ ifelse(grepl("MSM", Q2mouse.av.short.biv.table$strain), 1,
                                   ifelse(grepl("SKIVE", Q2mouse.av.short.biv.table$strain), 1,
                                            0)))
 
-Q2mouse.av.short.biv.table$Rec.group.exclu <- ifelse(grepl("PWD", Q2mouse.av.short.biv.table$strain), 1, 
-                                ifelse(grepl("MSM", Q2mouse.av.short.biv.table$strain), 1, 0))
 ```
 
 <!-- plots -->
@@ -2056,7 +1938,8 @@ Q2.SC.length_Nested_boxplots_Mol <- ggplot(Q2.SC_BivData[Q2.SC_BivData$subsp == 
 #+theme(legend.position="none") 
 ```
 
-```{r Q2.SC.long.biv_plots, echo=FALSE}
+
+```{r Q2.SC.long.biv_plots, echo=FALSE, eval=FALSE}
 
 #REAL.long_mouse_table
 #REAL.short_mouse_table
@@ -2077,6 +1960,7 @@ mouse.shoo.long.biv <- ggplot( REAL.long_mouse_table, aes(y=mean.sc, x=strain, c
 
 ```
 
+
 ```{r Q2_tot.sc_plot, echo=FALSE, warning=FALSE}
 
 #totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain !="F1"& strain !="SPIC" & strain !=  "CAROLI" & strain !="SPRET"& strain !="HMI"& strain !="PERC")
@@ -2088,20 +1972,15 @@ mouse.shoo.long.biv <- ggplot( REAL.long_mouse_table, aes(y=mean.sc, x=strain, c
 mouse.av_totsc_male <- ggplot(data= totSC.mouse.av.table %>% filter(sex == "male"), aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
   facet_wrap(Rec.group~subsp, scales="free")+ theme(axis.title.x=element_blank(),        axis.text.x=element_blank(), axis.ticks.x=element_blank()) + ylim(c(1200,1850 ))+ggtitle("Mouse av. total SC area")
 
-mouse.av_totsc_male
-
 ```
 
 ```{r Q2.SC_MLH1.by.totalSC, echo=FALSE, warning=FALSE}
 
 #make plot of mouse averages for MLH1 and total SC
-
 bep <- merge(  fomo.male_mouse.av,   totSC.mouse.av.table)
 
 X.by.texas <- ggplot(bep, aes(x=mean.skel, y=mean_co, color=strain))+geom_point()+
   scale_color_manual(values=colors_of_strains)+ggtitle("Total SC by mean CO\nMouse Means")
-
-X.by.texas
 
 ```
 
@@ -2216,7 +2095,8 @@ Q2.totSC_t.test_DomMol <- t.test((totSC.mouse.av.table  %>% filter(subsp == "Dom
 #p-value = 0.1
 ```
 
-```{r Q2.SC_across.subsp_short.long.mus.av, echo=FALSE}
+
+```{r Q2.SC_across.subsp_short.long.mus.av, echo=FALSE, eval=FALSE}
 
 #DOM-musc-long
 Q2.long_t.test_DomMusc <- t.test((Q2mouse.av.long.biv.table  %>% filter(subsp == "Dom") )$mean.SC,
@@ -2315,8 +2195,7 @@ sum.Q2.glm_mus.av_totSC_M4.2_MOL  <- summary(Q2.glm_mus.av_totSC_M4.2_MOL)
 ```
 
 
-```{r Q2.glm.SC.long, echo=FALSE}
-
+```{r Q2.glm.SC.long, echo=FALSE, eval=FALSE}
 
 #this dataset is all males
 glmQ2_long.biv_M4 <- glm(mean.SC ~ subsp * strain, data= Q2mouse.av.long.biv.table)
@@ -2729,29 +2608,30 @@ mouse.av.SC.high.rec$add_subsp <- factor(mouse.av.SC.high.rec$subsp, ordered = F
 #Q2 1CO postion
 
 
-```{r Q2.1COpos_mouse.av.t.test_all, echo=FALSE}
-#mouse.avs_4MM, #31may19_SKIVE_m2  has NA for norm.first.foci.pos
+```{r Q2.1COpos_mouse.av.t.test_all, echo=FALSE, eval=FALSE}
 
 #High = MSM, PWD, SKIVE
-Q2.1COpos_Ttest <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "0"))$norm.first.foci.pos, 
-            (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "1"))$norm.first.foci.pos )
-#p-value = 1
+Q2.1COpos_Ttest <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == 0))$norm.first.foci.pos,    
+        (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == 1))$norm.first.foci.pos )
+
 
 #high = PWD and MSM
-Q2.1COpos_Ttest.HL.ex <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group.exclu == "0"))$norm.first.foci.pos, 
-            (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group.exclu == "1"))$norm.first.foci.pos )
+#Q2.1COpos_Ttest.HL.ex <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group.exclu == "0"))$norm.first.foci.pos, 
+#            (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group.exclu == #"1"))$norm.first.foci.pos )
 #p-value = 1
 
 ```
 
-```{r Q2.1COpos_within.subsp_ttest, echo=FALSE}
 
+```{r Q2.1COpos_within.subsp_ttest, echo=FALSE, eval=FALSE}
 #Dom (predicted no difference) -- can't DO a t.test for DOM across groups..
 
+#mouse.av_4MM -- n
+
 #Musc
-Q2.1COpos_mus.av_Musc_ttest  <-  t.test( (mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Musc") %>% filter(Rec.group == "0"))$norm.first.foci.pos, 
+Q2.1COpos_mus.av_Musc_ttest  <-  t.test( (mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Musc") %>% filter(Rec.group == 0))$norm.first.foci.pos, 
                                          
-            (mouse.avs_4MM  %>%  filter(sex == "male") %>% filter(subsp == "Musc") %>% filter(Rec.group == "1"))$norm.first.foci.pos )
+            (mouse.avs_4MM  %>%  filter(sex == "male") %>% filter(subsp == "Musc") %>% filter(Rec.group == 1))$norm.first.foci.pos )
 # p-value = 0.4
 
 
@@ -2763,13 +2643,14 @@ Q2.1COpos_mus.av_Mol_ttest  <-  t.test( (mouse.avs_4MM %>%  filter(sex == "male"
 # exclusive rec group not sig
 ```
 
-```{r Q2.1CO_mouse.av.short.long_t.test, echo=FALSE}
+
+```{r Q2.1CO_mouse.av.short.long_t.test, echo=FALSE, eval=FALSE}
 #these don't have mean.first.foci
 
 #short -- real.long.bivData -- REAL.short_mouse_table
-Q2.1COposABS_short_ttest_HL <- t.test( (REAL.short_mouse_table %>% filter(sex == "male") %>%  filter(Rec.group == "0"))$mean_F1pos_ABS, 
+Q2.1COposABS_short_ttest_HL <- t.test( (REAL.short_mouse_table %>% filter(sex == "male") %>%  filter(Rec.group == "0" ))$mean_F1pos_ABS, 
       
-      (REAL.short_mouse_table %>% filter(sex == "male")  %>% filter(Rec.group == "1"))$mean_F1pos_ABS   )
+      (REAL.short_mouse_table %>% filter(sex == "male")  %>% filter(Rec.group == 1))$mean_F1pos_ABS   )
 #p-value = 0.3
 
 
@@ -2799,10 +2680,6 @@ Rec.group_BivData_F1post_Ttest <- t.test(
 #            (Curated_BivData  %>% filter(sex == "male") %>% filter(hand.foci.count == 1)   #%>% filter(Rec.group == "1"))$PER_Foci_1   )
 #p-value = 0.2
 
-
-#whoo.mama.rec.exc <-  t.test( (Curated_BivData  %>% filter(sex == "male") %>% #filter(hand.foci.count == 1)  %>%  filter(Rec.group.exclu == "0"))$PER_Foci_1, 
-#            (Curated_BivData  %>% filter(sex == "male") %>% filter(hand.foci.count == 1)   #%>% filter(Rec.group.exclu == "1"))$PER_Foci_1   )
-#p-value = 0.4
 
 ```
 
@@ -2991,10 +2868,10 @@ Short.removed_BivData.LongBiv_IFD.ABS_Ttest <- t.test(LongBiv_IFD_mus.rate$mean.
 ```
 
 
-```{r Q2.t.test_IFD_mouse.av, echo=FALSE}
+```{r Q2.t.test_IFD_mouse.av, echo=FALSE, eval=TRUE}
 #t.test for IFD
 #mouse.av - the mouse average IFD is from just 2CO
-t.test_mouse.av.IFD_ABS <- t.test(  (mouse.avs_4MM %>% filter(Rec.group == "1") %>% filter(sex == "male") )$mean_IFD.2CO_ABS,
+t.test_mouse.av.IFD_ABS <- t.test(  (mouse.avs_4MM %>% filter(Rec.group == "1") %>% filter(sex == "male") )$mean_IFD.2CO_ABS, 
    (mouse.avs_4MM %>% filter(Rec.group == "0") %>% filter(sex == "male") )$mean_IFD.2CO_ABS   )
   
 t.test_mouse.av.IFD_PER <- t.test(  (mouse.avs_4MM %>% filter(Rec.group == "1") %>% filter(sex == "male") )$mean_IFD.2CO_PER,
@@ -3125,8 +3002,8 @@ close.IFD.rates.mus.rate <- add_category(close.IFD.rates.mus.rate)
 close.IFD.rates.mus.rate <- add_subsp(close.IFD.rates.mus.rate)
 #add rec.group
 close.IFD.rates.mus.rate$Rec.group <- ifelse(grepl("PWD", close.IFD.rates.mus.rate$strain), 1, 
-                                ifelse(grepl("MSM", close.IFD.rates.mus.rate$strain), 1,
-                                 ifelse(grepl("SKIVE", close.IFD.rates.mus.rate$strain), 1, 0)))
+                          ifelse(grepl("MSM", close.IFD.rates.mus.rate$strain), 1,
+                         ifelse(grepl("SKIVE", close.IFD.rates.mus.rate$strain), 1, 0)))
 
 
 
@@ -3307,9 +3184,11 @@ Short.removed_BivData_IFD.ABS_Ttest_mus.av <- t.test(close.IFD.rates.mus.rate$me
 
 # SAVE the data
 
+
+
 ```{r Save.File, echo=FALSE}
 #save Rdata
-save.image("~./MLH1repo/data/Results_setup_4.24.20.RData")
+save.image("~./MLH1repo/data/Results_setup_5.14.20.RData")
 
 ```
 
