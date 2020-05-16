@@ -1,12 +1,9 @@
 ---
-title: "betweenCell.Var"
+title: "Between Cell Variance"
 author: "April Peterson"
-date: "5/5/2020"
+date: 
 output: html_document
 ---
-
-
-load all the file set ups
 
 
 ```{r setup, include=FALSE}
@@ -16,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(knitr)
 library(ggplot2)
 #library(pwr)
-
+library(purrr) #for replicate
 library(dplyr)
 library(plyr)
 library(lattice)
@@ -60,9 +57,9 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 ```
 
 
-plot the variances
 
 ```{r female.strain.table, echo=FALSE}
+
 female_mouse.avs_for.analysis <- female_mouse.avs_for.analysis %>% filter(strain != "CAST")
 #female strain table
 #female_mouse.avs_for.analysis
@@ -86,19 +83,22 @@ F.strain.table <- ddply(female_mouse.avs_for.analysis, c("strain"), summarise,
 
 ```
 
-```{r mouse.var.plots.female, echo=FALSE, fig.width = 4, fig.height=2.5, include=FALSE, eval=TRUE}
+
+
+```{r mouse.var.plots.female, echo=FALSE, fig.width = 4, fig.height=2.5, warning=FALSE}
 
 #variance plots
-musc.female.VAR.plot <- ggplot( (female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Musc") ) , aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y =var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc female of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
-musc.female.VAR.plot
+musc.female.VAR.plot <- ggplot( (female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Musc") ) , aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y =var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc female of within mouse \nMLH1 variance")+scale_color_manual(values=colors_of_strains)
 
-Mol.female.VAR.plot <- ggplot( (female_mouse.avs_for.analysis %>% filter(subsp == "Mol") ), aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Mol female of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
-Mol.female.VAR.plot
 
-Dom.female.VAR.plot <- ggplot(Dom.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain), width = .2 )+ ggtitle("Dom female\nwithin mouse  MLH1 distributions") + scale_color_manual(values=colors_of_strains)
-Dom.female.VAR.plot
+Mol.female.VAR.plot <- ggplot( (female_mouse.avs_for.analysis %>% filter(subsp == "Mol") ), aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Mol female\nwithin mouse MLH1 variance")+scale_color_manual(values=colors_of_strains)
+
+
+Dom.female.VAR.plot <- ggplot(Dom.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain), width = .2 )+ ggtitle("Dom female\nwithin mouse \nMLH1 variance") + scale_color_manual(values=colors_of_strains)
+
 
 ```
+
 
 ```{r male.strain.table, echo=FALSE}
 
@@ -120,48 +120,496 @@ M.strain.table <- ddply(fomo.male_mouse.av, c("strain"), summarise,
     )
 #M.strain.table
 #same issue as the female table .. ugh
+
+
+
 ```
 
-```{r mouse.var.plots.male, echo=FALSE, fig.width = 4, fig.height=2.5, include=FALSE, include=FALSE, eval=FALSE}
+
+```{r mouse.var.plots.male, echo=FALSE, fig.width = 4, fig.height=2.5, warning=FALSE}
 
 #variance plots
-musc.male.VAR.plot <- ggplot(Musc.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y =var, color= strain, alpha=0.5), width = .2 )+ ggtitle("VAR Musc male of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
-musc.male.VAR.plot
+OG.male.VAR.plot <- ggplot(M.strain.table, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y =var, color= strain, alpha=0.5), width = .2 )+ ggtitle("VAR Musc male of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
+
 
 Mol.male.VAR.plot <- ggplot(Mol.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain, alpha=0.5), width = .2 )+ ggtitle("VAR Mol male of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
-Mol.male.VAR.plot 
+
 
 Dom.male.VAR.plot <- ggplot(Dom.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain, alpha=0.5), width = .2 )+ ggtitle("VAR Dom male ofwithin mouse  MLH1 distributions")+scale_color_manual(values=colors_of_strains)
-Dom.male.VAR.plot
+
+```
+
+
+> How much do CO counts vary among cells from the same individual?
+
+> What factors shape between-cell variance in CO count?
+
+
+Answering these will use the same glm models as in Chapter 2. A motivation for addressing these questions is that the variance of a quantitative trait can impact the evolution
+
+Below is the table for the number of cells per category by quality score. For these between cell variance will just use those in quality 1-2.
+
+
+```{r OG.table.qual.num, echo=FALSE}
+
+table(MLH1_data$quality, MLH1_data$category, exclude = NULL)
+
+```
+
+
+# Q12 Varince Plots
+
+
+The plots below show each point as a mouse-level CO count variance, calculated from Quality 1-2 cells. The number of cells per mouse is indicated by size.
+
+
+```{r Q12.table.qual.num, echo=FALSE, warning=FALSE}
+
+#high quality cells
+Q12.MLH1_data <- MLH1_data %>% filter(quality < 3 )
+
+Q12.MLH1_data$fileName <- Q12.MLH1_data$Original.Name
+
+#table(Q12.MLH1_data$quality, Q12.MLH1_data$category, exclude = NULL)
+#all this information is in the top table
+
+#make mouse level table
+FULL_mouse_table_Q12.MLH1 <- ddply(Q12.MLH1_data, c("mouse"), summarise,
+                        
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(nMLH1.foci),
+                        mean_co = as.numeric(format(round(  mean(nMLH1.foci), 3 ), nsmall=3) ),
+                        cV = cv(nMLH1.foci),
+                        var = as.numeric(format(round(   var(nMLH1.foci),3), nsmall=3)),
+                        sd   = round(sd(nMLH1.foci), 3),
+                        se   = round(sd / sqrt(Ncells), 3)
+)
+
+FULL_mouse_table_Q12.MLH1 <- add_strain(FULL_mouse_table_Q12.MLH1)
+FULL_mouse_table_Q12.MLH1 <- add_subsp(FULL_mouse_table_Q12.MLH1)
+FULL_mouse_table_Q12.MLH1 <- add_sex(FULL_mouse_table_Q12.MLH1)
+FULL_mouse_table_Q12.MLH1 <- add_category(FULL_mouse_table_Q12.MLH1)
+FULL_mouse_table_Q12.MLH1 <- add_species(FULL_mouse_table_Q12.MLH1)
+
+```
+
+
+```{r Q12.mouse.var.plots.male, echo=FALSE, fig.width = 6, fig.height=6, warning=FALSE}
+
+#variance plots
+#musc.male.VAR.plot  #%>% filter(subsp == "Musc") 
+
+FULL.male.Var.plot <- ggplot( ( FULL_mouse_table_Q12.MLH1 %>% filter(sex == "male") %>% filter(species == "M.musculus") ),
+                             aes(color= strain, size = Ncells))+geom_jitter(aes(x = as.factor(strain), y =var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Q12 VAR Musc male of within mouse\nMLH1 variance")+scale_color_manual(values=colors_of_strains, guide = FALSE) + facet_wrap(~ subsp, scales = "free")+ylim(c(0,55))
+
+
+Dom.male.VAR.plot <- ggplot( ( FULL_mouse_table_Q12.MLH1 %>% filter(sex == "male") %>% filter(subsp == "Dom")  ),
+                             aes(color= strain, size = Ncells) ) +geom_jitter(aes(x = as.factor(strain), y =var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Q12 VAR Dom male of within mouse\nMLH1 variance")+scale_color_manual(values=colors_of_strains, guide = FALSE)
+
+
+mol.male.VAR.plot <- ggplot( ( FULL_mouse_table_Q12.MLH1 %>% filter(sex == "male") %>% filter(subsp == "Mol")  ),
+                             aes(color= strain, size = Ncells))+geom_jitter(aes(x = as.factor(strain), y =var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Q12 VAR Mol male of within mouse\nMLH1 variance")+scale_color_manual(values=colors_of_strains, guide = FALSE)
+
+FULL.male.Var.plot
+```
+
+
+```{r Q12.mouse.var.plots.female, echo=FALSE, fig.width = 5, fig.height=5, warning=FALSE}
+
+FULL.female.Var.plot <- ggplot( ( FULL_mouse_table_Q12.MLH1 %>% filter(sex == "female") %>% filter(species == "M.musculus") ),
+                             aes(color= strain, size = Ncells))+geom_jitter(aes(x = as.factor(strain), y =var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Q12 VAR Musc male of within mouse\nMLH1 variance")+scale_color_manual(values=colors_of_strains, guide = FALSE) + facet_wrap(~ subsp, scales = "free")+ylim(c(0,55))
+
+
+
+#variance plots
+musc.female.VAR.plot <- ggplot( ( FULL_mouse_table_Q12.MLH1 %>% filter(sex == "female") %>% filter(subsp == "Musc")  ),
+                             aes(color= strain, size = Ncells))+
+  geom_jitter(aes(x = as.factor(strain), y =var, color= strain, alpha=0.5), width = .2, guide = FALSE )+ ggtitle("Q12 VAR Musc female of within mouse\nMLH1 variance")+scale_color_manual(values=colors_of_strains, guide = FALSE)
+
+
+Dom.female.VAR.plot <- ggplot( ( FULL_mouse_table_Q12.MLH1 %>% filter(sex == "female") %>% filter(subsp == "Dom")  ),
+                             aes(color= strain, size = Ncells) ) +geom_jitter(aes(x = as.factor(strain), y =var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Q12 VAR Dom female of within mouse\nMLH1 variance")+scale_color_manual(values=colors_of_strains, guide = FALSE)
+
+
+mol.female.VAR.plot <- ggplot( ( FULL_mouse_table_Q12.MLH1 %>% filter(sex == "female") %>% filter(subsp == "Mol")  ),
+                             aes(color= strain, size = Ncells))+geom_jitter(aes(x = as.factor(strain), y =var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Q12 VAR Mol female of within mouse\nMLH1 variance")+scale_color_manual(values=colors_of_strains, guide = FALSE)
+
+FULL.female.Var.plot
+```
+
+
+The figure above nominates MOLF should be removed from the full dataset. I think all cells can be included for the sex specific data.
+
+The female LEW strains have a larger distribution of variance. (or it could just be the 2 mice). Some of the low cell number mouse.  (note on the dot size, small dots could be mice with few high Q cells. Med size cells have a higher number of cells.)
+
+
+# Models (var)
+
+The same glm models are being applied to variance and cV (M1 to M3) and sex specific models (M4 and M5). Out groups and strains with just one sex have been removed for M1-M3. Al factors are unordered.
+
+
+```{r model.set.up, echo=FALSE}
+
+#FULL_mouse_table_Q12.MLH1
+#sex-specific
+
+FULL_mouse_table_Q12.MLH1$subsp <- factor(FULL_mouse_table_Q12.MLH1$subsp, ordered = FALSE)
+FULL_mouse_table_Q12.MLH1$sex <- factor(FULL_mouse_table_Q12.MLH1$sex, ordered = FALSE)
+FULL_mouse_table_Q12.MLH1$strain <- factor(FULL_mouse_table_Q12.MLH1$strain, ordered = FALSE)
+
+#remove all the mice with fewer than 3cells
+One.cell.mice <- FULL_mouse_table_Q12.MLH1 %>% filter(Ncells == 1)
+oo <- FULL_mouse_table_Q12.MLH1[  ! FULL_mouse_table_Q12.MLH1$mouse %in% One.cell.mice$mouse, ]
 ```
 
 
 
+```{r varMLH1co.lmer.MM1, echo=FALSE, waring=FALSE, message=FALSE, eval=TRUE}
 
-go over the main patterns (from the model framework)
+#FULL_mouse_table_Q12.MLH1, remove molf not enough female
+
+#DF.for.model <- ( FULL_mouse_table_Q12.MLH1 %>% filter(species == "M.musculus")  %>% filter(strain != "MOLF") %>% filter(strain != "AST") %>% filter(strain != "HMI") %>% filter(strain != "CAST") %>% filter(strain != "CZECH")  )
+
+#these are all mouse level values
+
+varMLH1.M1 <- lmer(var ~ subsp * sex + (1|strain), data= ( FULL_mouse_table_Q12.MLH1 %>% filter(species == "M.musculus")  %>% filter(strain != "MOLF") %>% filter(strain != "AST") %>% filter(strain != "HMI") %>% filter(strain != "CAST") %>% filter(strain != "CZECH")  )  )
+
+varMLH1.MM.M1.reduce.sex <- lmer( var ~ subsp  +(1|strain), data= ( FULL_mouse_table_Q12.MLH1 %>% filter(species == "M.musculus")  %>% filter(strain != "MOLF") %>% filter(strain != "AST") %>% filter(strain != "HMI") %>% filter(strain != "CAST") %>% filter(strain != "CZECH")  ) )
+
+varMLH1.MM.M1.reduce.subp <- lmer( var ~ sex  +(1|strain), data=( FULL_mouse_table_Q12.MLH1 %>% filter(species == "M.musculus")  %>% filter(strain != "MOLF") %>% filter(strain != "AST") %>% filter(strain != "HMI") %>% filter(strain != "CAST") %>% filter(strain != "CZECH")  ) )
+
+#summary(varMLH1.M1)$coefficients
+
+varMLH1.MM_interaction <- drop1(varMLH1.M1, test="Chisq")$`Pr(Chi)`[2]
+varMLH1.MM_sex <- anova(varMLH1.M1, varMLH1.MM.M1.reduce.sex)$`Pr(>Chisq)`[2]
+varMLH1.MM_subp <- anova(varMLH1.M1, varMLH1.MM.M1.reduce.subp)$`Pr(>Chisq)`[2]
+varMLH1.MM_strain<- MM.rand.pval <- exactRLRT(varMLH1.M1)$p.value 
+
+varMLH1.MMlmer_results <- data.frame(sub.sp = varMLH1.MM_subp, 
+sex.results =  varMLH1.MM_sex, 
+               interaction.pval = varMLH1.MM_interaction,  rand.pval = 
+varMLH1.MM_strain)
+
+```
+
+**M1** Mixed model result for the mouse level for: subspecies, sex, interaction and strain `r varMLH1.MMlmer_results`. (Sex is the most significant).
 
 
-Bret's suggestions
+**M2**
+```{r varMLH1.glm.M2, echo=FALSE, eval=TRUE}
+remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC")
+#AP_mouse_table.HQ_target <- AP_mouse_table.HQ_target[ ! AP_mouse_table.HQ_target$strain %in% remove_strains, ]
+#kkll <- DF.HetC.MixedModel.HQ[! DF.HetC.MixedModel.HQ$strain %in% remove_strains,]
+
+#strain = fixed, 
+varMLH1.M2.glm.strain.fixed.full <- glm(var ~ subsp * sex * strain *Ncells, data= FULL_mouse_table_Q12.MLH1[  ! FULL_mouse_table_Q12.MLH1$strain %in% remove_strains, ]   )
+
+summ.varMLH1.M2.glm.strain.fixed.full <- summary(varMLH1.M2.glm.strain.fixed.full)
+round(summ.varMLH1.M2.glm.strain.fixed.full$coefficients[,c(1,4)],5)
+#adding cell number has some significant parts
+```
+
+
+**M3**
+```{r varMLH1.glm.M3, echo=FALSE, eval=TRUE}
+remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC")
+
+varMLH1.M3.strain.fixed <- glm(var ~ sex * strain, data= FULL_mouse_table_Q12.MLH1[  ! FULL_mouse_table_Q12.MLH1$strain %in% remove_strains, ] )
+                              
+summ.MLH1.M3.strain.fixed <- summary(varMLH1.M3.strain.fixed)
+
+round(summ.MLH1.M3.strain.fixed$coefficients[,c(1,4)],5)
+#write.table(summ.strain.fixed$coefficients , "~./MLH1repo/summ.strain.fixed.csv", sep=",",row.names = TRUE)
+```
+
+LEW and G are slightly significant strain p values. Sex is also slightly significant. Intercept is also significant.
+
+**M4-M5 female**
+```{r Female.specific.MLHvar.glm, echo=FALSE, eval=TRUE}
+
+Var.female.strain.subsp <- glm(var ~ subsp * strain, data= (FULL_mouse_table_Q12.MLH1 %>% filter(sex == "female" ) %>% filter(species == "M.musculus") ) )
+
+Var.summry.female.strain.effects <- summary(Var.female.strain.subsp)
+round(Var.summry.female.strain.effects$coefficients[,c(1,4)],5)
+
+
+varMLH1.female.glm.M2 <- glm(var ~ strain, data= (FULL_mouse_table_Q12.MLH1 %>% filter(sex == "female" ) %>% filter(species == "M.musculus") ) )
+
+sum_varMLH1.female.spc.glm.M2 <- summary(varMLH1.female.glm.M2)
+round(sum_varMLH1.female.spc.glm.M2$coefficients[,c(1,4)],5)
+```
+
+Only the intercept's are significant in the female specific models. None of the subsp or strain effects are significant.
+
+**M4-M5 male**
+```{r Male.specific.MLHvar.glm, echo=FALSE, eval=TRUE}
+
+#M4
+varMLH1.male.glm.M4 <- glm(var ~ subsp * strain, data= (FULL_mouse_table_Q12.MLH1 %>% filter(sex == "male" ) %>% filter(species == "M.musculus") ) )
+sum_varMLH1.male.glm.M4 <- summary(varMLH1.male.glm.M4)
+round(sum_varMLH1.male.glm.M4$coefficients[,c(1,4)],5)
+
+#M4.2
+varMLH1.male.glm.M4.2 <- glm(var ~ strain, data= (FULL_mouse_table_Q12.MLH1 %>% filter(sex == "male" ) %>% filter(species == "M.musculus") ) )
+
+sum_varMLH1.male.glm.M4.2 <- summary(varMLH1.male.glm.M4.2)
+round(sum_varMLH1.male.glm.M4.2$coefficients[,c(1,4)],5)
+```
+
+
+There are no signifcant subspecies + strain effects for the male specific data.
+
+
+# Models (cV)
+```{r cVMLH1co.lmer.MM1, echo=FALSE, waring=FALSE, message=FALSE, eval=TRUE}
+
+#FULL_mouse_table_Q12.MLH1, remove molf not enough female
+
+#DF.for.model <- ( FULL_mouse_table_Q12.MLH1 %>% filter(species == "M.musculus")  %>% filter(strain != "MOLF") %>% filter(strain != "AST") %>% filter(strain != "HMI") %>% filter(strain != "CAST") %>% filter(strain != "CZECH")  )
+
+#these are all mouse level values
+
+cVMLH1.M1 <- lmer(cV ~ subsp * sex + (1|strain), data= ( FULL_mouse_table_Q12.MLH1 %>% filter(species == "M.musculus")  %>% filter(strain != "MOLF") %>% filter(strain != "AST") %>% filter(strain != "HMI") %>% filter(strain != "CAST") %>% filter(strain != "CZECH")  )  )
+
+cVMLH1.MM.M1.reduce.sex <- lmer( cV ~ subsp  +(1|strain), data= ( FULL_mouse_table_Q12.MLH1 %>% filter(species == "M.musculus")  %>% filter(strain != "MOLF") %>% filter(strain != "AST") %>% filter(strain != "HMI") %>% filter(strain != "CAST") %>% filter(strain != "CZECH")  ) )
+
+cVMLH1.MM.M1.reduce.subp <- lmer( cV ~ sex  +(1|strain), data=( FULL_mouse_table_Q12.MLH1 %>% filter(species == "M.musculus")  %>% filter(strain != "MOLF") %>% filter(strain != "AST") %>% filter(strain != "HMI") %>% filter(strain != "CAST") %>% filter(strain != "CZECH")  ) )
+
+#summary(varMLH1.M1)$coefficients
+
+cVMLH1.MM_interaction <- drop1(varMLH1.M1, test="Chisq")$`Pr(Chi)`[2]
+cVMLH1.MM_sex <- anova(varMLH1.M1, varMLH1.MM.M1.reduce.sex)$`Pr(>Chisq)`[2]
+cVMLH1.MM_subp <- anova(varMLH1.M1, varMLH1.MM.M1.reduce.subp)$`Pr(>Chisq)`[2]
+cVMLH1.MM_strain<- MM.rand.pval <- exactRLRT(varMLH1.M1)$p.value 
+
+cVMLH1.MMlmer_results <- data.frame(sub.sp = cVMLH1.MM_subp, 
+sex.results =  varMLH1.MM_sex, 
+               interaction.pval = cVMLH1.MM_interaction,  rand.pval = 
+cVMLH1.MM_strain)
+
+```
+
+**M1** Mixed model result for the mouse level for: subspecies, sex, interaction and strain `r cVMLH1.MMlmer_results`. (Sex is the most significant).
+
+
+**M2**
+```{r cVMLH1.glm.M2, echo=FALSE, eval=TRUE}
+remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC")
+#AP_mouse_table.HQ_target <- AP_mouse_table.HQ_target[ ! AP_mouse_table.HQ_target$strain %in% remove_strains, ]
+#kkll <- DF.HetC.MixedModel.HQ[! DF.HetC.MixedModel.HQ$strain %in% remove_strains,]
+
+#strain = fixed, 
+cVMLH1.M2.glm.strain.fixed.full <- glm(cV ~ subsp * sex * strain *Ncells, data= FULL_mouse_table_Q12.MLH1[  ! FULL_mouse_table_Q12.MLH1$strain %in% remove_strains, ]   )
+
+summ.cvMLH1.M2.glm.strain.fixed.full <- summary(cVMLH1.M2.glm.strain.fixed.full)
+round(summ.cvMLH1.M2.glm.strain.fixed.full$coefficients[,c(1,4)],5)
+
+#adding cell number has some significant parts
+```
+
+
+**M3**
+```{r cVMLH1.glm.M3, echo=FALSE, eval=TRUE}
+remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC")
+
+cVMLH1.M3.strain.fixed <- glm(cV ~ sex * strain, data= FULL_mouse_table_Q12.MLH1[  ! FULL_mouse_table_Q12.MLH1$strain %in% remove_strains, ] )
+                              
+summ.cV.MLH1.M3.strain.fixed <- summary(cVMLH1.M3.strain.fixed)
+
+round(summ.cV.MLH1.M3.strain.fixed$coefficients[,c(1,4)],5)
+
+```
+
+LEW and G are slightly significant strain p values. Sex is also slightly significant. Intercept is also significant.
+
+**M4-M5 female**
+```{r Female.specific.MLHcV.glm, echo=FALSE, eval=TRUE}
+
+cV.female.strain.subsp <- glm(cV ~ subsp * strain, data= (FULL_mouse_table_Q12.MLH1 %>% filter(sex == "female" ) %>% filter(species == "M.musculus") ) )
+
+cV.summry.female.strain.effects <- summary(cV.female.strain.subsp)
+round(cV.summry.female.strain.effects$coefficients[,c(1,4)],5)
+
+
+cVMLH1.female.glm.M2 <- glm(cV ~ strain, data= (FULL_mouse_table_Q12.MLH1 %>% filter(sex == "female" ) %>% filter(species == "M.musculus") ) )
+
+sum_cVMLH1.female.spc.glm.M2 <- summary(cVMLH1.female.glm.M2)
+round(sum_cVMLH1.female.spc.glm.M2$coefficients[,c(1,4)],5)
+
+```
+
+Only the intercept's are significant in the female specific models. None of the subsp or strain effects are significant.
+
+**M4-M5 male**
+```{r Male.specific.MLHcV.glm, echo=FALSE, eval=TRUE}
+
+#M4
+cVMLH1.male.glm.M4 <- glm(cV ~ subsp * strain, data= (FULL_mouse_table_Q12.MLH1 %>% filter(sex == "male" ) %>% filter(species == "M.musculus") ) )
+sum_varMLH1.male.glm.M4 <- summary(varMLH1.male.glm.M4)
+round(sum_varMLH1.male.glm.M4$coefficients[,c(1,4)],5)
+
+#M4.2
+cVMLH1.male.glm.M4.2 <- glm(cV ~ strain, data= (FULL_mouse_table_Q12.MLH1 %>% filter(sex == "male" ) %>% filter(species == "M.musculus") ) )
+
+sum_cVMLH1.male.glm.M4.2 <- summary(cVMLH1.male.glm.M4.2)
+round(sum_cVMLH1.male.glm.M4.2$coefficients[,c(1,4)],5)
+
+```
+
+
+<!-- Bret's suggestions / Permutations
 
 On the question of variance in MLH1 count, I agree that it is crucial to reduce experimental noise to find a signal. 
 
 I would suggest the following approach:
-1.  Consider only high-quality cells.
+1. Consider only high-quality cells.
 2. Pool cells within a strain and within a sex and compute one estimate of the variance in MLH1 count for each sex in each strain.
+
 3. Randomly permute cells among strains, keeping the structure of the dataset otherwise the same.
+
 4. For each permutation, compute the among-strain variance in the MLH1 count variance (separately for each sex).
 Compute the among-strain variance in the MLH1 count variance (separately for each sex) in your original data.
 Compare your observed variance with the null distribution generated by permutations to compute a p-value (one for each sex).
+-->
+
+
+# Permutations
+
+Calculate the category level between cell variance (and cV).
+
+```{r pool.cell.calq, echo=FALSE}
+
+OG.vals_Q12.MLH1 <- ddply(Q12.MLH1_data, c("strain", "sex"), summarise,
+                        
+                        Nmice = length(unique(mouse)),
+                        Ncells  = length(nMLH1.foci),
+                        mean_co = as.numeric(format(round(  mean(nMLH1.foci), 3 ), nsmall=3) ),
+                        cV = cv(nMLH1.foci),
+                        var = as.numeric(format(round(   var(nMLH1.foci),3), nsmall=3)),
+                        sd   = round(sd(nMLH1.foci), 3),
+                        se   = round(sd / sqrt(Ncells), 3)
+)
+
+OG.vals_Q12.MLH1 <- add_subsp(OG.vals_Q12.MLH1)
+OG.vals_Q12.MLH1 <- add_species(OG.vals_Q12.MLH1)
+
+```
+
+Made a table with the cell-pooled calculations of var and cV.
+Next step is to i) record the data structure ii) then permute within sex, then calculate the cell-pooled values.
+
+
+```{r permutations, echo=FALSE, eval=FALSE}
+
+Q12.permute.DF <- Q12.MLH1_data %>% filter()
+
+remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC", "MOLF")
+Q12.permute.DF <- Q12.MLH1_data[!Q12.MLH1_data$strain %in% remove_strains, ]
+
+#Data structure
+len.WSB.female <- length( ( Q12.MLH1_data %>% filter(strain == "WSB") %>% filter(sex == "female") )$fileName )
+len.WSB.male <- length( ( Q12.MLH1_data %>% filter(strain == "WSB") %>% filter(sex == "male") )$fileName )
+
+len.G.female <- length( ( Q12.MLH1_data %>% filter(strain == "LEW") %>% filter(sex == "female") )$fileName )
+len.G.male <- length( ( Q12.MLH1_data %>% filter(strain == "WSB") %>% filter(sex == "male") )$fileName )
+
+len.LEW.female <- length( ( Q12.MLH1_data %>% filter(strain == "LEW") %>% filter(sex == "female") )$fileName )
+len.LEW.male <- length( ( Q12.MLH1_data %>% filter(strain == "LEW") %>% filter(sex == "male") )$fileName )
+
+len.PWD.female <- length( ( Q12.MLH1_data %>% filter(strain == "PWD") %>% filter(sex == "female") )$fileName )
+len.PWD.male <- length( ( Q12.MLH1_data %>% filter(strain == "PWD") %>% filter(sex == "male") )$fileName )
+
+len.KAZ.female <- length( ( Q12.MLH1_data %>% filter(strain == "KAZ") %>% filter(sex == "female") )$fileName )
+len.KAZ.male <- length( ( Q12.MLH1_data %>% filter(strain == "KAZ") %>% filter(sex == "male") )$fileName )
+
+len.SKIVE.female <- length( ( Q12.MLH1_data %>% filter(strain == "SKIVE") %>% filter(sex == "female") )$fileName )
+len.SKIVE.male <- length( ( Q12.MLH1_data %>% filter(strain == "SKIVE") %>% filter(sex == "male") )$fileName )
+
+len.MSM.female <- length( ( Q12.MLH1_data %>% filter(strain == "MSM") %>% filter(sex == "female") )$fileName )
+len.MSM.male <- length( ( Q12.MLH1_data %>% filter(strain == "MSM") %>% filter(sex == "male") )$fileName )
+
+#these are the bones of the structure -- for permuting a new DF -- then calculating
+
+
+#this DF is kinda hard, I'm not sure how to make a full randomized DF
+
+#replicate(n = 3, rnorm(5, 0, 1), simplify = FALSE )
+
+nrepeat = 50
+
+permute.var <- data.frame( "wsb.f.var" = replicate(n=nrepeat, var( sample( Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "female"], len.WSB.female, replace = FALSE) ) ),
+ 
+                            "wsb.m.var" =  replicate(n=nrepeat, var( sample( Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "male"], len.WSB.male, replace = FALSE) ) ), 
+  "lew.f.var" = replicate(n=nrepeat, var( sample( Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "female"], len.LEW.female, replace = FALSE) ) ), 
+  
+  "lew.m.var" =  replicate(n=nrepeat, var( sample( Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "male"], len.LEW.male, replace = FALSE) ) ), 
+  
+  "g.f.var" = replicate(n=nrepeat, var( sample( Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "female"], len.G.female, replace = FALSE) ) ), 
+  "g.m.var" =  replicate(n=nrepeat, var( sample( Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "male"], len.G.male, replace = FALSE) ) ), 
+  
+  "pwd.f.var" = replicate(n=nrepeat, var( sample( Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "female"], len.PWD.female, replace = FALSE) ) ), 
+  "pwd.m.var" =  replicate(n=nrepeat, var(sample(Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "male"],len.PWD.male, replace = FALSE))),
+  
+  "kaz.f.var" = replicate(n=nrepeat,var(sample(Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "female"],len.KAZ.female,replace = FALSE) ) ), 
+  
+  "kaz.m.var" =  replicate(n=nrepeat, var(sample(Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "male"],len.KAZ.male, replace = FALSE)) ), 
+  
+  "skive.f.var" = replicate(n=nrepeat,var(sample(Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "female"],len.SKIVE.female,replace = FALSE) ) ), 
+  
+  "skive.m.var" =  replicate(n=nrepeat,var(sample(Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "male"],len.SKIVE.male, replace = FALSE) ) ),
+  "msm.f.var" = replicate(n=nrepeat, var(sample(Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "female"], len.MSM.female, replace = FALSE) ) ), "msm.m.var" =  replicate(n=nrepeat, var(sample(Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "male"], len.MSM.male, replace = FALSE) )   )  )  
+
+
+#now that these is a dataframe of new/permuted variance (specific to each sex) ... compare them to the origincal values?
+#my prediction is that there would be many significant differences from the true values
+
+#to visualize, I can plot the variances .. I guess with a histogram
+
+
+#now automate making these plots -- or calculate the propotion of permutations which are below the observed
+
+pp <- ggplot(permute.var, aes(x = wsb.f.var))+ geom_histogram() + geom_vline(xintercept = (OG.vals_Q12.MLH1 %>% filter(strain == "WSB") %>% filter(sex == "female") )$var )
+
+#randomized data frame, sample mouse means from all P.leucopus mice
+
+
+#calculate pvalue as proportion of differences greater than observed difference
+p.val_permut_mean.lab.wild <- length(permute.dif.meanOmeans$permuted.diff[permute.dif.meanOmeans$permuted.diff >= obs.dif.mean.lab.wild]) / permut.x
+var.pval <- paste( "p-value ", p.val_permut_mean.lab.wild)
 
 
 
-```{r bret.filters, echo=FALSE}
+
+#visualize the permuted distribution
+permute_hist_means  <-  ggplot(permute.dif.meanOmeans,aes(x=permuted.diff))+
+  geom_histogram()+geom_vline(xintercept=obs.dif.mean.lab.wild,color='red') +
+  annotate("text", x= 0, y = 75, label =  var.pval)+ggtitle("permuted difference of mouse means, wild to lab")
+
+#answer: The difference in CO means between wild and LL Pleucopus, is greater than if mice are randomized.
+
+#Same permutations, at the cell level
+Pl.cells <- MLH1_data.hq[MLH1_data.hq$species == "Pleuc",]
+
+obs.status.cell.diff <- mean(Pl.cells$nMLH1.foci[Pl.cells$status == "wild"])-
+    mean(Pl.cells$nMLH1.foci[Pl.cells$status == "lab"])
+
+permute.dif.cell.status  <- as.data.frame( replicate(permut.x, 
+                                  (  mean(sample(Pl.cells$nMLH1.foci,  243, replace = FALSE) ) - 
+                                   mean(sample(Pl.cells$nMLH1.foci, 221, replace = FALSE) ) )  
+) )
+
+colnames(permute.dif.cell.status) <- "permuted.diff"
+p.val_permut_cell.diff.lab.wild <- length(permute.dif.cell.status$permuted.diff[permute.dif.cell.status$permuted.diff >= obs.status.cell.diff]) / permut.x
+var.pval <- paste( "p-value ", p.val_permut_cell.diff.lab.wild)
+
+permute_hist_means.cell_level  <-  ggplot(permute.dif.cell.status, aes(x=permuted.diff))+
+  geom_histogram()+geom_vline(xintercept=obs.status.cell.diff,color='red') +
+  annotate("text", x= 0, y = 75, label =  var.pval)+ggtitle("permuted difference of cell level means, wild to lab")
+
+
 
 ```
 
 
-# Identifying mice with largest sample sizes
-
-I have a hunch that using these mice might be the best (least risky way forward)
 
 
