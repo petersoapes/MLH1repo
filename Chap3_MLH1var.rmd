@@ -17,7 +17,7 @@ library(purrr) #for replicate
 library(dplyr)
 library(plyr)
 library(lattice)
-
+library(tidyr)
 library(raster)
 library(lme4)
 library(nlme)
@@ -33,6 +33,8 @@ library(dplyr)
 library(cowplot)
 library(kableExtra)
 library(xlsx)
+
+library(ggpubr) #for arranging ggplots
 
 #set wd
 #load datafile
@@ -55,8 +57,6 @@ SC.skel = read.csv("~./MLH1repo/data/SCskel_output_feb20.csv", header = TRUE, st
 #load functions
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 ```
-
-
 
 ```{r female.strain.table, echo=FALSE}
 
@@ -82,8 +82,6 @@ F.strain.table <- ddply(female_mouse.avs_for.analysis, c("strain"), summarise,
     )
 
 ```
-
-
 
 ```{r mouse.var.plots.female, echo=FALSE, fig.width = 4, fig.height=2.5, warning=FALSE}
 
@@ -125,7 +123,6 @@ M.strain.table <- ddply(fomo.male_mouse.av, c("strain"), summarise,
 
 ```
 
-
 ```{r mouse.var.plots.male, echo=FALSE, fig.width = 4, fig.height=2.5, warning=FALSE}
 
 #variance plots
@@ -144,8 +141,7 @@ Dom.male.VAR.plot <- ggplot(Dom.male_mouse.av, aes(color= strain))+geom_jitter(a
 
 > What factors shape between-cell variance in CO count?
 
-
-Answering these will use the same glm models as in Chapter 2. A motivation for addressing these questions is that the variance of a quantitative trait can impact the evolution
+The approach will use the same glm models as in Chapter 2. A motivation for addressing these questions is that the variance of a quantitative trait can impact the evolution.
 
 Below is the table for the number of cells per category by quality score. For these between cell variance will just use those in quality 1-2.
 
@@ -157,8 +153,7 @@ table(MLH1_data$quality, MLH1_data$category, exclude = NULL)
 ```
 
 
-# Q12 Varince Plots
-
+# Q12 Variance Plots
 
 The plots below show each point as a mouse-level CO count variance, calculated from Quality 1-2 cells. The number of cells per mouse is indicated by size.
 
@@ -238,10 +233,6 @@ FULL.female.Var.plot
 ```
 
 
-The figure above nominates MOLF should be removed from the full dataset. I think all cells can be included for the sex specific data.
-
-The female LEW strains have a larger distribution of variance. (or it could just be the 2 mice). Some of the low cell number mouse.  (note on the dot size, small dots could be mice with few high Q cells. Med size cells have a higher number of cells.)
-
 
 # Models (var)
 
@@ -261,7 +252,6 @@ FULL_mouse_table_Q12.MLH1$strain <- factor(FULL_mouse_table_Q12.MLH1$strain, ord
 One.cell.mice <- FULL_mouse_table_Q12.MLH1 %>% filter(Ncells == 1)
 oo <- FULL_mouse_table_Q12.MLH1[  ! FULL_mouse_table_Q12.MLH1$mouse %in% One.cell.mice$mouse, ]
 ```
-
 
 
 ```{r varMLH1co.lmer.MM1, echo=FALSE, waring=FALSE, message=FALSE, eval=TRUE}
@@ -302,7 +292,7 @@ remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PE
 #kkll <- DF.HetC.MixedModel.HQ[! DF.HetC.MixedModel.HQ$strain %in% remove_strains,]
 
 #strain = fixed, 
-varMLH1.M2.glm.strain.fixed.full <- glm(var ~ subsp * sex * strain *Ncells, data= FULL_mouse_table_Q12.MLH1[  ! FULL_mouse_table_Q12.MLH1$strain %in% remove_strains, ]   )
+varMLH1.M2.glm.strain.fixed.full <- glm(var ~ subsp * sex * strain, data= FULL_mouse_table_Q12.MLH1[  ! FULL_mouse_table_Q12.MLH1$strain %in% remove_strains, ]   )
 
 summ.varMLH1.M2.glm.strain.fixed.full <- summary(varMLH1.M2.glm.strain.fixed.full)
 round(summ.varMLH1.M2.glm.strain.fixed.full$coefficients[,c(1,4)],5)
@@ -342,6 +332,7 @@ round(sum_varMLH1.female.spc.glm.M2$coefficients[,c(1,4)],5)
 Only the intercept's are significant in the female specific models. None of the subsp or strain effects are significant.
 
 **M4-M5 male**
+
 ```{r Male.specific.MLHvar.glm, echo=FALSE, eval=TRUE}
 
 #M4
@@ -393,13 +384,14 @@ cVMLH1.MM_strain)
 
 
 **M2**
+
 ```{r cVMLH1.glm.M2, echo=FALSE, eval=TRUE}
 remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC")
 #AP_mouse_table.HQ_target <- AP_mouse_table.HQ_target[ ! AP_mouse_table.HQ_target$strain %in% remove_strains, ]
 #kkll <- DF.HetC.MixedModel.HQ[! DF.HetC.MixedModel.HQ$strain %in% remove_strains,]
 
 #strain = fixed, 
-cVMLH1.M2.glm.strain.fixed.full <- glm(cV ~ subsp * sex * strain *Ncells, data= FULL_mouse_table_Q12.MLH1[  ! FULL_mouse_table_Q12.MLH1$strain %in% remove_strains, ]   )
+cVMLH1.M2.glm.strain.fixed.full <- glm(cV ~ subsp * sex * strain, data= FULL_mouse_table_Q12.MLH1[  ! FULL_mouse_table_Q12.MLH1$strain %in% remove_strains, ]   )
 
 summ.cvMLH1.M2.glm.strain.fixed.full <- summary(cVMLH1.M2.glm.strain.fixed.full)
 round(summ.cvMLH1.M2.glm.strain.fixed.full$coefficients[,c(1,4)],5)
@@ -409,6 +401,7 @@ round(summ.cvMLH1.M2.glm.strain.fixed.full$coefficients[,c(1,4)],5)
 
 
 **M3**
+
 ```{r cVMLH1.glm.M3, echo=FALSE, eval=TRUE}
 remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC")
 
@@ -423,6 +416,7 @@ round(summ.cV.MLH1.M3.strain.fixed$coefficients[,c(1,4)],5)
 LEW and G are slightly significant strain p values. Sex is also slightly significant. Intercept is also significant.
 
 **M4-M5 female**
+
 ```{r Female.specific.MLHcV.glm, echo=FALSE, eval=TRUE}
 
 cV.female.strain.subsp <- glm(cV ~ subsp * strain, data= (FULL_mouse_table_Q12.MLH1 %>% filter(sex == "female" ) %>% filter(species == "M.musculus") ) )
@@ -441,6 +435,7 @@ round(sum_cVMLH1.female.spc.glm.M2$coefficients[,c(1,4)],5)
 Only the intercept's are significant in the female specific models. None of the subsp or strain effects are significant.
 
 **M4-M5 male**
+
 ```{r Male.specific.MLHcV.glm, echo=FALSE, eval=TRUE}
 
 #M4
@@ -452,6 +447,7 @@ round(sum_varMLH1.male.glm.M4$coefficients[,c(1,4)],5)
 cVMLH1.male.glm.M4.2 <- glm(cV ~ strain, data= (FULL_mouse_table_Q12.MLH1 %>% filter(sex == "male" ) %>% filter(species == "M.musculus") ) )
 
 sum_cVMLH1.male.glm.M4.2 <- summary(cVMLH1.male.glm.M4.2)
+
 round(sum_cVMLH1.male.glm.M4.2$coefficients[,c(1,4)],5)
 
 ```
@@ -463,6 +459,7 @@ On the question of variance in MLH1 count, I agree that it is crucial to reduce 
 
 I would suggest the following approach:
 1. Consider only high-quality cells.
+
 2. Pool cells within a strain and within a sex and compute one estimate of the variance in MLH1 count for each sex in each strain.
 
 3. Randomly permute cells among strains, keeping the structure of the dataset otherwise the same.
@@ -470,12 +467,36 @@ I would suggest the following approach:
 4. For each permutation, compute the among-strain variance in the MLH1 count variance (separately for each sex).
 Compute the among-strain variance in the MLH1 count variance (separately for each sex) in your original data.
 Compare your observed variance with the null distribution generated by permutations to compute a p-value (one for each sex).
+
 -->
 
 
 # Permutations
 
-Calculate the category level between cell variance (and cV).
+
+We'd like to know if the set of strains has bigger differences in between-cell variance than expected by chance. Your liner models provide one test, but they could suffer from small sample sizes per mouse. We can conduct a permutation test that enables you to pool all cells in each strain to increase the sample size.
+
+#Permutation Step Up
+
+Here's the permutation test I was imagining:
+1. Separate the sexes.  
+
+2. Pool all cells within a strain and compute the **variance for each strain**.  
+
+3. Compute the **variance across strains** (VAS) of the variance within strains. This will leave you with a single estimate for the set of strains.
+
+4. Randomly permute cells across strains. (pool all male cells, pool all female cells)  
+
+5. For the permuted data set, pool all cells within a strain and compute the variance for each strain. (compute a variance for a strain, var( sample( all.female.cells, N.WSB.f ) ) ).
+
+6. For the permuted data set, compute the variance across strains of the variance within strains. This will leave you with a single estimate for the set of strains.  
+
+7. Repeat 4-6 10,000 times to establish a null distribution for the variance in variances.  
+
+8. Compare observed variance in variances to null distribution.  
+
+
+#observed values
 
 ```{r pool.cell.calq, echo=FALSE}
 
@@ -483,9 +504,9 @@ OG.vals_Q12.MLH1 <- ddply(Q12.MLH1_data, c("strain", "sex"), summarise,
                         
                         Nmice = length(unique(mouse)),
                         Ncells  = length(nMLH1.foci),
-                        mean_co = as.numeric(format(round(  mean(nMLH1.foci), 3 ), nsmall=3) ),
+                        mean_co = as.numeric(format(round(mean(nMLH1.foci), 3), nsmall=3)),
                         cV = cv(nMLH1.foci),
-                        var = as.numeric(format(round(   var(nMLH1.foci),3), nsmall=3)),
+                        var = as.numeric(format(round( var(nMLH1.foci),3), nsmall=3)),
                         sd   = round(sd(nMLH1.foci), 3),
                         se   = round(sd / sqrt(Ncells), 3)
 )
@@ -493,20 +514,29 @@ OG.vals_Q12.MLH1 <- ddply(Q12.MLH1_data, c("strain", "sex"), summarise,
 OG.vals_Q12.MLH1 <- add_subsp(OG.vals_Q12.MLH1)
 OG.vals_Q12.MLH1 <- add_species(OG.vals_Q12.MLH1)
 
+#remove extra strains
+remove.strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC", "MOLF")
+vals_Q12.MLH1 <- OG.vals_Q12.MLH1[!OG.vals_Q12.MLH1$strain %in% remove.strains, ]
+
+#for males and females, calq the total variance across the strain-specific var
+Obs.f.VAS <- var( ( vals_Q12.MLH1 %>% filter(sex == "female") )$var )
+Obs.m.VAS <- var( ( vals_Q12.MLH1 %>%  filter(sex == "male") )$var )
+
 ```
 
-Made a table with the cell-pooled calculations of var and cV.
-Next step is to i) record the data structure ii) then permute within sex, then calculate the cell-pooled values.
+
+These are the female strain variances:  `r ( vals_Q12.MLH1 %>% filter(sex == "female") )$var`, the variance across strains (VAS) is `r Obs.f.VAS`.  
 
 
-```{r permutations, echo=FALSE, eval=FALSE}
+These are the male strain variances:  `r ( vals_Q12.MLH1 %>% filter(sex == "male") )$var`, the variance across strains (VAS) is `r Obs.m.VAS`. (For `r ( vals_Q12.MLH1 %>% filter(sex == "female") )$strain` respectively)
 
-Q12.permute.DF <- Q12.MLH1_data %>% filter()
 
-remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC", "MOLF")
-Q12.permute.DF <- Q12.MLH1_data[!Q12.MLH1_data$strain %in% remove_strains, ]
+```{r str.of.DF, echo=FALSE, eval=TRUE}
+#redundant
+#remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC", "MOLF")
+#Q12.permute.DF <- Q12.MLH1_data[!Q12.MLH1_data$strain %in% remove_strains, ]
 
-#Data structure
+#Data structure (from the cell level data)
 len.WSB.female <- length( ( Q12.MLH1_data %>% filter(strain == "WSB") %>% filter(sex == "female") )$fileName )
 len.WSB.male <- length( ( Q12.MLH1_data %>% filter(strain == "WSB") %>% filter(sex == "male") )$fileName )
 
@@ -528,84 +558,288 @@ len.SKIVE.male <- length( ( Q12.MLH1_data %>% filter(strain == "SKIVE") %>% filt
 len.MSM.female <- length( ( Q12.MLH1_data %>% filter(strain == "MSM") %>% filter(sex == "female") )$fileName )
 len.MSM.male <- length( ( Q12.MLH1_data %>% filter(strain == "MSM") %>% filter(sex == "male") )$fileName )
 
-#these are the bones of the structure -- for permuting a new DF -- then calculating
+```
 
+<!--
+random permutations below, (COMPUTE the VAS)
 
-#this DF is kinda hard, I'm not sure how to make a full randomized DF
+For the permuted data set, **pool all cells within a strain (permuted strain ie defined by sample size?) and compute the variance for each strain**.  
 
-#replicate(n = 3, rnorm(5, 0, 1), simplify = FALSE )
+6. For the permuted data set, compute the variance across strains of the variance within strains. This will leave you with a single estimate for the set of strains.  
 
-nrepeat = 50
+7. Repeat 4-6 10,000 times to establish a null distribution for the variance in variances.  
 
-permute.var <- data.frame( "wsb.f.var" = replicate(n=nrepeat, var( sample( Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "female"], len.WSB.female, replace = FALSE) ) ),
- 
-                            "wsb.m.var" =  replicate(n=nrepeat, var( sample( Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "male"], len.WSB.male, replace = FALSE) ) ), 
-  "lew.f.var" = replicate(n=nrepeat, var( sample( Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "female"], len.LEW.female, replace = FALSE) ) ), 
+8. Compare observed variance in variances to null distribution.  -->
+
+# Permutation Output
+
+```{r permutations2, echo=FALSE}
+#I made a DF of strain X sex specific variance
+
+nrepeat = 10000
+
+#I need to sample within strain? -- then I feel like I need to change the sample size -- otherwise I'm just sampling all the same episodes
+
+permuted.var <- data.frame( "wsb_f.var" = replicate(n=nrepeat, var( sample( Q12.MLH1_data$nMLH1.foci[ (Q12.MLH1_data$sex == "female")], len.WSB.female, replace = FALSE) ) ),
+                            "wsb_m.var" =  replicate(n=nrepeat, var( sample( Q12.MLH1_data$nMLH1.foci[Q12.MLH1_data$sex == "male"], len.WSB.male, replace = FALSE) ) ), 
+  "lew_f.var" = replicate(n=nrepeat, var( sample( Q12.MLH1_data$nMLH1.foci[Q12.MLH1_data$sex == "female"], len.LEW.female, replace = FALSE) ) ), 
   
-  "lew.m.var" =  replicate(n=nrepeat, var( sample( Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "male"], len.LEW.male, replace = FALSE) ) ), 
+  "lew_m.var" =  replicate(n=nrepeat, var( sample( Q12.MLH1_data$nMLH1.foci[Q12.MLH1_data$sex == "male"], len.LEW.male, replace = FALSE) ) ), 
   
-  "g.f.var" = replicate(n=nrepeat, var( sample( Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "female"], len.G.female, replace = FALSE) ) ), 
-  "g.m.var" =  replicate(n=nrepeat, var( sample( Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "male"], len.G.male, replace = FALSE) ) ), 
+  "g_f.var" = replicate(n=nrepeat, var( sample( Q12.MLH1_data$nMLH1.foci[Q12.MLH1_data$sex == "female"], len.G.female, replace = FALSE) ) ), 
+  "g_m.var" =  replicate(n=nrepeat, var( sample( Q12.MLH1_data$nMLH1.foci[Q12.MLH1_data$sex == "male"], len.G.male, replace = FALSE) ) ), 
   
-  "pwd.f.var" = replicate(n=nrepeat, var( sample( Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "female"], len.PWD.female, replace = FALSE) ) ), 
-  "pwd.m.var" =  replicate(n=nrepeat, var(sample(Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "male"],len.PWD.male, replace = FALSE))),
+  "pwd_f.var" = replicate(n=nrepeat, var( sample( Q12.MLH1_data$nMLH1.foci[Q12.MLH1_data$sex == "female"], len.PWD.female, replace = FALSE) ) ), 
+  "pwd_m.var" =  replicate(n=nrepeat, var(sample(Q12.MLH1_data$nMLH1.foci[Q12.MLH1_data$sex == "male"],len.PWD.male, replace = FALSE))),
   
-  "kaz.f.var" = replicate(n=nrepeat,var(sample(Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "female"],len.KAZ.female,replace = FALSE) ) ), 
+  "kaz_f.var" = replicate(n=nrepeat,var(sample(Q12.MLH1_data$nMLH1.foci[Q12.MLH1_data$sex == "female"],len.KAZ.female,replace = FALSE) ) ), 
   
-  "kaz.m.var" =  replicate(n=nrepeat, var(sample(Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "male"],len.KAZ.male, replace = FALSE)) ), 
+  "kaz_m.var" =  replicate(n=nrepeat, var(sample(Q12.MLH1_data$nMLH1.foci[Q12.MLH1_data$sex == "male"],len.KAZ.male, replace = FALSE)) ), 
   
-  "skive.f.var" = replicate(n=nrepeat,var(sample(Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "female"],len.SKIVE.female,replace = FALSE) ) ), 
+  "skive_f.var" = replicate(n=nrepeat,var(sample(Q12.MLH1_data$nMLH1.foci[Q12.MLH1_data$sex == "female"],len.SKIVE.female,replace = FALSE) ) ), 
   
-  "skive.m.var" =  replicate(n=nrepeat,var(sample(Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "male"],len.SKIVE.male, replace = FALSE) ) ),
-  "msm.f.var" = replicate(n=nrepeat, var(sample(Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "female"], len.MSM.female, replace = FALSE) ) ), "msm.m.var" =  replicate(n=nrepeat, var(sample(Q12.permute.DF$nMLH1.foci[Q12.permute.DF$sex == "male"], len.MSM.male, replace = FALSE) )   )  )  
+  "skive_m.var" =  replicate(n=nrepeat,var(sample(Q12.MLH1_data$nMLH1.foci[Q12.MLH1_data$sex == "male"],len.SKIVE.male, replace = FALSE) ) ),
+  
+  "msm_f.var" = replicate(n=nrepeat, var(sample(Q12.MLH1_data$nMLH1.foci[Q12.MLH1_data$sex == "female"], len.MSM.female, replace = FALSE) ) ), "msm_m.var" =  replicate(n=nrepeat, var(sample(Q12.MLH1_data$nMLH1.foci[Q12.MLH1_data$sex == "male"], len.MSM.male, replace = FALSE) )   )  
+  )
+
+```
 
 
-#now that these is a dataframe of new/permuted variance (specific to each sex) ... compare them to the origincal values?
-#my prediction is that there would be many significant differences from the true values
+```{r functions.Chap3, echo=FALSE}
+#formate the permuted DF, adding strain and sex to the DF
 
-#to visualize, I can plot the variances .. I guess with a histogram
+add_sex_chp3 <- function(dat){
+  dframe <- dat
+  dframe$sex <- "other"
+  dframe$sex <- ifelse(grepl("f.", dframe$names), "female", 
+                       ifelse(grepl("m.",dframe$names), "male", "other"))
+  dframe$sex<- factor(dframe$sex, ordered = TRUE, levels =c( "female", "male"))
+  return(dframe)
+}
+
+add_strain_Chap3 <- function(dat){
+  dframe <- dat
+  dframe$strain <- "other"
+  dframe$strain <- ifelse(grepl("wsb", dframe$names), "WSB",
+                    ifelse(grepl("g",dframe$names), "G",
+                   ifelse(grepl("lew", dframe$names), "LEW",
+                     ifelse(grepl("perc", dframe$names), "PERC",
+                     ifelse(grepl("msm", dframe$names), "MSM",
+                 ifelse(grepl("molf", dframe$names), "MOLF",
+                     ifelse(grepl("skive", dframe$names), "SKIVE",      
+                      ifelse(grepl("pwd", dframe$names), "PWD",
+                  ifelse(grepl("kaz", dframe$names), "KAZ",
+                   ifelse(grepl("tom", dframe$names), "TOM",
+                  ifelse(grepl("ast", dframe$names), "AST",
+                   ifelse(grepl("czech", dframe$names), "CZECH",
+                    ifelse(grepl("cast", dframe$names), "CAST",
+                   ifelse(grepl("hmi", dframe$names), "HMI",
+                       ifelse(grepl("_SPRET_", dframe$names), "SPRET",
+                       ifelse(grepl("_SPI_", dframe$names), "SPIC",
+                                                                                                                                          ifelse(grepl("spic", dframe$names), "SPIC",
+                                                                                                                                                 ifelse(grepl("_CAROLI_", dframe$names), "CAROLI",
+                                 ifelse(grepl("F1_", dframe$names), "F1",         
+                                   "other")))))))))))))))))))
+  
+  #the ordering factor below deletes all strain entries
+  dframe$strain<- factor(dframe$strain, ordered = FALSE, levels =c( "WSB", "G", "LEW", "PERC",
+                                                                   "PWD", "MSM", "MOLF","SKIVE", "KAZ", "TOM", "AST","CZECH",
+                                                                   "CAST", "HMI",
+                                                                   "SPRET", "SPIC", "CAROLI", "F1", "other") )
+  return(dframe)
+}
 
 
-#now automate making these plots -- or calculate the propotion of permutations which are below the observed
-
-pp <- ggplot(permute.var, aes(x = wsb.f.var))+ geom_histogram() + geom_vline(xintercept = (OG.vals_Q12.MLH1 %>% filter(strain == "WSB") %>% filter(sex == "female") )$var )
-
-#randomized data frame, sample mouse means from all P.leucopus mice
+```
 
 
-#calculate pvalue as proportion of differences greater than observed difference
-p.val_permut_mean.lab.wild <- length(permute.dif.meanOmeans$permuted.diff[permute.dif.meanOmeans$permuted.diff >= obs.dif.mean.lab.wild]) / permut.x
-var.pval <- paste( "p-value ", p.val_permut_mean.lab.wild)
+```{r pvals.VAS, echo=FALSE, warning=F, message=FALSE,  fig.width = 5, fig.height=5}
+
+#need to merge all the pvales into a DF
+#for(u in unique( OG.vals_Q12.MLH1$strain[ ( (OG.vals_Q12.MLH1$sex == "female") & (OG.vals_Q12.MLH1$species == "M.musculus") )] ) ){
+#  print(u)
+#  }
+
+transposed.permuted <- t(permuted.var)
+
+permuted.DF <- data.frame(names = row.names(transposed.permuted), transposed.permuted); rownames(transposed.permuted) <- NULL
+
+permuted.DF <- add_sex_chp3(permuted.DF)
+permuted.DF <- add_strain_Chap3(permuted.DF)
+
+# 
+VAS.F.permuted.DF <- permuted.DF %>% filter(sex == "female")
+VAS.M.permuted.DF <- permuted.DF %>% filter(sex == "male")
+
+#sampling.size <- nrepeat-3
+#careful aboout matching the size of the dataframe!!
+
+list.VAS_F <- c()
+for(ff in 1:length(VAS.F.permuted.DF[,2:9997]) ){
+  list.VAS_F[ff]  <- var( VAS.F.permuted.DF[,ff] )
+}
+#list of VAS
+list.VAS_F.DF <- data.frame( "female.VAS" =  list.VAS_F)
+
+
+list.VAS_M <- c()
+for(mm in 1:length(VAS.M.permuted.DF[,2:9997]) ){
+  
+  perm.VAS.mm <- var( VAS.M.permuted.DF[,mm] )
+  list.VAS_M[mm]  <- perm.VAS.mm
+  
+}
+#p value is calculated for the distribution.
+
+list.VAS_M.DF <- data.frame("male.VAS" = list.VAS_M)
+#cbind the 2 VAS DF
+Full.VAS <- cbind( list.VAS_F.DF, list.VAS_M.DF)
+
+male.plot <- ggplot(Full.VAS, aes(x = male.VAS)) + geom_histogram() + geom_vline(xintercept = Obs.m.VAS ) + ggtitle("Male Variance Across Species")
+
+female.plot <- ggplot(Full.VAS, aes(x = female.VAS)) + geom_histogram() + geom_vline(xintercept = Obs.f.VAS ) + ggtitle("Female Variance Across Species")
+
+male.plot
+female.plot
+```
+
+
+The plots above show the distributions of permuted VAS for 10,000 permutations, the vertical line shows the observed VAS. 
+
+The proportion of permutations which are less than the oberserved VAS are `r sum(  Full.VAS$male.VAS <= Obs.m.VAS ) / nrepeat` and `r sum(  Full.VAS$female.VAS <= Obs.f.VAS ) / nrepeat`  for male and female respectively
 
 
 
+```{r old.pval, echo=FALSE, eval=F}
 
-#visualize the permuted distribution
-permute_hist_means  <-  ggplot(permute.dif.meanOmeans,aes(x=permuted.diff))+
-  geom_histogram()+geom_vline(xintercept=obs.dif.mean.lab.wild,color='red') +
-  annotate("text", x= 0, y = 75, label =  var.pval)+ggtitle("permuted difference of mouse means, wild to lab")
+F.strain.var <- c(0)
+counter = 1
+for(u in unique(permuted.DF$strain[permuted.DF$sex == "female"])){
+  # print(u)
+   
+  F.strain.var[counter] <-  sum( ( permuted.DF %>% filter(sex == "female")  %>% filter(strain == u )  )[,2:1000]  <= ( OG.vals_Q12.MLH1 %>% filter(strain == u) %>% filter(sex == "female") )$var  ) / nrepeat
+  counter = counter + 1
+  #print(counter)
+}
+names(F.strain.var) <- unique( permuted.DF$strain[permuted.DF$sex == "female"]  )
+
+#male loop
+M.strain.var <- c(0)
+counter = 1
+for(u in unique(permuted.DF$strain[permuted.DF$sex == "male"])){
+  # print(u)
+  # print( sum( ( permuted.DF %>% filter(sex == "male")  %>% filter(strain == u )  )[,2:1000]  <= (    OG.vals_Q12.MLH1 %>% filter(strain == u) %>% filter(sex == "male") )$var  ) / nrepeat  )
+
+  M.strain.var[counter] <-  sum( ( permuted.DF %>% filter(sex == "male")  %>% filter(strain == u )  )[,2:1000]  <= ( OG.vals_Q12.MLH1 %>% filter(strain == u) %>% filter(sex == "male") )$var  ) / nrepeat
+
+  counter = counter + 1
+  #print(counter)
+}
+names(M.strain.var) <- unique( permuted.DF$strain[permuted.DF$sex == "male"]  )
+
+df.M.strain.var <- data.frame( vals = M.strain.var, strain = names(M.strain.var) )
+df.F.strain.var <- data.frame( vals = F.strain.var, strain = names(F.strain.var) )
+
+df.M.strain.var$sex <- "male"
+df.F.strain.var$sex <- "female"
+
+row.names(df.M.strain.var) <- c()
+row.names(df.F.strain.var) <- c()
+
+Strain.var.full <- rbind(df.M.strain.var, df.F.strain.var)
+
+```
+
+
+```{r p.vals, echo=FALSE, eval=FALSE}
+
+p.val.WSB.f <- sum( (permuted.var$wsb.f.var <= ( OG.vals_Q12.MLH1 %>% filter(strain == "WSB") %>% filter(sex == "female") )$var )) / nrepeat
+
+p.val.WSB.m <- sum( (permuted.var$wsb.m.var <= ( OG.vals_Q12.MLH1 %>% filter(strain == "WSB") %>% filter(sex == "male") )$var )) / nrepeat
+
+p.val.G.f <- sum( (permuted.var$g.f.var <= ( OG.vals_Q12.MLH1 %>% filter(strain == "G") %>% filter(sex == "female") )$var )) / nrepeat
+p.val.G.m <- sum( (permuted.var$g.m.var <= ( OG.vals_Q12.MLH1 %>% filter(strain == "G") %>% filter(sex == "male") )$var )) / nrepeat
+
+p.val.LEW.f <- sum( (permuted.var$lew.f.var <= ( OG.vals_Q12.MLH1 %>% filter(strain == "LEW") %>% filter(sex == "female") )$var )) / nrepeat
+p.val.LEW.m <- sum( (permuted.var$lew.m.var <= ( OG.vals_Q12.MLH1 %>% filter(strain == "LEW") %>% filter(sex == "male") )$var )) / nrepeat
+
+p.val.KAZ.f <- sum( (permuted.var$kaz.f.var <= ( OG.vals_Q12.MLH1 %>% filter(strain == "KAZ") %>% filter(sex == "female") )$var )) / nrepeat
+p.val.KAZ.m <- sum( (permuted.var$kaz.m.var <= ( OG.vals_Q12.MLH1 %>% filter(strain == "KAZ") %>% filter(sex == "male") )$var )) / nrepeat
+
+p.val.SKIVE.f <- sum( (permuted.var$skive.f.var <= ( OG.vals_Q12.MLH1 %>% filter(strain == "SKIVE") %>% filter(sex == "female") )$var )) / nrepeat
+p.val.SKIVE.m <- sum( (permuted.var$skive.m.var <= ( OG.vals_Q12.MLH1 %>% filter(strain == "SKIVE") %>% filter(sex == "male") )$var )) / nrepeat
+
+p.val.PWD.f <- sum( (permuted.var$pwd.f.var <= ( OG.vals_Q12.MLH1 %>% filter(strain == "PWD") %>% filter(sex == "female") )$var )) / nrepeat
+p.val.PWD.m <- sum( (permuted.var$pwd.m.var <= ( OG.vals_Q12.MLH1 %>% filter(strain == "PWD") %>% filter(sex == "male") )$var )) / nrepeat
+
+#calculate p values
+p.val.MSM.f <- sum( (permuted.var$msm.f.var <= ( OG.vals_Q12.MLH1 %>% filter(strain == "MSM") %>% filter(sex == "female") )$var )) / nrepeat
+           
+p.val.MSM.m <- sum( (permuted.var$msm.m.var <= ( OG.vals_Q12.MLH1 %>% filter(strain == "MSM") %>% filter(sex == "male") )$var )) / nrepeat
+
+
+```
+
+
+
+```{r plots.var.dist, echo=FALSE, eval=F, warning=FALSE, message=FALSE}
+
+#good ref
+#http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/81-ggplot2-easy-way-to-mix-multiple-graphs-on-the-same-page/
+
+wsb.fff <- ggplot(permuted.var, aes(x = wsb_f.var))+ geom_histogram() + geom_vline(xintercept = (OG.vals_Q12.MLH1 %>% filter(strain == "WSB") %>% filter(sex == "female") )$var ) +  
+  geom_text(data= ( Strain.var.full %>% filter(sex == "female") %>% filter(strain == "WSB") ) , aes(x=25, y=80, label=vals),  colour="black", inherit.aes=FALSE, parse=FALSE)
+
+wsb.mmm <- ggplot(permuted.var, aes(x = wsb_m.var))+ geom_histogram() + geom_vline(xintercept = (OG.vals_Q12.MLH1 %>% filter(strain == "WSB") %>% filter(sex == "male") )$var )+ geom_text(data= ( Strain.var.full %>% filter(sex == "male") %>% filter(strain == "WSB") ) , aes(x=25, y=80, label=vals),  colour="black", inherit.aes=FALSE, parse=FALSE)
+
+lew.fff <- ggplot(permuted.var, aes(x = lew_f.var))+ geom_histogram() + geom_vline(xintercept = (OG.vals_Q12.MLH1 %>% filter(strain == "LEW") %>% filter(sex == "female") )$var ) + geom_text(data= ( Strain.var.full %>% filter(sex == "female") %>% filter(strain == "LEW") ) , aes(x=25, y=80, label=vals),  colour="black", inherit.aes=FALSE, parse=FALSE)
+  
+#lew female observed var is greater than randomized
+lew.mmm <- ggplot(permuted.var, aes(x = lew_m.var))+ geom_histogram() + geom_vline(xintercept = (OG.vals_Q12.MLH1 %>% filter(strain == "LEW") %>% filter(sex == "male") )$var ) + geom_text(data= ( Strain.var.full %>% filter(sex == "male") %>% filter(strain == "LEW") ) , aes(x=25, y=80, label=vals),  colour="black", inherit.aes=FALSE, parse=FALSE)
+
+
+g.fff <- ggplot(permuted.var, aes(x = g_f.var))+ geom_histogram() + geom_vline(xintercept = (OG.vals_Q12.MLH1 %>% filter(strain == "G") %>% filter(sex == "female") )$var )+ geom_text(data= ( Strain.var.full %>% filter(sex == "female") %>% filter(strain == "G") ) , aes(x=25, y=80, label=vals),  colour="black", inherit.aes=FALSE, parse=FALSE)
+
+#lew female observed var is greater than randomized
+g.mmm <- ggplot(permuted.var, aes(x = g_m.var))+ geom_histogram() + geom_vline(xintercept = (OG.vals_Q12.MLH1 %>% filter(strain == "G") %>% filter(sex == "male") )$var )+ geom_text(data= ( Strain.var.full %>% filter(sex == "male") %>% filter(strain == "G") ) , aes(x=25, y=80, label=vals),  colour="black", inherit.aes=FALSE, parse=FALSE)
+
+
+kaz.fff <- ggplot(permuted.var, aes(x = kaz_f.var))+ geom_histogram() + geom_vline(xintercept = (OG.vals_Q12.MLH1 %>% filter(strain == "KAZ") %>% filter(sex == "female") )$var )+ geom_text(data= ( Strain.var.full %>% filter(sex == "female") %>% filter(strain == "KAZ") ) , aes(x=25, y=80, label=vals),  colour="black", inherit.aes=FALSE, parse=FALSE)
+
+kaz.mmm <- ggplot(permuted.var, aes(x = kaz_m.var))+ geom_histogram() + geom_vline(xintercept = (OG.vals_Q12.MLH1 %>% filter(strain == "KAZ") %>% filter(sex == "male") )$var )+ geom_text(data= ( Strain.var.full %>% filter(sex == "male") %>% filter(strain == "KAZ") ) , aes(x=25, y=80, label=vals),  colour="black", inherit.aes=FALSE, parse=FALSE)
+
+
+pwd.fff <- ggplot(permuted.var, aes(x = pwd_f.var))+ geom_histogram() + geom_vline(xintercept = (OG.vals_Q12.MLH1 %>% filter(strain == "PWD") %>% filter(sex == "female") )$var )+ geom_text(data= ( Strain.var.full %>% filter(sex == "female") %>% filter(strain == "PWD") ) , aes(x=25, y=80, label=vals),  colour="black", inherit.aes=FALSE, parse=FALSE)
+
+#pwd female oberserved variance is lower than the permutations.
+pwd.mmm <- ggplot(permuted.var, aes(x = pwd_m.var))+ geom_histogram() + geom_vline(xintercept = (OG.vals_Q12.MLH1 %>% filter(strain == "PWD") %>% filter(sex == "male") )$var )+ geom_text(data= ( Strain.var.full %>% filter(sex == "male") %>% filter(strain == "PWD") ) , aes(x=25, y=80, label=vals),  colour="black", inherit.aes=FALSE, parse=FALSE)
+
+
+skive.fff <- ggplot(permuted.var, aes(x = skive_f.var))+ geom_histogram() + geom_vline(xintercept = (OG.vals_Q12.MLH1 %>% filter(strain == "SKIVE") %>% filter(sex == "female") )$var )+ geom_text(data= ( Strain.var.full %>% filter(sex == "female") %>% filter(strain == "SKIVE") ) , aes(x=25, y=80, label=vals),  colour="black", inherit.aes=FALSE, parse=FALSE)
+
+skive.mmm <- ggplot(permuted.var, aes(x = skive_m.var))+ geom_histogram() + geom_vline(xintercept = (OG.vals_Q12.MLH1 %>% filter(strain == "SKIVE") %>% filter(sex == "male") )$var )+ geom_text(data= ( Strain.var.full %>% filter(sex == "male") %>% filter(strain == "SKIVE") ) , aes(x=25, y=80, label=vals),  colour="black", inherit.aes=FALSE, parse=FALSE)
+
+
+msm.mmm <- ggplot(permuted.var, aes(x = msm_m.var))+ geom_histogram() + geom_vline(xintercept = (OG.vals_Q12.MLH1 %>% filter(strain == "MSM") %>% filter(sex == "male") )$var )+ geom_text(data= ( Strain.var.full %>% filter(sex == "male") %>% filter(strain == "MSM") ) , aes(x=18, y=80, label=vals),  colour="black", inherit.aes=FALSE, parse=FALSE)
+
+msm.fff <- ggplot(permuted.var, aes(x = msm_f.var))+ geom_histogram() + geom_vline(xintercept = (OG.vals_Q12.MLH1 %>% filter(strain == "MSM") %>% filter(sex == "female") )$var )+ geom_text(data= ( Strain.var.full %>% filter(sex == "female") %>% filter(strain == "MSM") ) , aes(x=18, y=80, label=vals),  colour="black", inherit.aes=FALSE, parse=FALSE)
 
 #answer: The difference in CO means between wild and LL Pleucopus, is greater than if mice are randomized.
 
-#Same permutations, at the cell level
-Pl.cells <- MLH1_data.hq[MLH1_data.hq$species == "Pleuc",]
 
-obs.status.cell.diff <- mean(Pl.cells$nMLH1.foci[Pl.cells$status == "wild"])-
-    mean(Pl.cells$nMLH1.foci[Pl.cells$status == "lab"])
+permutation.results <- ggarrange(wsb.fff, wsb.mmm,
+          lew.fff, lew.mmm,
+          g.fff, g.mmm, 
+          kaz.fff, kaz.mmm,
+          pwd.fff, pwd.mmm,
+          skive.fff, skive.mmm, 
+           msm.fff, msm.mmm + rremove("x.text"), 
+          ncol = 4, nrow = 4)
 
-permute.dif.cell.status  <- as.data.frame( replicate(permut.x, 
-                                  (  mean(sample(Pl.cells$nMLH1.foci,  243, replace = FALSE) ) - 
-                                   mean(sample(Pl.cells$nMLH1.foci, 221, replace = FALSE) ) )  
-) )
-
-colnames(permute.dif.cell.status) <- "permuted.diff"
-p.val_permut_cell.diff.lab.wild <- length(permute.dif.cell.status$permuted.diff[permute.dif.cell.status$permuted.diff >= obs.status.cell.diff]) / permut.x
-var.pval <- paste( "p-value ", p.val_permut_cell.diff.lab.wild)
-
-permute_hist_means.cell_level  <-  ggplot(permute.dif.cell.status, aes(x=permuted.diff))+
-  geom_histogram()+geom_vline(xintercept=obs.status.cell.diff,color='red') +
-  annotate("text", x= 0, y = 75, label =  var.pval)+ggtitle("permuted difference of cell level means, wild to lab")
-
+annotate_figure(
+  
+  permutation.results, top = text_grob("permutations", color = "Black", face = "bold", size = 14) )
 
 
 ```
