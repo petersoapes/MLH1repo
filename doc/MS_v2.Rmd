@@ -33,7 +33,7 @@ library(raster)
 library(lme4)
 library(nlme)
 library(RLRsim)
-#library(ggpubr)
+library(ggpubr)
 library(reshape2)
 library(patchwork)
 library(png)
@@ -52,7 +52,10 @@ options(digits=2)
 
 #setwd("~.")#switch over to here()
 
-load(file="~./MLH1repo/data/Results_setup_5.14.20.RData") #Results_setup_5.14.20.RData
+
+load(file="~./MLH1repo/data/Results_setup_5.21.20.RData") #Results_setup_5.14.20.RData
+
+#load(file="~./MLH1repo/data/Results_setup_5.14.20.RData") #Results_setup_5.14.20.RData
 
 #load(file="~./MLH1repo/data/Results_setup_4.21.20.RData")
 
@@ -76,13 +79,12 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
 ### MICE
 
-We used a panel of wild-derived inbred strains of house mice (*Mus musculus*) and related murids to profile natural genetic variation in recombination (Table 1). Our survey included 5 strains from **M. m. musculus**, 4 strains from _M. m. domesticus_, 2 strains from _M. m. molossinus_, 2 strains from **M. m. castaneus**, and 1 strain each from **M. caroli**, **M. spicilegus**, and **M. spretus**. We subsequently denote strains by their abbreviated subspecies and name (e.g. **domesticus^WSB^**).  Mice were housed at dedicated, temperature controlled facilities in the UW-Madison School of Medicine and Public Health, with the exception of mice from Gough Island, which were housed in a temperature-controlled facility in the UW-Madison School of Veterinary Medicine. Mice from an inbred strain of Gough Island mice were sampled after XX generations of brother-sister mating. All mice were provided with ad libitum food and water. All procedures followed protocols approved by IACUC.
-
+We used a panel of wild-derived inbred strains of house mice ( _Mus musculus_ ) and related murids to profile natural genetic variation in recombination (Table 1). Our survey included 5 strains from _M. m. musculus_, 4 strains from _M. m. domesticus_, 2 strains from _M. m. molossinus_, 2 strains from _M. m. castaneus_, and 1 strain each from _M. caroli_, _M. spicilegus_, and _M. spretus_. We subsequently denote strains by their abbreviated subspecies and name (e.g. _domesticus^WSB^_).  Mice were housed at dedicated, temperature controlled facilities in the UW-Madison School of Medicine and Public Health, with the exception of mice from Gough Island, which were housed in a temperature-controlled facility in the UW-Madison School of Veterinary Medicine. Mice from an inbred strain of Gough Island mice were sampled after XX generations of brother-sister mating. All mice were provided with ad libitum food and water. All procedures followed protocols approved by IACUC.
 
 
 ### Tissue Collection and Immunohistochemistry
 
-*new* - The same dry-down spread technique was applied to both spermatocytes and oocytes based on [@peters_1997], with adjustment for volumes. Spermatocyte spreads were collected and prepared as described in [@peterson2019]. The majority of mice used MLH1 quantification were between 5 and 12 weeks of age. Juvenile mice between 12 and 15 days of age were used for DMC1 quantification. Both ovaries were collected from embryos (16-21 embryonic days) or neonates (0-48 hours after birth). Whole testes were incubated in 3ml of hypotonic solution for 45 minutes. Decapsulated ovaries were incubated in 300ul of hypotonic solution for 45 minutes. Fifteen microliters of cell slurry (masticated gonads) were transferred to 80ul of 2% PFA solution. Cells were fixed in this solution and dried in a humid chamber at room temperature overnight. The following morning, slides were treated with a Photoflow wash (Kodak, cite). Slides were stored at -20 \* C if not stained immediately.
+*new* - The same dry-down spread technique was applied to both spermatocytes and oocytes based on (@peters_1997), with adjustment for volumes. Spermatocyte spreads were collected and prepared as described in [@peterson2019]. The majority of mice used MLH1 quantification were between 5 and 12 weeks of age. Juvenile mice between 12 and 15 days of age were used for DMC1 quantification. Both ovaries were collected from embryos (16-21 embryonic days) or neonates (0-48 hours after birth). Whole testes were incubated in 3ml of hypotonic solution for 45 minutes. Decapsulated ovaries were incubated in 300ul of hypotonic solution for 45 minutes. Fifteen microliters of cell slurry (masticated gonads) were transferred to 80ul of 2% PFA solution. Cells were fixed in this solution and dried in a humid chamber at room temperature overnight. The following morning, slides were treated with a Photoflow wash (Kodak, cite). Slides were stored at -20 \* C if not stained immediately.
 To visualize the structure of meiotic chromosomes we used antibody markers for the centromere (CREST) and lateral element of the synaptonemal complex (SC) (SYCP3). Crossovers (COs) were visualized as MLH1 foci. Double strand breaks (DSBs) were visualized as DMC1 foci. The staining protocol followed [@anderson1999] and [@koehler2002]. Antibody staining and slide blocking were performed in 1X antibody dilution buffer (ADB) (normal donkey serum (Jackson ImmnuoResearch), 1X PBS, bovine serum albumin (Sigma), and Triton X-100 (Sigma)).
 Following a 30-minute blocking wash in ABD, each slide was incubated with 60ul of a primary antibody master mix for 48 hours at 37\* C. The master mix recipe contained polyclonal anti-rabbit anti-MLH1 (Calbiochem; diluted 1:50) or anti rabbit anti-DMC1) (mix of DMC1), anti-goat polyclonal anti-SYCP3, (Abcam; diluted 1:50), and anti-human polyclonal antibody to CREST (Antibodies, Inc; diluted 1:200) suspended in ADB. Slides were washed twice in 50ml ADB before the first round of secondary antibody incubation for 12 hours at 37\* C. Alexa Fluor 488 donkey anti-rabbit IgG (Invitrgoen, location; diluted to 1:100) and Coumarin AMCA donkey anti-human IgG (Jackson ImmunoResearch; diluted to 1:200) were suspended in ADB. The last incubation of Alexa Fluor 568 donkey anti-goat (Invitrogen; diluted 1:100) was incubated at 1:100 for 2 hours at 37\* C. Slides were fixed with Prolong Gold Antifade (Invitrogen) for 24 hours after a final wash in 1x PBS.
 
@@ -100,19 +102,16 @@ new - Images were capture using a Zeiss Axioplan 2 microscope with AxioLab camer
 In addition to MLH1 counts, we measured several traits to further characterize the recombination landscape.
 To estimate the number of double-strand breaks, a minority of which lead to crossovers, mean DMC1 foci per cell was quantified for a single male from a subset of strains ( _musculus^PWD^_, _musculus^MSM^_, _domesticus^WSB^_, and _domesticus^G^_ ). SC morphology and CREST foci number was used to stage spermatocytes as early zygotene or late zygotene.
 
-To measure bivalent SC length, two image analysis algorithms were used. The first algorithm estimates the total (summed) SC length across bivalents for individual cells [@wang2019_sc]. The second algorithm estimates the SC length of individual bivalents [@peterson2020]. Both algorithms apply a ‘skeletonizing’ transformation to synapsed chromosomes that produces a single, pixel-wide ‘trace’ of the bivalent shape. 
+To measure bivalent SC length, two image analysis algorithms were used. The first algorithm estimates the total (summed) SC length across bivalents for individual cells (@wang2019_SC). The second algorithm estimates the SC length of individual bivalents (@peterson2019). Both algorithms apply a ‘skeletonizing’ transformation to synapsed chromosomes that produces a single, pixel-wide ‘trace’ of the bivalent shape. 
 
-Total SC length per cell was quantified from pachtyene cell images [@wang2019_sc]. To reduce algorithmic errors in SC isolation, outliers were visually identified at the mouse level and removed from the data set. Mouse averages were calculated from cell-wide total SC lengths in `r formatC( length(  (MLH1.merge.Skel %>% filter(subsp != "Cast")  )$Random.Name), format="d", big.mark=",")` -- 3,371 out of `r formatC( length(  (MLH1_data %>% filter(subsp != "Cast")  )$Random.Name), format="d", big.mark=",")`-- 4,143 cells with MLH1 counts.
+Total SC length per cell was quantified from pachtyene cell images [@wang2019_SC]. To reduce algorithmic errors in SC isolation, outliers were visually identified at the mouse level and removed from the data set. Mouse averages were calculated from cell-wide total SC lengths in `r formatC( length(  (Total.SC_DF  %>% filter(species == "M.musculus") %>% filter(subsp != "Cast")  )$Random.Name), format="d", big.mark=",")` -- 3,371 out of `r formatC( length(  (MLH1_data %>% filter(species == "M.musculus") %>% filter(subsp != "Cast")  )$Random.Name), format="d", big.mark=",")`-- 4,143 cells with MLH1 counts.
 
-SC length of individual bivalents was quantified in pachytene cell images [@peterson2020]. The DNA CrossOver algorithm [@peterson2020] isolates single, straightened bivalent shapes, returning SC length, location of MLH1 foci, and location of CREST (centromere) foci. The algorithm substantially speeds the accurate measurement of bivalents, but it sometimes interprets overlapping bivalents as single bivalents. In our data set, average proportions of bivalents per cell isolated by the algorithm ranged from `r min(algorithm.stat.category$mean_pass.rate)` -- 0.51 ( _molossinus^MSM^_ male) to`r max(algorithm.stat.category$mean_pass.rate)` -- 0.72 ( _musculus^KAZ^_ female). From the total set of cell images, `r formatC( length(unique(new.Curate.FULL.org %>% filter(SC.pass == "1"))$fileName ), format="d", big.mark=",")` -- 10,458 bivalent objects were isolated by the algorithm. Following a manual curation, `r formatC( length(unique(new.Curate.FULL.org %>% filter(hand.foci.count != ""))$Obj.ID ), format="d", big.mark=",")` -- 9,829 single-bivalent observations remained. The accuracy of the algorithm is high compared to hand measures after this curation step [@peterson2020]. The curated single bivalent data supplements our cell wide MLH1 count data with MLH1 foci counts for single bivalents. The proportions of bivalents with the same number of MLH1 foci where compared across strains by a chi-squared test using prop.test().
+SC length of individual bivalents was quantified in pachytene cell images [@peterson2019]. The DNA CrossOver algorithm [@peterson2019] isolates single, straightened bivalent shapes, returning SC length, location of MLH1 foci, and location of CREST (centromere) foci. The algorithm substantially speeds the accurate measurement of bivalents, but it sometimes interprets overlapping bivalents as single bivalents. In our data set, average proportions of bivalents per cell isolated by the algorithm ranged from `r min(algorithm.stat.category$mean_pass.rate)` -- 0.51 ( _molossinus^MSM^_ male) to`r max(algorithm.stat.category$mean_pass.rate)` -- 0.72 ( _musculus^KAZ^_ female). From the total set of cell images, `r formatC( length(unique(cleanCurated_BivData %>% filter(SC.pass == "1"))$fileName ), format="d", big.mark=",")` -- 10,458 bivalent objects were isolated by the algorithm. Following a manual curation, `r formatC( length(unique(cleanCurated_BivData %>% filter(hand.foci.count != ""))$Obj.ID ), format="d", big.mark=",")` -- 9,829 single-bivalent observations remained. The accuracy of the algorithm is high compared to hand measures after this curation step [@peterson2019]. The curated single bivalent data supplements our cell wide MLH1 count data with MLH1 foci counts for single bivalents. The proportions of bivalents with the same number of MLH1 foci where compared across strains by a chi-squared test using prop.test().
 
 To account for confounding effects of sex chromosomes from pooled samples of bivalents, we also considered a reduced data set including only bivalents with SC lengths below the 2nd quartile in cells with at least 17 of 20 single bivalent measures. This “short bivalent” data set included the four or five shortest bivalents, and excluded the -- X bivalent in oocytes. A total of `r sum(Long.biv_mouse_table$n_obs)` -- 678 short bivalents were isolated from `r sum(  (Long.biv_mouse_table  %>% filter(sex=="female") )$ncells)` -- 103 oocytes and `r sum(  (Long.biv_mouse_table  %>% filter(sex=="male") )$ncells)` -- 37 spermatocytes. Although this smaller data set has decreased power, it offers a more comparable set of single bivalents to compare between the sexes. A “long bivalent” data set was formed from those bivalents above the 4th quartile in SC lengths per cell. 
 To examine crossover interference, the distance (in SC units) between MLH1 foci (inter-focal distance; IFD^raw^) was measured for those single bivalents containing two MLH1 foci. A normalized measure of interference (IFD^norm^) was computed by dividing IFDraw by SC length on a per-bivalent basis.
 
 We used a series of statistical models to interpret patterns of variation in the recombination traits we measured (Table 2). We first constructed a mixed model (M1) using the lmer() from the lmer4 package (cite) in R (v3.5.2)(Team 2015). In this model, strain was coded as a random effect, with significance evaluated using a likelihood ratio test (using exactRLRT()). Subspecies, strain, and their interaction were coded as fixed effects,  with significance evaluated using a chi-square test comparing the full and reduced models (drop1() and anova()). We used the subspecies effect to quantify divergence between subspecies and the (random) strain effect to quantify variation within subspecies in a sex-specific manner. In separate analyses, we considered mouse averages as dependent variables for each of the following traits: MLH1 count per cell, variance in MLH1 count per cell, coefficient of variation in MLH1 count per cell, total SC length per cell, single bivalent SC length per cell, IFD^raw^, IFD^norm^, and average MLH1 position (for single-focus bivalents). Four additional models containing only fixed effects (M2-M5) (Table 2) were used to further investigate results obtained from the initial mixed model. 
-
-
-
 
 
 # RESULTS
@@ -226,6 +225,8 @@ sperman.corr.FM.pval <- cor.test( ( strain.table.HQ_Fig %>% filter(sex == "femal
 
 ```{r Fig1.top, echo=FALSE, warning=FALSE, message=FALSE}
 
+#change the segements and text!!
+
 Fig1_v1_strain <- ggplot(strain.table.HQ_Fig, aes(y=mean_co, x=strain, color=strain, shape=sex))+ 
   ylab("Average MLH1 Foci per Cell")+
 
@@ -304,7 +305,7 @@ female.specific.plot <- ggplot(female_mouse.avs_for.analysis, aes(x = as.factor(
 ```{r male.show.plots, echo=FALSE, fig.width = 4, fig.height=2.5, warning=FALSE, message=FALSE}
 #try customize the plot size
 
-male.plot <- ggplot(just.male_mouse.av, aes(x = as.factor(strain), y = mean_co, color= strain))+geom_jitter( alpha=0.5, width = .2) +geom_boxplot()+ ggtitle("")+scale_color_manual(values=colors_of_strains)+ylim(c(17,34))+
+male.plot <- ggplot( male_mouse.avs_for.analysis, aes(x = as.factor(strain), y = mean_co, color= strain))+geom_jitter( alpha=0.5, width = .2) +geom_boxplot()+ ggtitle("")+scale_color_manual(values=colors_of_strains)+ylim(c(17,34))+
  
    theme(legend.position="none", axis.text.x=element_blank(), axis.title.x = element_blank(), axis.ticks.x = element_blank(),  axis.title.y = element_blank(), 
   panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -314,7 +315,7 @@ male.plot <- ggplot(just.male_mouse.av, aes(x = as.factor(strain), y = mean_co, 
 
 ```
 
-```{r MLH1.cell.examples, echo=FALSE}
+```{r MLH1.cell.examples, echo=FALSE, message=FALSE, warning=FALSE}
 
 male.MLH1.cell.ex <- readPNG('~/MLH1repo/doc/figureFiles/MLH1.male.cell_ex.png')
 
@@ -323,7 +324,6 @@ female.MLH1.cell.ex <- readPNG('~/MLH1repo/doc/figureFiles/MLH1.female_cell.ex.p
 empty.DF <- data.frame(col1 = c(1,3), col2 = c(1,3) )
 
 #Cell GGPLOT
-library(ggpubr)
 
 maleMLH1.cell.obj <- ggplot(empty.DF, aes(x = col1, y = col2)) +
   background_image(male.MLH1.cell.ex) + theme(axis.title.x=element_blank(),
@@ -338,9 +338,6 @@ femaleMLH1.cell.obj <- ggplot(empty.DF, aes(x = col1, y = col2)) +
 
 ```{r Figure1.Main.plot.three.plots, echo=FALSE, warning=FALSE, fig.width=7, fig.cap='*Figure 1 Mean MLH1 count distributions by strain.* A) Strain averages of MLH1 counts per cell. B) Female specific MLH1 count distributions. C)	Male specific MLH1 counts per cell.', message=FALSE}
 
-
-#try cowplot for more control of sizing
-library("cowplot")
 
 MLH1.Figure1  <- ggdraw() +
   draw_plot(Fig1_v1_strain, x = 0, y = .55, width=1, height=.45)+
@@ -402,7 +399,7 @@ Graphical comparisons reveal sex-specific dynamics to the evolution of genome-wi
 
 To further situate variation in recombination rate within an evolutionary framework, we fit a series of statistical models including subspecies, strain, and sex, to mean MLH1 focus counts from `r length(DF.HetC.MixedModel.HQ$mean_co)` -- 187 mice. We began with a full mixed model (M1; see Materials and Methods), showing that strain (random effect p < 10^{-6} -- p < `r 1/1000000`), sex (p = 1.5510^{-8} -- `r MLH1.MMlmer_results$sex.results`), subspecies (p=1.7210^{-4} -- `r MLH1.MMlmer_results$sub.sp`), and subspecies*sex (p = 3.110^{-5} -- `r MLH1.MMlmer_results$interaction.pval` ) each significantly affect MLH1 focus count. After a model including all factors as fixed effects (M2) revealed only weak contributions of subspecies, we focused on additional models designed to illuminate the role of strain and sex. A model with only these two variables (M3) identified two strains with particularly strong effects on MLH1 focus count:  _musculus^MSM^_ (p = 3.9910^{-6} -- `r summ.MLH1.M3.strain.fixed$coefficients[,4][6]`) and _domesticus^G^_  (p = 1.0410^{-6} -- `r summ.MLH1.M3.strain.fixed$coefficients[,4][3]` ). In addition, two strains exhibit strain-by-sex interactions: _molossinus^MSM^_  (p = 1.2610^{-4} -- `r summ.MLH1.M3.strain.fixed$coefficients[,4][13]` ) and _musculus^PWD^_ (p = 3.8610^{-4} -- `r summ.MLH1.M3.strain.fixed$coefficients[,4][12]` ).
 
-We next fit models separately for  `r length(fomo.male_mouse.av$mouse)` -- 192 males and `r length(female_mouse.avs_for.analysis$mouse)` -- 144 females (M4). In the male dataset, three strains affect MLH1 focus count (as observed in Figure 1C): _musculus^PWD^_ (p = 6.3110^{-8} -- `r sum_MLH1.male.glm.M4$coefficients[,4][8]` ; effect = `r sum_MLH1.male.glm.M4$coefficients[8]` -- 6.1 foci), and _musculus^SKIVE^_ (p = 0--`r sum_MLH1.male.glm.M4$coefficients[,4][10]` ; effect = 3.8-- `r sum_MLH1.male.glm.M4$coefficients[10]` ), and _molossinus^MSM^_  (p=2.4210^{-12} -- `r sum_MLH1.male.glm.M4$coefficients[,4][9]`; effect = `r sum_MLH1.male.glm.M4$coefficients[9]` -- 7.0).
+We next fit models separately for  `r length(male_mouse.avs_for.analysis$mouse)` -- 192 males and `r length(female_mouse.avs_for.analysis$mouse)` -- 144 females (M4). In the male dataset, three strains affect MLH1 focus count (as observed in Figure 1C): _musculus^PWD^_ (p = 6.3110^{-8} -- `r sum_MLH1.male.glm.M4$coefficients[,4][8]` ; effect = `r sum_MLH1.male.glm.M4$coefficients[8]` -- 6.1 foci), and _musculus^SKIVE^_ (p = 0--`r sum_MLH1.male.glm.M4$coefficients[,4][10]` ; effect = 3.8-- `r sum_MLH1.male.glm.M4$coefficients[10]` ), and _molossinus^MSM^_  (p=2.4210^{-12} -- `r sum_MLH1.male.glm.M4$coefficients[,4][9]`; effect = `r sum_MLH1.male.glm.M4$coefficients[9]` -- 7.0).
 
 These three strains point to substantial evolution in the genome-wide recombination rate in spermatocytes; we subsequently refer to them as “high-recombination” strains. Analysis of the female dataset identifies four strains with effects on recombination rate: _domesticus^G^_ (p = 2.510^{-6} -- `r sum_MLH1.female.spc.glm.M2$coefficients[2,][4]`), _molossinus^MSM^_  (p = 6.2410^{-6} -- `r sum_MLH1.female.spc.glm.M2$coefficients[5,][4]`), _domesticus^LEW^_ (p = 0.01 -- `r sum_MLH1.female.spc.glm.M2$coefficients[3,][4]` ), and _musculus^PWD^_ (p= 0.02 -- `r sum_MLH1.female.spc.glm.M2$coefficients[4,][4]` ). Strain effect sizes in females are modest in magnitude (ranging from 1 to 4 foci) compared to those in males. 
 Together, these results demonstrate that the genome-wide recombination rate evolves in a highly sex-specific manner. 
@@ -452,7 +449,9 @@ Dom.female.VAR.plot
 ```
 
 ```{r male.strain.table, echo=FALSE}
-M.strain.table <- ddply(fomo.male_mouse.av, c("strain"), summarise,
+
+
+M.strain.table <- ddply(male_mouse.avs_for.analysis, c("strain"), summarise,
                         Nmice =length(unique(mouse)),
                         
                         totNcells  = sum(Ncells, na.rm=TRUE),
@@ -597,11 +596,12 @@ MLH1cv_M2_Q12 <- glm( cV ~ subsp*sex*strain, data=Q12_mouse_table_w.Ages )
 #as.data.frame( round(summary(MLH1cv_M2_Q12)$coefficients, 6))
 ```
 
+
 ```{r M3.MLH1.var, echo=FALSE}
 
 
 glmMLH1Var_M3 <- glm( var ~ sex * strain,  data=DF.HetC.MixedModel.HQ )
-sum.glmMLH1Var_M3 <- summary(glmMLH1Var_M3)
+glmMLH1Var_M3_sum <- summary(glmMLH1Var_M3)
 #round(glmMLH1Var_M3_sum$coefficients[,c(1,4)], 5)
 
 MLH1cv_M3 <- glm(cV ~ sex * strain, data=DF.HetC.MixedModel.HQ)
@@ -636,18 +636,24 @@ In general, females have almost twice as much variance in MLH1 foci per cell com
 #total-SC
 #Q1.lmer_totSC.mouse.av.table -- #can't find this table
 #Q1.lmer_totSC.mouse.av.table <- mouse.level.skel %>% 
+remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC")
 
-  
-Q1.glm_totSC_M2 <- glm(mean.skel ~ subsp*strain * sex, data=Q1.lmer_totSC.mouse.av.table)
+mouse.total.skel$subsp <- factor(mouse.total.skel$subsp, ordered = FALSE)
+mouse.total.skel$sex <- factor(mouse.total.skel$sex, ordered = FALSE)
+mouse.total.skel$strain <- factor(mouse.total.skel$strain, ordered = FALSE)
+mouse.total.skel$species <- factor(mouse.total.skel$species, ordered = FALSE)
+
+#AP_mouse_table.HQ_target <- AP_mouse_table.HQ_target[ ! AP_mouse_table.HQ_target$strain %in% remove_strains, ]
+
+Q1.glm_totSC_M2 <- glm(mean.skel ~ subsp*strain * sex, data= (mouse.total.skel[ ! mouse.total.skel$strain %in% remove_strains, ] %>% filter(species == "M.musculus") )  )
 sum.Q1.glm_totSC_M2 <- summary(Q1.glm_totSC_M2)
 
-#subsp effect, many strain, #male
-#G * male v.sig and male*LEW
 
-Q1.glm_totSC_M3 <- glm(mean.skel ~ strain * sex, data=Q1.lmer_totSC.mouse.av.table)
+Q1.glm_totSC_M3 <- glm(mean.skel ~ strain * sex, data=  (mouse.total.skel[ ! mouse.total.skel$strain %in% remove_strains, ] %>% filter(species == "M.musculus") ) )
 sum.Q1.glm_totSC_M3 <- summary(Q1.glm_totSC_M3)
 #LOT OF SIGNIFICant strain effects in this model
 ```
+
 
 ```{r Q1.SC_short_M2, echo=FALSE, warning=FALSE, message=FALSE}
 
@@ -660,7 +666,6 @@ Q1.glm_short.SC_M2 <- glm(mean_SC ~ subsp * strain * sex, data=Short.biv_mouse_t
 #summary(Q1.glm_short.SC_M2)
 
 summ.Q1.glm_short.SC_M2 <- summary(Q1.glm_short.SC_M2)
-
 ```
 
 ```{r Q1.glm_short.SC_M3, echo=FALSE, message=FALSE}
@@ -681,9 +686,9 @@ summ.Q1.glm_short.SC_M3 <- summary(Q1.glm_short.SC_M3)
 #get Q12 cells from MLH1.merge.Skel
 #calq the mouse averages
 
-MLH1.merge.Skel$quality <- as.numeric(MLH1.merge.Skel$quality)
+Total.SC_DF$quality <- as.numeric(Total.SC_DF$quality)
 
-totSC_Q12_mouse.av.table <- ddply(.data= MLH1.merge.Skel %>% filter(quality < 3), 
+totSC_Q12_mouse.av.table <- ddply(.data= Total.SC_DF %>% filter(quality < 3), 
                  .(mouse),
                  summarize, 
                  ncells = length(unique(Original.Name)),
@@ -716,12 +721,12 @@ totSC_Q12_mouse.av.table$Rec.group <- ifelse(grepl("PWD male", totSC_Q12_mouse.a
                                 ifelse(grepl("SKIVE male", totSC_Q12_mouse.av.table$category), 1, 0)))
 
 #REMOVE JUVI mice
-tot.SC.Q12_juvi.male <- totSC_Q12_mouse.av.table[totSC_Q12_mouse.av.table$mouse  %in% juvi_mice, ]
-totSC_Q12_mouse.av.table <- totSC_Q12_mouse.av.table[! totSC_Q12_mouse.av.table$mouse  %in% juvi_mice, ] 
+tot.SC.Q12_juvi.male <- totSC_Q12_mouse.av.table[totSC_Q12_mouse.av.table$mouse  %in% juvi_mice.list, ]
+totSC_Q12_mouse.av.table <- totSC_Q12_mouse.av.table[! totSC_Q12_mouse.av.table$mouse  %in% juvi_mice.list, ] 
 
 
 
-totSC_Q12_strain.av.table <- ddply(.data=MLH1.merge.Skel %>% filter(quality < 3), 
+totSC_Q12_strain.av.table <- ddply(.data= Total.SC_DF %>% filter(quality < 3), 
                  .(strain, sex),
                  summarize, 
                  ncells = length(unique(Original.Name)),
@@ -927,8 +932,9 @@ CO.Pos.density_Dom_male <- ggplot(Dom.male_MELT_curBivData, aes(x=PER.Foci.Pos, 
 ```
 
 ```{r Q1show.F1pos_Full, echo=FALSE, warning=FALSE}
+#
 
-Q1.mouse.av.biv_scatr_box   <- ggplot(mouse.avs_4MM, aes(x=sex, y=norm.first.foci.pos, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= norm.first.foci.pos ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \n all bivalents")
+Q1.mouse.av.biv_scatr_box   <- ggplot( (mouse.level.BivData_table %>% filter(species == "M.musculus") ), aes(x=sex, y=norm.first.foci.pos, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= norm.first.foci.pos ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \n all bivalents")
 
 ```
 
@@ -936,34 +942,31 @@ Q1.mouse.av.biv_scatr_box   <- ggplot(mouse.avs_4MM, aes(x=sex, y=norm.first.foc
 #testing,
 #norm.first.foci.pos  - mean nrm.F1.pos for just 1CO bivalents
 
-Q1_1CO.pos_t.test.FULL <- t.test((mouse.avs_4MM %>% filter(sex == "male") )$norm.first.foci.pos,
-                           (mouse.avs_4MM %>% filter(sex == "female") )$norm.first.foci.pos)
+Q1_1CO.pos_t.test.FULL <- t.test((mouse.level.BivData_table %>% filter(sex == "male") %>% filter(species == "M.musculus") )$norm.first.foci.pos,
+                           (mouse.level.BivData_table %>% filter(sex == "female") %>% filter(species == "M.musculus") )$norm.first.foci.pos)
 
 #WSB
-Q1_1CO.pos_t.test.WSB <- t.test((mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain == "WSB") )$norm.first.foci.pos,
-                           (mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain == "WSB") )$norm.first.foci.pos)
+Q1_1CO.pos_t.test.WSB <- t.test((mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain == "WSB") )$norm.first.foci.pos,
+                           (mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain == "WSB") )$norm.first.foci.pos)
 #G
-Q1_1CO.pos_t.test.G <- t.test((mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain == "G") )$norm.first.foci.pos,
-                           (mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain == "G") )$norm.first.foci.pos)
+Q1_1CO.pos_t.test.G <- t.test((mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain == "G") )$norm.first.foci.pos,
+                           (mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain == "G") )$norm.first.foci.pos)
 #LEW
-Q1_1CO.pos_t.test.LEW <- t.test((mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain == "LEW") )$norm.first.foci.pos,
-                           (mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain == "LEW") )$norm.first.foci.pos)
+Q1_1CO.pos_t.test.LEW <- t.test((mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain == "LEW") )$norm.first.foci.pos,
+                           (mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain == "LEW") )$norm.first.foci.pos)
 
 #PWD
-Q1_1CO.pos_t.test.PWD <- t.test((mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain == "PWD") )$norm.first.foci.pos,
-                           (mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain == "PWD") )$norm.first.foci.pos)
+Q1_1CO.pos_t.test.PWD <- t.test((mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain == "PWD") )$norm.first.foci.pos,
+                           (mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain == "PWD") )$norm.first.foci.pos)
 
 #KAZ
-Q1_1CO.pos_t.test.KAZ <- t.test((mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain == "KAZ") )$norm.first.foci.pos,
-                           (mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain == "KAZ") )$norm.first.foci.pos)
+Q1_1CO.pos_t.test.KAZ <- t.test((mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain == "KAZ") )$norm.first.foci.pos,
+                           (mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain == "KAZ") )$norm.first.foci.pos)
 
-#SKIVE
-#Q1_1CO.pos_t.test.SKIVE <- t.test((mouse.avs_4MM %>% filter(sex == "male") %>% #filter(strain == "SKIVE") )$norm.first.foci.pos,
- #          (mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain == #"SKIVE") )$norm.first.foci.pos )
 
 #MSM
-Q1_1CO.pos_t.test.MSM <- t.test((mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain == "MSM") )$norm.first.foci.pos,
-                           (mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain == "MSM") )$norm.first.foci.pos)
+Q1_1CO.pos_t.test.MSM <- t.test((mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain == "MSM") )$norm.first.foci.pos,
+                           (mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain == "MSM") )$norm.first.foci.pos)
 
 #Single Biv Level
 #single.biv.1CO_pos_t.test <- t.test( 
@@ -1214,53 +1217,53 @@ first.IFD.plot_PER <- ggplot(Curated_BivData.22 %>% filter(chromosomeLength < 15
 #mean_IFD.2CO_PER
 
 #FULL all strains
-Q1.IFD.raw_FULL_t.test <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "MOLF" )    )$mean_IFD.2CO_ABS,
+Q1.IFD.raw_FULL_t.test <- t.test( (mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "MOLF" ) %>% filter(species == "M.musculus")  )$mean_IFD.2CO_ABS,
                            
-                                ( mouse.avs_4MM %>% filter(sex == "female") )$mean_IFD.2CO_ABS)
+                                ( mouse.level.BivData_table %>% filter(sex == "female") %>% filter(species == "M.musculus") )$mean_IFD.2CO_ABS)
 #p-value = 0.07
 
 
-Q1.IFD.PER_FULL_t.test <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "MOLF" )    )$mean_IFD.2CO_PER,
-                                ( mouse.avs_4MM %>% filter(sex == "female") )$mean_IFD.2CO_PER)
+Q1.IFD.PER_FULL_t.test <- t.test( (mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "MOLF" )  %>% filter(species == "M.musculus")    )$mean_IFD.2CO_PER,
+                                ( mouse.level.BivData_table %>% filter(sex == "female") %>% filter(species == "M.musculus") )$mean_IFD.2CO_PER)
 #p-value = 1e-12
 
 
 #WSB
-Q1.IFD.raw_t.test_WSB <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain =="WSB" ))$mean_IFD.2CO_ABS,
-                                (mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain =="WSB"))$mean_IFD.2CO_ABS)
+Q1.IFD.raw_t.test_WSB <- t.test( (mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain =="WSB" ))$mean_IFD.2CO_ABS,
+                                (mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain =="WSB"))$mean_IFD.2CO_ABS)
 
-Q1.IFD.PER_t.test_WSB <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain =="WSB" ))$mean_IFD.2CO_PER,
-                                ( mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain =="WSB"))$mean_IFD.2CO_PER)
+Q1.IFD.PER_t.test_WSB <- t.test( (mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain =="WSB" ))$mean_IFD.2CO_PER,
+                                ( mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain =="WSB"))$mean_IFD.2CO_PER)
 
 #LEW
-Q1.IFD.raw_t.test_LEW <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain =="LEW" ))$mean_IFD.2CO_ABS,
-                                ( mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain =="LEW"))$mean_IFD.2CO_ABS)
+Q1.IFD.raw_t.test_LEW <- t.test( (mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain =="LEW" ))$mean_IFD.2CO_ABS,
+                                ( mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain =="LEW"))$mean_IFD.2CO_ABS)
 
-Q1.IFD.PER_t.test_LEW <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain =="LEW"))$mean_IFD.2CO_PER,
-                                ( mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain =="LEW"))$mean_IFD.2CO_PER)
+Q1.IFD.PER_t.test_LEW <- t.test( (mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain =="LEW"))$mean_IFD.2CO_PER,
+                                ( mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain =="LEW"))$mean_IFD.2CO_PER)
 
 #G
-Q1.IFD.raw_t.test_G <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain =="G" ))$mean_IFD.2CO_ABS,
-                                ( mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain =="G"))$mean_IFD.2CO_ABS)
+Q1.IFD.raw_t.test_G <- t.test( (mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain =="G" ))$mean_IFD.2CO_ABS,
+                                ( mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain =="G"))$mean_IFD.2CO_ABS)
 
-Q1.IFD.PER_t.test_G <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain =="G" ))$mean_IFD.2CO_PER,
-                                ( mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain =="G"))$mean_IFD.2CO_PER)
+Q1.IFD.PER_t.test_G <- t.test( (mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain =="G" ))$mean_IFD.2CO_PER,
+                                ( mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain =="G"))$mean_IFD.2CO_PER)
 
 
 #PWD
-Q1.IFD.raw_t.test_PWD <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain =="PWD" ))$mean_IFD.2CO_ABS,
-                                ( mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain =="PWD"))$mean_IFD.2CO_ABS)
+Q1.IFD.raw_t.test_PWD <- t.test( (mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain =="PWD" ))$mean_IFD.2CO_ABS,
+                                ( mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain =="PWD"))$mean_IFD.2CO_ABS)
 
-Q1.IFD.PER_t.test_PWD <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain =="PWD" ))$mean_IFD.2CO_PER,
-                                ( mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain =="PWD"))$mean_IFD.2CO_PER)
+Q1.IFD.PER_t.test_PWD <- t.test( (mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain =="PWD" ))$mean_IFD.2CO_PER,
+                                ( mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain =="PWD"))$mean_IFD.2CO_PER)
 
 
 #KAZ
-Q1.IFD.raw_t.test_KAZ <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain =="KAZ" ))$mean_IFD.2CO_ABS,
-                                ( mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain =="KAZ"))$mean_IFD.2CO_ABS)
+Q1.IFD.raw_t.test_KAZ <- t.test( (mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain =="KAZ" ))$mean_IFD.2CO_ABS,
+                                ( mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain =="KAZ"))$mean_IFD.2CO_ABS)
 
-Q1.IFD.PER_t.test_KAZ <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain =="KAZ" ))$mean_IFD.2CO_PER,
-                                ( mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain =="KAZ"))$mean_IFD.2CO_PER)
+Q1.IFD.PER_t.test_KAZ <- t.test( (mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain =="KAZ" ))$mean_IFD.2CO_PER,
+                                ( mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain =="KAZ"))$mean_IFD.2CO_PER)
 
 
 #SKIVE
@@ -1271,17 +1274,17 @@ Q1.IFD.PER_t.test_KAZ <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% fi
 #                                ( mouse.avs_4MM %>% filter(sex == "female") %>% #filter(strain =="SKIVE"))$mean_IFD.2CO_PER)
 
 #MSM
-Q1.IFD.raw_t.test_MSM <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain =="MSM" ))$mean_IFD.2CO_ABS,
-                                ( mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain =="MSM"))$mean_IFD.2CO_ABS)
+Q1.IFD.raw_t.test_MSM <- t.test( (mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain =="MSM" ))$mean_IFD.2CO_ABS,
+                                ( mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain =="MSM"))$mean_IFD.2CO_ABS)
 
-Q1.IFD.PER_t.test_MSM <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain =="MSM" ))$mean_IFD.2CO_PER,
-                                ( mouse.avs_4MM %>% filter(sex == "female") %>% filter(strain =="MSM"))$mean_IFD.2CO_PER)
+Q1.IFD.PER_t.test_MSM <- t.test( (mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain =="MSM" ))$mean_IFD.2CO_PER,
+                                ( mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain =="MSM"))$mean_IFD.2CO_PER)
 
 
 #FULL all strains
-Q1.IFD.raw_sansG_t.test <- t.test( (mouse.avs_4MM %>% filter(sex == "male") %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "MOLF" )  %>%  filter(strain !="G") )$mean_IFD.2CO_ABS,
+Q1.IFD.raw_sansG_t.test <- t.test( (mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "MOLF" )  %>%  filter(strain !="G") %>% filter(species == "M.musculus") )$mean_IFD.2CO_ABS,
                            
-                                ( mouse.avs_4MM %>% filter(sex == "female") %>%  filter(strain !="G") )$mean_IFD.2CO_ABS)
+                                ( mouse.level.BivData_table %>% filter(sex == "female") %>%  filter(strain !="G")%>% filter(species == "M.musculus") )$mean_IFD.2CO_ABS)
 #p-value = 0.3
 ```
 
@@ -1393,16 +1396,16 @@ Q1.IFD.PER_M1_lmer.results <- data.frame(sub.sp = subsp.pval, sex.results =  sex
 #mouse.avs_4MM -- is also the bivbased mouse average table 
 #Mouse.Table_BivData_4MM #this one is the HetC table (all the Curated BivData)
 
-glm.Q1_IFD.ABS.M2  <- glm(mean_IFD.2CO_ABS ~ subsp * sex * strain, data=Mouse.Table_BivData_4MM)
+glm.Q1_IFD.ABS.M2  <- glm(mean_IFD.2CO_ABS ~ subsp * sex * strain, data=Mouse.Table_BivData_4MM  %>% filter(species == "M.musculus")  )
 summry.glm.Q1_IFD.ABS.M2 <- summary(glm.Q1_IFD.ABS.M2)
 
-glm.Q1_IFD.ABS.M2_kindaFU  <- glm(mean_IFD.2CO_ABS ~ subsp * sex * strain, data=mouse.avs_4MM)
+glm.Q1_IFD.ABS.M2_kindaFU  <- glm(mean_IFD.2CO_ABS ~ subsp * sex * strain, data=mouse.level.BivData_table  %>% filter(species == "M.musculus")  )
 summry.glm.Q1_IFD.ABS.M2_kindaFU <- summary(glm.Q1_IFD.ABS.M2_kindaFU)
 
 #write.table(round(summry.glm.Q1_IFD.ABS.M2$coefficients,5), "~./MLH1repo/summry.glm.Q1_IFD.ABS.M2.csv", sep=",",row.names = TRUE)
 
 #PER
-glm.Q1_IFD.PER.M2 <- glm(mean_IFD.2CO_PER ~ subsp * sex * strain, data=Mouse.Table_BivData_4MM)
+glm.Q1_IFD.PER.M2 <- glm(mean_IFD.2CO_PER ~ subsp * sex * strain, data= (mouse.level.BivData_table %>% filter(species == "M.musculus") ) )
 summry.glm.Q1_IFD.PER.M2 <- summary(glm.Q1_IFD.PER.M2)
 ```
 
@@ -1440,7 +1443,7 @@ Q1.av.short.biv_scatr_box   <- ggplot(REAL.short_mouse_table, aes(x=sex, y=mean_
 ```
 
 
-*new* -- We used normalized positions of MLH1 foci along bivalents with a single focus to compare crossover location while controlling for differences in SC length. In all strains, MLH1 foci tend to be closer to the telomere in males (mean normalized position in males: 0.68 -- `r mean( (mouse.avs_4MM %>% filter(sex == "male") )$norm.first.foci.pos, na.rm = TRUE )`; mean normalized position in females: `r mean( (mouse.avs_4MM %>% filter(sex == "female") )$norm.first.foci.pos, na.rm = TRUE )` -- 0.56; t-test; p = 2.9210^{-22} -- `r Q1_1CO.pos_t.test.FULL$p.value` ). Sex is also the strongest determinant of MLH1 focus position in the models we tested (M1: p = 1.2610^{-25} -- `r lmer.Q1.nrm1CO_M1_results$sex.results` ; M2: p = 1.3310^{-7} -- `r summry.Q1.glm_F1pos_M2$coefficients[,4][8]`; M3: p = 1.3310^{-7} -- `r summry.Q1.glm_1CO.pos_M3$coefficients[,4][8]`).
+*new* -- We used normalized positions of MLH1 foci along bivalents with a single focus to compare crossover location while controlling for differences in SC length. In all strains, MLH1 foci tend to be closer to the telomere in males (mean normalized position in males: 0.68 -- `r mean( (mouse.level.BivData_table %>% filter(sex == "male") %>% filter(species == "M.musculus") )$norm.first.foci.pos, na.rm = TRUE )`; mean normalized position in females: `r mean( (mouse.level.BivData_table %>% filter(sex == "female") %>% filter(species == "M.musculus") )$norm.first.foci.pos, na.rm = TRUE )` -- 0.56; t-test; p = 2.9210^{-22} -- `r Q1_1CO.pos_t.test.FULL$p.value` ). Sex is also the strongest determinant of MLH1 focus position in the models we tested (M1: p = 1.2610^{-25} -- `r lmer.Q1.nrm1CO_M1_results$sex.results` ; M2: p = 1.3310^{-7} -- `r summry.Q1.glm_F1pos_M2$coefficients[,4][8]`; M3: p = 1.3310^{-7} -- `r summry.Q1.glm_1CO.pos_M3$coefficients[,4][8]`).
 
 
 Males have longer normalized mean inter-focal distances (IFD^norm^) than females in seven out of eight strains (t-tests; p < 1.4910^{-12} --), with only _musculus^KAZ^_ showing no difference (t-test; p = 0.33 -- `r Q1.IFD.raw_FULL_t.test$p.value` ). Examination of IFD^norm^ distributions indicates that female values are centered at approximately 50% and show a slight enrichment of low (<25%) values, whereas males are enriched for higher values. Analysis of models treating IFD^norm^ as the dependent variable supports the inference of stronger interference in males, with sex being the most significant variable (M1: p = 6.7410^{-14} --`r Q1.IFD.PER_M1_lmer.results$sex.results` ; M2: p = 0.01 -- `r summry.glm.Q1_IFD.PER.M2$coefficients[,4][4]`, M3: p = 0.01 -- `r summry.glm.Q1_IFD.PER.M3$coefficients[,4][2]`). In contrast, there is no clear signal of sex differences in raw mean inter-focal distances (IFD^raw^) across the full set of strains, whether they are considered separately or together. Visualization of normalized MLH1 foci positions on bivalents with two crossovers (Figure 4C) further suggests that interference distances vary more in females than in males and that males display a stronger telomeric bias in the placement of the distal crossover. In summary, controlling for differences in SC length (chromatin compaction) using IFDnorm indicates that interference is stronger in males, whereas consideration of IFD^raw^ shows that the sexes exhibit a similar level of interference on the physical scale. 
@@ -1976,20 +1979,14 @@ mouse.level.BivData_table$per.3CO <- mouse.level.BivData_table$n3CO / mouse.leve
 
 mouse.level.BivData_table$per.4CO <- mouse.level.BivData_table$n4CO / mouse.level.BivData_table$tot.biv
 
-#DF needs to be melted -- so they all in 1 col
-#per code, I've done this by hand
 
-#subset DF for ease
-skinny.mouse.level <- mouse.level.BivData_table[-c(12:21) ]
-col.names.list.99 <- colnames(skinny.mouse.level)
-
-#all of the cols to use
-MELT_Chrm.Proportion <- melt(skinny.mouse.level[,c(  "mouse", "ncells","boxs.IDd", "nboxes_passed","Nbiv","tot.biv","n0CO","n1CO","n2CO","n3CO","n4CO",
-             
+MELT_Chrm.Proportion <- melt(mouse.level.BivData_table[,c(
+        "mouse", "Nmice", "Ncells", "boxs.IDd", "nboxes_passed",  "nbiv",               "tot.biv", "mean_SC", "var.SC_length", "sd.SC_length", "se.SC_length",        "mean.SC_1CO", "mean.SC_2CO", "mean.SC_3CO", "mean.SC_4CO", "mean_1CO.pos",  "mean_1CO.pos.PER", "norm.first.foci.pos", "mean_IFD.2CO_ABS", "mean_IFD.2CO_PER", "mean_IFD_ABS", "mean_IFD_PER", "mean.siscoten", "mean.siscoten_1CO", "mean.siscoten_2CO", "mean.siscoten_3CO", "mean.telo.dist", "mean.cent.dist",     "mean.sis.co.ten", "sex", "strain", "subsp", "category", "Rec.group", "species",
+                                                     
                #leave out the Foci
                 "per.0CO", "per.1CO", "per.2CO", "per.3CO", "per.4CO")], 
                
-  id=c("mouse", "ncells","boxs.IDd",    "nboxes_passed","Nbiv","tot.biv","n0CO","n1CO","n2CO","n3CO","n4CO"))
+  id=c("mouse", "Nmice", "Ncells", "boxs.IDd", "nboxes_passed",  "nbiv",               "tot.biv", "mean_SC", "var.SC_length", "sd.SC_length", "se.SC_length",        "mean.SC_1CO", "mean.SC_2CO", "mean.SC_3CO", "mean.SC_4CO", "mean_1CO.pos",  "mean_1CO.pos.PER", "norm.first.foci.pos", "mean_IFD.2CO_ABS", "mean_IFD.2CO_PER", "mean_IFD_ABS", "mean_IFD_PER", "mean.siscoten", "mean.siscoten_1CO", "mean.siscoten_2CO", "mean.siscoten_3CO", "mean.telo.dist", "mean.cent.dist",     "mean.sis.co.ten", "sex", "strain", "subsp", "category", "Rec.group", "species"))
 
 MELT_Chrm.Proportion <- MELT_Chrm.Proportion[(!is.na(MELT_Chrm.Proportion$value)),]
 MELT_Chrm.Proportion <- MELT_Chrm.Proportion[!(is.na(MELT_Chrm.Proportion$value) | MELT_Chrm.Proportion$value==0), ]
@@ -1998,7 +1995,7 @@ MELT_Chrm.Proportion <- MELT_Chrm.Proportion[!(is.na(MELT_Chrm.Proportion$value)
 MELT_Chrm.Proportion <- add_category(MELT_Chrm.Proportion)
 MELT_Chrm.Proportion <- add_sex(MELT_Chrm.Proportion)
 MELT_Chrm.Proportion <- add_strain(MELT_Chrm.Proportion)
-
+MELT_Chrm.Proportion <- add_species(MELT_Chrm.Proportion)
 
 #then this DF has to be summarized into categories
 chrm.class.category_MELT <- ddply(MELT_Chrm.Proportion, c("strain","sex", "variable"), summarise,
@@ -2047,16 +2044,6 @@ kk <- addSmallLegend(chrm.class.barplot)
 ```{r Chrm.Prop.misc.calulations, echo=FALSE}
 
 total.biv.all <- sum( MELT_Chrm.Proportion$n0CO, MELT_Chrm.Proportion$n1CO, MELT_Chrm.Proportion$n2CO, MELT_Chrm.Proportion$n3CO, MELT_Chrm.Proportion$n4CO)
-
-#sum( MELT_Chrm.Proportion$n1CO) / total.biv.all
-#sum( MELT_Chrm.Proportion$n2CO) / total.biv.all
-
-#MELT_Chrm.Proportion$Rec.group <- ifelse(grepl("PWD male", MELT_Chrm.Proportion$category), 1, 
-#                              ifelse(grepl("MSM male", MELT_Chrm.Proportion$category), 1,
-#                                ifelse(grepl("SKIVE male", MELT_Chrm.Proportion$category), 1, 0)))
-  
-#Chrm.prop.male.low <- MELT_Chrm.Proportion %>% filter(sex=="male") %>% filter(Rec.group == 0)
-#Chrm.prop.male.HIGH <- MELT_Chrm.Proportion %>% filter(sex=="male") %>% filter(Rec.group == 1)
 
 ```
 
@@ -2181,7 +2168,7 @@ Q1SC.BivData.short.biv_DIFF_MSM <- mean( (Short.biv_mouse_table %>% filter(sex =
 ```{r Q1.tot.SC.plot, echo=FALSE, warning=FALSE}
 # fig.width = 4, fig.height=2.5
 
-Q1.totSC.mouse.av.table <-  totSC.mouse.av.table ##%>% filter(species == "") 
+Q1.totSC.mouse.av.table <-  mouse.total.skel %>% filter(species == "M.musculus") 
   
 Q1.totSC.mouse.av.table$strain <- factor(Q1.totSC.mouse.av.table$strain,levels =c(
    "WSB","G","LEW","PERC", 
@@ -2303,7 +2290,7 @@ Make a figure for the diagram.  Import the straightened bivalents.. Load in the 
 
 ```{r Q1.total_SC.table, echo=FALSE}
 
-totSC.strain.av.table <-  totSC.strain.av.table[,c("subsp","strain", "sex","nmice","ncells","mean.skel"),  drop=T]
+totSC.strain.av.table <-  mouse.total.skel[,c("subsp","strain", "sex","nmice","ncells","mean.skel"),  drop=T]
 
 #head of table
 #see the DMC1 code
@@ -2323,35 +2310,35 @@ totSC.strain.av.table <-  totSC.strain.av.table[,c("subsp","strain", "sex","nmic
 #run t-test for male female avergage for each strain
 
 #ALL
-Q1_tot.sc_t.test.all <- t.test((totSC.mouse.av.table %>% filter(sex == "male") )$mean.skel,
-                           (totSC.mouse.av.table %>% filter(sex == "female"))$mean.skel)
+Q1_tot.sc_t.test.all <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(species == "M.musculus") )$mean.skel,
+                           (mouse.total.skel %>% filter(sex == "female") %>% filter(species == "M.musculus")  )$mean.skel)
 
 
 #dom
-Q1_tot.sc_t.test.DOM <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Dom") )$mean.skel,
-                           (totSC.mouse.av.table %>% filter(sex == "female") %>% filter(subsp == "Dom") )$mean.skel)
+Q1_tot.sc_t.test.DOM <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Dom") )$mean.skel,
+                           (mouse.total.skel %>% filter(sex == "female") %>% filter(subsp == "Dom") )$mean.skel)
 
 #WSB
-Q1_tot.sc_t.test.WSB <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %>% filter(strain == "WSB") )$mean.skel,
-                           (totSC.mouse.av.table %>% filter(sex == "female") %>% filter(strain == "WSB") )$mean.skel)
+Q1_tot.sc_t.test.WSB <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(strain == "WSB") )$mean.skel,
+                           (mouse.total.skel %>% filter(sex == "female") %>% filter(strain == "WSB") )$mean.skel)
 #G
-Q1_tot.sc_t.test.G <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %>% filter(strain == "G") )$mean.skel,
-                           (totSC.mouse.av.table %>% filter(sex == "female") %>% filter(strain == "G") )$mean.skel)
+Q1_tot.sc_t.test.G <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(strain == "G") )$mean.skel,
+                           (mouse.total.skel %>% filter(sex == "female") %>% filter(strain == "G") )$mean.skel)
 #LEW
-Q1_tot.sc_t.test.LEW <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %>% filter(strain == "LEW") )$mean.skel,
-                           (totSC.mouse.av.table %>% filter(sex == "female") %>% filter(strain == "LEW") )$mean.skel)
+Q1_tot.sc_t.test.LEW <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(strain == "LEW") )$mean.skel,
+                           (mouse.total.skel %>% filter(sex == "female") %>% filter(strain == "LEW") )$mean.skel)
 
 #Musc
-Q1_tot.sc_t.test.MUSC <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Musc") )$mean.skel,
-                           (totSC.mouse.av.table %>% filter(sex == "female") %>% filter(subsp == "Musc") )$mean.skel)
+Q1_tot.sc_t.test.MUSC <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Musc") )$mean.skel,
+                           (mouse.total.skel %>% filter(sex == "female") %>% filter(subsp == "Musc") )$mean.skel)
 
 #PWD
-Q1_tot.sc_t.test.PWD <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %>% filter(strain == "PWD") )$mean.skel,
-                           (totSC.mouse.av.table %>% filter(sex == "female") %>% filter(strain == "PWD") )$mean.skel)
+Q1_tot.sc_t.test.PWD <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(strain == "PWD") )$mean.skel,
+                           (mouse.total.skel %>% filter(sex == "female") %>% filter(strain == "PWD") )$mean.skel)
 
 #KAZ
-Q1_tot.sc_t.test.KAZ <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %>% filter(strain == "KAZ") )$mean.skel,
-                           (totSC.mouse.av.table %>% filter(sex == "female") %>% filter(strain == "KAZ") )$mean.skel)
+Q1_tot.sc_t.test.KAZ <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(strain == "KAZ") )$mean.skel,
+                           (mouse.total.skel %>% filter(sex == "female") %>% filter(strain == "KAZ") )$mean.skel)
 
 #SKIVE
 #Q1_tot.sc_t.test.SKIVE <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %>% filter(strain == "SKIVE") )$mean.skel,
@@ -2360,30 +2347,30 @@ Q1_tot.sc_t.test.KAZ <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %
 #MLH1.merge.Skel   $skel_size
 #error not enought female observations, ONLY 1 female SKIVE mouse
 
-Q1_tot.scBIV_t.test.SKIVE <- t.test((MLH1.merge.Skel %>% filter(sex == "male") %>% filter(strain == "SKIVE") )$skel_size,
-           (MLH1.merge.Skel %>% filter(sex == "female") %>% filter(strain == "SKIVE") )$skel_size   )
+Q1_tot.scBIV_t.test.SKIVE <- t.test((Total.SC_DF %>% filter(sex == "male") %>% filter(strain == "SKIVE") )$skel_size,
+           (Total.SC_DF %>% filter(sex == "female") %>% filter(strain == "SKIVE") )$skel_size   )
 
 
 #MSM
-Q1_tot.sc_t.test.MSM <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %>% filter(strain == "MSM") )$mean.skel,
-                           (totSC.mouse.av.table %>% filter(sex == "female") %>% filter(strain == "MSM") )$mean.skel)
+Q1_tot.sc_t.test.MSM <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(strain == "MSM") )$mean.skel,
+                           (mouse.total.skel %>% filter(sex == "female") %>% filter(strain == "MSM") )$mean.skel)
 
 ```
 
 
 ```{r Q1.totSC_male.first.comp, echo=FALSE}
 
-Q1.male.Dom.Musc.t.test <- t.test( ( totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Dom") )$mean.skel,
-(totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Musc") )$mean.skel)
+Q1.male.Dom.Musc.t.test <- t.test( ( mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Dom") )$mean.skel,
+(mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Musc") )$mean.skel)
 
-Q1.male.Dom.Mol.t.test <- t.test( ( totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Dom") )$mean.skel,
-(totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Mol") )$mean.skel)
+Q1.male.Dom.Mol.t.test <- t.test( ( mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Dom") )$mean.skel,
+(mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Mol") )$mean.skel)
 ```
 
 
 ```{r Q1.M.lmer_totalSC, echo=FALSE, warning=FALSE, message=FALSE}
 
-Q1.lmer_totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain != "AST" & strain != "TOM" & strain != "CZECH" & strain != "MOLF")
+Q1.lmer_totSC.mouse.av.table <- mouse.total.skel %>% filter(strain != "AST" & strain != "TOM" & strain != "CZECH" & strain != "MOLF")
 
 #str(Q1.lmer_totSC.mouse.av.table)
 
@@ -2577,7 +2564,7 @@ mouse.shoo.long.biv <- ggplot( Long.biv_mouse_table, aes(y=mean.sc, x=strain, co
 
 ```{r Q2_tot.sc_plot, echo=FALSE, warning=FALSE}
 
-mouse.av_totsc_male <- ggplot(data= totSC.mouse.av.table %>% filter(sex == "male"), aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
+mouse.av_totsc_male <- ggplot(data= mouse.total.skel %>% filter(sex == "male"), aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
   facet_wrap(Rec.group~subsp, scales="free")+
   theme(axis.title.x=element_blank(),  axis.text.x=element_blank(), axis.text.y = element_text(size=9), axis.ticks.x=element_blank(), legend.position = c(0.8, 0.2) ) + ylim(c(1200,1850 ) )+labs(y="Mouse Mean Total SC")
 
@@ -2589,7 +2576,7 @@ mouse.av_totsc_male <- addSmallLegend(mouse.av_totsc_male)
 ```{r Q2.SC_MLH1.by.totalSC, echo=FALSE, warning=FALSE, fig.height=3, fig.width=8, fig.cap="Variation in total SC area per cell across strains and Relationship between total sc and mean MLH1 count per cell across male mice. A)	 Mean total SC area per mouse across subspecies and recombination groups. High- and low-recombining groups are indicated by 1 and 0 respectively. (Horizontal lines indicate strain averages for total SC area.)B) Mouse averaged rates of MLH1 and total SC per cell", echo=FALSE}
 
 #make plot of mouse averages for MLH1 and total SC
-bep <- merge(  fomo.male_mouse.av,   totSC.mouse.av.table)
+bep <- merge(  male_mouse.avs_for.analysis,   mouse.total.skel)
 
 X.by.texas <- ggplot(bep, aes(x=mean.skel, y=mean_co, color=strain))+geom_point()+
   scale_color_manual(values=colors_of_strains)+theme(legend.position="none")+labs(x="Mouse Mean Total SC", y="Mouse Mean MLH1 count")
@@ -2626,18 +2613,17 @@ Neg.control.find.date <- ggplot(bep, aes(x=mean.skel, y=mean.bin, color=strain))
 ```{r Q2.totSC.ttest, echo=FALSE}
 #totalSC high and low rec group
 
-Q2tot.sc_t.test_High.Low <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %>% filter(Rec.group == "0") )$mean.skel,
-                (totSC.mouse.av.table %>% filter(sex == "male") %>% filter(Rec.group == "1") )$mean.skel)
+Q2tot.sc_t.test_High.Low <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "0") )$mean.skel,
+                (mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "1") )$mean.skel)
 #p-value = 0.007
 
-#mol
-Q2tot.sc_t.test_High.Low_Mol <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %>% filter(Rec.group == "0") %>% filter(subsp == "Mol") )$mean.skel,
-         (totSC.mouse.av.table %>% filter(sex == "male") %>% filter(Rec.group == "1") %>% filter(subsp == "Mol") )$mean.skel)
-
+#mol -- not enough Mol observations
+#Q2tot.sc_t.test_High.Low_Mol <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "0") %>% filter(subsp == "Mol") )$mean.skel,
+#         (mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "1") %>% filter(subsp == "Mol") )$mean.skel)
 
 #musc
-Q2tot.sc_t.test_High.Low_Musc <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %>% filter(Rec.group == "0") %>% filter(subsp == "Musc"))$mean.skel,
-                (totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Musc") %>% filter(Rec.group == "1") )$mean.skel)
+Q2tot.sc_t.test_High.Low_Musc <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "0") %>% filter(subsp == "Musc"))$mean.skel,
+                (mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Musc") %>% filter(Rec.group == "1") )$mean.skel)
 
 ```
 
@@ -2702,13 +2688,13 @@ Q2.BIV_long_t.test_HL <- t.test((real.long.bivData %>%filter(sex == "male")%>%fi
 ```{r Q2.SC_across.subsp_tot.SC, echo=FALSE}
 
 #Dom-Musc
-Q2.totSC_t.test_DomMusc <- t.test((totSC.mouse.av.table  %>% filter(subsp == "Dom") )$mean.skel,
-                          (totSC.mouse.av.table  %>%  filter(subsp == "Musc"))$mean.skel)
+Q2.totSC_t.test_DomMusc <- t.test((mouse.total.skel  %>% filter(subsp == "Dom") )$mean.skel,
+                          (mouse.total.skel  %>%  filter(subsp == "Musc"))$mean.skel)
 #p-value = 0.5
 
 #Dom-Mol
-Q2.totSC_t.test_DomMol <- t.test((totSC.mouse.av.table  %>% filter(subsp == "Dom") )$mean.skel,
-                          (totSC.mouse.av.table  %>%  filter(subsp == "Mol"))$mean.skel)
+Q2.totSC_t.test_DomMol <- t.test((mouse.total.skel  %>% filter(subsp == "Dom") )$mean.skel,
+                          (mouse.total.skel  %>%  filter(subsp == "Mol"))$mean.skel)
 #p-value = 0.1
 ```
 
@@ -2854,7 +2840,9 @@ sum.glmQ2_short.biv_M2_MUSC <- summary(glmQ2_short.biv_M2_MUSC)
 
 ```{r Q2.SC.log.regression.show.plots, echo=FALSE, include=FALSE}
 
-plot.blah.mouse.av <- ggplot(Male.poly.Mouse.Table_BivData_4MM,
+Male.poly.Mouse.Table_BivData_4MM <- mouse.level.BivData_table %>% filter(sex == "male") %>% filter(species == "M.musculus")
+
+plot.blah.mouse.av <- ggplot( Male.poly.Mouse.Table_BivData_4MM,
                           aes(x=mean_SC, y=Rec.group)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("Mouse av. SC (pooled) \nHigh vs low gwRR strains")+facet_wrap(~subsp)
 
 
@@ -2999,9 +2987,9 @@ To begin to localize evolution of genome-wide recombination rate to steps of the
 High-recombination strains have significantly more DMC1 foci than low-recombination strains in early zygotene cells (t-test; p < 10^{-6} --  p < `r 1/1000000` ). In contrast, the two strain groups do not differ in DMC1 foci in late zygotene cells (t-test; p = 0.66 -- `r ttest.HighLow.Z.pval` ). Since DSBs are repaired as either COs or non-crossovers (NCOs), the ratio of MLH1 foci to DMC1 foci can be used to estimate the proportion of DSBs designated as COs. High-recombination and low-recombination strains do not differ in the MLH1/DMC1 ratio, whether DMC1 foci were counted in early zygotene cells or late zygotene cells (t-test; p > 0.05). These results raise the possibility that the evolution of genome-wide recombination rate is primarily determined by processes that precede the CO/NCO decision.
 
 
-Although there is a positive correlation between total SC length and MLH1 foci when both traits are measured as mouse means (Spearman’s r = 0.48 --`r cor( totSC.mouse.av.table$mean.skel, totSC.mouse.av.table$mean.MLH1, method = c("spearman") )`; p = 2.2410^{-10} -- `r cor.test(totSC.mouse.av.table$mean.skel, totSC.mouse.av.table$mean.MLH1, method=c("spearman") )$p.value` ), total SC length only partially differentiates high-recombination strains from low-recombination strains (Figure 5). 
+Although there is a positive correlation between total SC length and MLH1 foci when both traits are measured as mouse means (Spearman’s r = 0.48 --`r cor( mouse.total.skel$mean.skel, mouse.total.skel$mean.MLH1, method = c("spearman") )`; p = 2.2410^{-10} -- `r cor.test(mouse.total.skel$mean.skel, mouse.total.skel$mean.MLH1, method=c("spearman") )$p.value` ), total SC length only partially differentiates high-recombination strains from low-recombination strains (Figure 5). 
 
-Whereas high-recombination strains as a group have significantly greater total SC length than low-recombination strains (t-test; p = 0.01 -- `r Q2tot.sc_t.test_High.Low$p.value`), separate tests within subspecies show that the two strain categories differ within M. m. molossinus (p = 0.03 -- `r Q2tot.sc_t.test_High.Low_Mol$p.value`) but not within M. m. musculus (p = 0.87 -- `r Q2tot.sc_t.test_High.Low_Musc$p.value`). 
+Whereas high-recombination strains as a group have significantly greater total SC length than low-recombination strains (t-test; p = 0.01 -- `r Q2tot.sc_t.test_High.Low$p.value`), separate tests within subspecies show that the two strain categories differ within M. m. molossinus (p = 0.03 -- r Q2tot.sc_t.test_High.Low_Mol -- p.value ) but not within M. m. musculus (p = 0.87 -- `r Q2tot.sc_t.test_High.Low_Musc$p.value`). 
 
 Additionally, mouse means for the reduced (short and long) bivalent datasets do not differ between high-recombination and low-recombination strains (t-test; short: p = 0.88 -- ; long: p = 0.18 -- ). In a model with total SC length as the dependent variable, two subspecies effects are significant ( _M. m. musculus_ p = 1.2410^{-6} -- , _M. m. molossinus_, p = 10^{-6} -- ). In models with SC lengths of short and long bivalents as dependent variables, several subspecies and strain effects reach significance (p < 0.05), but they are not consistent across models. Collectively, these observations reveal that evolution of the genome-wide recombination rate is not strongly associated with evolution of SC length.
 High-recombination and low-recombination strains do not differ in MLH1 focus positions on bivalents with a single focus, either for the full dataset (t-test; p = 0.24 -- ) or within subspecies (t-test; _M. m. musculus_: p = 0.41 -- ; _M. m. molossinus_ : p = 0.07 -- ). While domesticusWSB and _molossinus^MOLF^_ exhibit strain effects in a model with normalized crossover position as the dependent variable (), these two strains do not differ in MLH1 count. These results show that evolution of crossover position on chromosomes with single crossovers is decoupled from evolution of the genome-wide recombination rate, at least at this scale of resolution.
@@ -3178,7 +3166,7 @@ Following this logic we predict (1) _musculus^PWD^_ will have greater SC length 
 #Curated_BivData_male
 
 #boxplots of nrm F1
-male.bivdata.1CO <- Curated_BivData_male %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1)
+male.bivdata.1CO <- cleanCurated_BivData %>% filter(sex == "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1)
   
 Q2.show.nrmF1 <- ggplot(male.bivdata.1CO, aes(x=strain, y=PER_Foci_1, color=strain) )+geom_jitter(alpha=.23 )+ geom_boxplot(aes(y= PER_Foci_1), alpha=.5 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+theme(legend.position="none", axis.text.x = element_text(size=9), axis.title.x = element_blank())+labs(y="Foci 1 Relative Position")
 
@@ -3215,7 +3203,7 @@ Q2.shoooo   <- ggplot(Mouse.av.Long.biv, aes(x=strain, y=mean.1CO_PER, color=str
 
 #(mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Mol") %>% filter(Rec.group == #"0"))$norm.first.foci.pos
 
-mus.av1COpos.plot <- ggplot(data= mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Mol"),
+mus.av1COpos.plot <- ggplot(data= mouse.level.BivData_table %>%  filter(sex == "male") %>%  filter(subsp == "Mol"),
                       aes(x= mouse, y = norm.first.foci.pos))+geom_point()
 
 
@@ -3243,7 +3231,7 @@ The normalized 1CO position is not significantly different between high-recombin
 
 ```{r Q2.show.IFD, echo=FALSE, warning = FALSE}
 #subset
-male.biv.2CO <- Curated_BivData %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 2)
+male.biv.2CO <- cleanCurated_BivData %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 2)
 
 male.biv.2CO$Rec.group <- ifelse(grepl("PWD", male.biv.2CO$strain), 1, 
                                     ifelse(grepl("MSM", male.biv.2CO$strain), 1, 
@@ -3269,47 +3257,47 @@ biv.IFDs_PER_by.group <- ggplot(male.biv.2CO, aes(y = IFD1_PER, x= strain, color
 ```{r Q2.IFD.glm.test, echo=FALSE, warning=FALSE}
 
 #M1.ABS
-Q2.M1glm_IFD.raw <- glm(mean_IFD.2CO_ABS ~ subsp * strain, data= mouse.avs_4MM %>% filter(sex == "male")    )
+Q2.M1glm_IFD.raw <- glm(mean_IFD.2CO_ABS ~ subsp * strain, data= mouse.level.BivData_table %>% filter(sex == "male") %>% filter(species == "M.musculus")  )
 sum.Q2.M1glm_IFD.raw <- summary(Q2.M1glm_IFD.raw) 
 
 #M1.PER
-Q2.M1glm_IFD.PER <- glm(mean_IFD.2CO_PER ~ subsp * strain, data= mouse.avs_4MM %>% filter(sex == "male") )
+Q2.M1glm_IFD.PER <- glm(mean_IFD.2CO_PER ~ subsp * strain, data= mouse.level.BivData_table %>% filter(sex == "male") %>% filter(species == "M.musculus") )
 
 sum.Q2.M1glm_IFD.PER <- summary(Q2.M1glm_IFD.PER)
 #summary(Q2.M1glm_IFD.PER) 
 
 #M2.raw
-Q2.M2glm_IFD.raw <- glm(mean_IFD.2CO_ABS ~ strain, data= mouse.avs_4MM %>% filter(sex == "male"))
+Q2.M2glm_IFD.raw <- glm(mean_IFD.2CO_ABS ~ strain, data= mouse.level.BivData_table %>% filter(sex == "male") %>% filter(species == "M.musculus") )
 Sum.Q2.M2glm_IFD.raw <- summary(Q2.M2glm_IFD.raw)
 
-Q2.M2glm_IFD.PER <- glm(mean_IFD.2CO_PER ~ strain, data= mouse.avs_4MM %>% filter(sex == "male"))
+Q2.M2glm_IFD.PER <- glm(mean_IFD.2CO_PER ~ strain, data= mouse.level.BivData_table %>% filter(sex == "male") %>% filter(species == "M.musculus") )
 sum.Q2.M2glm_IFD.PER <- summary(Q2.M2glm_IFD.PER)
 #  MSM strain effect for 2CO PER not significant
 
 #within subspecies
 #Dom
-Q2.glm.M2_IFD_Dom <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Dom",])
+Q2.glm.M2_IFD_Dom <- glm(mean_IFD.2CO_ABS ~ strain, data= mouse.level.BivData_table %>% filter(subsp == "Dom") )
 #summary(Q2.glm.M2_IFD_Dom)
 
 #Musc
-Q2.glm.M2_IFD_Musc <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",])
+Q2.glm.M2_IFD_Musc <- glm(mean_IFD.2CO_ABS ~ strain, data= mouse.level.BivData_table %>% filter(subsp == "Musc") )
 #summary(Q2.glm.M2_IFD_Musc)
 
 #Mol
-Q2.glm.M2_IFD_Mol <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",])
+Q2.glm.M2_IFD_Mol <- glm(mean_IFD.2CO_ABS ~ strain, data= mouse.level.BivData_table %>% filter(subsp == "Mol") )
 #summary(Q2.glm.M2_IFD_Mol)
 
 
 #Dom
-Q2.glm.M2_IFD.PER_Dom <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Dom",])
+Q2.glm.M2_IFD.PER_Dom <- glm(mean_IFD.2CO_PER ~ strain, data= mouse.level.BivData_table %>% filter(subsp == "Dom") )
 #summary(Q2.glm.M2_IFD.PER_Dom) 
 
 #Musc
-Q2.glm.M2_IFD.PER_Musc <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",])
+Q2.glm.M2_IFD.PER_Musc <- glm(mean_IFD.2CO_PER ~ strain, data= mouse.level.BivData_table %>% filter(subsp == "Musc") )
 #summary(Q2.glm.M2_IFD.PER_Musc) 
 
 #Mol
-Q2.glm.M2_IFD.PER_Mol <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",])
+Q2.glm.M2_IFD.PER_Mol <- glm(mean_IFD.2CO_PER ~ strain, data= mouse.level.BivData_table %>% filter(subsp == "Mol")  )
 #summary(Q2.glm.M2_IFD.PER_Mol)
 
 ```

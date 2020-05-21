@@ -1,7 +1,7 @@
 ---
 title: "Results_setup"
 author: "April Peterson"
-date: "April 7, 2020"
+date: "`r format(Sys.time(), '%d %B %Y')`"
 output: html_document
 ---
 
@@ -24,7 +24,10 @@ library(reshape2)
 options(digits=2)
 #setwd("~.")
 
-load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_5.12.20.RData")
+#just load the data_setup, since I load most everything else
+
+load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_5.21.20.RData")
+#load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_5.12.20.RData")
 #load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_2.24.20.RData")
 #load(file = "C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.31.20.RData")
 
@@ -32,12 +35,13 @@ load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_5.12.20.RData")
 #load(file="C:/Users/April/Documents/MLH1repo/data/CleanBivData_1.27.20.RData")
 #load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/CleanBivData_1.27.20.RData")
 
-load(file="~./MLH1repo/data/CleanBivData_5.12.20.RData") #CleanBivData_5.12.20.RData
-
-load(file="~./MLH1repo/data/total_SC_30.12.19.RData")
+#load(file="~./MLH1repo/data/CleanBivData_5.12.20.RData") #CleanBivData_5.12.20.RData
+#load(file="~./MLH1repo/data/total_SC_30.12.19.RData")
 
 #skeletonize
-SC.skel = read.csv("~./MLH1repo/data/SCskel_output_feb20.csv", header = TRUE, strip.white = TRUE)
+#SC.skel = read.csv("~./MLH1repo/data/SCskel_output_feb20.csv", header = TRUE, strip.white = TRUE)
+#Total.SC_DF = read.xlsx2("~./MLH1repo/data/Total.SC_merge.MLH1.xlsx", header=TRUE, 1)
+#remove X -- this table isn't used
 
 #load(file="~./MLH1repo/data/MLH1_data_setup_1.5.20.RData")
 
@@ -68,7 +72,7 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
 <!-- Data Set Up Notes -->
 
-```{r organizing.data, echo=FALSE}
+```{r organizing.data, echo=FALSE, eval=FALSE}
 #set the order of another column, based on another variable. consistant order for ploting
 
 #Terminology Note, leptonema, zygonema, and pachynema diplonema diakinesis, are the stage names.
@@ -101,15 +105,10 @@ AP_mouse_table.HQ_target <- AP_mouse_table.HQ[!(is.na(AP_mouse_table.HQ$sex) | A
 
 remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC")
 AP_mouse_table.HQ_target <- AP_mouse_table.HQ_target[ ! AP_mouse_table.HQ_target$strain %in% remove_strains, ]
-
-  
-var.plot <- ggplot(AP_mouse_table.HQ_target, aes(y=var, x = sex, color=sex))+geom_jitter()+facet_wrap(~strain)+ggtitle("Plots of mouse Variances for MLH1 counts")+
-  scale_color_manual(values=c("royalblue", "limegreen"))+theme_bw()
-
 ```
 
 
-```{r Q1.rbar, echo=FALSE, eval=FALSE}
+```{r Q1.rbar.gamma, echo=FALSE, eval=FALSE}
 
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
@@ -143,7 +142,7 @@ raw.gamma_estimates <-  gamma_estimates %>% filter(type.IFD == "raw.IFD") %>% fi
 
 #what comparison of IFD and rbar would be logical
 #plot rbar and gamma
-ll <- ggplot(table_gamma_estimates, aes(y=mean.rbar, x = all.biv.gamma, color = class, shape = sex ))+geom_point()+facet_wrap(~strain)+ ggtitle("")+ylim(c(0,.5))
+#ll <- ggplot(table_gamma_estimates, aes(y=mean.rbar, x = all.biv.gamma, color = class, shape = sex ))+geom_point()+facet_wrap(~strain)+ ggtitle("")+ylim(c(0,.5))
 
 
 ```
@@ -151,30 +150,13 @@ ll <- ggplot(table_gamma_estimates, aes(y=mean.rbar, x = all.biv.gamma, color = 
 
 ```{r MLH1.FEMALE.TABLE, echo=FALSE, eval=TRUE}
 
-female_mouse.av <- subset(AP_mouse_table_w.Ages, select= -c(sex.y,sex.x,
-                            subsp.y,subsp.x,
-                    category.y,category.x, strain.x,
-                    strain.y, mouse.1  )  )
 
-female_mouse.av <- add_sex(female_mouse.av)
-female_mouse.av <- add_strain(female_mouse.av)
-female_mouse.av <- add_subsp(female_mouse.av)
-female_mouse.av <- add_species(female_mouse.av)
-
-female_mouse.avs_for.analysis <-  female_mouse.av %>% filter(sex== "female") %>% filter(species == "M.musculus") %>% filter(strain != "CZECH") %>% filter(strain != "CAST")
+female_mouse.avs_for.analysis <-  Mouse.Table_HQ %>% filter(sex== "female") %>% filter(species == "M.musculus") %>% filter(strain != "CZECH") %>% filter(strain != "CAST")
 
 female_mouse.avs_for.analysis$subsp <- factor(female_mouse.avs_for.analysis$subsp, ordered = FALSE)
 female_mouse.avs_for.analysis$sex <- factor(female_mouse.avs_for.analysis$sex, ordered = FALSE)
 female_mouse.avs_for.analysis$strain <- factor(female_mouse.avs_for.analysis$strain, ordered = FALSE)
 female_mouse.avs_for.analysis$species <- factor(female_mouse.avs_for.analysis$species, ordered = FALSE)
-
-Musc.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Musc")
-
-#Mol
-#Mol.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Mol")
-
-#Dom 
-Dom.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Dom")
 
 ```
 
@@ -183,36 +165,33 @@ Dom.female_mouse.av <-  female_mouse.avs_for.analysis %>% filter(sex== "female")
 
 #AP_mouse_table.MLH1_HQ
 #find the table that includes the las image data
-male_MLH1mouse.av <- AP_mouse_table_w.Ages
+male_mouse.avs_for.analysis <-  Mouse.Table_HQ %>% filter(sex== "male") %>% filter(species == "M.musculus") 
 
-male_MLH1mouse.av <- add_sex(male_MLH1mouse.av)
-male_MLH1mouse.av <- add_strain(male_MLH1mouse.av)
-male_MLH1mouse.av <- add_subsp(male_MLH1mouse.av)
-male_MLH1mouse.av <- add_species(male_MLH1mouse.av)
+male_mouse.avs_for.analysis$subsp <- factor(male_mouse.avs_for.analysis$subsp, ordered = FALSE)
+male_mouse.avs_for.analysis$sex <- factor(male_mouse.avs_for.analysis$sex, ordered = FALSE)
+male_mouse.avs_for.analysis$strain <- factor(male_mouse.avs_for.analysis$strain, ordered = FALSE)
+male_mouse.avs_for.analysis$species <- factor(male_mouse.avs_for.analysis$species, ordered = FALSE)
 
-fomo.male_mouse.av <-  male_MLH1mouse.av %>% filter(sex== "male") %>% filter(species == "M.musculus") 
-
-fomo.male_mouse.av$subsp <- factor(fomo.male_mouse.av$subsp, ordered = FALSE)
-fomo.male_mouse.av$sex <- factor(fomo.male_mouse.av$sex, ordered = FALSE)
-fomo.male_mouse.av$strain <- factor(fomo.male_mouse.av$strain, ordered = FALSE)
-fomo.male_mouse.av$species <- factor(fomo.male_mouse.av$species, ordered = FALSE)
+#how much greater are the High Rec gwRRs
+male_mouse.avs_for.analysis$Rec.group <- ifelse(grepl("PWD", male_mouse.avs_for.analysis$strain), 1, 
+                              ifelse(grepl("MSM", male_mouse.avs_for.analysis$strain), 1,
+                                ifelse(grepl("SKIVE", male_mouse.avs_for.analysis$strain), 1, 0)))
 
 
-Musc.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Musc")
-Mol.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Mol")
+Musc.male_mouse.av <-  male_mouse.avs_for.analysis %>% filter(sex== "male") %>% filter(subsp == "Musc")
+Mol.male_mouse.av <-  male_mouse.avs_for.analysis %>% filter(sex== "male") %>% filter(subsp == "Mol")
 #Dom version 
-Dom.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(subsp == "Dom")
+Dom.male_mouse.av <-  male_mouse.avs_for.analysis %>% filter(sex== "male") %>% filter(subsp == "Dom")
 
 ```
 
 
 ```{r MLH1.MIXED.MODEL.setup, echo=FALSE, warning=FALSE, eval=TRUE}
-#DF.HetC.MixedModel.HQ
-#no mice removed for low cell numbers?
-AP_mouse_table.HQ <- add_species(AP_mouse_table.HQ)
+
+
 
 #DF.HetC.MixedModel <- add_species(DF.HetC.MixedModel)
-DF.HetC.MixedModel <- AP_mouse_table.HQ[AP_mouse_table.HQ$species == "M.musculus",]
+DF.HetC.MixedModel <- Mouse.Table_HQ[Mouse.Table_HQ$species == "M.musculus",]
 #DF.HetC.MixedModel
 
 DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel
@@ -223,14 +202,13 @@ DF.HetC.MixedModel.HQ$sex <- factor(DF.HetC.MixedModel.HQ$sex, ordered = FALSE)
 DF.HetC.MixedModel.HQ$strain <- factor(DF.HetC.MixedModel.HQ$strain, ordered = FALSE)
 DF.HetC.MixedModel.HQ$species <- factor(DF.HetC.MixedModel.HQ$species, ordered = FALSE)
 
-
-all.cell.MM.HQ <- ddply(.data=DF.HetC.MixedModel.HQ,
-                 .(sex, strain),
-                 summarize,
-                 all.cells = sum(Ncells)
-)
+#what was this for
+#all.cell.MM.HQ <- ddply(.data=DF.HetC.MixedModel.HQ,
+#                 .(sex, strain),
+#                 summarize,
+#                 all.cells = sum(Ncells)
+#)
 ```
-
 
 
 ```{r female.diference, echo=FALSE}
@@ -258,31 +236,17 @@ MSM.female.diff <- (mean.MSM.female / mean.all.other)
 
 
 ```{r male.difference, echo=FALSE}
-just.male_mouse.av <-  fomo.male_mouse.av %>% filter(sex== "male") %>% filter(species == "M.musculus") 
 
-just.male_mouse.av$sex <- factor(just.male_mouse.av$sex, ordered = FALSE)
-just.male_mouse.av$strain <- factor(just.male_mouse.av$strain, ordered = FALSE)
-just.male_mouse.av$subsp <- factor(just.male_mouse.av$subsp, ordered = FALSE)
-just.male_mouse.av$species <- factor(just.male_mouse.av$species, ordered = FALSE)
-
-
-#how much greater are the High Rec gwRRs
-just.male_mouse.av$Rec.group <- ifelse(grepl("PWD", just.male_mouse.av$strain), 1, 
-                              ifelse(grepl("MSM", just.male_mouse.av$strain), 1,
-                                ifelse(grepl("SKIVE", just.male_mouse.av$strain), 1, 0)))
-
-
-#how much bigger are the high rec male means?
-sans_LewRec_male <- just.male_mouse.av %>% filter(Rec.group == 0)
+sans_LowRec_male <- male_mouse.avs_for.analysis %>% filter(species == "M.musculus")  %>%   filter(Rec.group == 0)
 #mean(sans_LewRec_male$mean_co)
 
-PWD_male <-  just.male_mouse.av %>% filter(strain == "PWD")
+PWD_male <-  male_mouse.avs_for.analysis %>% filter(strain == "PWD")
 #mean(PWD_male$mean_co) / mean(sans_LewRec_male$mean_co)
 
-MSM_male <- just.male_mouse.av %>% filter(strain == "MSM")
+MSM_male <- male_mouse.avs_for.analysis %>% filter(strain == "MSM")
 #mean(MSM_male$mean_co) / mean(sans_LewRec_male$mean_co)
 
-SKIVE_male <-   just.male_mouse.av %>% filter(strain == "SKIVE")
+SKIVE_male <-   male_mouse.avs_for.analysis %>% filter(strain == "SKIVE")
 #mean(SKIVE_male$mean_co) /  
 ```
 
@@ -663,9 +627,10 @@ HetC_strain_table$mean_co.y <- as.numeric(HetC_strain_table$mean_co.y)
 
 ```
 
+cleanCurated_BivData  vs Curated_BivData, clean removed the few rows with bad handmeasure values and removed rows which are missing values for the hand foci count.
 
 
-```{r CurBiv.Mouse.av.TABLE, echo=FALSE}
+```{r CurBiv.Mouse.av.TABLE, echo=FALSE, eval=FALSE}
 
 #18jul19_31may19_SKIVE_m2_sp1_13.2_rev_8 is missing the 1CO position -- remove for now
 cleanCurated_BivData <- cleanCurated_BivData %>% filter(fileName != "18jul19_31may19_SKIVE_m2_sp1_13.2_rev_8")
@@ -673,7 +638,9 @@ cleanCurated_BivData <- cleanCurated_BivData %>% filter(fileName != "18jul19_31m
 #cleanCurated_BivData
 #removed the no hand foci count
 
-mouse.avs_4MM <- ddply(cleanCurated_BivData, c("mouse"), summarise,
+#there's alread a Mouse.Table_BivData --mouse.level.BivData_table
+
+mouse.BivData_avs_4MM <- ddply(cleanCurated_BivData, c("mouse"), summarise,
                         Nmice = length(unique(mouse)),
                         Ncells  = length(unique( fileName) ),
                         nbiv = length(Obj.ID),
@@ -739,8 +706,8 @@ mouse.avs_4MM$strain <- factor(mouse.avs_4MM$strain, ordered = FALSE)
 
 
 #REMOVE JUVI mice
-juvi.mouse_CurBiv_table <- mouse.avs_4MM[mouse.avs_4MM$mouse  %in% juvi_mice, ]  
-mouse.avs_4MM <- mouse.avs_4MM[! mouse.avs_4MM$mouse  %in% juvi_mice, ]  
+juvi.mouse_CurBiv_table <- mouse.avs_4MM[mouse.avs_4MM$mouse  %in% juvi_mice.list, ]  
+mouse.avs_4MM <- mouse.avs_4MM[! mouse.avs_4MM$mouse  %in% juvi_mice.list, ]  
 
 #assign high and low
 #divide musc males into groups
@@ -754,7 +721,7 @@ mouse.BivData.Table <- mouse.avs_4MM
 
 ```{r strain.curated.biv, echo=FALSE}
 
-strain.BivData.Table <- ddply(mouse.BivData.Table, c("strain", "sex"), summarise,
+strain.BivData.Table <- ddply(mouse.level.BivData_table, c("strain", "sex"), summarise,
                         
                         Nmice = length(Nmice),
                         Ncells  = sum(Ncells), #might not to be sum
@@ -817,7 +784,9 @@ algorithm.stat.category <- ddply(cell.level.BivData_table, c("sex", "strain"), s
 RENAME the curate bivdata below
 
 
-```{r Q1.biv.data_table.4MM.Male, echo=FALSE, eval=TRUE}
+```{r Q1.biv.data_table.4MM.Male, echo=FALSE, eval=FALSE}
+
+#this is redundant
 
 male.av_4MM <- ddply(cleanCurated_BivData, c("mouse"), summarise,
                         Nmice = length(unique(mouse)),
@@ -963,7 +932,7 @@ sum_MLH1.female.spc.glm.M2 <- summary(MLH1.female.spc.glm.M2)
 
 #these are M4
 #M4
-MLH1.male.glm.M4 <- glm(mean_co ~ subsp * strain, data= just.male_mouse.av)
+MLH1.male.glm.M4 <- glm(mean_co ~ subsp * strain, data= male_mouse.avs_for.analysis)
 sum_MLH1.male.glm.M4 <- summary(MLH1.male.glm.M4)
 #round(summry.male.strain.effects$coefficients[,c(1,4)], 5)
 
@@ -975,7 +944,7 @@ sum_MLH1.male.glm.M4 <- summary(MLH1.male.glm.M4)
 #write.table(summry.male.strain.effects$coefficients , "~./MLH1repo/summry.male.strain.effects.csv", sep=",",row.names = TRUE)
 
 #M4.2
-MLH1.male.glm.M4.2 <- glm(mean_co ~ strain, data= just.male_mouse.av)
+MLH1.male.glm.M4.2 <- glm(mean_co ~ strain, data= male_mouse.avs_for.analysis)
 sum_MLH1.male.glm.M4.2 <- summary(MLH1.male.glm.M4.2)
 
 #round(lm.male.strain_sum$coefficients[,c(1,4)], 5)
@@ -995,6 +964,8 @@ M4 - strain (sex specific)
 
 
 ```{r M1.MLH1.var_cv, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+#why is this block false? are the models in the MS.RMD file?
+
 MLH1var_M1 <- lmer( var ~ subsp * sex +(1|strain), data=DF.HetC.MixedModel.HQ )
 MLH1var_M1.reduce.sex <- lmer( var ~ subsp  +(1|strain), data=DF.HetC.MixedModel.HQ )
 MLH1var_M1.reduce.subp <- lmer( var ~ sex  +(1|strain), data=DF.HetC.MixedModel.HQ )
@@ -1012,7 +983,9 @@ sex.results =  LmerMLH1_VAR_sex, interaction.pval = LmerMLH1_VAR_int,  rand.pval
 
 standardize the lm's and glms!
 
-```{r M2.MLH1.var, echo=FALSE, include=FALSE, eval=TRUE}
+```{r M2.MLH1.var, echo=FALSE, include=FALSE, eval=F}
+
+
 #not including this model for now / brivity
 #$$mouse CO metric  ~=~ subsp * sex * strain + \varepsilon$$
 
@@ -1045,7 +1018,7 @@ MLH1cv_M2_Q12 <- glm( cV ~ subsp*sex*strain, data=Q12_mouse_table_w.Ages )
 ```
 
 
-```{r M3.MLH1.var, echo=FALSE, eval=TRUE}
+```{r M3.MLH1.var, echo=FALSE, eval=F}
 glmMLH1Var_M3 <- glm( var ~ sex * strain,  data=DF.HetC.MixedModel.HQ )
 glmMLH1Var_M3_sum <- summary(glmMLH1Var_M3)
 #round(glmMLH1Var_M3_sum$coefficients[,c(1,4)], 5)
@@ -1067,7 +1040,7 @@ MLH1cv_M4_Q12 <- glm( cV ~ sex*strain, data=Q12_mouse_table_w.Ages )
 ```
 
 
-```{r MLH1.var.M4, echo=FALSE, eval=TRUE}
+```{r MLH1.var.M4, echo=FALSE, eval=F}
 #male
 glmMLH1Var_M4.male <- glm( var ~ subsp * strain,  data= (DF.HetC.MixedModel.HQ %>% filter(sex == "male") ) )
 
@@ -1081,7 +1054,7 @@ glmMLH1Var_M4.femaleQ12 <- glm( var ~ subsp * strain,  data= (Q12_mouse_table_w.
 ```
 
 
-```{r FEMALE.VAR.MODELS, echo=FALSE, eval=TRUE}
+```{r FEMALE.VAR.MODELS, echo=FALSE, eval=F}
 ## within mouse variance models 
 lmVAR.female.strain.subsp <- glm(var ~ subsp * strain, data= female_mouse.avs_for.analysis)
 summry.female.strain.VAReffects <- summary(lmVAR.female.strain.subsp)
@@ -1110,7 +1083,7 @@ lm.m2.Q12_female.cv_sum <- summary(lm.m2.Q12_female.cv)
 ```
 
 
-```{r MALE.SPECIFIC.variance.model, echo=FALSE, eval=TRUE}
+```{r MALE.SPECIFIC.variance.model, echo=FALSE, eval=F}
 ## within mouse variance models 
 lmVAR.male.strain.subsp <- glm(var ~ subsp * strain, data= just.male_mouse.av)
 summry.male.strain.VAReffects <- summary(lmVAR.male.strain.subsp)
@@ -1398,27 +1371,25 @@ ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.D
 # toal SC
 
 
-```{r totSC_setup, echo=FALSE}
-#SC.skel
-#"anon.batch" "rand_name"  "bin_size"   "skel_size" , all batches included
+```{r totSC_setup, echo=FALSE, eval = F}
 
-SC.skel.OG <- SC.skel #5683
+#Total.SC_DF is the main dataframe and should be set up cleanly in the SetUpData.Rmd
+#SC.skel.OG <- SC.skel #5683
 
-#MERGEING MLH1 with SKEL
-MLH1.merge.Skel <- merge(original_DF, SC.skel, by.x = "Random.Name", by.y = "rand_name", all= F)
+tot.sc.x.list <- Total.SC_DF %>% filter(X == "X") 
 
-MLH1.merge.Skel <- add_mouse(MLH1.merge.Skel)
-MLH1.merge.Skel <- add_strain(MLH1.merge.Skel)
-MLH1.merge.Skel <- add_sex(MLH1.merge.Skel)
-MLH1.merge.Skel <- add_subsp(MLH1.merge.Skel)
-MLH1.merge.Skel <- add_category(MLH1.merge.Skel)
-MLH1.merge.Skel <- add_subsp(MLH1.merge.Skel)
-#5110, 
+Total.SC_DF.og <- Total.SC_DF[! Total.SC_DF$Random.Name %in% tot.sc.x.list$Random.Name, ]
+#quality is still a factor
+str(Total.SC_DF.og)
+Total.SC_DF.og$quality <- as.numeric(Total.SC_DF.og$quality)
+
+Total.SC_DF.og <- Total.SC_DF.og %>% filter(quality < 5)
+
 
 OG.MLH1.merge.Skel <- MLH1.merge.Skel #raw version of DF
 
 #check for DUPs, #check for duplicatations of the random name
-MLH1.merge.Skel$ fileName  <- as.character(MLH1.merge.Skel$fileName)
+MLH1.merge.Skel$fileName  <- as.character(MLH1.merge.Skel$fileName)
 tot.SC.dupies <- MLH1.merge.Skel[duplicated(MLH1.merge.Skel$ fileName ),]
 
 MLH1.merge.Skel <- MLH1.merge.Skel %>% filter( X == "") %>% filter(REDO.crop == "no")
@@ -1428,143 +1399,29 @@ MLH1.merge.Skel$skel_size <- as.numeric(MLH1.merge.Skel$skel_size)
 #table(MLH1.merge.Skel$category)
 
 #remove outliers
-MLH1.merge.Skel <- MLH1.merge.Skel  %>% filter(bin_size < 60000)
+#MLH1.merge.Skel <- MLH1.merge.Skel  %>% filter(bin_size < 60000)
 
 ```
+
+-- The total_SC outliers should be removed in the total.SC RData script
 
 
 ```{r totSC.viz4outliers, echo=FALSE}
 
+#Total.SC_DF
+#mouse.total.skel
+
 # -- EXAMINE the ggplot scatter plots for outliers
-tot.sc <- ggplot(data= MLH1.merge.Skel, aes(y = bin_size, x=strain))+ geom_jitter()+facet_wrap(~category, scales = "free")
-
-#round 1
-SC.skel.outliers_round1 <- c(
-  #MLH1.merge.Skel  %>% filter(category == "WSB male") %>% filter(skel_size > 2000)
-  "10apr15_31mar15_WSB_m3_sp1_4_rev.tif",
-  
-  #MLH1.merge.Skel  %>% filter(category == "WSB female") %>% filter(skel_size > 2700)       
-            "17nov16_3nov15_WSB_f1_sp3_4_rev.tif","1may16_3nov15_WSB_f1_sp2_6_rev.tif",
-                      
-    #MLH1.merge.Skel  %>% filter(category == "G male") %>% filter(skel_size > 20000) 
-                      "19oct15_12oct15_G_m1_sp1_17.1_rev.tif",
-  
-  #MLH1.merge.Skel  %>% filter(category == "G female") %>% filter(skel_size > 20000) 
-              "1mar16_20feb16_G_f3_sp1_8_rev.tif","21nov16_16jan16_G_f2_sp1_15_rev.tif",
-  
-  #MLH1.merge.Skel  %>% filter(category == "LEW male") %>% filter(skel_size < 1000)          
-          "6mar18_1feb18_LEW_m1_sp1_21.5_rev",
-  
-  #MLH1.merge.Skel  %>% filter(category == "LEW female") %>% filter(skel_size > 20000)   
-          "12jan17_4jan17_LEW_f1_sp1_32_rev.tif","20mar17_13jan17_LEW_f2_sp1_12_rev.tif","9apr18_1feb18_LEW_f1_sp1_23_rev.tif","9apr18_1feb18_LEW_f1_sp1_12_rev.tif", 
-                      
-       #MLH1.merge.Skel  %>% filter(category == "PWD male") %>% filter(skel_size > 20000)  
-                      "6mar15_1mar15_PWD_m1_sp4_6.1_rev.tif","7mar15_1mar15_PWD_m1_sp4_2_rev.tif","20jul15_18may15_PWD_m2_sp1_10.2_rev.tif",
-           
-   #MLH1.merge.Skel  %>% filter(category == "PWD female") %>% filter(skel_size > 20000)
-   "6may15_17apr15_PWD_f1_sp1_7_rev",  
-       
-      #MLH1.merge.Skel  %>% filter(category == "KAZ male") %>% filter(skel_size < 1000)
-            "6aug19_10jul19_KAZ_m1_sp1_7.1_rev.tif",
-            
-    # MLH1.merge.Skel  %>% filter(category == "KAZ female") %>% filter(skel_size > 30000)     
-    "16feb18_1feb18_KAZ_f4_sp1_20_rev.tif",  "8feb18_1feb18_KAZ_f1_sp1_24_rev.tif",  
-  "16feb18_1feb18_KAZ_f4_sp1_1_rev.tif",   "8feb18_1feb18_KAZ_f1_sp1_5_rev.tif",   
- "16feb18_1feb18_KAZ_f4_sp1_17_rev.tif",  "1mar18_1feb18_KAZ_f3_sp1_8_rev.tif",   
- "7feb18_11jan18_KAZ_f3_sp1_27_rev.tif",  "20apr18_11jan18_KAZ_f1_sp1_6_rev.tif", 
- "16feb18_1feb18_KAZ_f2_sp1_5.2_rev.tif", "16feb18_1feb18_KAZ_f2_sp1_15_rev.tif", 
-"7feb18_11jan18_KAZ_f3_sp1_13_rev.tif",  "13apr18_1feb18_KAZ_f6_sp1_25_rev.tif" ,
-            
-  # MLH1.merge.Skel  %>% filter(category == "SKIVE female") %>% filter(skel_size > 10000)
-    "10jun19_31may19_SKIVE_f6_sp1_47_rev.tif","10jun19_31may19_SKIVE_f6_sp1_7_rev.tif",
-
-# MLH1.merge.Skel  %>% filter(category == "MOLF male") %>% filter(skel_size < 1200)
-"4jun19_28sep18_MOLF_m1_sp1_10.1_rev.tif",
-
-#MLH1.merge.Skel  %>% filter(category == "AST male") %>% filter(skel_size > 2100)
-"16aug19_27aug18_AST_m1_sp1_23_rev.tif",
-
-#MLH1.merge.Skel  %>% filter(category == "MSM female") %>% filter(skel_size > 20000)
-"21nov17_16nov17_MSM_f3_sp1_24_rev.tif","21nov17_16nov17_MSM_f3_sp1_3_rev.tif", "21nov17_16nov17_MSM_f3_sp1_27_rev.tif","4dec17_16nov17_MSM_f2_sp1_10_rev.tif",
-"5aug17_14jul17_MSM_f1_sp1_25_rev.tif","24jan18_31dec17_MSM_f3_sp1_3_rev.tif", 
-"24jan18_31dec17_MSM_f3_sp1_22_rev.tif","21nov17_16nov17_MSM_f3_sp1_17_rev.tif",
-
-#tt <- MLH1.merge.Skel  %>% filter(category == "SPIC female") %>% filter(skel_size > 20000)
-"27dec17_4dec17_SPIC_f1_sp1_12_rev.tif",  "5apr18_31dec17_SPIC_f2_sp1_1_rev.tif",
- "26sep18_30may18_SPIC_f4_sp1_14_rev.tif", "4feb18_31dec17_SPIC_f1_sp1_21_rev.tif", 
- "5apr18_31dec17_SPIC_f2_sp1_22_rev.tif",  "27dec17_4dec17_SPIC_f1_sp1_40_rev.tif", 
- "4jul18_30may18_SPIC_f1_sp1_6_rev.tif",   "26sep18_30may18_SPIC_f4_sp1_6_rev.tif", 
- "29dec17_4dec17_SPIC_f2_sp1_10_rev.tif",  "5sep17_21aug17_SPI_f2_sp1_37_rev.tif" , 
- "5sep17_21aug17_SPI_f2_sp1_15_rev.tif",   "26sep18_30may18_SPIC_f4_sp1_24_rev.tif",
-"29dec17_4dec17_SPIC_f2_sp1_16_rev.tif",  "5sep17_21aug17_SPI_f2_sp1_30_rev.tif",  
-"4feb18_31dec17_SPIC_f1_sp1_5_rev.tif",   "5apr18_31dec17_SPIC_f2_sp1_25_rev.tif", 
- "26sep18_30may18_SPIC_f4_sp1_4_rev.tif",  "5sep17_21aug17_SPI_f2_sp1_22_rev.tif",  
- "5sep17_21aug17_SPI_f2_sp1_19_rev.tif",   "5sep17_21aug17_SPI_f2_sp1_29_rev.tif",  
- "26sep18_30may18_SPIC_f4_sp1_3_rev.tif",  "5sep17_21aug17_SPI_f2_sp1_5.2_rev.tif", 
- "29dec17_4dec17_SPIC_f2_sp1_6_rev.tif",   "13oct17_21aug17_SPI_f1_sp1_13_rev.tif"  )
-
-
-MLH1.merge.Skel_1 <- MLH1.merge.Skel[!MLH1.merge.Skel$fileName %in% SC.skel.outliers_round1, ]#62 removed
-
-
-remove.mice_round2 <- c(
-    #MLH1.merge.Skel  %>% filter(category == "G male") %>% filter(skel_size > 2500)
-    "28jul15_22jun15_G_m2_sp1_5_rev.tif","12may15_30sep14_G_m5_sp1_26_rev.tif",  
-    
-    #MLH1.merge.Skel  %>% filter(category == "G female") %>% filter(skel_size > 20000)
-  "19oct15_12oct15_G_m1_sp1_17.1_rev.tif",
-  
-#MLH1.merge.Skel_2  %>% filter(category == "PWD male") %>% filter(skel_size > 2100)
-"20jul15_18may15_PWD_m1_sp1_10_rev.tif","22mar15_10mar15_PWD_m2_sp1_11.2_rev.tif","22mar15_10mar15_PWD_m1_sp1_4.1_rev.tif","20jul15_18may15_PWD_m1_sp1_7.2_rev.tif",  
-
-#MLH1.merge.Skel_2  %>% filter(category == "PWD female") %>% filter(skel_size > 20000)
-  "6may15_17apr15_PWD_f1_sp1_7_rev.tif",
-  
-  #MLH1.merge.Skel_2  %>% filter(category == "KAZ female") %>% filter(skel_size < 1000)
-  "8feb18_1feb18_KAZ_f1_sp1_19_rev.tif",
-
-#MLH1.merge.Skel_2  %>% filter(category == "LEW male") %>% filter(skel_size < 1000 | skel_size > 1750)
-"6mar18_1feb18_LEW_m1_sp1_10_rev.tif","3mar15_13jan17_LEW_m1_sp1_15_rev.tif", "4feb17_4jan17_LEW_m1_sp1_13_rev.tif","6mar18_1feb18_LEW_m1_sp1_21.5_rev.tif",
-
-#MLH1.merge.Skel_2  %>% filter(category == "LEW female") %>% filter(skel_size > 2750 ) 
-"20mar17_13jan17_LEW_f2_sp1_10_rev.tif",
-
-# MLH1.merge.Skel_2  %>% filter(category == "CAROLI male") %>% filter(skel_size < 1400 )
-"31aug18_1mar18_CAROLI_m1_sp3_29.2_rev.tif",
-
-#MLH1.merge.Skel_2  %>% filter(category == "MSM male") %>% filter(skel_size < 1200 )
-"16aug17_5jul17_MSM_m1_sp1_6.1_rev.tif",
-
-#tt <- MLH1.merge.Skel_2  %>% filter(category == "MSM female") %>% filter(skel_size > 2850 ) 
-"29nov17_16nov17_MSM_f1_sp1_10_rev.tif", "4dec17_16nov17_MSM_f2_sp1_24_rev.tif", "21nov17_16nov17_MSM_f3_sp1_26_rev.tif",
-#SPIC male  x
-#SPIC female  x
-#TOM x
-#AST x
-#CZECH male x 
-
-#MLH1.merge.Skel_2  %>% filter(category == "SPRET male") %>% filter(skel_size < 1900 ) 
- "24may17_8may17_SPRET_m1_sp1_21.1_rev.tif",
-#SPRET female X
-#MLH1.merge.Skel_2  %>% filter(category == "HMI male") %>% filter(skel_size < 1000 ) 
-"29dec17_4dec17_HMI_m1_sp1_4.1_rev.tif"
-)
-#3remove.mice_round2
-
-MLH1.merge.Skel_2 <- MLH1.merge.Skel_1[!MLH1.merge.Skel_1$fileName %in% remove.mice_round2, ]
-#MLH1.merge.Skel <- MLH1.merge.Skel[! (MLH1.merge.Skel$fileName %in% SC.skel.outliers_round1),]
-#MLH1.merge.Skel <- MLH1.merge.Skel[! (MLH1.merge.Skel$fileName %in% remove.mice_round2),]
-all.remove <- paste( c(SC.skel.outliers_round1, remove.mice_round2 ) )
-
-MLH1.merge.Skel <- MLH1.merge.Skel_2
-
-MLH1.merge.Skel <- add_species(MLH1.merge.Skel)
-
+show.tot.sc_plot <- ggplot(data= ( Total.SC_DF %>% filter(sex == "male") ), aes(y = skel_size, x=strain))+ geom_jitter()+facet_wrap(~category, scales = "free")
 ```
 
 
-```{r tot.skel.table, echo=FALSE}
+```{r tot.skel.table, echo=FALSE, eval=FALSE}
 #move to setup file
+
+#this is redundant, setup data made -- mouse.total.skel
+
+#make sure the table is clean -- no 5
 
 MLH1.merge.Skel$nMLH1.foci <- as.numeric(MLH1.merge.Skel$nMLH1.foci)
 
@@ -1616,11 +1473,11 @@ totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain 
 
 
 
-```{r tot.SC_strain.setup, echo = FALSE}
-#move to setup
+```{r tot.SC_strain.setup, echo = FALSE, eval=FALSE}
 
+#not sure if this is used
 
-totSC.strain.av.table <- ddply(.data=totSC.mouse.av.table, 
+totSC.strain.av.table <- ddply(.data=mouse.total.skel, 
                  .(sex,strain),
                  summarize, 
                  ncells = sum(ncells),
@@ -1636,14 +1493,6 @@ totSC.strain.av.table <- ddply(.data=totSC.mouse.av.table,
 )
 
 totSC.strain.av.table <- add_subsp(totSC.strain.av.table)
-
-```
-
-
-
-```{r Q1.F1pos_long.short_setup, echo=FALSE, eval=TRUE}
-
-Q1.long.biv_1CO <-  real.long.bivData %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1) %>% filter(strain != "MOLF") %>% filter(strain != "CZECH")
 
 ```
 
@@ -1904,7 +1753,7 @@ ifelse(grepl("MSM", Q2mouse.av.short.biv.table$strain), 1,
 
 <!-- plots -->
 
-```{r Q2.show.SC.length, echo=FALSE, warning=FALSE}
+```{r Q2.show.SC.length, echo=FALSE, warning=FALSE, eval=FALSE}
 
 Curated_BivData99 <- Curated_BivData[Curated_BivData$hand.foci.count < 5,]
 Curated_BivData99 <- Curated_BivData99[(!is.na(Curated_BivData99$sex)),]
@@ -1961,7 +1810,7 @@ mouse.shoo.long.biv <- ggplot( REAL.long_mouse_table, aes(y=mean.sc, x=strain, c
 ```
 
 
-```{r Q2_tot.sc_plot, echo=FALSE, warning=FALSE}
+```{r Q2_tot.sc_plot, echo=FALSE, warning=FALSE, eval=FALSE}
 
 #totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain !="F1"& strain !="SPIC" & strain !=  "CAROLI" & strain !="SPRET"& strain !="HMI"& strain !="PERC")
 
@@ -1974,15 +1823,6 @@ mouse.av_totsc_male <- ggplot(data= totSC.mouse.av.table %>% filter(sex == "male
 
 ```
 
-```{r Q2.SC_MLH1.by.totalSC, echo=FALSE, warning=FALSE}
-
-#make plot of mouse averages for MLH1 and total SC
-bep <- merge(  fomo.male_mouse.av,   totSC.mouse.av.table)
-
-X.by.texas <- ggplot(bep, aes(x=mean.skel, y=mean_co, color=strain))+geom_point()+
-  scale_color_manual(values=colors_of_strains)+ggtitle("Total SC by mean CO\nMouse Means")
-
-```
 
 ```{r Q2totalSC_checkdates, echo=FALSE, eval=FALSE}
 
@@ -2007,24 +1847,25 @@ Neg.control.find.date <- ggplot(bep, aes(x=mean.skel, y=mean.bin, color=strain))
 
 ```
 
+
 ```{r Q2.totSC.ttest, echo=FALSE}
+
 #totalSC high and low rec group
 
-Q2tot.sc_t.test_High.Low <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %>% filter(Rec.group == "0") )$mean.skel,
-                (totSC.mouse.av.table %>% filter(sex == "male") %>% filter(Rec.group == "1") )$mean.skel)
-#p-value = 0.007
+Q2tot.sc_t.test_High.Low <- t.test( (mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "0") %>% filter(species == "M.musculus") )$mean.skel,
+                (mouse.total.skel %>% filter(species == "M.musculus") %>% filter(sex == "male") %>% filter(Rec.group == "1") )$mean.skel)
 
 
-#mol
-Q2tot.sc_t.test_High.Low_Mol <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %>% filter(Rec.group == "0") %>% filter(subsp == "Mol") )$mean.skel,
-         (totSC.mouse.av.table %>% filter(sex == "male") %>% filter(Rec.group == "1") %>% filter(subsp == "Mol") )$mean.skel)
-
+#mol -- why is there only 1 MOLF male now?
+#Q2tot.sc_t.test_High.Low_Mol <- t.test( (mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "0") %>% filter(subsp == "Mol") )$mean.skel,
+#         (mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "1") %>% #filter(subsp == "Mol") )$mean.skel)
 
 #musc
-Q2tot.sc_t.test_High.Low_Musc <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %>% filter(Rec.group == "0") %>% filter(subsp == "Musc"))$mean.skel,
-                (totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Musc") %>% filter(Rec.group == "1") )$mean.skel)
+Q2tot.sc_t.test_High.Low_Musc <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "0") %>% filter(subsp == "Musc"))$mean.skel,
+                (mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Musc") %>% filter(Rec.group == "1") )$mean.skel)
 
 ```
+The molf male t-tests don't work because I only have total Sc measures for 1 MOLF male. to of the todo list if I get back to lab.
 
 
 ```{r Q2.short.long.ttest, echo=FALSE}
@@ -2085,13 +1926,13 @@ Q2.BIV_long_t.test_HL <- t.test((real.long.bivData %>%filter(sex == "male")%>%fi
 ```{r Q2.SC_across.subsp_tot.SC, echo=FALSE}
 
 #Dom-Musc
-Q2.totSC_t.test_DomMusc <- t.test((totSC.mouse.av.table  %>% filter(subsp == "Dom") )$mean.skel,
-                          (totSC.mouse.av.table  %>%  filter(subsp == "Musc"))$mean.skel)
+Q2.totSC_t.test_DomMusc <- t.test((mouse.total.skel  %>% filter(subsp == "Dom") )$mean.skel,
+                          (mouse.total.skel  %>%  filter(subsp == "Musc"))$mean.skel)
 #p-value = 0.5
 
 #Dom-Mol
-Q2.totSC_t.test_DomMol <- t.test((totSC.mouse.av.table  %>% filter(subsp == "Dom") )$mean.skel,
-                          (totSC.mouse.av.table  %>%  filter(subsp == "Mol"))$mean.skel)
+Q2.totSC_t.test_DomMol <- t.test((mouse.total.skel  %>% filter(subsp == "Dom") )$mean.skel,
+                          (mouse.total.skel  %>%  filter(subsp == "Mol"))$mean.skel)
 #p-value = 0.1
 ```
 
@@ -2159,7 +2000,7 @@ Q2.shortBIV_t.test_DomMol <- t.test((real.short.bivData  %>% filter(subsp == "Do
 
 ```{r Q2.totSC.glm, echo=FALSE}
 
-Q2.glm_mus.av_totSC_M4 <- glm(mean.skel ~ subsp * strain, data= totSC.mouse.av.table %>% filter(sex == "male"))
+Q2.glm_mus.av_totSC_M4 <- glm(mean.skel ~ subsp * strain, data= mouse.total.skel %>% filter(sex == "male") %>% filter(species == "M.musculus") )
 sum.Q2.glm_mus.av_totSC_M4  <- summary(Q2.glm_mus.av_totSC_M4)$coefficients
 
 #sum.Q2.glm_mus.av_totSC_M4$coefficients[,4]   pvalues of all effects
@@ -2168,28 +2009,27 @@ sum.Q2.glm_mus.av_totSC_M4  <- summary(Q2.glm_mus.av_totSC_M4)$coefficients
 
 #M4.2? (removed subspecies?)
 
-Q2.glm_mus.av_totSC_M4.2 <- glm(mean.skel ~ strain, data= totSC.mouse.av.table %>% filter(sex == "male"))
+Q2.glm_mus.av_totSC_M4.2 <- glm(mean.skel ~ strain, data= mouse.total.skel %>% filter(sex == "male") %>% filter(species == "M.musculus") )
 sum.Q2.glm_mus.av_totSC_M4.2  <- summary(Q2.glm_mus.av_totSC_M4.2)
 #round(summary(sum.Q2.glm_mus.av_totSC_M2)$coefficients[,c(1,4)], 6)
 
-totSC.mouse.av.table <- add_strain(totSC.mouse.av.table)
-totSC.mouse.av.table <- add_sex(totSC.mouse.av.table)
-totSC.mouse.av.table <- add_subsp(totSC.mouse.av.table)
+mouse.total.skel <- add_strain(mouse.total.skel)
+mouse.total.skel <- add_sex(mouse.total.skel)
+mouse.total.skel <- add_subsp(mouse.total.skel)
 #within subspecies values
 
 #Dom
-Q2.glm_mus.av_totSC_M4.2_DOM <- glm(mean.skel ~ strain, data= totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Dom"))
+Q2.glm_mus.av_totSC_M4.2_DOM <- glm(mean.skel ~ strain, data= mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Dom") %>% filter(species == "M.musculus") )
 sum.Q2.glm_mus.av_totSC_M4.2_DOM  <- summary(Q2.glm_mus.av_totSC_M4.2_DOM)
 #there are significant strain effects in DOM,
 
-
 #Musc
-Q2.glm_mus.av_totSC_M4.2_MUSC <- glm(mean.skel ~ strain, data= totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Musc") )
+Q2.glm_mus.av_totSC_M4.2_MUSC <- glm(mean.skel ~ strain, data= mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Musc") %>% filter(species == "M.musculus") )
 sum.Q2.glm_mus.av_totSC_M4.2_MUSC  <- summary(Q2.glm_mus.av_totSC_M4.2_MUSC)
 #KAZ -- is the only significant effect
 
 #Mol
-Q2.glm_mus.av_totSC_M4.2_MOL <- glm(mean.skel ~ strain, data= totSC.mouse.av.table %>% filter(sex == "male") %>% filter(subsp == "Mol") )
+Q2.glm_mus.av_totSC_M4.2_MOL <- glm(mean.skel ~ strain, data= mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Mol") %>% filter(species == "M.musculus") )
 sum.Q2.glm_mus.av_totSC_M4.2_MOL  <- summary(Q2.glm_mus.av_totSC_M4.2_MOL)
 
 ```
@@ -2431,13 +2271,13 @@ summary(log.SC_male_chrm.class)
 ```
 
 
-```{r Q2.SC.log.regression.show.plots, echo=FALSE, include=FALSE}
+```{r Q2.SC.log.regression.show.plots, echo=FALSE, include=FALSE, eval=FALSE}
 
-plot.blah.mouse.av <- ggplot(Male.poly.Mouse.Table_BivData_4MM,
+plot.blah.mouse.av <- ggplot( Male.poly.Mouse.Table_BivData_4MM,
                           aes(x=mean_SC, y=Rec.group)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("Mouse av. SC (pooled) \nHigh vs low gwRR strains")+facet_wrap(~subsp)
 
 
-plot.logReg.mouse.av_1CO <- ggplot(Male.poly.Mouse.Table_BivData_4MM,
+plot.logReg.mouse.av_1CO <- ggplot( Male.poly.Mouse.Table_BivData_4MM,
                           aes(x=mean.SC_1CO, y=Rec.group)) + geom_point(aes(color=strain)) +  scale_color_manual(values=colors_of_strains)+ stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE) + ggtitle("Mouse av. SC 1CO \nHigh vs low gwRR strains")+facet_wrap(~subsp)
 
 
@@ -2481,15 +2321,9 @@ Rec.group.mouse.SC.2CO_Ttest$p.value  #p-value = 0.03428
 
 ```
 
-```{r log.reg_SC.length, echo=FALSE, include=FALSE}
+
+```{r log.reg_SC.length, echo=FALSE, include=FALSE, eval=FALSE}
 #REMOVE THIS COMPARES FROM FULL BIV DATA
-
-#male_mouse.av
-#Male.poly.Mouse.Table_BivData_4MM
-
-Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
-                                ifelse(grepl("MSM male", Curated_BivData$category), 1,
-                                ifelse(grepl("SKIVE male", Curated_BivData$category), 1, 0)))
 
 #male poly shouldn't be here
 Male.poly.Mouse.Table_BivData_4MM$Rec.group <- ifelse(grepl("PWD male", Male.poly.Mouse.Table_BivData_4MM$category), 1, 
@@ -2550,15 +2384,9 @@ log.reg_SC.length_BIV_3CO <- glm(Rec.group ~ chromosomeLength,
 #summary(log.reg_SC.length_BIV_3CO)
 ```
 
+
 ```{r Q2.SC_class.rec.group_setup, echo=FALSE, include=FALSE}
 #REMOVE THIS, IT uses total bivalent data
-
-
-#rerun the models for datasets -- deviding by chrm class and rec group
-Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
-                            ifelse(grepl("MSM male", Curated_BivData$category), 1,
-                             ifelse(grepl("SKIVE male", Curated_BivData$category), 1, 0)) )
-
 
 Q2.SC_BivData_low.rec <- Curated_BivData %>% filter(sex=="male") %>% filter( hand.foci.count < 5)%>% filter(Rec.group == 0 )
 Q2.SC_BivData_high.rec <- Curated_BivData %>% filter(sex=="male") %>% filter( hand.foci.count < 5) %>% filter(Rec.group == 1 )
@@ -2686,12 +2514,18 @@ Rec.group_BivData_F1post_Ttest <- t.test(
 
 ```{r Q2.1COpos_mus.av.full_glm, echo=FALSE}
 
+mouse.level.BivData_table <- add_species(mouse.level.BivData_table)
+
 #(mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Musc") %>% filter(Rec.group == "0"))$norm.first.foci.pos
 
 #none of these are M1 -- since they are male specific 
 #all of these are M4
+#mouse table SC
+#mouse.level.BivData_table .. mouse.avs_4MM
 
-Q2.glm_mus.av_1COpos_M4 <- glm(norm.first.foci.pos ~ subsp * strain, data= mouse.avs_4MM %>% filter(sex == "male"))
+#why won't this work
+Q2.glm_mus.av_1COpos_M4 <- glm(mean_1CO.pos.PER ~ subsp * strain, data = (mouse.level.BivData_table  %>% filter(sex == "male") %>% filter(species == "M.musculus") ) )
+
 sum.Q2.glm_mus.av_1COpos_M4  <- summary(Q2.glm_mus.av_1COpos_M4)$coefficients
 #summary(Q2.glm_mus.av_1COpos_M1)$coefficients[,4]
 
@@ -2701,7 +2535,7 @@ sum.Q2.glm_mus.av_1COpos_M4  <- summary(Q2.glm_mus.av_1COpos_M4)$coefficients
 
 
 #M4.2 (just strain)
-Q2.glm_mus.av_1COpos_M4.2 <- glm(norm.first.foci.pos ~ strain, data= mouse.avs_4MM %>% filter(sex == "male"))
+Q2.glm_mus.av_1COpos_M4.2 <- glm(norm.first.foci.pos ~ strain, data= mouse.level.BivData_table %>% filter(sex == "male") %>% filter(species == "M.musculus") )
 sum.Q2.glm_mus.av_1COpos_M4.2 <- summary(Q2.glm_mus.av_1COpos_M4.2)$coefficients
 
 ```
@@ -2871,29 +2705,29 @@ Short.removed_BivData.LongBiv_IFD.ABS_Ttest <- t.test(LongBiv_IFD_mus.rate$mean.
 ```{r Q2.t.test_IFD_mouse.av, echo=FALSE, eval=TRUE}
 #t.test for IFD
 #mouse.av - the mouse average IFD is from just 2CO
-t.test_mouse.av.IFD_ABS <- t.test(  (mouse.avs_4MM %>% filter(Rec.group == "1") %>% filter(sex == "male") )$mean_IFD.2CO_ABS, 
-   (mouse.avs_4MM %>% filter(Rec.group == "0") %>% filter(sex == "male") )$mean_IFD.2CO_ABS   )
+t.test_mouse.av.IFD_ABS <- t.test(  (mouse.level.BivData_table %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(species == "M.musculus") )$mean_IFD.2CO_ABS, 
+   (mouse.level.BivData_table %>% filter(Rec.group == "0") %>% filter(sex == "male")%>% filter(species == "M.musculus") )$mean_IFD.2CO_ABS   )
   
-t.test_mouse.av.IFD_PER <- t.test(  (mouse.avs_4MM %>% filter(Rec.group == "1") %>% filter(sex == "male") )$mean_IFD.2CO_PER,
-   (mouse.avs_4MM %>% filter(Rec.group == "0") %>% filter(sex == "male") )$mean_IFD.2CO_PER   )
+t.test_mouse.av.IFD_PER <- t.test(  (mouse.level.BivData_table %>% filter(Rec.group == "1") %>% filter(sex == "male") )$mean_IFD.2CO_PER,
+   (mouse.level.BivData_table %>% filter(Rec.group == "0") %>% filter(sex == "male") %>% filter(species == "M.musculus") )$mean_IFD.2CO_PER   )
 
 
 #t.test_mouse.av.IFD_PER_DOM <- t.test(  (mouse.avs_4MM %>% filter(Rec.group == "1") %>% filter(sex == #"male") %>% filter(subsp == "Dom") )$mean_IFD.2CO_PER,
 #   (mouse.avs_4MM %>% filter(Rec.group == "0") %>% filter(sex == "male")  %>% filter(subsp == #"Dom"))$mean_IFD.2CO_PER   )
 
-t.test_mouse.av.IFD_PER_MUSC <- t.test(  (mouse.avs_4MM %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(subsp == "Musc") )$mean_IFD.2CO_PER,
-   (mouse.avs_4MM %>% filter(Rec.group == "0") %>% filter(sex == "male")  %>% filter(subsp == "Musc"))$mean_IFD.2CO_PER   )
+t.test_mouse.av.IFD_PER_MUSC <- t.test(  (mouse.level.BivData_table %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(subsp == "Musc") %>% filter(species == "M.musculus") )$mean_IFD.2CO_PER,
+   (mouse.level.BivData_table %>% filter(Rec.group == "0") %>% filter(sex == "male")  %>% filter(subsp == "Musc") %>% filter(species == "M.musculus") )$mean_IFD.2CO_PER   )
 
-t.test_mouse.av.IFD_PER_MOL <- t.test(  (mouse.avs_4MM %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(subsp == "Mol") )$mean_IFD.2CO_PER,
-   (mouse.avs_4MM %>% filter(Rec.group == "0") %>% filter(sex == "male") %>% filter(subsp == "Mol") )$mean_IFD.2CO_PER   )
+t.test_mouse.av.IFD_PER_MOL <- t.test(  (mouse.level.BivData_table %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(subsp == "Mol") %>% filter(species == "M.musculus") )$mean_IFD.2CO_PER,
+   (mouse.level.BivData_table %>% filter(Rec.group == "0") %>% filter(sex == "male") %>% filter(subsp == "Mol") %>% filter(species == "M.musculus") )$mean_IFD.2CO_PER   )
 
 #ABS
 
-t.test_mouse.av.IFD_ABS_MUSC <- t.test(  (mouse.avs_4MM %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(subsp == "Musc") )$mean_IFD.2CO_ABS,
-   (mouse.avs_4MM %>% filter(Rec.group == "0") %>% filter(sex == "male")  %>% filter(subsp == "Musc"))$mean_IFD.2CO_ABS   )
+t.test_mouse.av.IFD_ABS_MUSC <- t.test(  (mouse.level.BivData_table %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(subsp == "Musc") %>% filter(species == "M.musculus"))$mean_IFD.2CO_ABS,
+   (mouse.level.BivData_table %>% filter(Rec.group == "0") %>% filter(sex == "male")  %>% filter(subsp == "Musc")%>% filter(species == "M.musculus"))$mean_IFD.2CO_ABS   )
 
-t.test_mouse.av.IFD_ABS_MOL <- t.test(  (mouse.avs_4MM %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(subsp == "Mol") )$mean_IFD.2CO_ABS,
-   (mouse.avs_4MM %>% filter(Rec.group == "0") %>% filter(sex == "male") %>% filter(subsp == "Mol") )$mean_IFD.2CO_ABS  )
+t.test_mouse.av.IFD_ABS_MOL <- t.test(  (mouse.level.BivData_table %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(subsp == "Mol") %>% filter(species == "M.musculus"))$mean_IFD.2CO_ABS,
+   (mouse.level.BivData_table %>% filter(Rec.group == "0") %>% filter(sex == "male") %>% filter(subsp == "Mol") %>% filter(species == "M.musculus") )$mean_IFD.2CO_ABS  )
 ```
 
 
@@ -2901,47 +2735,46 @@ t.test_mouse.av.IFD_ABS_MOL <- t.test(  (mouse.avs_4MM %>% filter(Rec.group == "
 ```{r Q2.IFD.glm.test, echo=FALSE}
 
 #M4.ABS
-Q2.M4glm_IFD.raw <- glm(mean_IFD.2CO_ABS ~ subsp * strain, data= mouse.avs_4MM %>% filter(sex == "male")    )
+Q2.M4glm_IFD.raw <- glm(mean_IFD.2CO_ABS ~ subsp * strain, data= mouse.level.BivData_table %>% filter(sex == "male")  %>% filter(species == "M.musculus")  )
 sum.Q2.M4glm_IFD.raw <- summary(Q2.M4glm_IFD.raw) 
 
 #M4.PER
-Q2.M4glm_IFD.PER <- glm(mean_IFD.2CO_PER ~ subsp * strain, data= mouse.avs_4MM %>% filter(sex == "male") )
+Q2.M4glm_IFD.PER <- glm(mean_IFD.2CO_PER ~ subsp * strain, data= mouse.level.BivData_table %>% filter(sex == "male") %>% filter(species == "M.musculus")  )
 
 sum.Q2.M4glm_IFD.PER <- summary(Q2.M4glm_IFD.PER)
 #summary(Q2.M1glm_IFD.PER) 
 
 #M4.2.raw
-Q2.M4.2glm_IFD.raw <- glm(mean_IFD.2CO_ABS ~ strain, data= mouse.avs_4MM %>% filter(sex == "male"))
+Q2.M4.2glm_IFD.raw <- glm(mean_IFD.2CO_ABS ~ strain, data= mouse.level.BivData_table %>% filter(sex == "male") %>% filter(species == "M.musculus") )
 Sum.Q2.M4.2glm_IFD.raw <- summary(Q2.M4.2glm_IFD.raw)
 
-Q2.M4.2glm_IFD.PER <- glm(mean_IFD.2CO_PER ~ strain, data= mouse.avs_4MM %>% filter(sex == "male"))
+Q2.M4.2glm_IFD.PER <- glm(mean_IFD.2CO_PER ~ strain, data= mouse.level.BivData_table %>% filter(sex == "male") %>% filter(species == "M.musculus") )
 sum.Q2.M4.2glm_IFD.PER <- summary(Q2.M4.2glm_IFD.PER)
 #  MSM strain effect for 2CO PER not significant
 
 #within subspecies
 #Dom
-Q2.glm.M4.2_IFD_Dom <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Dom",])
+#Q2.glm.M4.2_IFD_Dom <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Dom",])
 #summary(Q2.glm.M4.2_IFD_Dom)
 
 #Musc
-Q2.glm.M4.2_IFD_Musc <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",])
+#Q2.glm.M4.2_IFD_Musc <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",])
 #summary(Q2.glm.M4.2_IFD_Musc)
 
 #Mol
-Q2.glm.M4.2_IFD_Mol <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",])
+#Q2.glm.M4.2_IFD_Mol <- glm(mean_IFD.2CO_ABS ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",])
 #summary(Q2.glm.M4.2_IFD_Mol)
 
-
 #Dom
-Q2.glm.M4.2_IFD.PER_Dom <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Dom",])
+#Q2.glm.M4.2_IFD.PER_Dom <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Dom",])
 #summary(Q2.glm.M4.2_IFD.PER_Dom) 
 
 #Musc
-Q2.glm.M4.2_IFD.PER_Musc <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",])
+#Q2.glm.M4.2_IFD.PER_Musc <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Musc",])
 #summary(Q2.glm.M4.2_IFD.PER_Musc) 
 
 #Mol
-Q2.glm.M4.2_IFD.PER_Mol <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",])
+#Q2.glm.M4.2_IFD.PER_Mol <- glm(mean_IFD.2CO_PER ~ strain, data= Male.poly.Mouse.Table_BivData_4MM[Male.poly.Mouse.Table_BivData_4MM$subsp == "Mol",])
 #summary(Q2.glm.M4.2_IFD.PER_Mol)
 ```
 
@@ -3180,15 +3013,12 @@ Short.removed_BivData_IFD.ABS_Ttest_mus.av <- t.test(close.IFD.rates.mus.rate$me
 ```
 
 
-
-
 # SAVE the data
-
 
 
 ```{r Save.File, echo=FALSE}
 #save Rdata
-save.image("~./MLH1repo/data/Results_setup_5.14.20.RData")
+save.image("~./MLH1repo/data/Results_setup_5.21.20.RData")
 
 ```
 
