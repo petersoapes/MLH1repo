@@ -310,12 +310,9 @@ Mouse.Table_HQ <- add_sex(Mouse.Table_HQ)
 Mouse.Table_HQ <- add_category(Mouse.Table_HQ)
 Mouse.Table_HQ <- add_species(Mouse.Table_HQ)
 
-
-
-
 #remove juvi mice via the list
 #remove bad ages
-#this is removing female
+#this is removing female MOLF?
 
 #this removes everything but males in these categories
 #Mouse.Table_HQ <- Mouse.Table_HQ[ (Mouse.Table_HQ$sex == "female") | ( #(Mouse.Table_HQ$sex == "male") & (Mouse.Table_HQ$age.weeks < 25) & #(Mouse.Table_HQ$age.days != 13) ), ]
@@ -399,6 +396,14 @@ Q12_mouse_table_MLH1 <- add_strain(Q12_mouse_table_MLH1)
 Q12_mouse_table_MLH1 <- add_subsp(Q12_mouse_table_MLH1)
 Q12_mouse_table_MLH1 <- add_sex(Q12_mouse_table_MLH1)
 Q12_mouse_table_MLH1 <- add_category(Q12_mouse_table_MLH1)
+Q12_mouse_table_MLH1 <- add_species(Q12_mouse_table_MLH1)
+
+#main df with variables coded as chr
+Q12_mouse_table_MLH1$subsp <- factor(Q12_mouse_table_MLH1$subsp, ordered = FALSE)
+Q12_mouse_table_MLH1$sex <- factor(Q12_mouse_table_MLH1$sex, ordered = FALSE)
+Q12_mouse_table_MLH1$strain <- factor(Q12_mouse_table_MLH1$strain, ordered = FALSE)
+Q12_mouse_table_MLH1$species <- factor(Q12_mouse_table_MLH1$species, ordered = FALSE)
+
 
 #use things from prv block
 #mice.frm.meta 
@@ -569,6 +574,8 @@ DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
             ifelse(grepl("PWD", DMC1.DF$strain), "High",
                ifelse(grepl("MSM", DMC1.DF$strain), "High","")))))
 ```
+
+
 
 
 
@@ -836,13 +843,10 @@ cell.level.BivData_table <- ddply(.data=Curated_BivData,
                        se.SC_length   = round(sd.SC_length / sqrt(nbivs), 3), #check that nBivs is the right number
  
                        cv.SC = cv(chromosomeLength),
-                       
-#AutoSC = sum( SC.length[which(blobjectClass != "XY")] ),
                       mean.IFD_all = mean(   IFD1_ABS, na.rm = TRUE),
 
                 #this below might not be correct
                      mean.IFD_2C0 = mean(   IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
-                     
                        var.IFD_2CO = var( IFD1_ABS[which(hand.foci.count == 2)], na.rm=TRUE),
                        #sd.IFD_2CO   = round(sd(IFD1, na.rm=TRUE), 3),
                        #se.IFD_2CO   = round(sd.IFD / sqrt(nbivs), 3)
@@ -1003,16 +1007,15 @@ Long.biv_mouse_table <- ddply(real.long.bivData, c("mouse"), summarise,
                       mean.siscoten_1CO = mean(SisCoTen[which(hand.foci.count == 1)], na.rm = TRUE),
                      mean.siscoten_2CO = mean(SisCoTen[which(hand.foci.count == 2)], na.rm = TRUE),
                       mean.siscoten_3CO = mean(SisCoTen[which(hand.foci.count == 3)], na.rm = TRUE),
-                      
-                #  mean_IFD_ABS = as.numeric(format(round(  mean(IFD1_ABS, na.rm = TRUE), 3 ), nsmall=3) ),
-                # mean_IFD_PER = as.numeric(format(round(  mean(IFD1_PER, na.rm = TRUE), 3 ), nsmall=3) ),
-                 
+
                  mean_IFD.2CO_ABS = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
                  mean_IFD.2CO_PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
                   
                        #CO position things, requires the melt?
-              norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)])
-                  
+              ABS.first.foci.pos =  mean(Foci1[which(hand.foci.count == 1)]),
+                 norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)])
+              #norm first foci is mis normer    
+              
         #          mean_siscoten = mean(siscoten)
         #
 )
@@ -1082,15 +1085,14 @@ Short.biv_mouse_table <- ddply(real.short.bivData, c("mouse"), summarise,
                       mean.siscoten_1CO = mean(SisCoTen[which(hand.foci.count == 1)], na.rm = TRUE),
                      mean.siscoten_2CO = mean(SisCoTen[which(hand.foci.count == 2)], na.rm = TRUE),
                       mean.siscoten_3CO = mean(SisCoTen[which(hand.foci.count == 3)], na.rm = TRUE),
-                      
-                #  mean_IFD_ABS = as.numeric(format(round(  mean(IFD1_ABS, na.rm = TRUE), 3 ), nsmall=3) ),
-                # mean_IFD_PER = as.numeric(format(round(  mean(IFD1_PER, na.rm = TRUE), 3 ), nsmall=3) ),
                  
                  mean_IFD.2CO_ABS = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
                  mean_IFD.2CO_PER = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE),
                   
                        #CO position things, requires the melt?
+               ABS.first.foci.pos =  mean(Foci1[which(hand.foci.count == 1)]), 
               norm.first.foci.pos =  mean(PER_Foci_1[which(hand.foci.count == 1)])
+              
                   
         #          mean_siscoten = mean(siscoten)
         #
@@ -1100,6 +1102,7 @@ Short.biv_mouse_table <- ddply(real.short.bivData, c("mouse"), summarise,
 Short.biv_mouse_table <- add_sex(Short.biv_mouse_table)
 Short.biv_mouse_table <- add_strain(Short.biv_mouse_table)
 Short.biv_mouse_table <- add_subsp(Short.biv_mouse_table)
+Short.biv_mouse_table <- add_species(Short.biv_mouse_table)
 Short.biv_mouse_table <- add_category(Short.biv_mouse_table)
 
 #unordered for the mixed models (move this to the MM blocks...?)
