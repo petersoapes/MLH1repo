@@ -93,6 +93,14 @@ whole.cell.data_manual.OG <- read.csv("~./MLH1repo/whole_cell_measures.csv")
 
 #BIVDATA MASTER SHEET
 new.Curate.FULL <- read.csv("~./MLH1repo/data/BivData/curation/FULL_Curated_BivData.csv")
+
+#found that one of the data sheets is missin bunch of SKIVE female measures
+#read in missing SKIVE -- then 
+
+#original Curate_bivata + missing SKIVE female
+Curated_BivData <-  read.csv2("~./MLH1repo/data/Curated_BivData_5.30.20.csv", sep=" ", header=TRUE)
+#reformate this 
+
 #83975
 #83976
 #83009
@@ -102,11 +110,14 @@ new.Curate.FULL <- read.csv("~./MLH1repo/data/BivData/curation/FULL_Curated_BivD
 #60241
 #60830
 
+
 #Clean away all the empty rows
-new.Curate.FULL <- new.Curate.FULL[!(is.na(new.Curate.FULL$fileName) | new.Curate.FULL$fileName==""), ]
+missing.SKIVE.female <- missing.SKIVE.female[!(is.na(missing.SKIVE.female$fileName) | missing.SKIVE.female$fileName==""), ]
 #this takes a while to run
 
-new.Curate.FULL <- add_mouse(new.Curate.FULL)#this function is v.slow for this big file
+#new.Curate.FULL <- add_mouse(new.Curate.FULL)#this function is v.slow for this big file
+
+missing.SKIVE.female <- add_mouse(missing.SKIVE.female)
 #make OG copy
 new.Curate.FULL.org <- new.Curate.FULL
 new.Curate.FULL.org <- add_category(new.Curate.FULL.org)
@@ -131,52 +142,73 @@ OG.cURATE.table.category <- table(new.Curate.FULL.org$category, new.Curate.FULL.
 ```{r mk.Curate_BivData, echo=FALSE}
 #new.Curate.FULL to Curated_BivData
 
+#missing.SKIVE.female
+
+missing.SKIVE.female=read.xlsx2("~./MLH1repo/data/missing_SKIVE_female.xlsx", header=TRUE, 1)
+str(missing.SKIVE.female)
+
+missing.SKIVE.female$fileName <- as.character(missing.SKIVE.female$fileName)
+
+missing.SKIVE.female <- missing.SKIVE.female[!(is.na(missing.SKIVE.female$fileName) | missing.SKIVE.female$fileName==""), ]
+#this takes a while to run
+
+#new.Curate.FULL <- add_mouse(new.Curate.FULL)#this function is v.slow for this big file
+
+new.Curate.FULL.org$Obj.ID <- paste(new.Curate.FULL.org$fileName, new.Curate.FULL.org$boxNumber, sep = "_")
+
+
 #SC PASS
-new.Curate.FULL <- new.Curate.FULL[new.Curate.FULL$SC.pass == '1',]#
+missing.SKIVE.female <- missing.SKIVE.female[missing.SKIVE.female$SC.pass == '1',]#
 #10480 #9819, #9769
 
 #fix these duplicated ones
+#check duplicates
+#anyDuplicated(missing.SKIVE.female$Obj.ID)
+#0 duplicates for missing SKIVE.f
 #remove duplicates
 Curated_BivData <- new.Curate.FULL %>% distinct()#from 8933 to 8151
 
-Curated_BivData <- add_mouse(Curated_BivData)
-Curated_BivData <- add_category(Curated_BivData)
-Curated_BivData <- add_strain(Curated_BivData)
-Curated_BivData <- add_sex(Curated_BivData)
-Curated_BivData <- add_subsp(Curated_BivData)
-Curated_BivData <- add_species(Curated_BivData)
+missing.SKIVE.female <- add_mouse(missing.SKIVE.female)
+missing.SKIVE.female <- add_category(missing.SKIVE.female)
+missing.SKIVE.female <- add_strain(missing.SKIVE.female)
+missing.SKIVE.female <- add_sex(missing.SKIVE.female)
+missing.SKIVE.female <- add_subsp(missing.SKIVE.female)
+missing.SKIVE.female <- add_species(missing.SKIVE.female)
 
 #don't think I need this one
 #Foci_TRUE_Curate_BivData <-   Curated_BivData[(!is.na(Curated_BivData$hand.foci.count)),]
 
 ##change factor cols to numbers (factor -> chr -> number)
-Curated_BivData$centromere_ABS_Position <- as.character(Curated_BivData$centromere_ABS_Position)
-Curated_BivData$centromere_PER_Position <- as.character(Curated_BivData$centromere_PER_Position)
-Curated_BivData$chromosomeLength <- as.character(Curated_BivData$chromosomeLength)
+missing.SKIVE.female$fileName <- as.character(missing.SKIVE.female$fileName)
+missing.SKIVE.female$Obj.ID <- as.character(missing.SKIVE.female$Obj.ID)
 
-Curated_BivData$hand.foci.count <- as.character(Curated_BivData$hand.foci.count)
+missing.SKIVE.female$centromere_ABS_Position <- as.character(missing.SKIVE.female$centromere_ABS_Position)
+missing.SKIVE.female$centromere_PER_Position <- as.character(missing.SKIVE.female$centromere_PER_Position)
+missing.SKIVE.female$chromosomeLength <- as.character(missing.SKIVE.female$chromosomeLength)
 
-Curated_BivData$Foci1 <- as.character(Curated_BivData$Foci1)
-Curated_BivData$Foci2 <- as.character(Curated_BivData$Foci2)
-Curated_BivData$Foci3 <- as.character(Curated_BivData$Foci3)
-Curated_BivData$Foci4 <- as.character(Curated_BivData$Foci4)
+missing.SKIVE.female$hand.foci.count <- as.character(missing.SKIVE.female$hand.foci.count)
+
+missing.SKIVE.female$Foci1 <- as.character(missing.SKIVE.female$Foci1)
+missing.SKIVE.female$Foci2 <- as.character(missing.SKIVE.female$Foci2)
+missing.SKIVE.female$Foci3 <- as.character(missing.SKIVE.female$Foci3)
+#missing.SKIVE.female$Foci4 <- as.character(missing.SKIVE.female$Foci4)
 
 ##Numeric
-Curated_BivData$centromere_ABS_Position <- as.numeric(Curated_BivData$centromere_ABS_Position)
-Curated_BivData$centromere_PER_Position <- as.numeric(Curated_BivData$centromere_PER_Position)
-Curated_BivData$chromosomeLength <- as.numeric(Curated_BivData$chromosomeLength)
+missing.SKIVE.female$centromere_ABS_Position <- as.numeric(missing.SKIVE.female$centromere_ABS_Position)
+missing.SKIVE.female$centromere_PER_Position <- as.numeric(missing.SKIVE.female$centromere_PER_Position)
+missing.SKIVE.female$chromosomeLength <- as.numeric(missing.SKIVE.female$chromosomeLength)
 
-Curated_BivData$hand.foci.count <- as.numeric(Curated_BivData$hand.foci.count)
+missing.SKIVE.female$hand.foci.count <- as.numeric(missing.SKIVE.female$hand.foci.count)
 
-Curated_BivData$Foci1 <- as.numeric(Curated_BivData$Foci1)
-Curated_BivData$Foci2 <- as.numeric(Curated_BivData$Foci2)
-Curated_BivData$Foci3 <- as.numeric(Curated_BivData$Foci3)
-Curated_BivData$Foci4 <- as.numeric(Curated_BivData$Foci4)
+missing.SKIVE.female$Foci1 <- as.numeric(missing.SKIVE.female$Foci1)
+missing.SKIVE.female$Foci2 <- as.numeric(missing.SKIVE.female$Foci2)
+missing.SKIVE.female$Foci3 <- as.numeric(missing.SKIVE.female$Foci3)
+#Curated_BivData$Foci4 <- as.numeric(Curated_BivData$Foci4)
 #I think the number of sig figs and rounding changes slightly from the blocks above
 
 #adding more feature calculations (IFD, ect)
-Curated_BivData <- add_IFD(Curated_BivData)#fixed a bug
-Curated_BivData$IFD1_PER = Curated_BivData$IFD1_ABS / Curated_BivData$chromosomeLength
+missing.SKIVE.female <- add_IFD(missing.SKIVE.female)#fixed a bug
+missing.SKIVE.female$IFD1_PER = missing.SKIVE.female$IFD1_ABS / missing.SKIVE.female$chromosomeLength
 
 #IFD functions
 #  - IFD: currently I think just does 2CO bivalents 
@@ -185,10 +217,10 @@ Curated_BivData$IFD1_PER = Curated_BivData$IFD1_ABS / Curated_BivData$chromosome
 #IFD.2 does mulitple IFDs (just absolute)
 #Curated_BivData <- add_IFD.2(Curated_BivData)
 
-Curated_BivData$PER_Foci_1 <- Curated_BivData$Foci1 / Curated_BivData$chromosomeLength
-Curated_BivData$PER_Foci_2 <- Curated_BivData$Foci2 / Curated_BivData$chromosomeLength
-Curated_BivData$PER_Foci_3 <- Curated_BivData$Foci3 / Curated_BivData$chromosomeLength
-Curated_BivData$PER_Foci_4 <- Curated_BivData$Foci4 / Curated_BivData$chromosomeLength
+missing.SKIVE.female$PER_Foci_1 <- missing.SKIVE.female$Foci1 / missing.SKIVE.female$chromosomeLength
+missing.SKIVE.female$PER_Foci_2 <- missing.SKIVE.female$Foci2 / missing.SKIVE.female$chromosomeLength
+missing.SKIVE.female$PER_Foci_3 <- missing.SKIVE.female$Foci3 / missing.SKIVE.female$chromosomeLength
+missing.SKIVE.female$PER_Foci_4 <- missing.SKIVE.female$Foci4 / missing.SKIVE.female$chromosomeLength
 
 Curated_BivData$PER_Foci_1 <- as.numeric(Curated_BivData$PER_Foci_1)
 Curated_BivData$PER_Foci_2 <- as.numeric(Curated_BivData$PER_Foci_2)
@@ -196,33 +228,42 @@ Curated_BivData$PER_Foci_3 <- as.numeric(Curated_BivData$PER_Foci_3)
 Curated_BivData$PER_Foci_4 <- as.numeric(Curated_BivData$PER_Foci_4)
 
 #not working
-Curated_BivData$dis.cent <- Curated_BivData$Foci1 - Curated_BivData$centromere_ABS_Position
-Curated_BivData$dis.cent.PER  <- Curated_BivData$dis.cent / Curated_BivData$chromosomeLength
+missing.SKIVE.female$dis.cent <- missing.SKIVE.female$Foci1 - missing.SKIVE.female$centromere_ABS_Position
+missing.SKIVE.female$dis.cent.PER  <- missing.SKIVE.female$dis.cent / missing.SKIVE.female$chromosomeLength
 
 
 #add telomere.dist
-Curated_BivData$telo_dist <- ifelse(grepl(1, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength - Curated_BivData$Foci1), 
-                     ifelse(grepl(2, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength -  Curated_BivData$Foci2), 
-                     ifelse(grepl(3, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength - Curated_BivData$Foci3),
-                    ifelse(grepl(4, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength - Curated_BivData$Foci4),   0))) )
+missing.SKIVE.female$telo_dist <- ifelse(grepl(1, missing.SKIVE.female$hand.foci.count), (missing.SKIVE.female$chromosomeLength - missing.SKIVE.female$Foci1), 
+                     ifelse(grepl(2, missing.SKIVE.female$hand.foci.count), (missing.SKIVE.female$chromosomeLength -  missing.SKIVE.female$Foci2), 
+                     ifelse(grepl(3, missing.SKIVE.female$hand.foci.count), (missing.SKIVE.female$chromosomeLength - missing.SKIVE.female$Foci3),
+                    ifelse(grepl(4, missing.SKIVE.female$hand.foci.count), (missing.SKIVE.female$chromosomeLength - missing.SKIVE.female$Foci4),   0))) )
   
 
-Curated_BivData$telo_dist_PER <- Curated_BivData$telo_dist / Curated_BivData$chromosomeLength
+missing.SKIVE.female$telo_dist_PER <- missing.SKIVE.female$telo_dist / missing.SKIVE.female$chromosomeLength
 
 #sis.co.ten
-Curated_BivData <- add_SisCoTen(Curated_BivData)
+missing.SKIVE.female <- add_SisCoTen(missing.SKIVE.female)
 
 #add rec.group
 #divide musc males into groups
-Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
-                                  ifelse(grepl("MSM male", Curated_BivData$category), 1,
-                                  ifelse(grepl("SKIVE male", Curated_BivData$category), 1,
+missing.SKIVE.female$Rec.group <- ifelse(grepl("PWD male", missing.SKIVE.female$category), 1, 
+                                  ifelse(grepl("MSM male", missing.SKIVE.female$category), 1,
+                                  ifelse(grepl("SKIVE male", missing.SKIVE.female$category), 1,
                                            0)))
 
 #remove bivalent entries without hand foci count values
 cleanCurated_BivData <-  Curated_BivData  %>%  filter(hand.foci.count  == 0 | hand.foci.count  == 1 |
                                       hand.foci.count  == 2 | hand.foci.count  == 3 | hand.foci.count  == 4 )
+
+
+#write excel file
+#write.xlsx2(missing.SKIVE.female, "Curated_missing.SKIVE.female.xlsx", sheetName = "Sheet1", 
+#            col.names = TRUE, row.names = FALSE, append = FALSE)
+
 ```
+
+
+
 
 Curated_BivData will be the master DF with most observations. DFs for mixed models and tests need to subsetted from this one.  
 

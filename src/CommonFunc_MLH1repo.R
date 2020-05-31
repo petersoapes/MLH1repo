@@ -249,7 +249,7 @@ add_subsp <- function(oldframe) {
                                                                                                ifelse(grepl("PWD", dframe$strain), "Musc", 
                                                                                                       
                                                                                                       ifelse(grepl("CZECH", dframe$strain), "Musc", 
-                                                                                                             ifelse(grepl("AST", dframe$strain), "Musc",     
+                                     ifelse(grepl("AST", dframe$strain), "Musc",     
                                                                                                                     ifelse(grepl("TOM", dframe$strain), "Musc",  
                                                                                                                            ifelse(grepl("SKIVE", dframe$strain), "Musc", 
                                                                                                                                   
@@ -346,7 +346,6 @@ add_mouse2 <- function(dat){
   return(dframe)
 }
 
-#make sis-co-ten
 #metric for calculating relative / predicted about of sister-cohesion tension at metaphase
 #requires handfocicount, Foci positions, and IFD
 #start with ABS measures

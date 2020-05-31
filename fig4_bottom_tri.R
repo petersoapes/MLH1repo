@@ -70,7 +70,7 @@ bottom.triangle.only <- function(my.data) {
   }
 
 
-my.data.wsb <- my.data %>% filter(strain == "WSB")
+
 
 dev.off()
 par(mar=c(2.5, 4, 2, 3), oma=c(1, 1, 1, 1), mfrow=c(1,1))

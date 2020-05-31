@@ -3,7 +3,6 @@ remove_strains.1sex <- c("CZECH", "TOM","AST","CZECH","CAST","HMI","SPRET","CARO
 
 #Curated_BivData.FM <- Curated_BivData[ ! Curated_BivData$strain %in% remove_strains.1sex, ]
 
-Curated_BivData
 
 my.data = (Curated_BivData %>% filter(hand.foci.count == 2) )
 #remove_strains
@@ -67,12 +66,17 @@ bottom.triangle <- function(my.data) {
   }
 
 
-my.data.ast <- my.data %>% filter(strain == "AST")
+#try isolating 2COs with terminal 2nd foci -- compare the sex difference
+my.data.ends <- my.data %>% filter(PER_Foci_2 > 0.8)
+
+my.data = (Curated_BivData %>% filter(hand.foci.count == 2) )
+#remove_strains
+
 
 dev.off()
-par(mar=c(2.5, 4, 2, 3), oma=c(1, 1, 1, 1), mfrow=c(1,1))
+par(mar=c(2.5, 4, 2, 3), oma=c(1, 1, 1, 1), mfrow=c(3,3))
 
-by(my.data.ast, my.data.ast$strain, function(sub){
+by(my.data, my.data$strain, function(sub){
   #print(unique(strain) )
   top.triangle(sub)
   bottom.triangle(sub)
