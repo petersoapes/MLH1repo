@@ -18,6 +18,7 @@ library(kableExtra)
 library(here)
 library(xlsx)
 library(reshape2)
+
 #knitr::opts_chunk$set(echo = FALSE)
 
 opts_knit$set(root.dir = "~./MLH1repo/")
@@ -32,13 +33,37 @@ MLH1_data = read.xlsx2("~./MLH1repo/data/AnonData_formated.xlsx", header=TRUE, 1
 DMC1.DF <- read.csv("~./MLH1repo/data/DMC1newJuviQuant.csv", header = TRUE)
 
 #total SC 
-Total.SC_DF = read.xlsx2("~./MLH1repo/data/Total.SC_DF.xlsx", header=TRUE, 1)
+#new total_SC == will have all of the Batches
 
-Curated_BivData <-  read.csv("~./MLH1repo/data/Curated_BivData.csv", header=TRUE)
+Total.SC_DF = read.xlsx2("~./MLH1repo/data/Total.SC_DF_5.31.20.xlsx", header=TRUE, 1) #this new total_SC has the additional batches and outliers have been removed
 
+#Total.SC_DF = read.xlsx2("~./MLH1repo/data/Total.SC_DF.xlsx", header=TRUE, 1)
+
+#original Curate_bivata + missing SKIVE female
+Curated_BivData <-  read.csv2("~./MLH1repo/data/Curated_BivData_5.30.20.csv", sep=" ", header=TRUE)
+#why they fuck was this space deliminated? I hate excel uggg
 
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R" )
 ```
+
+
+
+```{r missing.curated.data, echo=FALSE, include=FALSE, eval=FALSE}
+
+#Curated.missing.SKIVE.female = read.xlsx2("Curated_missing.SKIVE.female.xlsx", header=TRUE, 1)
+Curated.missing.SKIVE.female$Foci4 <- ''
+Curated.missing.SKIVE.female$PER_Foci_4 <- ''
+
+Curated.missing.SKIVE.female$dis.cent <- ''
+Curated.missing.SKIVE.female$dis.cent.PER <- ''
+
+Curated_BivData_new.skive <- rbind(Curated_BivData, Curated.missing.SKIVE.female)
+
+#write.xlsx2(Curated_BivData_new.skive, "Curated_BivData_5.30.20.xlsx", sheetName = "Sheet1", 
+#            col.names = TRUE, row.names = FALSE, append = FALSE)
+
+```
+
 
 
 ```{r MLH1.DF.setup, warning=FALSE, echo=FALSE}
@@ -577,8 +602,6 @@ DMC1.DF$rec_group <- ifelse(grepl("WSB", DMC1.DF$strain), "Low",
 
 
 
-
-
 # BivData
 
 
@@ -592,13 +615,14 @@ Are the strain levels plots needed?
 Curated_BivData will be the master DF with most observations. DFs for mixed models and tests need to subsetted from this one.  
 
 
-
-```{r FULL.mouse.BivData.table, echo=FALSE}
-
+```{r remove.non.foci, echo=FALSE}
 #length( Curated_BivData %>% filter(hand.foci.count == "NA") )#36
-
+str(Curated_BivData)
 table(Curated_BivData$hand.foci.count, exclude = NULL)
-#there are ~600 rows with SC and no hand foci count (blah)
+#there are ~600 rows with SC and no hand foci count
+table( (Curated_BivData %>% filter(  is.na(hand.foci.count) ) )$category )
+#KAZ male and WSB female have >100 observations without hand.foci.counts
+
 #Remove bivalent entries without hand foci count values
 cleanCurated_BivData <-  Curated_BivData  %>%  filter(hand.foci.count  == 0 | hand.foci.count  == 1 |
                                       hand.foci.count  == 2 | hand.foci.count  == 3 | hand.foci.count  == 4 )
@@ -606,6 +630,132 @@ cleanCurated_BivData <-  Curated_BivData  %>%  filter(hand.foci.count  == 0 | ha
 length( (Curated_BivData  %>%  filter(  is.na(hand.foci.count) == T ) )$fileName )
 
 table(cleanCurated_BivData$hand.foci.count, exclude = NULL)
+#600 removed
+```
+
+
+
+
+```{r format.str.Curate_BivData, echo=FALSE}
+#new.Curate.FULL to Curated_BivData
+
+#missing.SKIVE.female
+
+#missing.SKIVE.female=read.xlsx2("~./MLH1repo/data/missing_SKIVE_female.xlsx", header=TRUE, 1)
+
+#
+Curated_BivData <- Curated_BivData[!(is.na(Curated_BivData$fileName) | Curated_BivData$fileName==""), ]
+#this takes a while to run
+
+#new.Curate.FULL <- add_mouse(new.Curate.FULL)#this function is v.slow for this big file
+#new.Curate.FULL.org$Obj.ID <- paste(new.Curate.FULL.org$fileName, new.Curate.FULL.org$boxNumber, sep = "_")
+
+#SC PASS
+Curated_BivData <- Curated_BivData[Curated_BivData$SC.pass == '1',]#
+#10480 #9819, #9769
+
+#fix these duplicated ones
+#check duplicates
+#anyDuplicated(missing.SKIVE.female$Obj.ID)
+#0 duplicates for missing SKIVE.f
+#remove duplicates
+Curated_BivData <- Curated_BivData %>% distinct()#from 8933 to 8151
+
+Curated_BivData <- add_mouse(Curated_BivData)
+Curated_BivData <- add_category(Curated_BivData)
+Curated_BivData <- add_strain(Curated_BivData)
+Curated_BivData <- add_sex(Curated_BivData)
+Curated_BivData <- add_subsp(Curated_BivData)
+Curated_BivData <- add_species(Curated_BivData)
+
+#don't think I need this one
+#Foci_TRUE_Curate_BivData <-   Curated_BivData[(!is.na(Curated_BivData$hand.foci.count)),]
+
+##change factor cols to numbers (factor -> chr -> number)
+Curated_BivData$fileName <- as.character(Curated_BivData$fileName)
+Curated_BivData$Obj.ID <- as.character(Curated_BivData$Obj.ID)
+
+Curated_BivData$centromere_ABS_Position <- as.character(Curated_BivData$centromere_ABS_Position)
+Curated_BivData$centromere_PER_Position <- as.character(Curated_BivData$centromere_PER_Position)
+Curated_BivData$chromosomeLength <- as.character(Curated_BivData$chromosomeLength)
+
+Curated_BivData$hand.foci.count <- as.character(Curated_BivData$hand.foci.count)
+
+Curated_BivData$Foci1 <- as.character(Curated_BivData$Foci1)
+Curated_BivData$Foci2 <- as.character(Curated_BivData$Foci2)
+Curated_BivData$Foci3 <- as.character(Curated_BivData$Foci3)
+Curated_BivData$Foci4 <- as.character(Curated_BivData$Foci4)
+
+##Numeric
+Curated_BivData$centromere_ABS_Position <- as.numeric(Curated_BivData$centromere_ABS_Position)
+Curated_BivData$centromere_PER_Position <- as.numeric(Curated_BivData$centromere_PER_Position)
+Curated_BivData$chromosomeLength <- as.numeric(Curated_BivData$chromosomeLength)
+
+Curated_BivData$hand.foci.count <- as.numeric(Curated_BivData$hand.foci.count)
+
+Curated_BivData$Foci1 <- as.numeric(Curated_BivData$Foci1)
+Curated_BivData$Foci2 <- as.numeric(Curated_BivData$Foci2)
+Curated_BivData$Foci3 <- as.numeric(Curated_BivData$Foci3)
+Curated_BivData$Foci4 <- as.numeric(Curated_BivData$Foci4)
+#I think the number of sig figs and rounding changes slightly from the blocks above
+
+#adding more feature calculations (IFD, ect)
+Curated_BivData <- add_IFD(Curated_BivData)#fixed a bug
+Curated_BivData$IFD1_PER = Curated_BivData$IFD1_ABS / Curated_BivData$chromosomeLength
+
+#IFD functions
+#  - IFD: currently I think just does 2CO bivalents 
+#  - IFD.2: for mulitple IFDs (3CO ect.)  
+
+#IFD.2 does mulitple IFDs (just absolute)
+#Curated_BivData <- add_IFD.2(Curated_BivData)
+
+Curated_BivData$PER_Foci_1 <- Curated_BivData$Foci1 / Curated_BivData$chromosomeLength
+Curated_BivData$PER_Foci_2 <- Curated_BivData$Foci2 / Curated_BivData$chromosomeLength
+Curated_BivData$PER_Foci_3 <- Curated_BivData$Foci3 / Curated_BivData$chromosomeLength
+Curated_BivData$PER_Foci_4 <- Curated_BivData$Foci4 / Curated_BivData$chromosomeLength
+
+Curated_BivData$PER_Foci_1 <- as.numeric(Curated_BivData$PER_Foci_1)
+Curated_BivData$PER_Foci_2 <- as.numeric(Curated_BivData$PER_Foci_2)
+Curated_BivData$PER_Foci_3 <- as.numeric(Curated_BivData$PER_Foci_3)
+Curated_BivData$PER_Foci_4 <- as.numeric(Curated_BivData$PER_Foci_4)
+
+#not working
+Curated_BivData$dis.cent <- Curated_BivData$Foci1 - Curated_BivData$centromere_ABS_Position
+Curated_BivData$dis.cent.PER  <- Curated_BivData$dis.cent / Curated_BivData$chromosomeLength
+
+
+#add telomere.dist
+Curated_BivData$telo_dist <- ifelse(grepl(1, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength - Curated_BivData$Foci1), 
+                     ifelse(grepl(2, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength -  Curated_BivData$Foci2), 
+                     ifelse(grepl(3, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength - Curated_BivData$Foci3),
+                    ifelse(grepl(4, Curated_BivData$hand.foci.count), (Curated_BivData$chromosomeLength - Curated_BivData$Foci4),   0))) )
+  
+Curated_BivData$telo_dist_PER <- Curated_BivData$telo_dist / Curated_BivData$chromosomeLength
+
+#sis.co.ten
+Curated_BivData <- add_SisCoTen(Curated_BivData)
+
+#add rec.group
+#divide musc males into groups
+Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
+                                  ifelse(grepl("MSM male", Curated_BivData$category), 1,
+                                  ifelse(grepl("SKIVE male", Curated_BivData$category), 1,
+                                           0)))
+
+#remove bivalent entries without hand foci count values
+cleanCurated_BivData <-  Curated_BivData  %>%  filter(hand.foci.count  == 0 | hand.foci.count  == 1 |
+                                      hand.foci.count  == 2 | hand.foci.count  == 3 | hand.foci.count  == 4 )
+
+
+#write excel file
+#write.xlsx2(missing.SKIVE.female, "Curated_missing.SKIVE.female.xlsx", sheetName = "Sheet1", 
+#            col.names = TRUE, row.names = FALSE, append = FALSE)
+
+```
+
+
+```{r FULL.mouse.BivData.table, echo=FALSE}
 
 mouse.level.BivData_table <- ddply(.data=cleanCurated_BivData, 
                        .(mouse),
@@ -629,12 +779,13 @@ mouse.level.BivData_table <- ddply(.data=cleanCurated_BivData,
                       n1CO = sum( (hand.foci.count == 1), na.rm = TRUE ),
                       n2CO = sum( (hand.foci.count == 2), na.rm = TRUE ),
                       n3CO = sum( (hand.foci.count == 3), na.rm = TRUE ),
-                      n4CO = sum(hand.foci.count == 4, na.rm=TRUE),     
+                      n4CO = sum( (hand.foci.count == 4), na.rm=TRUE),     
               
                   proportion_0CO = (n0CO / nbiv),
                   proportion_1CO = (n1CO / nbiv),
                  proportion_2CO = (n2CO / nbiv),
                      proportion_3CO = (n3CO / nbiv),
+                 proportion_4CO = (n4CO / nbiv),
                   
                   #calq mean.sc by chrm class
                  mean.SC_1CO = mean(chromosomeLength[which(hand.foci.count == 1)], na.rm = TRUE),
@@ -679,11 +830,9 @@ mouse.level.BivData_table$subsp <- factor(mouse.level.BivData_table$subsp, order
 mouse.level.BivData_table$sex <- factor(mouse.level.BivData_table$sex, ordered = FALSE)
 mouse.level.BivData_table$strain <- factor(mouse.level.BivData_table$strain, ordered = FALSE)
 
-
 mouse.level.BivData_table$Rec.group <- ifelse(grepl("PWD male", mouse.level.BivData_table$category), 1, 
                               ifelse(grepl("MSM male", mouse.level.BivData_table$category), 1,
                                  ifelse(grepl("SKIVE male", mouse.level.BivData_table$category), 1, 0)))
-
 ```
 
 
@@ -1386,6 +1535,19 @@ mouse.total.skel$Rec.group <- ifelse(grepl("PWD male", mouse.total.skel$category
                               ifelse(grepl("MSM male", mouse.total.skel$category), 1,
                                  ifelse(grepl("SKIVE male", mouse.total.skel$category), 1, 0)))
 
+#look at date of imaging affects on total SC
+#count=1
+#for(i in MLH1_data$Original.Name){
+   # print(i)
+#    templist= strsplit(i, split="_")[[1]]
+#    c = (templist[1])
+#    MLH1_data$image.string[count] <-  c
+    #mini$image.date[count] <-  as.Date(c, format='%d%b%y')  #"%d%b%y")
+#    count= count +1
+#}
+#works better if dat is converted out of image
+#MLH1_data$date.imaged <- as.Date(MLH1_data$image.string,  format='%d%b%y')
+
 ```
 
 
@@ -1407,7 +1569,7 @@ work on cleaning up all other df with bad names
 #BD data and Peromyscus data
 #rm(c(BD_MLH1_data, BDmouse_level_table, MLH1_data.hq) )
 
-save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_5.21.20.RData")
+save.image("~./MLH1repo/data/MLH1/MLH1_data_setup_5.30.20.RData")
 
 #  OutPut: big large MLH1_data (AP's) df, big DF of BD with just the mice I want.
 #  MLH1_data_table, means and variance of AP and BD MLH1 values. made from seperate tables from AP and BD data.
