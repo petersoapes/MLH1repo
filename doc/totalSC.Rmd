@@ -23,7 +23,8 @@ library(xlsx)
 #load main MLH1 files to merge MLH1 cell data with the sc data 
 setwd("~./")
 
-load(file="~./MLH1repo/data/MLH1/MLH1_data_setup_5.12.20.RData")
+load(file="~./MLH1repo/data/MLH1/MLH1_data_setup_5.30.20.RData")
+#load(file="~./MLH1repo/data/MLH1/MLH1_data_setup_5.12.20.RData")
 #load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#most recent 
 
 # Total.SC
@@ -35,8 +36,11 @@ load(file="~./MLH1repo/data/MLH1/MLH1_data_setup_5.12.20.RData")
 
 #SC.skel = read.csv("~./MLH1repo/data/SCskel_output_feb20.csv", header = TRUE, strip.white = TRUE)
 
-Total.SC_DF = read.xlsx2("~./MLH1repo/data/Total.SC_merge.MLH1.xlsx", header=TRUE, 1)
+#remake THIS FILE IT IS MISSING BATCHES 16 and 15
+Total.SC_DF = read.xlsx2("~./MLH1repo/data/Total.SC_DF_2.20.xlsx", header=TRUE, 1)
 
+
+#Total.SC_DF.2.20 = read.csv("~./MLH1repo/data/SCskel_output_feb20.csv", header = TRUE, strip.white = TRUE)
 #this most recent version -- is missing most measures for MOLF_m
 ```
 
@@ -62,6 +66,9 @@ I haven't manually confirmed that the default parameters are skeletonizing the i
 
 ```{r clean.skel.data, echo=FALSE, warning=FALSE}
 
+#Total.SC_DF.og <- Total.SC_DF.2.20
+SC.skel <- Total.SC_DF.2.20
+
 #format all factors to numbers
 SC.skel$bin_size  <- as.character(SC.skel$bin_size )
 SC.skel$skel_size  <- as.character(SC.skel$skel_size)
@@ -76,9 +83,8 @@ SC.skel$rand_name <- as.character(SC.skel$rand_name)
 original_DF$Random.Name <- as.character(original_DF$Random.Name)
 duplies <- original_DF[duplicated(original_DF$Random.Name),]
 #3 duplicate rows in original DF -- because Random name was blank -- how will these be matched to total.SC?
-
-
 ```
+
 
 ```{r merge.MLH1.skel, echo=FALSE}
 
@@ -90,6 +96,9 @@ OG.MLH1.merge.Skel <- MLH1.merge.Skel #raw version of DF
 #MLH1.merge.Skel.FF <- merge(original_DF, SC.skel, by.x = "fileName", by.y = "fileName", all= F)
 #OG.MLH1.merge.Skel <- MLH1.merge.Skel #raw version of DF
 
+#write the new SC excel file
+#write.xlsx2(MLH1.merge.Skel, "Total.SC_DF_2.20.xlsx", sheetName = "Sheet1", 
+#            col.names = TRUE, row.names = FALSE, append = FALSE)
 ```
 
 
@@ -102,8 +111,10 @@ str(Total.SC_DF)#quality is a factor. must go factor - chr - number
 
 ```{r clean.total.DF, echo=FALSE}
 
+#total SC_DF is the new file, dataframe
 #this is a nice merged excel file, still has X, and might have some 'outlier' images
 Total.SC_DF.og <- Total.SC_DF
+Total.SC_DF <- Total.SC_DF
 #quality is mess up here
 
 Total.SC_DF$quality <- as.character(Total.SC_DF$quality)
@@ -112,6 +123,7 @@ Total.SC_DF$X <- as.character(Total.SC_DF$X)
 #Total.SC_DF <- Total.SC_DF %>% filter(X != "X")
 #remvove Xs
 Total.SC_DF <- Total.SC_DF[ !grepl("X", Total.SC_DF$X) , ]
+Total.SC_DF <- Total.SC_DF[ !grepl("x", Total.SC_DF$X) , ]
 #Total.SC_DF$X <- droplevels(Total.SC_DF$X)
 
 str(Total.SC_DF)
@@ -135,9 +147,7 @@ Total.SC_DF$nMLH1.foci<- as.numeric(Total.SC_DF$nMLH1.foci)
 Total.SC_DF$skel_size<- as.numeric(Total.SC_DF$skel_size)
 Total.SC_DF$bin_size<- as.numeric(Total.SC_DF$bin_size)
 
-
-#table(Total.SC_DF$quality)
-
+str(Total.SC_DF)
 ```
 
 
@@ -219,8 +229,6 @@ table(DF.2$category)
 this.plot <- ggplot(DF.2, aes(n.SC.pacc.bivs)) + geom_histogram(bins = 40)+ facet_wrap(~category)+ggtitle("Number of curated bivs per image")
 
 this.plot_WSB.female <- ggplot(DF.2[DF.2$category == "WSB female",], aes(n.SC.pacc.bivs)) + geom_histogram(bins = 40)+ facet_wrap(~mouse)+ggtitle("Number of curated bivs per image")
-
-
 ```
 
 
@@ -286,15 +294,34 @@ Total.SC_DF  vs  MLH1.merge.Skel,  I think these both have outliers.
 
 ```{r totSC.viz4outliers, echo=FALSE}
 
-# -- EXAMINE the ggplot scatter plots for outliers
-#tot.sc <- ggplot(data= MLH1.merge.Skel, aes(y = bin_size, x=strain))+ #geom_jitter()+facet_wrap(~category, scales = "free")
+#EXAMINE the ggplot scatter plots for outliers
+tot.sc.ggplot <- ggplot(data= (Total.SC_DF %>% filter(category == "CAST male")  ),
+                        aes(y = bin_size, x=mouse))+ geom_jitter()+facet_wrap(~category, scales = "free")
+
+#MOLF male bin_size skel_size
+#noe there's a molf female
+
+#need round 3 for the batch 16 15
+SC.skel.outliers_round3 <- c("9sep16_30jun16_CAST_m1_sp1_13_rev.tif",
+  "1may16_3nov15_WSB_f1_sp2_1_rev.tif", "30jul15_12jun15_WSB_m2_sp1_1_rev.tif",                            "6mar18_1feb18_LEW_m1_sp1_18_rev.tif", "2jul17_20dec16_LEW_m2_sp1_8_rev.tif", "9jun18_8may17_LEW_m1_sp1_16_rev.tif",
+  "12jan17_4jan17_LEW_f3_sp1_1_rev.tif","9apr18_1feb18_LEW_f1_sp1_7_rev.tif",      "13jan15_30sep14_G_m1_sp1_8_rev.tif", "28jul15_22jun15_G_m2_sp1_7.2_rev.tif", "1oct16_1apr16_G_m4_sp1_5_rev.tif", "27jul15_22jun15_G_m2_sp1_6_rev.tif",        "22jun18_24aug17_PERC_m1_sp1_11_rev.tif",
+  "8apr15_24mar15_PWD_m2_sp1_4_rev.tif", "11mar15_28feb15_PWD_f1_sp1_13_rev.tif",  "8jun15_23apr15_PWD_f2_sp1_21_rev.tif", "11mar15_28feb15_PWD_f6_sp1_4_rev.tif",
+  "5apr18_11jan18_KAZ_f2_sp1_17_rev.tif",
+  "6aug19_10jul19_KAZ_m3_sp1_8.3_rev.tif",  "6aug19_10jul19_KAZ_m2_sp1_5.3_rev.tif", "6aug19_10jul19_KAZ_m3_sp1_5.2_rev.tif  6aug19_10jul19_KAZ_m3_sp1_9_rev.tif",  "6aug19_10jul19_KAZ_m2_sp1_1.2_rev.tif","6aug19_10jul19_KAZ_m2_sp1_4.1_rev.tif", "6aug19_10jul19_KAZ_m1_sp1_11.3_rev.tif", "6aug19_10jul19_KAZ_m1_sp1_11.1_rev.tif", "6aug19_10jul19_KAZ_m1_sp1_11.6_rev.tif", "27jul19_26oct18_SKIVE_f1_sp1_2_rev.tif", "18jul19_31may19_SKIVE_m2_sp1_22.2_rev.tif", "4jul18_8jun18_CZECH_m1_sp1_17.1_rev.tif", "29nov16_13nov16_MSM_f1_sp1_10_rev.tif", "28jul17_30may17_SPRET_m1_sp1_3_rev.tif","24may17_8may17_SPRET_m1_sp1_14_rev.tif", "26sep18_19may18_SPIC_m2_sp1_18_rev.tif", "26sep18_19may18_SPIC_m2_sp1_20_rev.tif", "6jun19_28jun18_SPIC_m2_sp1_8.1_rev.tif", "29dec17_4dec17_SPIC_f2_sp1_11_rev.tif", "29dec17_4dec17_SPIC_f2_sp1_3_rev.tif")
+
+# ( Total.SC_DF  %>% filter(category == "SPIC male") %>% filter(bin_size > 32000) )$fileName  
+
+#KAZ -- has lower outliers?!
+#MSM also has kinda strange pattern
+
+Total.SC_DF <- Total.SC_DF[!Total.SC_DF$fileName %in% SC.skel.outliers_round3, ]
 
 #round 1
 SC.skel.outliers_round1 <- c(
-  #MLH1.merge.Skel  %>% filter(category == "WSB male") %>% filter(skel_size > 2000)
-  "10apr15_31mar15_WSB_m3_sp1_4_rev.tif",
   
-  #MLH1.merge.Skel  %>% filter(category == "WSB female") %>% filter(skel_size > 2700)       
+  "10apr15_31mar15_WSB_m3_sp1_4_rev.tif", "1jul15_12jun15_WSB_f2_sp1_1_rev.tif",
+  
+     
             "17nov16_3nov15_WSB_f1_sp3_4_rev.tif","1may16_3nov15_WSB_f1_sp2_6_rev.tif",
                       
     #MLH1.merge.Skel  %>% filter(category == "G male") %>% filter(skel_size > 20000) 
@@ -355,17 +382,19 @@ SC.skel.outliers_round1 <- c(
  "29dec17_4dec17_SPIC_f2_sp1_6_rev.tif",   "13oct17_21aug17_SPI_f1_sp1_13_rev.tif"  )
 
 
-MLH1.merge.Skel <- MLH1.merge.Skel[!MLH1.merge.Skel$fileName %in% SC.skel.outliers_round1, ]#62 removed
+Total.SC_DF <- Total.SC_DF[!Total.SC_DF$fileName %in% SC.skel.outliers_round1, ]#62 removed
 
 remove.mice_round2 <- c(
     #MLH1.merge.Skel  %>% filter(category == "G male") %>% filter(skel_size > 2500)
-    "28jul15_22jun15_G_m2_sp1_5_rev.tif","12may15_30sep14_G_m5_sp1_26_rev.tif",  
+  
+  #Total.SC_DF %>% filter(category == "WSB male") %>% filter(bin_size > 25000) )$fileName
+    " 30jul15_12jun15_WSB_m2_sp1_1_rev.tif", "10apr15_31mar15_WSB_m3_sp1_11_rev.tif", "10apr15_31mar15_WSB_m3_sp1_3.1_rev.tif", "2mar15_30dec14_WSB_m4_sp3_32_rev.tif", "10apr15_31mar15_WSB_m3_sp1_4_rev.tif", "28jul15_22jun15_G_m2_sp1_5_rev.tif","12may15_30sep14_G_m5_sp1_26_rev.tif",  
     
     #MLH1.merge.Skel  %>% filter(category == "G female") %>% filter(skel_size > 20000)
   "19oct15_12oct15_G_m1_sp1_17.1_rev.tif",
   
 #MLH1.merge.Skel_2  %>% filter(category == "PWD male") %>% filter(skel_size > 2100)
-"20jul15_18may15_PWD_m1_sp1_10_rev.tif","22mar15_10mar15_PWD_m2_sp1_11.2_rev.tif","22mar15_10mar15_PWD_m1_sp1_4.1_rev.tif","20jul15_18may15_PWD_m1_sp1_7.2_rev.tif",  
+"20jul15_18may15_PWD_m1_sp1_10_rev.tif","22mar15_10mar15_PWD_m2_sp1_11.2_rev.tif","22mar15_10mar15_PWD_m1_sp1_4.1_rev.tif","20jul15_18may15_PWD_m1_sp1_7.2_rev.tif",  "6mar15_1mar15_PWD_m1_sp4_1_rev.tif",
 
 #MLH1.merge.Skel_2  %>% filter(category == "PWD female") %>% filter(skel_size > 20000)
   "6may15_17apr15_PWD_f1_sp1_7_rev.tif",
@@ -399,9 +428,8 @@ remove.mice_round2 <- c(
 #MLH1.merge.Skel_2  %>% filter(category == "HMI male") %>% filter(skel_size < 1000 ) 
 "29dec17_4dec17_HMI_m1_sp1_4.1_rev.tif"
 )
-#3remove.mice_round2
 
-MLH1.merge.Skel <- MLH1.merge.Skel[!MLH1.merge.Skel$fileName %in% remove.mice_round2, ]
+Total.SC_DF <- Total.SC_DF[!Total.SC_DF$fileName %in% remove.mice_round2, ]
 
 #MLH1.merge.Skel <- MLH1.merge.Skel[! (MLH1.merge.Skel$fileName %in% SC.skel.outliers_round1),]
 #MLH1.merge.Skel <- MLH1.merge.Skel[! (MLH1.merge.Skel$fileName %in% remove.mice_round2),]
@@ -412,7 +440,7 @@ Total.SC_DF <- Total.SC_DF[!Total.SC_DF$fileName %in% remove.mice_round2, ]
 #sum( length(SC.skel.outliers_round1), length(remove.mice_round2) )
 ```
 
-`r sum( length(SC.skel.outliers_round1), length(remove.mice_round2) )` images were removed as probable outliers.  ~20 outliers were removed from total.sc.skel.
+`r sum( length(SC.skel.outliers_round1), length(remove.mice_round2), length(SC.skel.outliers_round3) )` images were removed as probable outliers.  ~20 outliers were removed from total.sc.skel.
 
 
 ```{r category.table, echo=FALSE, eval=FALSE}
@@ -454,7 +482,7 @@ Skel.summary.table <- ddply(.data=skel.mice_from.MM.list,
 #write.table(MLH1.merge.Skel, "~./MLH1repo/data/BivData/total_SC_below_threshold.csv", sep=",", row.names = FALSE)
 
 #Below threshold is are the values to use
-write.xlsx2(Total.SC_DF, "Total.SC_DF.xlsx", sheetName = "Sheet1", 
+write.xlsx2(Total.SC_DF, "Total.SC_DF_5.31.20.xlsx", sheetName = "Sheet1", 
             col.names = TRUE, row.names = FALSE, append = FALSE)
 
 #merge skel has more observations (are they dups?)
