@@ -316,7 +316,8 @@ small.DF <- data.frame( corr = paste("corr =", c(Fcor.test$estimate, Mcor.test$e
                      p.val = paste("p.val =", c(Fcor.test$p.value, Mcor.test$p.value) ), sex = c("female", "male") )
 
 
-Cor.plot <- ggplot(( FULL_mouse_table_Q12.MLH1 %>% filter(species == "M.musculus") ), aes(x=mean_co, y=var, color = strain)) + geom_point() + facet_wrap(~sex)+scale_color_manual(values=colors_of_strains, guide = FALSE) +  geom_text(data= small.DF, aes(x=27, y=80, label=corr),  colour="black", inherit.aes=FALSE, parse=FALSE ) +  geom_text(data= small.DF, aes(x=27, y=75, label=p.val),  colour="black", inherit.aes=FALSE, parse=FALSE )+ggtitle("Mean by CO variance per Mouse")
+Cor.plot <- ggplot(( FULL_mouse_table_Q12.MLH1 %>% filter(species == "M.musculus") ), aes(x=mean_co, y=var, color = strain)) + 
+  geom_point() +   facet_wrap(~sex)+scale_color_manual(values=colors_of_strains, guide = FALSE) +  geom_text(data= small.DF, aes(x=27, y=40, label=corr),  colour="black", inherit.aes=FALSE, parse=FALSE ) +  geom_text(data= small.DF, aes(x=27, y=35, label=p.val),  colour="black", inherit.aes=FALSE, parse=FALSE )+ggtitle("Mean by CO variance per Mouse")+ylim(c(0,40))
 
 Cor.plot
 ```
@@ -986,23 +987,23 @@ FM.var.diff_permuted <- data.frame( "pwd.FM.dif" = replicate(n=nrepeat,
 ```{r plot.perm2, echo=FALSE, fig.width = 4, fig.height=2.5, message=FALSE}
 
 #plot the first permuted DF-- don't need the transposed
-pwd.perm2.plot <- ggplot(FM.var.diff_permuted, aes(x = pwd.FM.dif)) + geom_histogram() + geom_vline(xintercept = Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "PWD"] ) + ggtitle("PWD difference in variance across sexes")  + annotate("text", x=3, y=800, label= "p=" ) + annotate("text", x=4, y=750, label= sum(FM.var.diff_permuted$pwd.FM.dif >= Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "PWD"] ) / nrepeat )  
+pwd.perm2.plot <- ggplot(FM.var.diff_permuted, aes(x = pwd.FM.dif)) + geom_histogram() + geom_vline(xintercept = Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "PWD"] ) + ggtitle("PWD difference in variance across sexes")  + annotate("text", x=3.6, y=750, label= "p=" ) + annotate("text", x=5.1, y=750, label= sum(FM.var.diff_permuted$pwd.FM.dif >= Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "PWD"] ) / nrepeat )  
 pwd.perm2.plot
 
-skive.perm2.plot <- ggplot(FM.var.diff_permuted, aes(x = skive.FM.dif)) + geom_histogram() + geom_vline(xintercept = Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "SKIVE"] ) + ggtitle("SKIVE difference in variance across sexes") + annotate("text", x=3, y=800, label= "p=" ) + annotate("text", x=4, y=750, label= sum(FM.var.diff_permuted$skive.FM.dif >= Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "SKIVE"] ) / nrepeat )
+skive.perm2.plot <- ggplot(FM.var.diff_permuted, aes(x = skive.FM.dif)) + geom_histogram() + geom_vline(xintercept = Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "SKIVE"] ) + ggtitle("SKIVE difference in variance across sexes") + annotate("text", x=3, y=750, label= "p=" ) + annotate("text", x=7, y=750, label= sum(FM.var.diff_permuted$skive.FM.dif >= Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "SKIVE"] ) / nrepeat )
 skive.perm2.plot
 
-msm.perm2.plot <- ggplot(FM.var.diff_permuted, aes(x = msm.FM.dif)) + geom_histogram() + geom_vline(xintercept = Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "MSM"] ) + ggtitle("MSM difference in variance across sexes")+ annotate("text", x=3, y=800, label= "p=" ) +annotate("text", x=4, y=750, label= sum(FM.var.diff_permuted$msm.FM.dif >= Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "MSM"] ) / nrepeat )
+msm.perm2.plot <- ggplot(FM.var.diff_permuted, aes(x = msm.FM.dif)) + geom_histogram() + geom_vline(xintercept = Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "MSM"] ) + ggtitle("MSM difference in variance across sexes")+ annotate("text", x=3, y=750, label= "p=" ) +annotate("text", x=4, y=750, label= sum(FM.var.diff_permuted$msm.FM.dif >= Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "MSM"] ) / nrepeat )
 msm.perm2.plot
 
-g.perm2.plot <- ggplot(FM.var.diff_permuted, aes(x = g.FM.dif)) + geom_histogram() + geom_vline(xintercept = Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "G"] ) + ggtitle("G difference in variance across sexes")+ annotate("text", x=3, y=800, label= "p=" ) +annotate("text", x=4, y=750, label= sum(FM.var.diff_permuted$g.FM.dif >= Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "G"] ) / nrepeat )
+g.perm2.plot <- ggplot(FM.var.diff_permuted, aes(x = g.FM.dif)) + geom_histogram() + geom_vline(xintercept = Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "G"] ) + ggtitle("G difference in variance across sexes")+ annotate("text", x=3, y=750, label= "p=" ) +annotate("text", x=4, y=750, label= sum(FM.var.diff_permuted$g.FM.dif >= Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "G"] ) / nrepeat )
 g.perm2.plot
 
-wsb.perm2.plot <- ggplot(FM.var.diff_permuted, aes(x = wsb.FM.dif)) + geom_histogram() + geom_vline(xintercept = Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "WSB"] ) + ggtitle("WSB difference in variance across sexes")+ annotate("text", x=3, y=800, label= "p=" ) +annotate("text", x=4, y=750, label= sum(FM.var.diff_permuted$wsb.FM.dif >= Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "WSB"] ) / nrepeat )
+wsb.perm2.plot <- ggplot(FM.var.diff_permuted, aes(x = wsb.FM.dif)) + geom_histogram() + geom_vline(xintercept = Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "WSB"] ) + ggtitle("WSB difference in variance across sexes")+ annotate("text", x=3, y=750, label= "p=" ) +annotate("text", x=4, y=750, label= sum(FM.var.diff_permuted$wsb.FM.dif >= Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "WSB"] ) / nrepeat )
 wsb.perm2.plot
 
 
-lew.perm2.plot <- ggplot(FM.var.diff_permuted, aes(x = lew.FM.dif)) + geom_histogram() + geom_vline(xintercept = Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "LEW"] ) + ggtitle("LEW difference in variance across sexes")+ annotate("text", x=3, y=800, label= "p=" ) +annotate("text", x=4, y=750, label= sum(FM.var.diff_permuted$lew.FM.dif >= Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "LEW"] ) / nrepeat )
+lew.perm2.plot <- ggplot(FM.var.diff_permuted, aes(x = lew.FM.dif)) + geom_histogram() + geom_vline(xintercept = Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "LEW"] ) + ggtitle("LEW difference in variance across sexes")+ annotate("text", x=3, y=750, label= "p=" ) +annotate("text", x=4, y=750, label= sum(FM.var.diff_permuted$lew.FM.dif >= Diff.Var$Fvar.Mvar.dif[Diff.Var$strain == "LEW"] ) / nrepeat )
 lew.perm2.plot
 
 
