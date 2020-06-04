@@ -1,0 +1,1054 @@
+---
+title: "Manuscript Figures"
+author: "April Peterson"
+date: "6/2/2020"
+output: html_document
+---
+
+# setup
+
+
+```{r set.up, echo=FALSE, warning=FALSE, message=FALSE}
+
+#library(tidyverse)
+library(knitr)
+library(ggplot2)
+#library(pwr)
+
+library(dplyr)
+library(plyr)
+library(lattice)
+library(raster)
+library(lme4)
+library(nlme)
+library(RLRsim)
+library(ggpubr)
+#library(reshape2)
+#library(patchwork)
+library(png)
+library(grid)
+library(gridBase)
+library(gridExtra)
+library(cowplot)
+library(kableExtra)
+library(xlsx)
+library(reshape2)
+
+options(digits=2)
+
+#setwd("~.")#switch over to here()
+
+load(file="~./MLH1repo/data/Results_setup_5.30.20.RData")
+#load(file="~./MLH1repo/data/Results_setup_5.21.20.RData") #Results_setup_5.14.20.RData
+
+#load(file="~./MLH1repo/data/CleanBivData_6.3.20.RData")
+
+#
+#load(file="~./MLH1repo/data/total_SC_30.12.19.RData")
+
+#skeletonize - this is the total sc file
+#SC.skel = read.csv("~./MLH1repo/data/SCskel_output_feb20.csv", header = TRUE, strip.white = TRUE)
+
+
+#load functions
+source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
+```
+
+
+
+
+### Figure 1
+
+
+
+```{r female.strain.table, echo=FALSE}
+female_mouse.avs_for.analysis <- female_mouse.avs_for.analysis %>% filter(strain != "CAST")
+#female strain table
+#female_mouse.avs_for.analysis
+F.strain.table <- ddply(female_mouse.avs_for.analysis, c("strain"), summarise,
+                       
+                        Nmice = length(unique(mouse)),
+                        
+                        total.cells  = sum(Ncells, na.rm = TRUE),
+                        
+                        mouse.mean_co = mean(mean_co, na.rm=TRUE),
+                       
+                        mean.mouse_cV = mean(cV, na.rm = TRUE),
+                        
+                        mean.mouse_var = mean(var, na.rm = TRUE ), 
+                        
+                        mean.mouse_sd   = mean(sd, na.rm = TRUE ),
+                       
+                        #Standard error (mice vs cells)
+                        mean.mouse_se  = mean(se, na.rm=TRUE)
+    )
+#F.strain.table
+
+#F.strain.table
+
+# I don't know why most of the table is blank
+```
+
+```{r mouse.var.plots.female, echo=FALSE, fig.width = 4, fig.height=2.5, include=FALSE, eval=FALSE}
+
+#variance plots
+musc.female.VAR.plot <- ggplot( (female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Musc") ) , aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y =var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc female of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
+musc.female.VAR.plot
+
+Mol.female.VAR.plot <- ggplot( (female_mouse.avs_for.analysis %>% filter(subsp == "Mol") ), aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Mol female of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
+Mol.female.VAR.plot
+
+Dom.female.VAR.plot <- ggplot(Dom.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain), width = .2 )+ ggtitle("Dom female\nwithin mouse  MLH1 distributions") + scale_color_manual(values=colors_of_strains)
+Dom.female.VAR.plot
+
+```
+
+```{r male.strain.table, echo=FALSE}
+
+
+M.strain.table <- ddply(male_mouse.avs_for.analysis, c("strain"), summarise,
+                        Nmice =length(unique(mouse)),
+                        
+                        totNcells  = sum(Ncells, na.rm=TRUE),
+                        
+                        mean.mouse_mean_co = mean(mean_co, na.rm=TRUE),
+                       
+                        mean.mouse_cV = mean(cV, na.rm = TRUE),
+                        
+                        mean.mouse_var = mean(var, na.rm = TRUE ), 
+                        
+                        mean.mouse_sd   = mean(sd, na.rm=TRUE),
+                       
+                        #Standard error (mice . cells)
+                        mean.mouse_se  = mean(se, na.rm=TRUE)
+    )
+#M.strain.table
+#same issue as the female table .. ugh
+```
+
+```{r mouse.var.plots.male, echo=FALSE, fig.width = 4, fig.height=2.5, include=FALSE, include=FALSE, eval=FALSE}
+
+#variance plots
+musc.male.VAR.plot <- ggplot(Musc.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y =var, color= strain, alpha=0.5), width = .2 )+ ggtitle("VAR Musc male of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
+
+
+Mol.male.VAR.plot <- ggplot(Mol.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain, alpha=0.5), width = .2 )+ ggtitle("VAR Mol male of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
+
+
+Dom.male.VAR.plot <- ggplot(Dom.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain, alpha=0.5), width = .2 )+ ggtitle("VAR Dom male ofwithin mouse  MLH1 distributions")+scale_color_manual(values=colors_of_strains)
+
+```
+
+
+
+
+```{r FOR.PLOT.organizing.data, echo=FALSE, message=FALSE, warning=FALSE}
+#set the order of another column, based on another variable. consistant order for ploting
+
+#apply this before ploting
+MLH1_data <- MLH1_data %>%
+  arrange(strain, sex, category, mouse) %>%
+  mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
+MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
+
+# sort your dataframe, by the focal categories
+MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
+#use the above line for when order is out of wak
+
+#MLH1_data <- with(MLH1_data, MLH1_data[order(category),])
+Mouse.Table_HQ$var <- as.numeric(Mouse.Table_HQ$var)
+
+AP_mouse_table.HQ_target <- Mouse.Table_HQ[!(is.na(Mouse.Table_HQ$sex) | Mouse.Table_HQ$sex==""), ]
+
+remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC")
+AP_mouse_table.HQ_target <- AP_mouse_table.HQ_target[ ! AP_mouse_table.HQ_target$strain %in% remove_strains, ]
+
+  
+var.plot <- ggplot(AP_mouse_table.HQ_target, aes(y=var, x = sex, color=sex))+geom_jitter()+facet_wrap(~strain)+ggtitle("Plots of mouse Variances for MLH1 counts")+
+  scale_color_manual(values=c("royalblue", "limegreen"))+theme_bw()
+
+```
+
+
+
+
+```{r MLH1.MIXED.MODEL.setup, echo=FALSE, warning=FALSE, eval=TRUE, message=FALSE}
+
+#DF.HetC.MixedModel.HQ
+#this blck is duplicated in setupData.rm
+#https://rcompanion.org/handbook/G_03.html
+#testing random effects within lme
+
+DF.HetC.MixedModel <- Mouse.Table_HQ[Mouse.Table_HQ$species == "M.musculus",]
+
+#AP_mouse_table excluide Qual5 cells
+DF.HetC.MixedModel.HQ <- Mouse.Table_HQ
+DF.HetC.MixedModel.HQ <- add_species(DF.HetC.MixedModel.HQ)
+
+#main df with variables coded as chr
+DF.HetC.MixedModel.HQ$subsp <- factor(DF.HetC.MixedModel.HQ$subsp, ordered = FALSE)
+DF.HetC.MixedModel.HQ$sex <- factor(DF.HetC.MixedModel.HQ$sex, ordered = FALSE)
+DF.HetC.MixedModel.HQ$strain <- factor(DF.HetC.MixedModel.HQ$strain, ordered = FALSE)
+#DF.HetC.MixedModel.HQ$species <- factor(DF.HetC.MixedModel.HQ$species, ordered = FALSE)
+
+#kable(table(DF.HetC.MixedModel.HQ$sex, DF.HetC.MixedModel.HQ$strain))
+
+all.cell.MM.HQ <- ddply(.data=DF.HetC.MixedModel.HQ,
+                 .(sex, strain),
+                 summarize,
+                 all.cells = sum(Ncells)
+)
+
+```
+
+```{r table.for.plot, echo=FALSE, warning=FALSE, message=FALSE}
+#why do I add in a different table?
+#this move this to the setup file
+#MLH1_data  %>% filter(quality < 5)  -- low quality cells removed
+
+#pooled
+strain.table.HQ_Fig.og <- ddply( MLH1_data  %>% filter(quality < 5), c("subsp","strain", "sex"), summarise,
+                        Nmice =length(unique(mouse)),
+                        Ncells  =length(nMLH1.foci),
+                        
+                        mean_co =as.numeric(format(round(mean(nMLH1.foci), 4 ), nsmall=3) ),
+                        mean_co_long = mean(nMLH1.foci),
+                        cV = cv(nMLH1.foci, na.rm = TRUE),
+                        var = as.numeric(format(round(   var(nMLH1.foci, na.rm = TRUE),3), nsmall=3)), 
+                        sd   = round(sd(nMLH1.foci, na.rm = TRUE), 4),
+                       #Standard error (mice vs cells)
+                        se  = round(sd / sqrt(Ncells), 4)
+                       
+                       #range_mouse_means = range()
+                   #consider adding crhm proportions?
+    )
+
+#
+strain.table.HQ_Fig.og <- add_subsp(strain.table.HQ_Fig.og)
+strain.table.HQ_Fig.og <- add_species(strain.table.HQ_Fig.og)
+
+strain.table.HQ_Fig <-  strain.table.HQ_Fig.og %>% filter(strain != "F1" & strain != "PERC" &
+                       strain != "TOM" &  strain != "AST" & strain != "CZECH" & strain != "CAROLI" & strain != "HMI")
+
+#adjust order of plot here
+strain.table.HQ_Fig$strain <- factor(strain.table.HQ_Fig$strain,levels =c(
+     "MSM", "MOLF",   
+  "PWD", "SKIVE",  "KAZ",
+  "WSB","G","LEW","PERC",
+                     "CAST",
+                         "SPRET","SPIC" ), order=T )
+```
+
+
+```{r Fig1.top, echo=FALSE, warning=FALSE, message=FALSE}
+#Mouse.Table_HQ
+#change the segements and text!!
+
+Fig1_v1_strain <- ggplot(strain.table.HQ_Fig, aes(y=mean_co, x=strain, color=strain, shape=sex))+ 
+  ylab("Average MLH1 Foci per Cell")+
+
+  geom_point(aes(shape = sex), size=3, position=position_dodge(.5))+
+
+    geom_errorbar(aes(ymin=mean_co-(se*2), ymax=mean_co+(se*2) ), width=.3, position = position_dodge(.5), size=1)+
+  
+  ylim(c(18, 35))+
+ scale_color_manual(values=colors_of_strains)+ 
+
+    theme(legend.position="none",
+  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line=element_line(colour = "black"),
+  axis.title.y=element_blank(),
+  axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())+
+#remove y labfor male 
+ 
+   #mol
+  annotate("segment", x=.75, xend=2.3, y=19.5, yend=19.5, colour="black", size=1)+
+  
+  #Musc,
+  annotate("segment", x= 2.75, xend=5.2, y=30, yend=30, colour="black", size=1)+
+  
+  #dom
+  annotate("segment", x=5.8, xend=8.5, y=19.5, yend=19.5, colour="black", size=1)+
+  
+  #cast
+  annotate("segment", x=8.8, xend= 9.3, y=30, yend=30, colour="black", size=1)+
+
+    #spret
+  annotate("segment",x=9.5, xend=10.2, y=19.5, yend=19.5, colour="black", size=1)+
+  
+  #spic
+  annotate("segment",x=10.5, xend=11.2, y=30, yend=30, colour="black", size=1)+
+  
+  #label
+    annotate("text", x = c(1.6,3.9,6.3,8,10, 10.3), #list of all x points 
+           y = c(18.5, 31, 18.5, 31, 18.5, 31),
+           
+   label = c("M. m. molossinus","M. m. musculus", "M. m. domesticus", "M. m. castaneus", "M. spretus", "M. spicilegus"),
+           fontface = 'italic', hjust = 0.5, size=3.5)
+
+```
+
+```{r female.show.plots, echo=FALSE, fig.width = 4, fig.height=2.5, warning=FALSE, message=FALSE}
+
+#MLH1_data  %>% filter(quality < 5)
+#mouse avs
+
+female_mouse.av <- Mouse.Table_HQ.OG %>% filter(sex == "female") %>% filter(species == "M.musculus")
+
+
+female_mouse.av <- add_sex(female_mouse.av)
+female_mouse.av <- add_strain(female_mouse.av)
+female_mouse.av <- add_subsp(female_mouse.av)
+female_mouse.av <- add_species(female_mouse.av)
+
+female_mouse.av$strain <- factor(female_mouse.av$strain, ordered = FALSE, levels =c( "MSM", "MOLF",
+  "PWD", "SKIVE", "KAZ",
+  
+  "WSB", "G", "LEW",
+                                                                         "CAST", 
+                                                                   "SPRET", "SPIC") )
+
+female.specific.plot <- ggplot(female_mouse.av, aes(x = as.factor(strain), y = mean_co, color= strain))+ geom_boxplot()+  geom_jitter(aes( alpha=0.5), width = .2 )+ ggtitle("")+scale_color_manual(values=colors_of_strains)+ylim(c(17,34))+
+  theme(legend.position="none",
+      
+        axis.title.y =element_blank(), 
+      axis.text.x = element_blank(), axis.title.x = element_blank(), axis.ticks.x = element_blank(),
+  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line=element_line(colour = "black"))+geom_hline(yintercept = 20)
+
+#+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r male.show.plots, echo=FALSE, fig.width = 4, fig.height=2.5, warning=FALSE, message=FALSE}
+#try customize the plot size
+
+male_mouse.avs_for.analysis$strain <- factor(male_mouse.avs_for.analysis$strain, ordered = FALSE, levels =c( "MSM", "MOLF",
+  "PWD", "SKIVE", "KAZ","TOM","AST","CZECH",
+  
+  "WSB", "G", "LEW","PERC",
+                                                                         "CAST", "HMI",
+                                                                   "SPRET", "SPIC") )
+
+male.plot <- ggplot( male_mouse.avs_for.analysis, aes(x = as.factor(strain), y = mean_co, color= strain))+geom_jitter( alpha=0.5, width = .2) +geom_boxplot()+ ggtitle("")+scale_color_manual(values=colors_of_strains)+ylim(c(17,34))+
+ 
+   theme(legend.position="none", axis.text.x=element_blank(), axis.title.x = element_blank(), axis.ticks.x = element_blank(),  axis.title.y = element_blank(), 
+  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line=element_line(colour = "black"))+geom_hline(yintercept = 19)
+
+#horizontal line = 20
+
+```
+
+```{r MLH1.cell.examples, echo=FALSE, message=FALSE, warning=FALSE}
+
+male.MLH1.cell.ex <- readPNG('~/MLH1repo/doc/figureFiles/MLH1.male.cell_ex.png')
+
+female.MLH1.cell.ex <- readPNG('~/MLH1repo/doc/figureFiles/MLH1.female_cell.ex.png')
+
+empty.DF <- data.frame(col1 = c(1,3), col2 = c(1,3) )
+
+#Cell GGPLOT
+
+maleMLH1.cell.obj <- ggplot(empty.DF, aes(x = col1, y = col2)) +
+  background_image(male.MLH1.cell.ex) + theme(axis.title.x=element_blank(),
+     axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
+
+
+femaleMLH1.cell.obj <- ggplot(empty.DF, aes(x = col1, y = col2)) +
+  background_image(female.MLH1.cell.ex) + theme(axis.title.x=element_blank(),
+     axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
+
+```
+
+```{r Figure1.Main.plot.three.plots, echo=FALSE, warning=FALSE, fig.width=7, fig.cap='*Figure 1 Mean MLH1 count distributions by strain.* A) Strain averages of MLH1 counts per cell. B) Female specific MLH1 count distributions. C)	Male specific MLH1 counts per cell.', message=FALSE, eval=FALSE}
+
+
+MLH1.Figure1  <- ggdraw() +
+  draw_plot(Fig1_v1_strain, x = .02, y = .55, width=1, height=.45)+
+  
+  draw_plot(female.specific.plot, x=0, y=0, width=.5,height= .55)+
+  draw_plot(femaleMLH1.cell.obj, x=.35, y=.35, width=.18, height= .18)+
+  
+  draw_plot(male.plot, x=.5, y = 0,  width = .5, height = .55)+
+  draw_plot(maleMLH1.cell.obj, x=.85, y = .35,  width = .19, height=.19)+
+ 
+  draw_plot_label(label = c("A", "B", "C"), size = 14,
+                  x = c(0, .01, .51), y = c(.99, .55, 0.55) )
+
+MLH1.Figure1
+#add the cell images
+
+#ggsave("~/MLH1repo/doc/Figure1.png")
+```
+
+
+
+
+
+#Figure 2 DCM1
+
+
+```{r DMC1.boxplot.plot, echo=FALSE, warning=FALSE}
+
+#change order
+
+DMC1.DF$strain<- factor(DMC1.DF$strain, levels =c(
+                      "WSB","G", "KAZ","PWD","MSM"), order=T )
+
+
+DMC1.boxplot <- ggplot(aes(x=strain, y=total.count, color=stage), data=DMC1.DF[DMC1.DF$stage != "P",])+
+  geom_boxplot(alpha=.5) +geom_jitter() +
+  
+    labs(y = "DMC1 count per Cell")+
+  
+  scale_x_discrete( labels = c( expression( italic( domesticus^WSB) ), expression(  italic( domesticus^G) ), expression( italic( musculus^KAZ) ),
+ 
+     expression( italic(musculus^PWD)), expression( italic( molossinus^MSM) ) ) ) +
+
+  scale_color_discrete(name = "", labels = c("Early Zygotene", "Late Zygotene"))+scale_color_manual(values=c("#E69F00", "#0072B2"))+
+                        
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position="top",
+        panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x = element_blank())
+
+#"#E69F00" orange
+#"#0072B2" darker blue
+
+```
+
+
+```{r Main.plot.DMC1, echo=FALSE, fig.width=6.5, fig.height=5, fig.cap="*Figure 2 male DSB estimates* A) Example early zygotene spermatocyte spread, B) Example late zygotene spermatocyte spread. Green foci show DMC1. C)	Distribution of DMC1 counts per cell  by strains.", message=F, warning=F, eval=FALSE}
+
+png.DMC1.early.cell <- readPNG('~/MLH1repo/doc/figureFiles/cell.examples/DMC1.early/good.early.cell.png')
+png.DMC1.late.cell <- readPNG('~/MLH1repo/doc/figureFiles/cell.examples/DMC1.late/good.late.cell.png')
+
+empty.DF <- data.frame(col1 = c(1,3), col2 = c(1,3) )
+
+#EMPTY GGPLOT
+Early.cell.obj <- ggplot(empty.DF, aes(x = col1, y = col2)) +
+  background_image(png.DMC1.early.cell) + theme(axis.title.x=element_blank(),
+                         axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
+                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
+
+Late.cell.obj <- ggplot(empty.DF, aes(x = col1, y = col2)) +
+  background_image(png.DMC1.late.cell) + theme(axis.title.x=element_blank(),
+                         axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
+                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
+
+#cowplot
+
+DMC1.Figure2  <- ggdraw() +
+  draw_plot(Early.cell.obj, x=0, y=.5, width=.4,height= .45)+
+  draw_plot(Late.cell.obj, x=.5, y=.5,  width = .4, height = .45)+
+  draw_plot(DMC1.boxplot, x=0, y = 0,  width =1, height=.55)+
+ 
+  draw_plot_label(label = c("A", "B", "C"), size = 14,
+                  x = c(0, .49, 0), y = c(1,1, 0.55) )+
+#WSB
+  draw_line(
+    x = c(0.12, .23),
+    y = c( 0.01, .01),
+    color = colors_of_strains['WSB'], size=1
+  ) +
+  #G
+  draw_line(
+    x = c( 0.31, .42),
+    y = c(0.01, 0.01),
+    color = colors_of_strains['G'],size=1
+  ) +
+  #KAZ
+  draw_line(
+    x = c(0.49, .57),
+    y = c(0.01, 0.01),
+    color = colors_of_strains['KAZ'], size=1
+  ) +
+  #PWD
+  draw_line(
+    x = c(0.64, .73),
+    y = c(0.01, .01),
+    color = colors_of_strains['PWD'], size=1
+  ) +
+  #MSM
+  draw_line(
+    x = c(0.80, .91),
+    y = c(0.01, .01),
+    color = colors_of_strains['MSM'], size=1
+  )
+
+#DMC1.Figure2
+#three.DMC1.plot <- { Early.cell.obj + Late.cell.obj  } / DMC1.boxplot + plot_layout(widths = 1)
+
+#three.DMC1.plot + plot_annotation(
+#  title = '',
+#  subtitle = '') + plot_annotation(tag_levels = 'A')
+
+#ggsave("~/MLH1repo/doc/Figure2.png")
+
+```
+
+
+
+
+# Figure 3
+
+# Fig 3
+
+```{r Q1.SC.show.short.biv, echo=FALSE, eval=TRUE}
+
+#Short.biv_mouse_table
+
+Q1.SC.short.mouse_scatter_boxplot <- ggplot( Short.biv_mouse_table, aes(y = mean_SC, x = sex, color=strain)) + geom_jitter()+ geom_boxplot(alpha=.2) +scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales="free")+ylim(c(20,115) )+ggtitle("")+  
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"),  legend.position="none", axis.title.x = element_blank(), axis.text.x = element_text(size=7), axis.title.y = element_text(size = 10), axis.text.y = element_text(size=9) )+
+  
+  labs(y = "Short SC Length")
+
+ggsave("~/MLH1repo/doc/Figure3_Q1.SC.short.mouse_scatter_boxplot.png")
+
+```
+
+
+```{r Q1.tot.SC.plot, echo=FALSE, warning=FALSE}
+# fig.width = 4, fig.height=2.5
+
+Q1.totSC.mouse.av.table <-  mouse.total.skel %>% filter(species == "M.musculus") %>% filter(subsp != "Cast")
+  
+Q1.totSC.mouse.av.table$strain <- factor(Q1.totSC.mouse.av.table$strain,levels =c(
+   "WSB","G","LEW","PERC", 
+  "PWD", "SKIVE",  "KAZ",
+  "MSM", "MOLF"), order=T )
+
+Q1.totSC.mouse.av.table <- with(Q1.totSC.mouse.av.table, Q1.totSC.mouse.av.table[order(sex, strain),])
+
+#order the strains
+Q1.totSC.mouse.av.table <- Q1.totSC.mouse.av.table %>%
+  arrange(strain) %>%
+  mutate(mouse = factor(mouse))
+
+Q1.totSC.mouse.av.table <- with(Q1.totSC.mouse.av.table, Q1.totSC.mouse.av.table[order(sex, strain),])
+
+
+Q1.totSC.mouse.av.table$subsp2 <- 
+   ifelse(grepl("Dom", Q1.totSC.mouse.av.table$subsp), "M. m. domesticus", 
+        ifelse(grepl("Musc",Q1.totSC.mouse.av.table$subsp), "M. m. musculus",
+            ifelse(grepl("Mol",Q1.totSC.mouse.av.table$subsp), "M. m. molossinus",   
+               "other")))
+
+
+#change this plot to look like the short bivalent plot -- boxplots + mouse points
+
+Tot.SC_mouse.av_ALL <- ggplot(data= Q1.totSC.mouse.av.table, aes(y = mean.skel, x=sex, color=strain))+
+  scale_color_manual(values=colors_of_strains)+
+    facet_wrap(~subsp, scales="free", ncol = 3) + 
+  
+  geom_jitter()+ geom_boxplot(alpha=.2)+ 
+  #geom_hline(data =totSC.strain.av.table, aes(yintercept=mean.skel) )+
+  
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"),
+    axis.title.x=element_blank(),
+axis.text.x = element_text(size=7), 
+legend.position="none",axis.text.y = element_text(size=9), # axis.text.y = element_blank()
+axis.title.y = element_text(size = 10) ) +
+  
+  labs(y = "Total SC Length")+ylim(c(1000,2600 ))+ggtitle("")
+
+ggsave("~/MLH1repo/doc/Figure3_Tot.SC_mouse.av_ALL.png")
+
+#ggsave("~/MLH1repo/doc/Figure3_Q1.SC.short.mouse_scatter_boxplot.png")
+
+```
+
+
+```{r Fig3.load.icons, echo=FALSE}
+# load in the icons
+
+all.chrm.yellow <- readPNG('~/MLH1repo/doc/figureFiles/all_yellow_binary.png')
+single.chrm.yellow <- readPNG('~/MLH1repo/doc/figureFiles/single_chrm_yellow.png')
+
+empty.DF <- data.frame(col1 = c(1,3), col2 = c(1,3) )
+
+#EMPTY GGPLOT
+all.chrm.icon <- ggplot(empty.DF, aes(x = col1, y = col2)) +
+  background_image(all.chrm.yellow) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(),
+    axis.title.x=element_blank(),                       axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
+                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
+
+
+single.chrm.icon <- ggplot(empty.DF, aes(x = col1, y = col2)) +
+  background_image(single.chrm.yellow) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(),
+    axis.title.x=element_blank(),
+   axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
+                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
+
+```
+
+
+```{r Q1.Two.SC.plots, echo=FALSE, warning=FALSE, fig.width=8, fig.cap= 'caption', eval=FALSE}
+
+Q2.SC_dif.Figure3  <- ggdraw() +
+  
+  draw_plot(Q1.SC.short.mouse_scatter_boxplot, x=0, y=.38, width=.5, height= .6)+
+  draw_plot(Tot.SC_mouse.av_ALL, x=.475, y=.38,  width = .5, height = .6)+
+
+  draw_plot(single.chrm.icon, x=.44, y=.79,  width = .1, height = .1)+   
+  draw_plot(all.chrm.icon, x=.88, y=.79,  width = .1, height = .1)+
+
+  
+  #drawing triangles in the corner
+  #top right-triangle
+  draw_line(
+    x = c(.1, .2,  .1, .1 ), #keep the x values consistant
+    y = c( .25, .25,  .15, .25),
+    color = "blue", size=.75
+  ) +
+  
+  #bottom right-triangle
+  draw_line(
+    x = c( .1, .2, .2, .1 ),
+    y = c( .1,  .2, .1, .1),
+    color = "black", size=.75
+  ) +
+  
+  
+  draw_plot_label(label = c("A", "B", "C"), size = 14,
+                  x = c(0, .49, 0), y = c(1,1, 0.33) )
+
+```
+
+
+
+
+```{r Q2.SC_MLH1.by.totalSC, echo=FALSE, warning=FALSE, fig.height=3, fig.width=8, fig.cap="Variation in total SC area per cell across strains and Relationship between total sc and mean MLH1 count per cell across male mice. A)	 Mean total SC area per mouse across subspecies and recombination groups. High- and low-recombining groups are indicated by 1 and 0 respectively. (Horizontal lines indicate strain averages for total SC area.)B) Mouse averaged rates of MLH1 and total SC per cell", echo=FALSE}
+
+#make plot of mouse averages for MLH1 and total SC
+bep <- merge(  male_mouse.avs_for.analysis,   mouse.total.skel)
+
+X.by.texas <- ggplot(bep, aes(x=mean.skel, y=mean_co, color=strain))+geom_point()+
+  scale_color_manual(values=colors_of_strains)+theme(legend.position="none")+labs(x="Mouse Mean Total SC", y="Mouse Mean MLH1 count")
+
+#plot_grid(mouse.av_totsc_male, X.by.texas, nrow=1, labels=c('A', 'B')) #Or labels="AUTO"
+
+```
+
+
+
+# Supplemental Figures
+
+
+## Fig Chrm Proportion plot
+
+```{r Chrm.props.plot2, echo=FALSE, fig.width=8, fig.cap="*Figure 3* Chromosome Class Proportions. proportions calculated from pooled single bivalent data by strain."}
+
+#barplots for proportions of chrm classes
+
+#consider adding this the the setup block (could have done this to category level table)
+mouse.level.BivData_table$per.0CO <- mouse.level.BivData_table$n0CO / mouse.level.BivData_table$tot.biv
+
+mouse.level.BivData_table$per.1CO <- mouse.level.BivData_table$n1CO / mouse.level.BivData_table$tot.biv
+
+mouse.level.BivData_table$per.2CO <- mouse.level.BivData_table$n2CO / mouse.level.BivData_table$tot.biv
+
+mouse.level.BivData_table$per.3CO <- mouse.level.BivData_table$n3CO / mouse.level.BivData_table$tot.biv
+
+mouse.level.BivData_table$per.4CO <- mouse.level.BivData_table$n4CO / mouse.level.BivData_table$tot.biv
+
+
+MELT_Chrm.Proportion <- melt(mouse.level.BivData_table[,c(
+        "mouse", "Nmice", "Ncells", "boxs.IDd", "nboxes_passed",  "nbiv",               "tot.biv", "mean_SC", "var.SC_length", "sd.SC_length", "se.SC_length",        "mean.SC_1CO", "mean.SC_2CO", "mean.SC_3CO", "mean.SC_4CO", "mean_1CO.pos",  "mean_1CO.pos.PER", "norm.first.foci.pos", "mean_IFD.2CO_ABS", "mean_IFD.2CO_PER", "mean_IFD_ABS", "mean_IFD_PER", "mean.siscoten", "mean.siscoten_1CO", "mean.siscoten_2CO", "mean.siscoten_3CO", "mean.telo.dist", "mean.cent.dist",     "mean.sis.co.ten", "sex", "strain", "subsp", "category", "Rec.group", "species",
+                                                     
+               #leave out the Foci
+                "per.0CO", "per.1CO", "per.2CO", "per.3CO", "per.4CO")], 
+               
+  id=c("mouse", "Nmice", "Ncells", "boxs.IDd", "nboxes_passed",  "nbiv",               "tot.biv", "mean_SC", "var.SC_length", "sd.SC_length", "se.SC_length",        "mean.SC_1CO", "mean.SC_2CO", "mean.SC_3CO", "mean.SC_4CO", "mean_1CO.pos",  "mean_1CO.pos.PER", "norm.first.foci.pos", "mean_IFD.2CO_ABS", "mean_IFD.2CO_PER", "mean_IFD_ABS", "mean_IFD_PER", "mean.siscoten", "mean.siscoten_1CO", "mean.siscoten_2CO", "mean.siscoten_3CO", "mean.telo.dist", "mean.cent.dist",     "mean.sis.co.ten", "sex", "strain", "subsp", "category", "Rec.group", "species"))
+
+MELT_Chrm.Proportion <- MELT_Chrm.Proportion[(!is.na(MELT_Chrm.Proportion$value)),]
+MELT_Chrm.Proportion <- MELT_Chrm.Proportion[!(is.na(MELT_Chrm.Proportion$value) | MELT_Chrm.Proportion$value==0), ]
+
+#no filename for add mouse, strain subsp
+MELT_Chrm.Proportion <- add_category(MELT_Chrm.Proportion)
+MELT_Chrm.Proportion <- add_sex(MELT_Chrm.Proportion)
+MELT_Chrm.Proportion <- add_strain(MELT_Chrm.Proportion)
+MELT_Chrm.Proportion <- add_species(MELT_Chrm.Proportion)
+
+#then this DF has to be summarized into categories
+chrm.class.category_MELT <- ddply(MELT_Chrm.Proportion, c("strain","sex", "variable"), summarise,
+                             mean.percent.type = mean(value)
+                             #sum is the wrong!
+                             #used average percentage, might consider a different summary
+)
+
+#can't apply function use this
+chrm.class.category_MELT$subsp <- ifelse(grepl("WSB", chrm.class.category_MELT$strain), "Dom", 
+             ifelse(grepl("G", chrm.class.category_MELT$strain), "Dom",
+                 ifelse(grepl("LEW", chrm.class.category_MELT$strain), "Dom", 
+                ifelse(grepl("PERC", chrm.class.category_MELT$strain), "Dom",
+                                                            
+          ifelse(grepl("CAST", chrm.class.category_MELT$strain), "Cast",
+              ifelse(grepl("HMI", chrm.class.category_MELT$strain), "Cast",
+                                                                                 
+                                       ifelse(grepl("MSM", chrm.class.category_MELT$strain), "Mol", #added Mol as distinct subsp class
+                                      ifelse(grepl("MOLF", chrm.class.category_MELT$strain), "Mol",    
+            ifelse(grepl("PWD", chrm.class.category_MELT$strain), "Musc", 
+                     ifelse(grepl("CZECH", chrm.class.category_MELT$strain), "Musc", 
+                 ifelse(grepl("AST", chrm.class.category_MELT$strain), "Musc",     
+                      ifelse(grepl("TOM", chrm.class.category_MELT$strain), "Musc",  
+                   ifelse(grepl("SKIVE", chrm.class.category_MELT$strain), "Musc",
+                        ifelse(grepl("KAZ", chrm.class.category_MELT$strain), "Musc",
+                                                                                                                                              
+             ifelse(grepl("SPRET", chrm.class.category_MELT$strain), "Spretus",
+               ifelse(grepl("SPIC", chrm.class.category_MELT$strain), "Spic",  "other"))))))))))))))))
+  
+
+chrm.class.category_MELT$subsp <- factor(chrm.class.category_MELT$subsp, ordered = TRUE,levels =c( "Dom",                    "Cast",
+                                                                 "Musc",
+                                                                 "Mol",
+                                                                 "Spretus","Spic",
+                                                                 "other") )
+#ggplot
+
+chrm.class.barplot <- ggplot( data = (chrm.class.category_MELT %>% filter(strain != "CZECH")),aes(y = mean.percent.type, x = strain, fill=as.factor(variable)) ) + geom_col(position = "dodge")+ggtitle("")+ylim(c(0,1)) + facet_wrap(sex~subsp, scales = "free")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position="top", legend.title = element_blank(),  axis.title.y = element_blank(), axis.text.x = element_text(size=9), axis.title.x = element_blank() )+ scale_fill_discrete(name = "Chromosome Class", labels =c('0CO','1CO','2CO','3CO','4CO') )
+
+chrm.class.barplot.final <- addSmallLegend(chrm.class.barplot)
+
+```
+
+
+
+```{r Q2.1CO.show_plots, echo=FALSE,  warning=FALSE, fig.cap="Male distributions of single crossover normalized positions.", fig.width=4, eval=FALSE}
+#Curated_BivData_male
+
+#boxplots of nrm F1
+male.bivdata.1CO <- cleanCurated_BivData %>% filter(sex == "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1)
+  
+Q2.show.nrmF1 <- ggplot(male.bivdata.1CO, aes(x=strain, y=PER_Foci_1, color=strain) )+geom_jitter(alpha=.23 )+ geom_boxplot(aes(y= PER_Foci_1), alpha=.5 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+theme(legend.position="none", axis.text.x = element_text(size=9), axis.title.x = element_blank())+labs(y="Foci 1 Relative Position")
+
+```
+
+## IFD Single 
+
+
+## Double triangle
+
+
+```{r double.IFD.triangle.plots, echo=FALSE, eval=FALSE}
+
+#good function, saves to file, can't reproduce in rmd ..width=650, height=500
+#big loop for automating the IFD triangles
+only.male.strains <- c("F1", "PERC", "CZECH", "AST", "TOM", "HMI", "SPRET", "CAROLI", "other")
+auto_curate_DF <- Curated_BivData[ ! Curated_BivData$strain %in% only.male.strains, ]
+
+df_strain_list <- split(auto_curate_DF, (auto_curate_DF$strain))
+df_strain_list <- df_strain_list[ -c(4,10,11,12,13,14,15,16,17,18,19) ]
+#make a new empty df. create a ddply thing with mean calculations (this is like a list for matching up later)
+
+#this works
+top.triangle <- function(my.y, my.x, my.data) {
+  plot(my.y ~ my.x, data= my.data, axes=FALSE, ylab='', xlab="", 
+       main='', xlim=c(0, 1), ylim=c(0, 1), xaxt="n", yaxt="n", asp=1,
+       col =  colors_of_strains[current.strain])
+  
+  mtext(current.strain, 3, 5, font=2, cex=1.3, adj=.95)
+  mtext("Position.2.Female", 2, .75)
+  mtext("Position.1.Female", 3, 2)
+  
+  axis(side=2, las=1, pos=0)
+  axis(side=3, las=1, pos=1)
+  lines(0:1, 0:1)
+}
+
+bottom.triangle <- function(my.y, my.x, my.data){
+  points(my.x ~ my.y, data=my.data, xpd=TRUE, 
+          col =  colors_of_strains[current.strain])
+  
+  mtext("Position.2.Male", 1, 1.5, at=mean(par()$usr[1:2]) + x.dist)
+  mtext("Position.1.Male", 4, 3, padj=par()$usr[1] +  7)
+  x.at <- axisTicks(par()$usr[1:2], 0) + x.dist
+  axis(side=1, las=1, pos=0, at=x.at, 
+       labels=F, xpd=TRUE)
+  mtext(seq(0, 1, .2), 1, 0, at=x.at)
+  axis(4, las=1, pos=1 + x.dist)
+  lines(0:1 + x.dist, 0:1, xpd=TRUE)
+}
+
+x.dist <- .1
+RP <- list()
+
+for(i in 1:(length(df_strain_list))){
+  #print(i)
+  current.strain <- as.character(df_strain_list[[i]]$strain[1])
+  
+  #declare file for saving png
+  #png(paste0("~./MLH1repo/doc/figureFiles/IFD.triangle_", current.strain, ".png"),  width=650, height=500, res=100)
+  
+  plot.new()
+  
+  my.data = (Curated_BivData %>% filter(strain == current.strain) %>% filter(hand.foci.count == 2) )
+    
+  my.x.top = (Curated_BivData %>% filter(strain == current.strain) %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_1 
+  
+  my.y.top = (Curated_BivData %>% filter(strain == current.strain) %>% filter(sex == "female") %>% filter(hand.foci.count == 2) )$PER_Foci_2
+  
+  my.x.bottom = (Curated_BivData %>% filter(strain == current.strain) %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_1  
+  
+  my.y.bottom = (Curated_BivData %>% filter(strain == current.strain) %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_2
+  
+  #adjusting this mar lowers the margins
+  op <- par(mar=c(.6,.6, .6, .6) + 0.1, oma=c(2, 0, 0, 2))
+  
+  top.triangle(my.y.top, my.x.top, my.data)
+  
+  bottom.triangle(my.y.bottom+x.dist, my.x.bottom, my.data) #x.dist
+
+  par(op)
+  RP[[i]] <- recordPlot()
+  dev.off()
+}
+```
+
+
+```{r Q1.IFD_load.triangles, echo=FALSE, message=FALSE, warning=FALSE, fig.cap = "Distribution of normalized foci positions (IFDs) for double crossover bivalents across sexes. Female and male patterns are displayed in the top and bottom triangle respectively. Each point reflects a single double crossover bivalent, with the normalized positions of foci reflected on each axis."}
+
+plot1.WSB <- readPNG('~/MLH1repo/doc/figureFiles/IFD.triangle_WSB.png')
+plot2.LEW <- readPNG('~/MLH1repo/doc/figureFiles/IFD.triangle_LEW.png')
+plot3.G <- readPNG('~/MLH1repo/doc/figureFiles/IFD.triangle_G.png')
+plot4.KAZ <- readPNG('~/MLH1repo/doc/figureFiles/IFD.triangle_KAZ.png')
+plot5.SKIVE <- readPNG('~/MLH1repo/doc/figureFiles/IFD.triangle_SKIVE.png')
+plot6.PWD <- readPNG('~/MLH1repo/doc/figureFiles/IFD.triangle_PWD.png')
+plot7.MSM <- readPNG('~/MLH1repo/doc/figureFiles/IFD.triangle_MSM.png')
+
+
+# grid.arrange(rasterGrob(plot1.WSB), rasterGrob(plot2.LEW), rasterGrob(plot3.G),
+#             rasterGrob(plot4.KAZ), rasterGrob(plot5.SKIVE), rasterGrob(plot6.PWD),
+#             rasterGrob(plot7.MSM), 
+#             ncol=3)
+
+#load all the files / arrange the plots from above 
+#WSB.triangle.png <- readPNG("~./MLH1repo/doc/figureFiles/test.triangle_WSB.png")
+```
+
+
+## Single rewrite IFD triangle
+
+figure script below
+
+```{r Q2.double.tri.rewrite, echo=FALSE, warning=FALSE, eval=FALSE}
+
+#good function, saves to file, can't reproduce in rmd ..width=650, height=500
+#big loop for automating the IFD triangles
+
+Q2.males.IFD <- c("F1", "other")
+Q2.auto_curate_DF <- cleanCurated_BivData[ ! cleanCurated_BivData$strain %in% Q2.males.IFD, ]
+
+Q2.df_strain_list <- split(Q2.auto_curate_DF, (Q2.auto_curate_DF$strain))
+
+
+#this works
+Q2.bottom.triangle2 <- function(my.y, my.x, my.data){
+  points(my.x ~ my.y, data=my.data, xpd=TRUE, 
+          col =  colors_of_strains[unique(my.data$strain)])
+  
+  mtext("Position.2.Male", 1, -2, at= mean(par()$usr[1:2]) + 0)
+  
+  #the second val will move the x lable when negative
+  
+  #at should be changing the position
+  #above is just changing the text not the numbers
+  #first number, on which side of the plot (1=bottom, 2=left, 3=top, 4=right)
+  
+  #second number - on which MARgin line, starting at 0 counting outwards.
+  #where text should be,  at = 0, 1 (bad)
+  
+  mtext("Position.1.Male", 4, 0, padj=par()$usr[1] + .5) #last value at .5 is good for moving y label
+  
+  x.at <- axisTicks(par()$usr[1:2], 0) #where the ticks should go
+  
+  axis(side=1, las=1, pos=0, at=x.at, 
+       labels=T, xpd=TRUE)
+#changing labels=T, puts the ddefault labels back
+  
+  #second value should be around .75 (moves label text closer)
+  axis(4, las=1, pos=1, at=x.at) #this is the y axis
+  lines(0:1, 0:1, xpd=TRUE) #diagonal line
+}
+
+x.dist <- .25
+RP <- list()
+
+for(i in 1:(length(Q2.df_strain_list))){
+  #print(i)
+  current.strain <- as.character(Q2.df_strain_list[[i]]$strain[1])
+  
+  #par(mar = c(2, 2, 2, 2))
+  #dev.new(width = 8, height = 4, unit = "in")
+  #declare file for saving png
+  png(paste0("~./MLH1repo/doc/figureFiles/Q2.IFD.triangle_", current.strain, ".png"),  width= 650, height=500, res = 100) #500 seems like a good size
+  plot.new()
+  
+  my.data = (cleanCurated_BivData %>% filter(strain == current.strain) %>% filter(hand.foci.count == 2) )
+  my.x.bottom = (cleanCurated_BivData %>% filter(strain == current.strain) %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_1 
+  my.y.bottom = (cleanCurated_BivData %>% filter(strain == current.strain) %>% filter(sex == "male") %>% filter(hand.foci.count == 2) )$PER_Foci_2
+  
+  #adjusting this mar lowers the margins (the edges)
+  op <- par(mar=c(.25, .15, .25, .75), oma=c(2, 0, 0, 2))
+#(1=bottom, 2=left, 3=top, 4=right)
+
+Q2.bottom.triangle2(my.y.bottom, my.x.bottom, my.data) #x.dist
+
+  par(op)
+  RP[[i]] <- recordPlot()
+  dev.off()
+}
+
+```
+
+
+```{r Q2.load.bottom.tri, echo=FALSE}
+
+#only load, SKIVE, PWD, MSM
+#MOLF, KAZ, LEW
+Q2.bottom.LEW <- readPNG('~/MLH1repo/doc/figureFiles/Q2.IFD.triangle_LEW.png')
+Q2.bottom.KAZ <- readPNG('~/MLH1repo/doc/figureFiles/Q2.IFD.triangle_KAZ.png')
+Q2.bottom.SKIVE <- readPNG('~/MLH1repo/doc/figureFiles/Q2.IFD.triangle_SKIVE.png')
+Q2.bottom.PWD <- readPNG('~/MLH1repo/doc/figureFiles/Q2.IFD.triangle_PWD.png')
+Q2.bottom.MSM <- readPNG('~/MLH1repo/doc/figureFiles/Q2.IFD.triangle_MSM.png')
+Q2.bottom.MOLF <- readPNG('~/MLH1repo/doc/figureFiles/Q2.IFD.triangle_MOLF.png')
+
+empty.DF <- data.frame(col1 = c(1,3), col2 = c(1,3) )
+
+#EMPTY GGPLOT
+Q2.LEW.bottom.tri <- ggplot(empty.DF, aes(x = col1, y = col2)) +
+  background_image(Q2.bottom.LEW) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(),
+    axis.title.x=element_blank(),                       axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),
+                                  axis.text.y=element_blank(),axis.ticks.y=element_blank() )
+
+```
+
+
+```{r Q2.IFD_load.triangles, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.cap="male IFD distributions highlighting differences across recombining groups", eval=FALSE}
+
+Q2.SC_dif.Figure3  <- ggdraw() +
+  
+  draw_plot(Q1.SC.short.mouse_scatter_boxplot, x=0, y=.38, width=.5, height= .6)+
+  draw_plot(Tot.SC_mouse.av_ALL, x=.475, y=.38,  width = .5, height = .6)+
+
+  draw_plot(single.chrm.icon, x=.44, y=.79,  width = .1, height = .1)+   
+  draw_plot(all.chrm.icon, x=.88, y=.79,  width = .1, height = .1)+
+
+  
+  #drawing triangles in the corner
+  #top right-triangle
+  draw_line(
+    x = c(.1, .2,  .1, .1 ), #keep the x values consistant
+    y = c( .25, .25,  .15, .25),
+    color = "blue", size=.75
+  )
+
+#draw boxes around the
+```
+
+# IFD double triangle
+
+
+```{r double.tri.Comp_Ratios, echo=FALSE, eval=FALSE}
+
+#calq ratios of belo 30
+
+top.male <-  G.Bivalents.DF %>% filter(sex== "male") %>%  filter(hand.foci.count== 2) %>%filter(IFD1_PER <= .3) 
+
+bottom.male <-  G.Bivalents.DF %>% filter(sex== "male") %>%  filter(hand.foci.count== 2) 
+
+ratio.male <- length(top.male$Obj.ID)/ length(bottom.male$Obj.ID)
+
+
+top.female <-  G.Bivalents.DF %>% filter(sex== "female") %>%  filter(hand.foci.count== 2) %>% filter(IFD1_PER <= .3)
+
+bottom.female <-  G.Bivalents.DF %>% filter(sex== "female")%>%  filter(hand.foci.count== 2)
+
+ratio.female <- length(top.female$Obj.ID)/ length(bottom.female$Obj.ID)
+
+#what is the fastest way to calq all these ratios?  also what's the fastst way to get them into a DF / table?
+
+
+#put all the DFs in a list, for each DF in the list -- apply the filters for the nom and denominator
+MOLF.Bivalents.DF <- Curated_BivData %>% filter(strain == "MOLF")
+
+
+DF.strain.list <- list(
+  WSB.Bivalents.DF, G.Bivalents.DF, LEW.Bivalents.DF, 
+  PWD.Bivalents.DF, KAZ.Bivalents.DF, SKIVE.Bivalents.DF,
+  MSM.Bivalents.DF, MOLF.Bivalents.DF
+  )
+
+entr_DF <- data.frame(strain=c("WSB", "G", "LEW", "PWD", "KAZ", "SKIVE", "MSM", "MOLF"), 
+        total.2CO_female=c(0,0,0,0,0,0,0,0), total.2CO_male=c(0,0,0,0,0,0,0,0), below30_male = c(0,0,0,0,0,0,0,0), below30_female = c(0,0,0,0,0,0,0,0),     
+          female.ratio = c(0,0,0,0,0,0,0,0), male.ratio = c(0,0,0,0,0,0,0,0))
+  
+i = 1
+for(x in (DF.strain.list) ){
+  
+  #print(head())
+  
+  #these filters won't apply to the indexed DF
+  top.male =  x %>% filter(sex== "male") %>%  filter(hand.foci.count== 2) %>%filter(IFD1_PER <= .3)
+
+  bottom.male <-  x %>% filter(sex== "male") %>%  filter(hand.foci.count== 2)
+
+  entr_DF$total.2CO_male[i] <- length(bottom.male$Obj.ID)
+  entr_DF$below30_male[i] <- length(top.male$Obj.ID)
+  entr_DF$male.ratio[i] <- length(top.male$Obj.ID)/ length(bottom.male$Obj.ID)
+  
+  top.female <-  x %>% filter(sex== "female") %>%  filter(hand.foci.count== 2) %>% filter(IFD1_PER <= .3)
+  
+  bottom.female <-  x %>% filter(sex== "female")%>%  filter(hand.foci.count== 2)
+
+  
+  entr_DF$total.2CO_female[i] <- length(bottom.female$Obj.ID)
+  entr_DF$below30_female[i] <- length(top.female$Obj.ID)
+  entr_DF$female.ratio[i] <- length(top.female$Obj.ID)/ length(bottom.female$Obj.ID)
+  
+  i = i+1
+  
+  }
+#entr_DF
+
+entr_DF$sex.dif <- entr_DF$female.ratio - entr_DF$male.ratio
+
+```
+
+```{r Q2.show.IFD, echo=FALSE, warning = FALSE, eval=FALSE}
+#subset
+male.biv.2CO <- cleanCurated_BivData %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 2)
+
+male.biv.2CO$Rec.group <- ifelse(grepl("PWD", male.biv.2CO$strain), 1, 
+                                    ifelse(grepl("MSM", male.biv.2CO$strain), 1, 
+                                           ifelse(grepl("SKIVE", male.biv.2CO$strain), 1, 0)))
+
+biv.IFDs_PER_by.group <- ggplot(male.biv.2CO, aes(y = IFD1_PER, x= strain, color=strain))+geom_boxplot(alpha=.2)+
+  geom_jitter(alpha=.2)+
+  ggtitle("")+
+  scale_color_manual(values=colors_of_strains)+ facet_wrap(Rec.group ~ subsp, scales = "free")+
+  theme(legend.position="none", axis.text.x = element_blank(), axis.title.x = element_blank() )  + labs("Normalized IFD ") +
+  ylim(c(0,1.1))
+
+#consider adding horizontal line
+
+#to adjust the boxplot width
+#https://stackoverflow.com/questions/46174222/ggplot2-incorrect-boxplot-width-when-facetting-with-facets-of-different-scales
+#I don't think there's a straightforward way to achieve that in ggplot. You may have better luck plotting each facet as a separate ggplot object (on a subset of the data), then arrange them on a single page, using grid.arrange() from gridExtra for example.
+
+```
+
+
+```{r Q1.F1.pos.LONG.SHORT.BIV_scatter, echo=FALSE}
+#real.long.bivData
+Q1.short.biv_scatr_box   <- ggplot( (real.short.bivData %>% filter(hand.foci.count == 1) ), aes(x=sex, y=PER_Foci_1, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= PER_Foci_1 ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nShort Biv")
+
+
+Q1.long.biv_scatr_box   <- ggplot((real.long.bivData %>% filter(hand.foci.count == 1) ), aes(x=sex, y=PER_Foci_1, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= PER_Foci_1 ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nLong Biv")
+
+```

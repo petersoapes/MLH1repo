@@ -825,13 +825,13 @@ summ.MLH1.M3.strain.fixed <- summary(MLH1.M3.strain.fixed)
 
 ```{r Female.specific.glm, echo=FALSE, eval=TRUE}
 
-glm.female.strain.subsp <- glm(mean_co ~ subsp * strain, data= female_mouse.avs_for.analysis)
+glm.female.strain.subsp <- glm(mean_co ~ subsp * strain, data= (female_mouse.avs_for.analysis %>% filter(subsp != "Cast") ) )
 
 summry.female.strain.effects <- summary(glm.female.strain.subsp)
 #round(summry.female.strain.effects$coefficients[,c(1,4)],5)
 #write.table(summry.female.strain.effects$coefficients, "~./MLH1repo/summry.female.strain.effects.csv", sep=",",row.names = TRUE)
 
-MLH1.female.spc.glm.M2 <- glm(mean_co ~ strain, data= female_mouse.avs_for.analysis)
+MLH1.female.spc.glm.M2 <- glm(mean_co ~ strain, data= (female_mouse.avs_for.analysis %>% filter(subsp != "Cast") ) )
 sum_MLH1.female.spc.glm.M2 <- summary(MLH1.female.spc.glm.M2)
 
 #round(lm.female.strain_sum$coefficients[,c(1,4)],5)
@@ -840,22 +840,17 @@ sum_MLH1.female.spc.glm.M2 <- summary(MLH1.female.spc.glm.M2)
 ```
 
 ```{r Male.specific.glm, echo=FALSE, eval=TRUE}
-
-#these are M4
 #M4
-MLH1.male.glm.M4 <- glm(mean_co ~ subsp * strain, data= male_mouse.avs_for.analysis)
+MLH1.male.glm.M4 <- glm(mean_co ~ subsp * strain, data=(male_mouse.avs_for.analysis  %>% filter(subsp != "Cast") )   )
+
 sum_MLH1.male.glm.M4 <- summary(MLH1.male.glm.M4)
-#round(summry.male.strain.effects$coefficients[,c(1,4)], 5)
-
-#sum_MLH1.male.specific.glm.M2$coefficients[5,][4]
-
 #PWD, SKIVE, MSM
 #8,9,10
 
 #write.table(summry.male.strain.effects$coefficients , "~./MLH1repo/summry.male.strain.effects.csv", sep=",",row.names = TRUE)
 
 #M4.2
-MLH1.male.glm.M4.2 <- glm(mean_co ~ strain, data= male_mouse.avs_for.analysis)
+MLH1.male.glm.M4.2 <- glm(mean_co ~ strain, data= (male_mouse.avs_for.analysis  %>% filter(subsp != "Cast") ))
 sum_MLH1.male.glm.M4.2 <- summary(MLH1.male.glm.M4.2)
 
 #round(lm.male.strain_sum$coefficients[,c(1,4)], 5)
@@ -4172,6 +4167,14 @@ single.biv_1COpos.plot_Dom <- ggplot(data= Curated_BivData %>% filter(sex == "ma
 
 #Q2 IFD
 
+```{r Q2.IFD.setup, echo=FALSE}
+
+#identify and remove mice with 1 bivalent observation (MSM:  1feb18_MSM_m1)
+#some cells just have 1 cell, but the MSM_m is the only with just 1 bivlent
+
+```
+
+
 
 ```{r Q2.IFD.long.short.setup, echo=FALSE}
 #long BivData
@@ -4223,6 +4226,7 @@ LongBiv_IFD_mus.rate$Rec.group <- ifelse(grepl("PWD", LongBiv_IFD_mus.rate$strai
 
 ```
 
+
 ```{r Q2.IFD.long.biv_t.test, echo=FALSE}
 #short removed PER
 Short.removed_BivData.LongBiv_IFD.PER_Ttest <- t.test(LongBiv_IFD_mus.rate$mean.perIFD_short.rm[LongBiv_IFD_mus.rate$Rec.group == 1], 
@@ -4245,7 +4249,7 @@ Short.removed_BivData.LongBiv_IFD.ABS_Ttest <- t.test(LongBiv_IFD_mus.rate$mean.
 #mouse.av - the mouse average IFD is from just 2CO
 
 #high, low
-t.test_mouse.av.IFD_ABS <- t.test(  (mouse.level.BivData_table %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(species == "M.musculus") )$mean_IFD.2CO_ABS, 
+t.test_mouse.av.IFD_ABS <- t.test(  (mouse.level.BivData_table %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(species == "M.musculus")  )$mean_IFD.2CO_ABS, 
    (mouse.level.BivData_table %>% filter(Rec.group == "0") %>% filter(sex == "male")%>% filter(species == "M.musculus") )$mean_IFD.2CO_ABS   )
   
 
@@ -4259,15 +4263,76 @@ t.test_mouse.av.IFD_PER <- t.test(  (mouse.level.BivData_table %>% filter(Rec.gr
 t.test_mouse.av.IFD_PER_MUSC <- t.test(  (mouse.level.BivData_table %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(subsp == "Musc") %>% filter(species == "M.musculus") )$mean_IFD.2CO_PER,
    (mouse.level.BivData_table %>% filter(Rec.group == "0") %>% filter(sex == "male")  %>% filter(subsp == "Musc") %>% filter(species == "M.musculus") )$mean_IFD.2CO_PER   )
 
-t.test_mouse.av.IFD_PER_MOL <- t.test(  (mouse.level.BivData_table %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(subsp == "Mol") %>% filter(species == "M.musculus") )$mean_IFD.2CO_PER,
-   (mouse.level.BivData_table %>% filter(Rec.group == "0") %>% filter(sex == "male") %>% filter(subsp == "Mol") %>% filter(species == "M.musculus") )$mean_IFD.2CO_PER   )
-
 #ABS
 t.test_mouse.av.IFD_ABS_MUSC <- t.test(  (mouse.level.BivData_table %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(subsp == "Musc") %>% filter(species == "M.musculus"))$mean_IFD.2CO_ABS,
    (mouse.level.BivData_table %>% filter(Rec.group == "0") %>% filter(sex == "male")  %>% filter(subsp == "Musc")%>% filter(species == "M.musculus"))$mean_IFD.2CO_ABS   )
 
-t.test_mouse.av.IFD_ABS_MOL <- t.test(  (mouse.level.BivData_table %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(subsp == "Mol") %>% filter(species == "M.musculus"))$mean_IFD.2CO_ABS,
-   (mouse.level.BivData_table %>% filter(Rec.group == "0") %>% filter(sex == "male") %>% filter(subsp == "Mol") %>% filter(species == "M.musculus") )$mean_IFD.2CO_ABS  )
+#niether PER or ABS is sig, 1 mouse, #1feb18_MSM_m1 has only 1 observation 
+
+t.test_mouse.av.IFD_PER_MOL <- t.test(  (mouse.level.BivData_table %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(subsp == "Mol") %>% filter(mouse != "1feb18_MSM_m1")   )$mean_IFD.2CO_PER,
+   (mouse.level.BivData_table %>% filter(Rec.group == "0") %>% filter(sex == "male") %>% filter(subsp == "Mol") %>% filter(species == "M.musculus") )$mean_IFD.2CO_PER   )
+
+t.test_mouse.av.IFD_ABS_MOL <- t.test(  (mouse.level.BivData_table %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(subsp == "Mol") %>% filter(mouse != "1feb18_MSM_m1") )$mean_IFD.2CO_ABS,
+   (mouse.level.BivData_table %>% filter(Rec.group == "0") %>% filter(sex == "male") %>% filter(subsp == "Mol") )$mean_IFD.2CO_ABS  )
+
+```
+
+
+```{r Q2.t.test_IFD, echo=FALSE, eval=FALSE}
+
+male.bivdata.2CO_IFD <- Curated_BivData %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 2)
+#t.tests for the Rec group
+Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
+                                    ifelse(grepl("MSM male", Curated_BivData$category), 1,
+                                           ifelse(grepl("SKIVE male",Curated_BivData$category),1, 0)))
+
+#Curated_BivData <- add_IFD(Curated_BivData)
+#THIS SHOULD ALREADY BE ADDED
+
+#single biv level
+Rec.group.BivData_IFD.PER_Ttest <- t.test(male.bivdata.2CO_IFD$IFD1_PER[male.bivdata.2CO_IFD$Rec.group == 1], 
+                                 male.bivdata.2CO_IFD$IFD1_PER[male.bivdata.2CO_IFD$Rec.group == 0])
+ 
+#Rec.group.BivData_IFD.PER_Ttest$p.value
+#p-value < 2.2e-16
+
+#MOUSE AVE  -- replace with mouse    mouse.avs_4MM,   male.av_4MM
+Rec.group_IFD.PER_Ttest <- t.test(  (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "1"))$mean_IFD.2CO_PER, 
+                                (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "0"))$mean_IFD.2CO_PER )
+ 
+#Rec.group_IFD.PER_Ttest$p.value 
+#p-value = 6.872e-07
+```
+
+
+```{r Q2.show.IFD.Mol, echo=FALSE}
+
+#mouse.level.BivData_table
+#cleanCurated_BivData
+
+#molossinus does not show 
+
+Musc.IFD.Biv <- ggplot(data = (cleanCurated_BivData %>% filter(subsp == "Musc") %>% filter(sex == "male") %>% filter(hand.foci.count == 2)  ), aes(x = strain, y = IFD1_PER) ) + geom_jitter()
+
+Mol.IFD <- ggplot(data = (cleanCurated_BivData %>% filter(subsp == "Mol") %>% filter(sex == "male") %>% filter(hand.foci.count == 2)  ), aes(x = strain, y = IFD1_PER) ) + geom_jitter() +facet_wrap(~mouse)
+
+
+
+t.test_biv.av.IFD_PER_MOL <- t.test(  (cleanCurated_BivData %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(subsp == "Mol") %>% filter(species == "M.musculus") )$IFD1_PER,
+   (cleanCurated_BivData %>% filter(Rec.group == "0") %>% filter(sex == "male") %>% filter(subsp == "Mol") %>% filter(species == "M.musculus") )$IFD1_PER   )
+#p value for the bivalent level IFD1 norm positions are significant
+
+
+#mouse level
+t.test_mouse.av.IFD_PER_MOL <- t.test(  (mouse.level.BivData_table %>% filter(Rec.group == "1") %>% filter(sex == "male") %>% filter(subsp == "Mol") %>% filter(species == "M.musculus") )$mean_IFD.2CO_PER,
+   (mouse.level.BivData_table %>% filter(Rec.group == "0") %>% filter(sex == "male") %>% filter(subsp == "Mol") %>% filter(species == "M.musculus") )$mean_IFD.2CO_PER   )
+
+#1feb18_MSM_m1
+
+Mol.mus.IFD <- ggplot(data = (mouse.level.BivData_table %>% filter(subsp == "Mol") %>% filter(sex == "male")   ), aes(x = strain, y = mean_IFD_PER, color = mouse) ) + geom_jitter()
+#there is mouse MSM with v low, 1feb18_MSM_m1 -- it only has 1 measure
+
+
 ```
 
 
@@ -4392,6 +4457,7 @@ Q2.BIV.LEN.M2glm_IFD.PER <- glm(IFD1_PER ~ strain* chromosomeLength, data= Curat
 #  MSM strain effect for 2CO PER not significant
 
 ```
+
 
 ```{r Q2.IFD_rate.shortIFD, echo=FALSE, warning = FALSE, eval=FALSE}
 
@@ -4559,32 +4625,6 @@ male.long.biv.2CO_IFD$strain <- factor(male.long.biv.2CO_IFD$strain, ordered = F
 Q2.glm_long.biv_M2.IFD.PER <- glm(IFD1_PER ~ strain, data= male.long.biv.2CO_IFD)
 #summary(Q2.glm_long.biv_M2.IFD.PER)
 #The PER.IFDs don't have significant strain effects
-```
-
-```{r Q2.t.test_IFD, echo=FALSE, eval=FALSE}
-
-male.bivdata.2CO_IFD <- Curated_BivData %>% filter(sex== "male") %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 2)
-#t.tests for the Rec group
-Curated_BivData$Rec.group <- ifelse(grepl("PWD male", Curated_BivData$category), 1, 
-                                    ifelse(grepl("MSM male", Curated_BivData$category), 1,
-                                           ifelse(grepl("SKIVE male",Curated_BivData$category),1, 0)))
-
-#Curated_BivData <- add_IFD(Curated_BivData)
-#THIS SHOULD ALREADY BE ADDED
-
-#single biv level
-Rec.group.BivData_IFD.PER_Ttest <- t.test(male.bivdata.2CO_IFD$IFD1_PER[male.bivdata.2CO_IFD$Rec.group == 1], 
-                                 male.bivdata.2CO_IFD$IFD1_PER[male.bivdata.2CO_IFD$Rec.group == 0])
- 
-#Rec.group.BivData_IFD.PER_Ttest$p.value
-#p-value < 2.2e-16
-
-#MOUSE AVE  -- replace with mouse    mouse.avs_4MM,   male.av_4MM
-Rec.group_IFD.PER_Ttest <- t.test(  (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "1"))$mean_IFD.2CO_PER, 
-                                (mouse.avs_4MM %>% filter(sex == "male") %>% filter(Rec.group == "0"))$mean_IFD.2CO_PER )
- 
-#Rec.group_IFD.PER_Ttest$p.value 
-#p-value = 6.872e-07
 ```
 
 ```{r Q2.IFD_short.removed_t.test, echo=FALSE, include=FALSE, eval=FALSE}
