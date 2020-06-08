@@ -5,6 +5,14 @@ date:
 output: html_document
 ---
 
+todo
+
+-update the variable names
+
+- re-run analyses with sd
+
+- Cecile's comment on transformations...
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -43,17 +51,21 @@ options(digits=2)
 
 #setwd("~.")#switch over to here()
 
-load(file="~./MLH1repo/data/Results_setup_4.24.20.RData")
+load(file="~./MLH1repo/data/Results_setup_5.30.20.RData")
 
 #load(file="~./MLH1repo/data/Results_setup_4.21.20.RData")
 
-load(file="~./MLH1repo/data/CleanBivData_6.3.20.RData")
-load(file="~./MLH1repo/data/total_SC_30.12.19.RData")
+#load(file="~./MLH1repo/data/CleanBivData_6.3.20.RData")
+#load(file="~./MLH1repo/data/total_SC_30.12.19.RData")
 
 #skeletonize
 #SC.skel = read.csv("~./MLH1repo/data/SCskel_output_feb20.csv", header = TRUE, strip.white = TRUE)
 
-Total.SC_DF = read.xlsx2("~./MLH1repo/data/Total.SC_DF.xlsx", header=TRUE, 1)
+
+#TOTAL SC should already be loaded into Results
+#XXXXTotal.SC_DF = read.xlsx2("~./MLH1repo/data/Total.SC_DF.xlsx", header=TRUE, 1)
+
+#Total.SC_DF = read.xlsx2("~./MLH1repo/data/Total.SC_DF_5.31.20.xlsx", header=TRUE, 1) #this new total_SC has the additional batches and outliers have been removed
 
 #load functions
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
@@ -86,6 +98,8 @@ F.strain.table <- ddply(female_mouse.avs_for.analysis, c("strain"), summarise,
 
 ```
 
+
+
 ```{r mouse.var.plots.female, echo=FALSE, fig.width = 4, fig.height=2.5, warning=FALSE}
 
 #variance plots
@@ -95,15 +109,30 @@ musc.female.VAR.plot <- ggplot( (female_mouse.avs_for.analysis %>% filter(sex== 
 Mol.female.VAR.plot <- ggplot( (female_mouse.avs_for.analysis %>% filter(subsp == "Mol") ), aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain, alpha=0.5), width = .2 )+ ggtitle("Mol female\nwithin mouse MLH1 variance")+scale_color_manual(values=colors_of_strains)
 
 
-Dom.female.VAR.plot <- ggplot(Dom.female_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain), width = .2 )+ ggtitle("Dom female\nwithin mouse \nMLH1 variance") + scale_color_manual(values=colors_of_strains)
+Dom.female.VAR.plot <- ggplot( data = (female_mouse.avs_for.analysis %>% filter(subsp == "Dom") ), aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain), width = .2 )+ ggtitle("Dom female\nwithin mouse \nMLH1 variance") + scale_color_manual(values=colors_of_strains)
 
+
+```
+
+
+```{r mouse.SD.plots.female, echo=FALSE, fig.width = 4, fig.height=2.5, warning=FALSE}
+
+#variance plots
+musc.female.SD.plot <- ggplot( (female_mouse.avs_for.analysis %>% filter(sex== "female") %>% filter(subsp == "Musc") ) , aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = sd, color= strain, alpha=0.5), width = .2 )+ ggtitle("Musc female of within mouse \nMLH1 s.d.")+scale_color_manual(values=colors_of_strains)
+musc.female.SD.plot
+
+Mol.female.SD.plot <- ggplot( (female_mouse.avs_for.analysis %>% filter(subsp == "Mol") ), aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = sd, color= strain, alpha=0.5), width = .2 )+ ggtitle("Mol female\nwithin mouse MLH1 s.d.")+scale_color_manual(values=colors_of_strains)
+Mol.female.SD.plot
+
+Dom.female.SD.plot <- ggplot( data = (female_mouse.avs_for.analysis %>% filter(subsp == "Dom") ), aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = sd, color= strain), width = .2 )+ ggtitle("Dom female\nwithin mouse \nMLH1 s.d.") + scale_color_manual(values=colors_of_strains)
+Dom.female.SD.plot
 
 ```
 
 
 ```{r male.strain.table, echo=FALSE}
 
-M.strain.table <- ddply(fomo.male_mouse.av, c("strain"), summarise,
+M.strain.table <- ddply(male_mouse.avs_for.analysis, c("strain"), summarise,
                         Nmice =length(unique(mouse)),
                         
                         totNcells  = sum(Ncells, na.rm=TRUE),
@@ -121,10 +150,9 @@ M.strain.table <- ddply(fomo.male_mouse.av, c("strain"), summarise,
     )
 #M.strain.table
 #same issue as the female table .. ugh
-
-
-
 ```
+
+
 
 ```{r mouse.var.plots.male, echo=FALSE, fig.width = 4, fig.height=2.5, warning=FALSE}
 
@@ -138,6 +166,28 @@ Mol.male.VAR.plot <- ggplot(Mol.male_mouse.av, aes(color= strain))+geom_jitter(a
 Dom.male.VAR.plot <- ggplot(Dom.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain, alpha=0.5), width = .2 )+ ggtitle("VAR Dom male ofwithin mouse  MLH1 distributions")+scale_color_manual(values=colors_of_strains)
 
 ```
+
+
+
+
+```{r mouse.sd.plots.male, echo=FALSE, fig.width = 4, fig.height=2.5, warning=FALSE}
+#variance plots
+OG.male.sd.plot <- ggplot(data = (male_mouse.avs_for.analysis %>% filter(subsp == "Dom")  ), aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y =sd, color= strain, alpha=0.5), width = .2 )+ ggtitle("SD Musc male of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
+OG.male.sd.plot
+
+Musc.male.sd.plot <- ggplot(data = (male_mouse.avs_for.analysis %>% filter(subsp == "Musc")  ), aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = sd, color= strain, alpha=0.5), width = .2 )+ ggtitle("SD Musc male of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
+Musc.male.sd.plot
+
+Mol.male.sd.plot <- ggplot(data = (male_mouse.avs_for.analysis %>% filter(subsp == "Mol")  ), aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = sd, color= strain, alpha=0.5), width = .2 )+ ggtitle("SD Mol male of within mouse MLH1 distributions")+scale_color_manual(values=colors_of_strains)
+Mol.male.sd.plot
+
+
+Dom.male.sd.plot <- ggplot(data = (male_mouse.avs_for.analysis %>% filter(subsp == "Dom")  ), aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = sd, color= strain, alpha=0.5), width = .2 )+ ggtitle("SD Dom male ofwithin mouse  MLH1 distributions")+scale_color_manual(values=colors_of_strains)
+Dom.male.sd.plot
+```
+
+
+
 
 #Writing Outline  
 
