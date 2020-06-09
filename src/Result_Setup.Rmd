@@ -768,12 +768,6 @@ M4 - strain (sex specific)
 
 ```{r MLH1co.lmer.MM1, echo=FALSE, waring=FALSE, message=FALSE, eval=TRUE}
 
-#this dataframe doesn't work
-
-#don't run here, run in the MS file
-#DF.HetC.MixedModel.HQ
-#DF.HetC.MixedModel.HQ <- subset()
-
 MLH1.MM.M1 <- lmer(mean_co ~ subsp * sex + (1|strain), data=DF.HetC.MixedModel.HQ) 
 MLH1.MM.M1.reduce.sex <- lmer( mean_co ~ subsp  +(1|strain), data=DF.HetC.MixedModel.HQ )
 MLH1.MM.M1.reduce.subp <- lmer( mean_co ~ sex  +(1|strain), data=DF.HetC.MixedModel.HQ )
@@ -783,7 +777,7 @@ MLH1.MM.M1.reduce.subp <- lmer( mean_co ~ sex  +(1|strain), data=DF.HetC.MixedMo
 MLH1.MM_interaction <- drop1(MLH1.MM.M1, test="Chisq")$`Pr(Chi)`[2]
 MLH1.MM_sex <- anova(MLH1.MM.M1, MLH1.MM.M1.reduce.sex)$`Pr(>Chisq)`[2]
 MLH1.MM_subp <- anova(MLH1.MM.M1, MLH1.MM.M1.reduce.subp)$`Pr(>Chisq)`[2]
-MLH1.MM_strain<- MM.rand.pval <- exactRLRT(MLH1.MM.M1)$p.value 
+MLH1.MM_strain <- exactRLRT(MLH1.MM.M1)$p.value 
 
 MLH1.MMlmer_results <- data.frame(sub.sp = MLH1.MM_subp, 
 sex.results =  MLH1.MM_sex, 
@@ -823,7 +817,7 @@ summ.MLH1.M3.strain.fixed <- summary(MLH1.M3.strain.fixed)
 #write.table(summ.strain.fixed$coefficients , "~./MLH1repo/summ.strain.fixed.csv", sep=",",row.names = TRUE)
 ```
 
-```{r Female.specific.glm, echo=FALSE, eval=TRUE}
+```{r Female.specific.glm.M4.M5, echo=FALSE, eval=TRUE}
 
 glm.female.strain.subsp <- glm(mean_co ~ subsp * strain, data= (female_mouse.avs_for.analysis %>% filter(subsp != "Cast") ) )
 
@@ -831,15 +825,16 @@ summry.female.strain.effects <- summary(glm.female.strain.subsp)
 #round(summry.female.strain.effects$coefficients[,c(1,4)],5)
 #write.table(summry.female.strain.effects$coefficients, "~./MLH1repo/summry.female.strain.effects.csv", sep=",",row.names = TRUE)
 
-MLH1.female.spc.glm.M2 <- glm(mean_co ~ strain, data= (female_mouse.avs_for.analysis %>% filter(subsp != "Cast") ) )
-sum_MLH1.female.spc.glm.M2 <- summary(MLH1.female.spc.glm.M2)
+
+MLH1.female.spc.glm.M5 <- glm(mean_co ~ strain, data= (female_mouse.avs_for.analysis %>% filter(subsp != "Cast") ) )
+sum_MLH1.female.spc.glm.M5 <- summary(MLH1.female.spc.glm.M5)
 
 #round(lm.female.strain_sum$coefficients[,c(1,4)],5)
-
 #write.table(lm.female.strain_sum$coefficients, "~./MLH1repo/lm.female.strain.csv", sep=",",row.names = TRUE)
 ```
 
-```{r Male.specific.glm, echo=FALSE, eval=TRUE}
+
+```{r Male.specific.glm.M4.M5, echo=FALSE, eval=TRUE}
 #M4
 MLH1.male.glm.M4 <- glm(mean_co ~ subsp * strain, data=(male_mouse.avs_for.analysis  %>% filter(subsp != "Cast") )   )
 
@@ -1316,7 +1311,7 @@ ttest.KAZ.Dom.z <- t.test(DMC1.DF$total.count[(DMC1.DF$subsp == "Dom") & (DMC1.D
 
 
 
-# Q1 single bivalent section and total SC
+# Q1 single bivalent
 
 ```{r table.long.biv, echo=FALSE, eval =FALSE}
 #This table is already made in setupData
@@ -1486,134 +1481,6 @@ totSC.strain.av.table <-  mouse.total.skel[,c("subsp","strain", "sex","nmice","n
 ```
 
 
-```{r Q1.total.SC_t.test, echo=FALSE}
-
-#run t-test for male female avergage for each strain
-
-#ALL
-Q1_tot.sc_t.test.all <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(species == "M.musculus") )$mean.skel,
-                           (mouse.total.skel %>% filter(sex == "female") %>% filter(species == "M.musculus")  )$mean.skel)
-
-
-#dom
-Q1_tot.sc_t.test.DOM <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Dom") )$mean.skel,
-                           (mouse.total.skel %>% filter(sex == "female") %>% filter(subsp == "Dom") )$mean.skel)
-
-#WSB
-Q1_tot.sc_t.test.WSB <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(strain == "WSB") )$mean.skel,
-                           (mouse.total.skel %>% filter(sex == "female") %>% filter(strain == "WSB") )$mean.skel)
-#G
-Q1_tot.sc_t.test.G <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(strain == "G") )$mean.skel,
-                           (mouse.total.skel %>% filter(sex == "female") %>% filter(strain == "G") )$mean.skel)
-#LEW
-Q1_tot.sc_t.test.LEW <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(strain == "LEW") )$mean.skel,
-                           (mouse.total.skel %>% filter(sex == "female") %>% filter(strain == "LEW") )$mean.skel)
-
-#Musc
-Q1_tot.sc_t.test.MUSC <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Musc") )$mean.skel,
-                           (mouse.total.skel %>% filter(sex == "female") %>% filter(subsp == "Musc") )$mean.skel)
-
-#PWD
-Q1_tot.sc_t.test.PWD <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(strain == "PWD") )$mean.skel,
-                           (mouse.total.skel %>% filter(sex == "female") %>% filter(strain == "PWD") )$mean.skel)
-
-#KAZ
-Q1_tot.sc_t.test.KAZ <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(strain == "KAZ") )$mean.skel,
-                           (mouse.total.skel %>% filter(sex == "female") %>% filter(strain == "KAZ") )$mean.skel)
-
-#SKIVE
-#Q1_tot.sc_t.test.SKIVE <- t.test((totSC.mouse.av.table %>% filter(sex == "male") %>% filter(strain == "SKIVE") )$mean.skel,
-#           (totSC.mouse.av.table %>% filter(sex == "female") %>% filter(strain == "SKIVE") )$mean.skel, paired = FALSE, alternative = #"greater")
-#cell level total SC
-#MLH1.merge.Skel   $skel_size
-#error not enought female observations, ONLY 1 female SKIVE mouse
-
-Q1_tot.scBIV_t.test.SKIVE <- t.test((Total.SC_DF %>% filter(sex == "male") %>% filter(strain == "SKIVE") )$skel_size,
-           (Total.SC_DF %>% filter(sex == "female") %>% filter(strain == "SKIVE") )$skel_size   )
-
-
-#MSM
-Q1_tot.sc_t.test.MSM <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(strain == "MSM") )$mean.skel,
-                           (mouse.total.skel %>% filter(sex == "female") %>% filter(strain == "MSM") )$mean.skel)
-
-```
-
-
-```{r Q1.totSC_male.first.comp, echo=FALSE}
-
-Q1.male.Dom.Musc.t.test <- t.test( ( mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Dom") )$mean.skel,
-(mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Musc") )$mean.skel)
-
-Q1.male.Dom.Mol.t.test <- t.test( ( mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Dom") )$mean.skel,
-(mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Mol") )$mean.skel)
-```
-
-
-```{r Q1.M.lmer_totalSC, echo=FALSE, warning=FALSE, message=FALSE}
-
-Q1.lmer_totSC.mouse.av.table <- mouse.total.skel %>% filter(strain != "AST" & strain != "TOM" & strain != "CZECH" & strain != "MOLF")
-
-#str(Q1.lmer_totSC.mouse.av.table)
-
-#unorder factors
-Q1.lmer_totSC.mouse.av.table$subsp <- factor(Q1.lmer_totSC.mouse.av.table$subsp, ordered = FALSE)
-Q1.lmer_totSC.mouse.av.table$sex <- factor(Q1.lmer_totSC.mouse.av.table$sex, ordered = FALSE)
-Q1.lmer_totSC.mouse.av.table$strain <- factor(Q1.lmer_totSC.mouse.av.table$strain, ordered = FALSE)
-Q1.lmer_totSC.mouse.av.table$species <- factor(Q1.lmer_totSC.mouse.av.table$species, ordered = FALSE)
-
-
-#TOTAL SC AREA
-lmer.Q1_mus.av_totSC <- lmer(mean.skel ~ subsp * sex + (1|strain), data=Q1.lmer_totSC.mouse.av.table, REML = TRUE) 
-
-lmer.Q1_mus.av_totSC_R.sex <- lmer(mean.skel ~ subsp + (1|strain), data=Q1.lmer_totSC.mouse.av.table, REML = TRUE) 
-
-lmer.Q1_mus.av_totSC_R.subsp <- lmer(mean.skel ~ sex + (1|strain), data=Q1.lmer_totSC.mouse.av.table, REML = TRUE) 
-
-
-lmer.Q1_mus.av_totSC_interaction  <-drop1(lmer.Q1_mus.av_totSC, test="Chisq" )$`Pr(Chi)`[2]
-
-lmer.Q1_mus.av_totSC_sex  <-anova(lmer.Q1_mus.av_totSC, lmer.Q1_mus.av_totSC_R.sex)$`Pr(>Chisq)`[2]
-
-lmer.Q1_mus.av_totSC_subp  <- anova(lmer.Q1_mus.av_totSC, lmer.Q1_mus.av_totSC_R.subsp)$`Pr(>Chisq)`[2]
-
-lmer.Q1_mus.av_totSC_strain  <- exactRLRT(lmer.Q1_mus.av_totSC)$p.value 
-
-#as.data.frame(round(summary(lmer.SCLength_all_MM.M1)$coefficients, 6))#these Dont return p values for the fixed effects
-
-Q1.lmer.totSC_results <- data.frame(sub.sp = lmer.Q1_mus.av_totSC_subp, 
-sex.results =  lmer.Q1_mus.av_totSC_sex, 
-               interaction.pval = lmer.Q1_mus.av_totSC_interaction,  rand.pval = 
-lmer.Q1_mus.av_totSC_strain)
-
-```
-
-
-```{r Q1.M1_short_biv_lmer, echo=FALSE, warning=FALSE, message=FALSE}
-
-lmer.Q1_SCLength_short_M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Short.biv_mouse_table, REML = TRUE) 
-
-lmer.Q1_SCLength_short_M1_R.sex <- lmer(mean_SC ~ subsp + (1|strain), data=Short.biv_mouse_table, REML = TRUE) 
-
-lmer.Q1_SCLength_short_M1_R.subsp <- lmer(mean_SC ~ sex + (1|strain), data=Short.biv_mouse_table, REML = TRUE) 
-
-Q1lmer.MM_SC_short_interaction  <-drop1(lmer.Q1_SCLength_short_M1, test="Chisq" )$`Pr(Chi)`[2]
-Q1lmer.MM_SC_short_sex  <-anova(lmer.Q1_SCLength_short_M1, lmer.Q1_SCLength_short_M1_R.sex)$`Pr(>Chisq)`[2]
-Q1lmer.MM_SC_short_subp  <- anova(lmer.Q1_SCLength_short_M1, lmer.Q1_SCLength_short_M1_R.subsp)$`Pr(>Chisq)`[2]
-Q1lmer.MM_SC_short_strain  <- exactRLRT(lmer.Q1_SCLength_short_M1)$p.value 
-
-#as.data.frame(round(summary(lmer.SCLength_all_MM.M1)$coefficients, 6))#these Dont return p values for the fixed effects
-
-Q1lmer.MM_SC_short_results <- data.frame(sub.sp = Q1lmer.MM_SC_short_subp, 
-sex.results =  Q1lmer.MM_SC_short_sex, 
-               interaction.pval = Q1lmer.MM_SC_short_interaction,  rand.pval = 
-Q1lmer.MM_SC_short_strain)
-
-
-#Q1lmer.MM_SC_short_results
-
-```
-
-
 mouse total sc t.tests male female (Q1)
 
 ```{r Q1.total.SC_ttests, echo=FALSE}
@@ -1703,43 +1570,6 @@ Q1_short.SC_t.test.SKIVE <- t.test((Short.biv_mouse_table %>% filter(sex == "mal
 ```
 
 
-```{r Q1_SC.biv.short_ttest99, echo=FALSE, eval=FALSE}
-#this show is re-dundant
-#
-#run t.tests for the mouse av. for reduced single bivalent datasets
-
-#WSB
-Q1_mus.av_shortSC_t.test.WSB <- t.test((Short.biv_mouse_table %>% filter(sex == "male") %>% filter(strain == "WSB") )$mean_SC,
-                           (Short.biv_mouse_table %>% filter(sex == "female") %>% filter(strain == "WSB") )$mean_SC)
-
-#G
-Q1_mus.av_shortSC_t.test.G <- t.test((Short.biv_mouse_table %>% filter(sex == "male") %>% filter(strain == "G") )$mean_SC,
-                           (Short.biv_mouse_table %>% filter(sex == "female") %>% filter(strain == "G") )$mean_SC)
-
-#LEW
-Q1_mus.av_shortSC_t.test.LEW <- t.test((Short.biv_mouse_table %>% filter(sex == "male") %>% filter(strain == "LEW") )$mean_SC,
-                           (Short.biv_mouse_table %>% filter(sex == "female") %>% filter(strain == "LEW") )$mean_SC)
-
-#PWD
-Q1_mus.av_shortSC_t.test.PWD <- t.test((Short.biv_mouse_table %>% filter(sex == "male") %>% filter(strain == "PWD") )$mean_SC,
-                           (Short.biv_mouse_table %>% filter(sex == "female") %>% filter(strain == "PWD") )$mean_SC)
-
-#KAZ
-Q1_mus.av_shortSC_t.test.KAZ <- t.test((Short.biv_mouse_table %>% filter(sex == "male") %>% filter(strain == "KAZ") )$mean_SC,
-                           (Short.biv_mouse_table %>% filter(sex == "female") %>% filter(strain == "KAZ") )$mean_SC)
-
-
-#SKIVE - this value used in the text
-#only one SKVIE female, this is breaking the test
-#Q1_mus.av_shortSC_t.test.SKIVE <- t.test(
-  
-#      (Short.biv_mouse_table %>% filter(sex == "male") %>% filter(strain == "SKIVE") )$mean_SC,
-#      (Short.biv_mouse_table %>% filter(sex == "female") %>% filter(strain == "SKIVE") )$mean_SC
-#      )
-
-
-```
-
 
 ```{r Q1_short_ratios, echo=FALSE, eval=TRUE}
 #WSB
@@ -1768,36 +1598,6 @@ Q1SC.BivData.short.biv_DIFF_MSM <- mean( (Short.biv_mouse_table %>% filter(sex =
 
 ```
 
-
-```{r totSC_setup, echo=FALSE, eval = F}
-
-#Total.SC_DF is the main dataframe and should be set up cleanly in the SetUpData.Rmd
-#SC.skel.OG <- SC.skel #5683
-
-tot.sc.x.list <- Total.SC_DF %>% filter(X == "X") 
-
-Total.SC_DF.og <- Total.SC_DF[! Total.SC_DF$Random.Name %in% tot.sc.x.list$Random.Name, ]
-#quality is still a factor
-str(Total.SC_DF.og)
-Total.SC_DF.og$quality <- as.numeric(Total.SC_DF.og$quality)
-
-Total.SC_DF.og <- Total.SC_DF.og %>% filter(quality < 5)
-
-OG.MLH1.merge.Skel <- MLH1.merge.Skel #raw version of DF
-
-#check for DUPs, #check for duplicatations of the random name
-MLH1.merge.Skel$fileName  <- as.character(MLH1.merge.Skel$fileName)
-tot.SC.dupies <- MLH1.merge.Skel[duplicated(MLH1.merge.Skel$ fileName ),]
-
-MLH1.merge.Skel <- MLH1.merge.Skel %>% filter( X == "") %>% filter(REDO.crop == "no")
-
-MLH1.merge.Skel$bin_size <- as.numeric(MLH1.merge.Skel$bin_size)
-MLH1.merge.Skel$skel_size <- as.numeric(MLH1.merge.Skel$skel_size)
-#table(MLH1.merge.Skel$category)
-
-```
-
--- The total_SC outliers should be removed in the total.SC RData script
 
 
 ```{r totSC.viz4outliers, echo=FALSE, eval=FALSE}
@@ -1894,7 +1694,6 @@ totSC.strain.av.table <- add_subsp(totSC.strain.av.table)
 
 ## total sc models
 
-where is total_SC M1?
 
 ```{r Q1.total.SC_M1, echo=FALSE}
 mouse.total.skel$subsp <- factor(mouse.total.skel$subsp, ordered = FALSE)
@@ -1936,7 +1735,7 @@ mouse.total.skel$species <- factor(mouse.total.skel$species, ordered = FALSE)
 Q1.glm_totSC_M2 <- glm(mean.skel ~ subsp*strain * sex, data=  (mouse.total.skel %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) )  )
 
 sum.Q1.glm_totSC_M2 <- summary(Q1.glm_totSC_M2)
-sum.Q1.glm_totSC_M2$coefficients[,c(1,4)][8,]
+#sum.Q1.glm_totSC_M2$coefficients[,c(1,4)][8,]
 
 #sex most sig
 #subsp
@@ -2004,8 +1803,33 @@ Q1.lmer_SCLength.2CO_strain)
 ```
 
 
+```{r Q1.M1_short_biv_lmer, echo=FALSE, warning=FALSE, message=FALSE}
 
-```{r Q1_short.M1, echo=FALSE}
+lmer.Q1_SCLength_short_M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Short.biv_mouse_table, REML = TRUE) 
+
+lmer.Q1_SCLength_short_M1_R.sex <- lmer(mean_SC ~ subsp + (1|strain), data=Short.biv_mouse_table, REML = TRUE) 
+
+lmer.Q1_SCLength_short_M1_R.subsp <- lmer(mean_SC ~ sex + (1|strain), data=Short.biv_mouse_table, REML = TRUE) 
+
+Q1lmer.MM_SC_short_interaction  <-drop1(lmer.Q1_SCLength_short_M1, test="Chisq" )$`Pr(Chi)`[2]
+Q1lmer.MM_SC_short_sex  <-anova(lmer.Q1_SCLength_short_M1, lmer.Q1_SCLength_short_M1_R.sex)$`Pr(>Chisq)`[2]
+Q1lmer.MM_SC_short_subp  <- anova(lmer.Q1_SCLength_short_M1, lmer.Q1_SCLength_short_M1_R.subsp)$`Pr(>Chisq)`[2]
+Q1lmer.MM_SC_short_strain  <- exactRLRT(lmer.Q1_SCLength_short_M1)$p.value 
+
+#as.data.frame(round(summary(lmer.SCLength_all_MM.M1)$coefficients, 6))#these Dont return p values for the fixed effects
+
+Q1lmer.MM_SC_short_results <- data.frame(sub.sp = Q1lmer.MM_SC_short_subp, 
+sex.results =  Q1lmer.MM_SC_short_sex, 
+               interaction.pval = Q1lmer.MM_SC_short_interaction,  rand.pval = 
+Q1lmer.MM_SC_short_strain)
+
+
+#Q1lmer.MM_SC_short_results
+
+```
+
+
+```{r Q1_SC_short.M1, echo=FALSE}
 
 Short.biv_mouse_table$subsp <- factor(Short.biv_mouse_table$subsp, ordered = FALSE)
 Short.biv_mouse_table$sex <- factor(Short.biv_mouse_table$sex, ordered = FALSE)
@@ -2053,18 +1877,14 @@ summ.Q1.glm_short.SC_M2 <- summary(Q1.glm_short.SC_M2)
 
 
 ```{r Q1.glm_short.SC_M3, echo=FALSE, message=FALSE}
-
 Q1.glm_short.SC_M3 <- glm(mean_SC ~ strain * sex, data= ( Short.biv_mouse_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) )  )
 
 #summary(Q1.glm_short.SC_M3)
-
 summ.Q1.glm_short.SC_M3 <- summary(Q1.glm_short.SC_M3)
 
 #round(summ.Q1.glm_short.SC_M3$coefficients[,c(1,4)],5)
 #sex male very sig -- only sig
 #sum.Q1.glm_totSC_M2$coefficients[,c(1,4)][8,]
-
-
 #SKIVE * male
 ```
 
@@ -2177,7 +1997,6 @@ Q12.Tot.SC_mouse.av_Dom <- ggplot(data= totSC_Q12_mouse.av.table %>% filter(subs
 #Q12.Tot.SC_mouse.av_Dom
 #Tot.SC_mouse.av_Dom
 
-
 Q12.Tot.SC_mouse.av_Musc <- ggplot(data= totSC_Q12_mouse.av.table %>% filter(subsp == "Musc"), aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
   facet_wrap(~sex, scales="free", ncol = 3)+ 
   
@@ -2200,20 +2019,8 @@ Q12.Tot.SC_mouse.av_Mol <- ggplot(data= totSC_Q12_mouse.av.table %>% filter(subs
 ```{r Q1.show.SC.length, echo=FALSE, warning=FALSE, eval=FALSE}
 #switch the cleanCurated_BivData
 
-Curated_BivData99 <- Curated_BivData[Curated_BivData$hand.foci.count < 5,]
-Curated_BivData99 <- Curated_BivData99[(!is.na(Curated_BivData99$sex)),]
-
-#adjust order of plot here
-Curated_BivData99$strain <- factor(Curated_BivData99$strain,levels =c(
-  "WSB","G","LEW","PERC",  
-"PWD", "SKIVE",  "KAZ",
-     "MSM", "MOLF",   
-                     "CAST",
-                         "SPRET","SPIC" ), order=T )
-
-
 #nested boxplots, pooled Bivalents
-Q1.SC.length_Nested_boxplots_Dom <- ggplot(Curated_BivData99[Curated_BivData99$subsp == "Dom",], aes(y = chromosomeLength, x=strain, fill=as.factor(hand.foci.count) ))+geom_boxplot(alpha=0.5)+ggtitle("Bivalent SC Lengths by Chrm Class \n Dom")+facet_wrap(subsp~sex, scales="free")+ylim(c(25,255))+theme(legend.position="none") 
+Q1.SC.length_Nested_boxplots_Dom <- ggplot(cleanCurated_BivData[cleanCurated_BivData$subsp == "Dom",], aes(y = chromosomeLength, x=strain, fill=as.factor(hand.foci.count) ))+geom_boxplot(alpha=0.5)+ggtitle("Bivalent SC Lengths by Chrm Class \n Dom")+facet_wrap(subsp~sex, scales="free")+ylim(c(25,255))+theme(legend.position="none") 
 
 ```
 
@@ -2463,13 +2270,6 @@ PWD.MSM.2CO.prop.test <- prop.test( (chrm.prop.strain.male %>% filter( (strain =
 # Q1 CO pos
 
 
-```{r Q1.F1pos_long.short_setup, echo=FALSE, eval=FALSE}
-#move to setup
-
-Q1.long.biv_1CO <-  real.long.bivData %>% filter(species =="M.musculus") %>% filter(hand.foci.count == 1) %>% filter(strain != "MOLF") %>% filter(strain != "CZECH")
-
-```
-
 ```{r CO.positions.figs, echo=FALSE, include=FALSE, warning=FALSE}
 #main figure of density plots,
 MELT_Curated_BivData <- add_sex(MELT_Curated_BivData)
@@ -2527,6 +2327,11 @@ Q1_1CO.pos_t.test.PWD <- t.test((mouse.level.BivData_table %>% filter(sex == "ma
 Q1_1CO.pos_t.test.KAZ <- t.test((mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain == "KAZ") )$norm.first.foci.pos,
                            (mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain == "KAZ") )$norm.first.foci.pos)
 
+#SKIVE
+Q1_1CO.pos_t.test.SKIVE <- t.test((mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain == "SKIVE") )$norm.first.foci.pos,
+                           (mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain == "SKIVE") )$norm.first.foci.pos)
+
+
 #MSM
 Q1_1CO.pos_t.test.MSM <- t.test((mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain == "MSM") )$norm.first.foci.pos,
                            (mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain == "MSM") )$norm.first.foci.pos)
@@ -2535,9 +2340,6 @@ Q1_1CO.pos_t.test.MSM <- t.test((mouse.level.BivData_table %>% filter(sex == "ma
 
 
 ```{r Q1.CO1pos_lmer.M1, echo=FALSE, message=FALSE}
-
-#make sure this dataset has all the right strains
-Q1.Foci.pos_DF <- Mouse.Table_BivData_4MM %>% filter(strain != "CZECH") %>% filter(strain != "MOLF")
 
 lmer.Q1.nrm1CO_M1 <- lmer(norm.first.foci.pos ~ subsp * sex + (1|strain), 
                           data= ( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) ) )
@@ -2611,74 +2413,6 @@ summry.Q1.glm_1CO.pos_M3 <- summary(Q1.glm_1CO.pos_M3)
 
 
 # Q1 IFD
-
-
-```{r Q1.IFD_show.IFD_99, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
-
-#first draft of the IFD comparisons
-#make the mouse boxplots -- instead of geom_points
-
-#Only use 2CO bivalents
-Curated_BivData.22 <- Curated_BivData[Curated_BivData$hand.foci.count == 2,]
-Curated_BivData.22 <- Curated_BivData.22[(!is.na(Curated_BivData.22$hand.foci.count)),]
-
-
-P1.by.P2_plot <- ggplot(Curated_BivData.22, aes(y = rev(PER_Foci_2), x= PER_Foci_1, color=strain))+
-  geom_jitter(alpha=.2)+
-  ggtitle("Normalized IFD")+
-  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")+xlim(c(0,1))+ylim(c(0,1))
-
-#each point is a 2CO, with the F1 and F2 position 
-#based on plot from Dourad et al (Mercier)
-
-P1.by.P2_plot_raw.WSB <- ggplot(Curated_BivData.22 %>% filter(strain == "LEW"),
-    aes(y = Foci2, x= Foci1, color=strain))+
-  geom_jitter(alpha=.5)+
-  ggtitle("Raw IFD WSB")+
-  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none") + ylim(c(0,160))+xlim(c(0,160))+ theme(  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank() )
-
-#trying to move x axis to top
-#cowplot might be the easier way -- since kinda diffecult in ggplot
-#or ggdraw
-
-P1.by.P2_plot_nrm.PWD.f <- ggplot(Curated_BivData.22 %>% filter(strain == "PWD") %>% filter(sex == "female"),
-    aes(y = PER_Foci_2, x= PER_Foci_1, color=strain))+
-  geom_jitter(alpha=.5)+
-#  scale_x_continuous(position = "top") +
-  scale_x_continuous(sec.axis = dup_axis(), position = "top")+
-    ggtitle("Nrm IFD PWD, female")+scale_color_manual(values=colors_of_strains)+ ylim(c(0,1))+xlim(c(0,1))+ theme(  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank() )
-
-
-P1.by.P2_plot_nrm.PWD.male <- ggplot(Curated_BivData.22 %>% filter(strain == "PWD") %>% filter(sex == "male"),
-    aes(y = PER_Foci_2, x= PER_Foci_1, color=strain))+
-  geom_jitter(alpha=.5)+
-#  scale_x_continuous(position = "top") +
-  scale_x_continuous(sec.axis = dup_axis(), position = "top")+
-    ggtitle("Nrm IFD PWD, male")+scale_color_manual(values=colors_of_strains)+ ylim(c(0,1))+xlim(c(0,1))+ theme(  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank() )
-
-#boxplots
-boxplots_first.IFD.plot_ABS <- ggplot(Curated_BivData.22, aes(y = IFD1_ABS, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
-  geom_jitter(alpha=.2)+
-  ggtitle("Interfocal Distances, ABS")+
-  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none")
-#order is out of wack, but -- good for now
-
-boxplots_first.IFD.plot_PER <- ggplot(Curated_BivData.22, aes(y = IFD1_PER, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
-  geom_jitter(alpha=.2)+
-  ggtitle("Interfocal Distances, PER")+
-  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")+ylim(c(0,1))
-
-
-first.IFD.plot_ABS <- ggplot(Curated_BivData.22, aes(y = IFD1_ABS, x= strain, color=mouse))+geom_jitter()+ggtitle("Interfocal Distances, ABS")+facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none") #+scale_color_manual(values=colors_of_strains)
-
-
-first.IFD.plot_PER <- ggplot(Curated_BivData.22 %>% filter(chromosomeLength < 150), aes(y = IFD1_PER, x= strain, color=chromosomeLength))+geom_jitter()+ggtitle("Interfocal Distances, PER \ncut off of chrm lengths, 150")+facet_wrap(sex~subsp, scales = "free")+ylim(c(0,1)) 
-
-#+theme(legend.position="none")
-```
 
 
 ```{r Q1.IFD_Ttests_ABS, echo=FALSE, warning=FALSE, message=FALSE}
@@ -2768,6 +2502,110 @@ Q1.IFD.PER_t.test_SKIVE <- t.test( (mouse.level.BivData_table %>% filter(sex == 
 ```
 
 
+```{r Q1.IFD.lmer.M1, echo=FALSE, message=FALSE, warning=FALSE}
+
+#M1_IFD_2CO_ABS
+lmer.IFD.ABS_MM.M1 <- lmer(mean_IFD.2CO_ABS ~ subsp * sex + (1|strain), data= ( mouse.level.BivData_table %>% filter(strain != "CZECH") )) 
+lmer.IFD.ABS_MM.M1.reduce.sex <- lmer( mean_IFD.2CO_ABS ~ subsp  +(1|strain), data=( mouse.level.BivData_table %>% filter(strain != "CZECH") ) )
+lmer.IFD.ABS_MM.M1.reduce.subp <- lmer( mean_IFD.2CO_ABS ~ sex  +(1|strain), data=( mouse.level.BivData_table %>% filter(strain != "CZECH") ) )
+
+ABS.IFD_Q1.M1_sex  <- anova(lmer.IFD.ABS_MM.M1, lmer.IFD.ABS_MM.M1.reduce.sex)$`Pr(>Chisq)`[2]
+ABS.IFD_Q1.M1_subsp  <- anova(lmer.IFD.ABS_MM.M1, lmer.IFD.ABS_MM.M1.reduce.subp)$`Pr(>Chisq)`[2]
+ABS.IFD_Q1.M1_intr  <- drop1(lmer.IFD.ABS_MM.M1, test="Chisq" )$`Pr(Chi)`[2]
+ABS.IFD_Q1.M1_strain  <- exactRLRT(lmer.IFD.ABS_MM.M1)$p.value
+
+Q1.IFD.ABS_M1_lmer.results <- data.frame(sub.sp = ABS.IFD_Q1.M1_subsp, sex.results =  ABS.IFD_Q1.M1_sex, 
+               interaction.pval = ABS.IFD_Q1.M1_intr,  rand.pval = ABS.IFD_Q1.M1_strain)
+
+#M1_IFD_2CO
+lmer.IFD.PER_MM.M1 <- lmer(mean_IFD.2CO_PER ~ subsp * sex + (1|strain), data=( mouse.level.BivData_table %>% filter(strain != "CZECH") ) ) 
+lmer.IFD.PER_MM.M1.reduce.sex <- lmer( mean_IFD.2CO_PER ~ subsp  +(1|strain), data=( mouse.level.BivData_table %>% filter(strain != "CZECH") )  )
+lmer.IFD.PER_MM.M1.reduce.subp <- lmer( mean_IFD.2CO_PER ~ sex  +(1|strain), data=( mouse.level.BivData_table %>% filter(strain != "CZECH") ) )
+
+sex.pval <- anova(lmer.IFD.PER_MM.M1, lmer.IFD.PER_MM.M1.reduce.sex)$`Pr(>Chisq)`[2]
+subsp.pval <- anova(lmer.IFD.PER_MM.M1, lmer.IFD.PER_MM.M1.reduce.subp)$`Pr(>Chisq)`[2]
+subsp.sex.pval <- drop1(lmer.IFD.PER_MM.M1, test="Chisq" )$`Pr(Chi)`[2]
+strain.pval <- exactRLRT(lmer.IFD.PER_MM.M1)$p.value
+
+Q1.IFD.PER_M1_lmer.results <- data.frame(sub.sp = subsp.pval, sex.results =  sex.pval, 
+               interaction.pval = subsp.sex.pval,  rand.pval = strain.pval)
+
+```
+
+```{r Q1.IFD_glm.M2, echo=FALSE, warning=FALSE, message=FALSE}
+#mouse.avs_4MM -- is also the bivbased mouse average table 
+#Mouse.Table_BivData_4MM #this one is the HetC table (all the Curated BivData)
+
+glm.Q1_IFD.ABS.M2  <- glm(mean_IFD.2CO_ABS ~ subsp * sex * strain, data= ( mouse.level.BivData_table %>% filter(strain != "CZECH") )  )
+summry.glm.Q1_IFD.ABS.M2 <- summary(glm.Q1_IFD.ABS.M2)
+
+#write.table(round(summry.glm.Q1_IFD.ABS.M2$coefficients,5), "~./MLH1repo/summry.glm.Q1_IFD.ABS.M2.csv", sep=",",row.names = TRUE)
+
+#PER
+glm.Q1_IFD.PER.M2 <- glm(mean_IFD.2CO_PER ~ subsp * sex * strain, data= ( mouse.level.BivData_table %>% filter(strain != "CZECH") ) )
+summry.glm.Q1_IFD.PER.M2 <- summary(glm.Q1_IFD.PER.M2)
+
+```
+
+
+
+```{r Q1.IFD_glmM3, echo=FALSE, warning=FALSE, message=FALSE}
+
+glm.Q1_IFD.ABS.M3  <- glm(mean_IFD.2CO_ABS ~  sex * strain, data=( mouse.level.BivData_table %>% filter(strain != "CZECH") ))
+summry.glm.Q1_IFD.ABS.M3 <- summary(glm.Q1_IFD.ABS.M3)
+
+#PER
+glm.Q1_IFD.PER.M3  <- glm(mean_IFD.2CO_PER ~ sex * strain, data=( mouse.level.BivData_table %>% filter(strain != "CZECH") ) )
+summry.glm.Q1_IFD.PER.M3 <- summary(glm.Q1_IFD.PER.M3)
+#round(summry.glm.Q1_IFD.PER.M3$coefficients[,c(1,4)],5)
+
+#write.table(round(summry.glm.Q1_IFD.PER.M3$coefficients,6), #"~./MLH1repo/summry.glm.Q1_IFD.PER.M3.csv", sep=",",row.names = TRUE)
+```
+
+
+```{r Q1.IFD_glm.M4.M5_female, echo=FALSE}
+
+glm.Q1_IFD.ABS.M4.female  <- glm(mean_IFD.2CO_PER ~ subsp * strain, data= (mouse.level.BivData_table %>% filter(sex == "female") ) )
+summry.glm.Q1_IFD.ABS.M4.female  <- summary(glm.Q1_IFD.ABS.M4.female)
+
+
+glm.Q1_IFD.PER.M4.female  <- glm(mean_IFD.2CO_PER ~ subsp * strain, data= (mouse.level.BivData_table %>% filter(sex == "female") ) )
+summry.glm.Q1_IFD.PER.M4.female  <- summary(glm.Q1_IFD.PER.M4.female)
+
+#M5
+glm.Q1_IFD.ABS.M5.female  <- glm(mean_IFD.2CO_PER ~  strain, data= (mouse.level.BivData_table %>% filter(sex == "female") ) )
+summry.glm.Q1_IFD.ABS.M5.female  <- summary(glm.Q1_IFD.ABS.M4.female)
+
+
+glm.Q1_IFD.PER.M5.female  <- glm(mean_IFD.2CO_PER ~  strain, data= (mouse.level.BivData_table %>% filter(sex == "female") ) )
+summry.glm.Q1_IFD.PER.M5.female  <- summary(glm.Q1_IFD.PER.M5.female)
+
+```
+
+
+```{r Q1.IFD_glm.M4.M5_male, echo=FALSE}
+
+glm.Q1_IFD.ABS.M4.male  <- glm(mean_IFD.2CO_PER ~ subsp * strain, data= (mouse.level.BivData_table %>% filter(sex == "male") ) )
+summry.glm.Q1_IFD.ABS.M4.male  <- summary(glm.Q1_IFD.ABS.M4.male)
+
+
+glm.Q1_IFD.PER.M4.male  <- glm(mean_IFD.2CO_PER ~ subsp * strain, data= (mouse.level.BivData_table %>% filter(sex == "male") ) )
+summry.glm.Q1_IFD.PER.M4.male  <- summary(glm.Q1_IFD.PER.M4.male)
+
+
+#M5
+glm.Q1_IFD.ABS.M5.male  <- glm(mean_IFD.2CO_PER ~  strain, data= (mouse.level.BivData_table %>% filter(sex == "male") ) )
+summry.glm.Q1_IFD.ABS.M5.male  <- summary(glm.Q1_IFD.ABS.M4.male)
+
+
+glm.Q1_IFD.PER.M5.male  <- glm(mean_IFD.2CO_PER ~  strain, data= (mouse.level.BivData_table %>% filter(sex == "male") ) )
+summry.glm.Q1_IFD.PER.M5.male  <- summary(glm.Q1_IFD.PER.M5.male)
+
+
+```
+
+
+
 ```{r Q1.show.IFD.scatter, echo=FALSE, eval=FALSE, message=FALSE}
 
 #these are the scatter plots
@@ -2788,9 +2626,9 @@ nrm.IFD_KAZ_BIV.short <- ggplot( (real.short.bivData %>% filter(strain =="KAZ" )
 
 #check all KAZ males
 
-nrm.IFD_KAZ_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="KAZ" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Interfocal Distances, ABS KAZ")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
+nrm.IFD_KAZ_BIV.data <- ggplot( (cleanCurated_BivData %>% filter(strain =="KAZ" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Interfocal Distances, ABS KAZ")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
 
-nrm.IFD_KAZ.female_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="KAZ" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "female")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, female KAZ")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
+nrm.IFD_KAZ.female_BIV.data <- ggplot( (cleanCurated_BivData %>% filter(strain =="KAZ" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "female")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, female KAZ")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
 nrm.IFD_KAZ.female_BIV.data
 
 
@@ -2842,133 +2680,89 @@ nrm.IFD_sex.comp_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="LEW" 
 
 ```
 
-```{r Q1.IFD.lmer.M1, echo=FALSE, message=FALSE, warning=FALSE}
 
-#M1_IFD_2CO_ABS
-lmer.IFD.ABS_MM.M1 <- lmer(mean_IFD.2CO_ABS ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE) 
-lmer.IFD.ABS_MM.M1.reduce.sex <- lmer( mean_IFD.2CO_ABS ~ subsp  +(1|strain), data=Mouse.Table_BivData_4MM )
-lmer.IFD.ABS_MM.M1.reduce.subp <- lmer( mean_IFD.2CO_ABS ~ sex  +(1|strain), data=Mouse.Table_BivData_4MM )
+```{r Q1.IFD_show.IFD_99, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
 
-ABS.IFD_Q1.M1_sex  <- anova(lmer.IFD.ABS_MM.M1, lmer.IFD.ABS_MM.M1.reduce.sex)$`Pr(>Chisq)`[2]
-ABS.IFD_Q1.M1_subsp  <- anova(lmer.IFD.ABS_MM.M1, lmer.IFD.ABS_MM.M1.reduce.subp)$`Pr(>Chisq)`[2]
-ABS.IFD_Q1.M1_intr  <- drop1(lmer.IFD.ABS_MM.M1, test="Chisq" )$`Pr(Chi)`[2]
-ABS.IFD_Q1.M1_strain  <- exactRLRT(lmer.IFD.ABS_MM.M1)$p.value
+#first draft of the IFD comparisons
+#make the mouse boxplots -- instead of geom_points
 
-Q1.IFD.ABS_M1_lmer.results <- data.frame(sub.sp = ABS.IFD_Q1.M1_subsp, sex.results =  ABS.IFD_Q1.M1_sex, 
-               interaction.pval = ABS.IFD_Q1.M1_intr,  rand.pval = ABS.IFD_Q1.M1_strain)
+#Only use 2CO bivalents
+Curated_BivData.22 <- Curated_BivData[Curated_BivData$hand.foci.count == 2,]
+Curated_BivData.22 <- Curated_BivData.22[(!is.na(Curated_BivData.22$hand.foci.count)),]
 
-#M1_IFD_2CO
-lmer.IFD.PER_MM.M1 <- lmer(mean_IFD.2CO_PER ~ subsp * sex + (1|strain), data=Mouse.Table_BivData_4MM, REML = TRUE) 
-lmer.IFD.PER_MM.M1.reduce.sex <- lmer( mean_IFD.2CO_PER ~ subsp  +(1|strain), data=Mouse.Table_BivData_4MM )
-lmer.IFD.PER_MM.M1.reduce.subp <- lmer( mean_IFD.2CO_PER ~ sex  +(1|strain), data=Mouse.Table_BivData_4MM )
 
-sex.pval <- anova(lmer.IFD.PER_MM.M1, lmer.IFD.PER_MM.M1.reduce.sex)$`Pr(>Chisq)`[2]
-subsp.pval <- anova(lmer.IFD.PER_MM.M1, lmer.IFD.PER_MM.M1.reduce.subp)$`Pr(>Chisq)`[2]
-subsp.sex.pval <- drop1(lmer.IFD.PER_MM.M1, test="Chisq" )$`Pr(Chi)`[2]
-strain.pval <- exactRLRT(lmer.IFD.PER_MM.M1)$p.value
+P1.by.P2_plot <- ggplot(Curated_BivData.22, aes(y = rev(PER_Foci_2), x= PER_Foci_1, color=strain))+
+  geom_jitter(alpha=.2)+
+  ggtitle("Normalized IFD")+
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")+xlim(c(0,1))+ylim(c(0,1))
 
-Q1.IFD.PER_M1_lmer.results <- data.frame(sub.sp = subsp.pval, sex.results =  sex.pval, 
-               interaction.pval = subsp.sex.pval,  rand.pval = strain.pval)
+#each point is a 2CO, with the F1 and F2 position 
+#based on plot from Dourad et al (Mercier)
 
+P1.by.P2_plot_raw.WSB <- ggplot(Curated_BivData.22 %>% filter(strain == "LEW"),
+    aes(y = Foci2, x= Foci1, color=strain))+
+  geom_jitter(alpha=.5)+
+  ggtitle("Raw IFD WSB")+
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none") + ylim(c(0,160))+xlim(c(0,160))+ theme(  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank() )
+
+#trying to move x axis to top
+#cowplot might be the easier way -- since kinda diffecult in ggplot
+#or ggdraw
+
+P1.by.P2_plot_nrm.PWD.f <- ggplot(Curated_BivData.22 %>% filter(strain == "PWD") %>% filter(sex == "female"),
+    aes(y = PER_Foci_2, x= PER_Foci_1, color=strain))+
+  geom_jitter(alpha=.5)+
+#  scale_x_continuous(position = "top") +
+  scale_x_continuous(sec.axis = dup_axis(), position = "top")+
+    ggtitle("Nrm IFD PWD, female")+scale_color_manual(values=colors_of_strains)+ ylim(c(0,1))+xlim(c(0,1))+ theme(  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank() )
+
+
+P1.by.P2_plot_nrm.PWD.male <- ggplot(Curated_BivData.22 %>% filter(strain == "PWD") %>% filter(sex == "male"),
+    aes(y = PER_Foci_2, x= PER_Foci_1, color=strain))+
+  geom_jitter(alpha=.5)+
+#  scale_x_continuous(position = "top") +
+  scale_x_continuous(sec.axis = dup_axis(), position = "top")+
+    ggtitle("Nrm IFD PWD, male")+scale_color_manual(values=colors_of_strains)+ ylim(c(0,1))+xlim(c(0,1))+ theme(  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank() )
+
+#boxplots
+boxplots_first.IFD.plot_ABS <- ggplot(Curated_BivData.22, aes(y = IFD1_ABS, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
+  geom_jitter(alpha=.2)+
+  ggtitle("Interfocal Distances, ABS")+
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none")
+#order is out of wack, but -- good for now
+
+boxplots_first.IFD.plot_PER <- ggplot(Curated_BivData.22, aes(y = IFD1_PER, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
+  geom_jitter(alpha=.2)+
+  ggtitle("Interfocal Distances, PER")+
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")+ylim(c(0,1))
+
+
+first.IFD.plot_ABS <- ggplot(Curated_BivData.22, aes(y = IFD1_ABS, x= strain, color=mouse))+geom_jitter()+ggtitle("Interfocal Distances, ABS")+facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none") #+scale_color_manual(values=colors_of_strains)
+
+
+first.IFD.plot_PER <- ggplot(Curated_BivData.22 %>% filter(chromosomeLength < 150), aes(y = IFD1_PER, x= strain, color=chromosomeLength))+geom_jitter()+ggtitle("Interfocal Distances, PER \ncut off of chrm lengths, 150")+facet_wrap(sex~subsp, scales = "free")+ylim(c(0,1)) 
+
+#+theme(legend.position="none")
 ```
-
-```{r Q1.IFD_glm.M2, echo=FALSE, warning=FALSE, message=FALSE}
-#mouse.avs_4MM -- is also the bivbased mouse average table 
-#Mouse.Table_BivData_4MM #this one is the HetC table (all the Curated BivData)
-
-glm.Q1_IFD.ABS.M2  <- glm(mean_IFD.2CO_ABS ~ subsp * sex * strain, data=Mouse.Table_BivData_4MM  %>% filter(species == "M.musculus")  )
-summry.glm.Q1_IFD.ABS.M2 <- summary(glm.Q1_IFD.ABS.M2)
-
-glm.Q1_IFD.ABS.M2_kindaFU  <- glm(mean_IFD.2CO_ABS ~ subsp * sex * strain, data=mouse.level.BivData_table  %>% filter(species == "M.musculus")  )
-summry.glm.Q1_IFD.ABS.M2_kindaFU <- summary(glm.Q1_IFD.ABS.M2_kindaFU)
-
-#write.table(round(summry.glm.Q1_IFD.ABS.M2$coefficients,5), "~./MLH1repo/summry.glm.Q1_IFD.ABS.M2.csv", sep=",",row.names = TRUE)
-
-#PER
-glm.Q1_IFD.PER.M2 <- glm(mean_IFD.2CO_PER ~ subsp * sex * strain, data= (mouse.level.BivData_table %>% filter(species == "M.musculus") ) )
-summry.glm.Q1_IFD.PER.M2 <- summary(glm.Q1_IFD.PER.M2)
-```
-
-```{r Q1.IFD_glmM3, echo=FALSE, warning=FALSE, message=FALSE}
-
-glm.Q1_IFD.ABS.M3  <- glm(mean_IFD.2CO_ABS ~  sex * strain, data=Mouse.Table_BivData_4MM)
-summry.glm.Q1_IFD.ABS.M3 <- summary(glm.Q1_IFD.ABS.M3)
-
-#PER
-glm.Q1_IFD.PER.M3  <- glm(mean_IFD.2CO_PER ~ sex * strain, data=Mouse.Table_BivData_4MM)
-summry.glm.Q1_IFD.PER.M3 <- summary(glm.Q1_IFD.PER.M3)
-#round(summry.glm.Q1_IFD.PER.M3$coefficients[,c(1,4)],5)
-
-#write.table(round(summry.glm.Q1_IFD.PER.M3$coefficients,6), #"~./MLH1repo/summry.glm.Q1_IFD.PER.M3.csv", sep=",",row.names = TRUE)
-```
-
-
-```{r Q1.IFD.long.short.setup, echo=FALSE, eval=FALSE}
-
-#real.long.bivData
-#real.short.bivData
-
-Q1.IFD.long <- ddply(real.long.bivData, c("mouse"), summarise,
-                             
-                        n_obs = length(Obj.ID),
-                         mean.SC = mean(chromosomeLength),
-            
-                      meanIFD2CO_raw = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
-                     meanIFD2CO_norm = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE)
-                         
-                     )
-
-Q1.IFD.long <- add_sex(Q1.IFD.long)
-Q1.IFD.long <- add_strain(Q1.IFD.long)
-Q1.IFD.long <- add_subsp(Q1.IFD.long)
-
-Q1.IFD.long$strain <- factor(Q1.IFD.long$strain, ordered = FALSE)
-Q1.IFD.long$subsp <- factor(Q1.IFD.long$subsp, ordered = FALSE)
-
-
-
-Q1.IFD.short <- ddply(real.short.bivData, c("mouse"), summarise,
-                             
-                        n_obs = length(Obj.ID),
-                         mean.SC = mean(chromosomeLength),
-            
-                      meanIFD2CO_raw = mean(IFD1_ABS[which(hand.foci.count == 2)], na.rm = TRUE),
-                     meanIFD2CO_norm = mean(IFD1_PER[which(hand.foci.count == 2)], na.rm = TRUE)
-                         
-                     )
-
-Q1.IFD.short <- add_sex(Q1.IFD.short)
-Q1.IFD.short <- add_strain(Q1.IFD.short)
-Q1.IFD.short <- add_subsp(Q1.IFD.short)
-
-Q1.IFD.short$strain <- factor(Q1.IFD.short$strain, ordered = FALSE)
-Q1.IFD.short$subsp <- factor(Q1.IFD.short$subsp, ordered = FALSE)
-
-#t.test. mouse av
-Q1.IFD.raw_short.ttest_KAZ <-  t.test( (Q1.IFD.short %>% filter(sex == "male") %>% filter(strain =="KAZ" ))$meanIFD2CO_norm,
-                                ( Q1.IFD.short %>% filter(sex == "female") %>% filter(strain =="KAZ"))$meanIFD2CO_norm)
-
-  
-Q1.IFD.raw_long.ttest_KAZ <- t.test( (Q1.IFD.long %>% filter(sex == "male") %>% filter(strain =="KAZ" ))$meanIFD2CO_norm,
-                                ( Q1.IFD.long %>% filter(sex == "female") %>% filter(strain =="KAZ"))$meanIFD2CO_norm)
-#both the short and long norm IFD are NS
-  
-
-#t.test Biv
-Q1.IFD.raw_BIV.long.ttest_KAZ <-  t.test( (real.long.bivData %>% filter(sex == "male") %>% filter(strain =="KAZ" )  %>% filter(hand.foci.count == "2") )$IFD1_PER,
-                ( real.long.bivData %>% filter(sex == "female") %>% filter(strain =="KAZ") %>%  filter(hand.foci.count == "2"))$IFD1_PER)
-
-Q1.IFD.raw_BIV.short.ttest_KAZ <-  t.test( (real.short.bivData %>% filter(sex == "male") %>% filter(strain =="KAZ" )  %>% filter(hand.foci.count == "2") )$IFD1_PER,
-                ( real.short.bivData %>% filter(sex == "female") %>% filter(strain =="KAZ") %>%  filter(hand.foci.count == "2"))$IFD1_PER)
-```
-
-
-
 
 
 #Q2 section
 
 #Q2 SC 
+
+
+```{r Q2.totSC_male.first.comp, echo=FALSE}
+#move to Q2
+Q1.male.Dom.Musc.t.test <- t.test( ( mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Dom") )$mean.skel,
+(mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Musc") )$mean.skel)
+
+Q1.male.Dom.Mol.t.test <- t.test( ( mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Dom") )$mean.skel,
+(mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Mol") )$mean.skel)
+```
+
 
 ```{r Q2.SC.short.long.setup, echo=FALSE}
 
@@ -3038,7 +2832,6 @@ ifelse(grepl("MSM", Q2mouse.av.short.biv.table$strain), 1,
 ```
 
 
-
 ```{r Q2.SC.long.biv_plots, echo=FALSE, eval=FALSE}
 
 #REAL.long_mouse_table
@@ -3060,6 +2853,7 @@ mouse.shoo.long.biv <- ggplot( REAL.long_mouse_table, aes(y=mean.sc, x=strain, c
 
 ```
 
+
 ```{r Q2_tot.sc_plot, echo=FALSE, warning=FALSE}
 
 mouse.av_totsc_male <- ggplot(data= mouse.total.skel %>% filter(sex == "male"), aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
@@ -3067,32 +2861,6 @@ mouse.av_totsc_male <- ggplot(data= mouse.total.skel %>% filter(sex == "male"), 
   theme(axis.title.x=element_blank(),  axis.text.x=element_blank(), axis.text.y = element_text(size=9), axis.ticks.x=element_blank(), legend.position = c(0.8, 0.2) ) + ylim(c(1200,1850 ) )+labs(y="Mouse Mean Total SC")
 
 mouse.av_totsc_male <- addSmallLegend(mouse.av_totsc_male)
-
-```
-
-
-
-
-```{r Q2totalSC_checkdates, echo=FALSE, eval=FALSE}
-
-#investigating potential skew / technical effects in the algorithm
-
-Neg.control <- ggplot(bep, aes(x=mean.skel, y=mean.bin, color=strain))+geom_point()+
-  scale_color_manual(values=colors_of_strains)+ggtitle("Total SC by mean CO\nMouse Means")
-#not sure what my expectations for this plot are, 
-
-median(bep$oldest.image.date) #"2017-08-03"
-#there might be an issue with the algorithm performance 
-#given the parrelle diagonal lines -- 
-#this might be due to the dates imaged  2017-02-07
-
-bep$date.cut.off <- ifelse( bep$oldest.image.date < "2017-02-07", 0, 1 )
-
-Neg.control.find.date <- ggplot(bep, aes(x=mean.skel, y=mean.bin, color=strain))+geom_point()+
-  scale_color_manual(values=colors_of_strains)+ggtitle("Total SC by mean CO\nMouse Means")+facet_wrap(~date.cut.off)
-
-#there's evidence that the algorithm might have some biased effects -- 
-#that will be investigated later.
 
 ```
 
@@ -3117,32 +2885,7 @@ Q2tot.sc_t.test_High.Low_Musc <- t.test((mouse.total.skel %>% filter(sex == "mal
 ```
 
 
-The molf male t-tests don't work because I only have total Sc measures for 1 MOLF male. to of the 
-
-
-```{r Q2.totSC.ttest_old, echo=FALSE, eval=FALSE}
-
-#move this to MS_v2?
-
-#totalSC high and low rec group
-
-Q2tot.sc_t.test_High.Low <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "0") )$mean.skel,
-                (mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "1") )$mean.skel)
-#p-value = 0.007
-
-#mol -- not enough Mol observations
-#Q2tot.sc_t.test_High.Low_Mol <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "0") %>% filter(subsp == "Mol") )$mean.skel,
-#         (mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "1") %>% filter(subsp == "Mol") )$mean.skel)
-
-#musc
-Q2tot.sc_t.test_High.Low_Musc <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "0") %>% filter(subsp == "Musc"))$mean.skel,
-                (mouse.total.skel %>% filter(sex == "male") %>% filter(subsp == "Musc") %>% filter(Rec.group == "1") )$mean.skel)
-
-```
-
-todo list if I get back to lab.
-
-
+The molf male t-tests don't work because I only have total Sc measures for 1 MOLF male.
 
 
 ```{r Q2.short.long.ttest, echo=FALSE}
@@ -3158,7 +2901,7 @@ Q2short.biv_t.test_High.Low <- t.test((Q2mouse.av.short.biv.table %>% filter(Rec
 
 #mouse.av.long.biv.table
 Q2long.biv_t.test_High.Low <- t.test((Q2mouse.av.long.biv.table  %>% filter(Rec.group == "0") )$mean.SC,
-                          (Q2mouse.av.long.biv.table  %>% filter(Rec.group == "1") )$mean.SC)
+                (Q2mouse.av.long.biv.table  %>% filter(Rec.group == "1") )$mean.SC)
 #p-value = 0.2
 
 
@@ -3245,8 +2988,8 @@ Q2.BIV_long_t.test_HL <- t.test((real.long.bivData %>%filter(sex == "male")%>%fi
 
 #High-Low_All-BivData
 
-Q2.all.BIV_t.test_HL <- t.test((Curated_BivData %>%filter(sex == "male")%>%filter(Rec.group == "0") )$chromosomeLength,
-              (Curated_BivData %>%filter(sex == "male")%>%filter(Rec.group == "1"))$chromosomeLength)
+Q2.all.BIV_t.test_HL <- t.test((cleanCurated_BivData %>%filter(sex == "male")%>%filter(Rec.group == "0") )$chromosomeLength,
+              (cleanCurated_BivData %>%filter(sex == "male")%>%filter(Rec.group == "1"))$chromosomeLength)
 
 
 #short
@@ -3303,13 +3046,13 @@ Q2.short_t.test_DomMol <- t.test((Q2mouse.av.short.biv.table  %>% filter(subsp =
 ```{r Q2.SC_across.subsp_short.long_biv, echo=FALSE}
 
 #DOM-MUSC-ALL
-Q2.all.BIV_t.test_DomMusc <- t.test((Curated_BivData %>%filter(subsp == "Dom")%>%filter(sex == "male") )$chromosomeLength,
-              (Curated_BivData %>% filter(subsp == "Musc")%>%filter(sex == "male"))$chromosomeLength)
+Q2.all.BIV_t.test_DomMusc <- t.test((cleanCurated_BivData %>%filter(subsp == "Dom")%>%filter(sex == "male") )$chromosomeLength,
+              (cleanCurated_BivData %>% filter(subsp == "Musc")%>%filter(sex == "male"))$chromosomeLength)
 #p-value = 4e-13
 
 #DOM-MOL-ALL
-Q2.all.BIV_t.test_DomMol <- t.test((Curated_BivData%>%filter(subsp == "Dom")%>%filter(sex == "male") )$chromosomeLength,
-              (Curated_BivData %>% filter(subsp == "Mol")%>%filter(sex == "male"))$chromosomeLength)
+Q2.all.BIV_t.test_DomMol <- t.test((cleanCurated_BivData %>%filter(subsp == "Dom")%>%filter(sex == "male") )$chromosomeLength,
+              (cleanCurated_BivData %>% filter(subsp == "Mol")%>%filter(sex == "male"))$chromosomeLength)
 #p-value = 6e-10
 
 #DOM-musc-long
@@ -3340,13 +3083,13 @@ Q2.shortBIV_t.test_DomMol <- t.test((real.short.bivData  %>% filter(subsp == "Do
 ```{r Q2.SC_across.subsp_short.long_biv.old, echo=FALSE, eval=FALSE}
 
 #DOM-MUSC-ALL
-Q2.all.BIV_t.test_DomMusc <- t.test((Curated_BivData %>%filter(subsp == "Dom")%>%filter(sex == "male") )$chromosomeLength,
-              (Curated_BivData %>% filter(subsp == "Musc")%>%filter(sex == "male"))$chromosomeLength)
+Q2.all.BIV_t.test_DomMusc <- t.test((cleanCurated_BivData %>%filter(subsp == "Dom")%>%filter(sex == "male") )$chromosomeLength,
+              (cleanCurated_BivData %>% filter(subsp == "Musc")%>%filter(sex == "male"))$chromosomeLength)
 #p-value = 4e-13
 
 #DOM-MOL-ALL
-Q2.all.BIV_t.test_DomMol <- t.test((Curated_BivData%>%filter(subsp == "Dom")%>%filter(sex == "male") )$chromosomeLength,
-              (Curated_BivData %>% filter(subsp == "Mol")%>%filter(sex == "male"))$chromosomeLength)
+Q2.all.BIV_t.test_DomMol <- t.test((cleanCurated_BivData %>%filter(subsp == "Dom")%>%filter(sex == "male") )$chromosomeLength,
+              (cleanCurated_BivData %>% filter(subsp == "Mol")%>%filter(sex == "male"))$chromosomeLength)
 #p-value = 6e-10
 
 #DOM-musc-long
@@ -3841,8 +3584,8 @@ log.reg_SC.length_BIV_3CO <- glm(Rec.group ~ chromosomeLength,
 ```{r Q2.SC_class.rec.group_setup, echo=FALSE, include=FALSE}
 #REMOVE THIS, IT uses total bivalent data
 
-Q2.SC_BivData_low.rec <- Curated_BivData %>% filter(sex=="male") %>% filter( hand.foci.count < 5)%>% filter(Rec.group == 0 )
-Q2.SC_BivData_high.rec <- Curated_BivData %>% filter(sex=="male") %>% filter( hand.foci.count < 5) %>% filter(Rec.group == 1 )
+Q2.SC_BivData_low.rec <- cleanCurated_BivData %>% filter(sex=="male") %>% filter( hand.foci.count < 5)%>% filter(Rec.group == 0 )
+Q2.SC_BivData_high.rec <- cleanCurated_BivData %>% filter(sex=="male") %>% filter( hand.foci.count < 5) %>% filter(Rec.group == 1 )
 
 #calq_mouse av
 mouse.av.SC.low.rec <- ddply(Q2.SC_BivData_low.rec, c("mouse"), summarise,
@@ -3888,18 +3631,7 @@ mouse.av.SC.high.rec$add_subsp <- factor(mouse.av.SC.high.rec$subsp, ordered = F
 
 ```{r Q2.show.SC.length, echo=FALSE, warning=FALSE, eval=FALSE}
 
-Curated_BivData99 <- Curated_BivData[Curated_BivData$hand.foci.count < 5,]
-Curated_BivData99 <- Curated_BivData99[(!is.na(Curated_BivData99$sex)),]
-
-#adjust order of plot here
-Curated_BivData99$strain <- factor(Curated_BivData99$strain,levels =c(
-  "WSB","G","LEW","PERC",  
-"PWD", "SKIVE",  "KAZ",
-     "MSM", "MOLF",   
-                     "CAST",
-                         "SPRET","SPIC" ), order=T )
-
-Q2.SC_BivData <- Curated_BivData %>% filter(sex=="male") %>% filter( hand.foci.count < 5)
+Q2.SC_BivData <- cleanCurated_BivData %>% filter(sex=="male") %>% filter( hand.foci.count < 5)
 
 #nested boxplots, pooled Bivalents
 #x axis for hand.focicount -- good for seperating the points --- but it pools 
@@ -3985,41 +3717,21 @@ Rec.group_LONG.BivData_F1post_Ttest <- t.test(
 #p-value = 0.5 
 
 Rec.group_BivData_F1post_Ttest <- t.test(
-  (Curated_BivData %>% filter(sex == "male") %>% filter(hand.foci.count == 1) %>% filter(Rec.group == "0") )$PER_Foci_1, 
-(Curated_BivData %>% filter(sex == "male") %>% filter(hand.foci.count == 1) %>% filter(Rec.group == "1"))$PER_Foci_1  )
-#p-value = 0.2
-
-#
-#whoo.mama <-  t.test( (Curated_BivData %>% filter(sex == "male") %>% filter(hand.foci.count #== 1)  %>%  filter(Rec.group == "0"))$PER_Foci_1, 
-#            (Curated_BivData  %>% filter(sex == "male") %>% filter(hand.foci.count == 1)   #%>% filter(Rec.group == "1"))$PER_Foci_1   )
-#p-value = 0.2
-
+  (cleanCurated_BivData %>% filter(sex == "male") %>% filter(hand.foci.count == 1) %>% filter(Rec.group == "0") )$PER_Foci_1, 
+(cleanCurated_BivData %>% filter(sex == "male") %>% filter(hand.foci.count == 1) %>% filter(Rec.group == "1"))$PER_Foci_1  )
+#p-value = 0.3
 
 ```
 
-- COpos short long t.tests
+
 
 
 ```{r Q2.1COpos_mus.av.full_glm, echo=FALSE}
 
-mouse.level.BivData_table <- add_species(mouse.level.BivData_table)
-
-#(mouse.avs_4MM %>%  filter(sex == "male") %>%  filter(subsp == "Musc") %>% filter(Rec.group == "0"))$norm.first.foci.pos
-
-#none of these are M1 -- since they are male specific 
-#all of these are M4
-#mouse table SC
-#mouse.level.BivData_table .. mouse.avs_4MM
-
-#why won't this work
 Q2.glm_mus.av_1COpos_M4 <- glm(mean_1CO.pos.PER ~ subsp * strain, data = (mouse.level.BivData_table  %>% filter(sex == "male") %>% filter(species == "M.musculus") ) )
 
 sum.Q2.glm_mus.av_1COpos_M4  <- summary(Q2.glm_mus.av_1COpos_M4)$coefficients
 #summary(Q2.glm_mus.av_1COpos_M1)$coefficients[,4]
-
-
-#with.chrm.legth  ?
-#Q2.glm_mus.av_1COpos_M4 <- glm(norm.first.foci.pos ~ subsp * strain, data= mouse.avs_4MM %>% filter(sex == "male"))
 
 
 #M4.2 (just strain)

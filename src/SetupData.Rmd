@@ -615,27 +615,6 @@ Are the strain levels plots needed?
 Curated_BivData will be the master DF with most observations. DFs for mixed models and tests need to subsetted from this one.  
 
 
-```{r remove.non.foci, echo=FALSE}
-#length( Curated_BivData %>% filter(hand.foci.count == "NA") )#36
-str(Curated_BivData)
-table(Curated_BivData$hand.foci.count, exclude = NULL)
-#there are ~600 rows with SC and no hand foci count
-table( (Curated_BivData %>% filter(  is.na(hand.foci.count) ) )$category )
-#KAZ male and WSB female have >100 observations without hand.foci.counts
-
-#Remove bivalent entries without hand foci count values
-cleanCurated_BivData <-  Curated_BivData  %>%  filter(hand.foci.count  == 0 | hand.foci.count  == 1 |
-                                      hand.foci.count  == 2 | hand.foci.count  == 3 | hand.foci.count  == 4 )
-
-length( (Curated_BivData  %>%  filter(  is.na(hand.foci.count) == T ) )$fileName )
-
-table(cleanCurated_BivData$hand.foci.count, exclude = NULL)
-#600 removed
-```
-
-
-
-
 ```{r format.str.Curate_BivData, echo=FALSE}
 #new.Curate.FULL to Curated_BivData
 
@@ -748,9 +727,13 @@ cleanCurated_BivData <-  Curated_BivData  %>%  filter(hand.foci.count  == 0 | ha
                                       hand.foci.count  == 2 | hand.foci.count  == 3 | hand.foci.count  == 4 )
 
 
+cleanCurated_BivData <- cleanCurated_BivData %>% filter(Obj.ID != "13sep18_28jun18_MOLF_m1_sp1_18.1_rev_14") #this object has wrongg position data
+
+
 #write excel file
 #write.xlsx2(missing.SKIVE.female, "Curated_missing.SKIVE.female.xlsx", sheetName = "Sheet1", 
 #            col.names = TRUE, row.names = FALSE, append = FALSE)
+
 
 ```
 
@@ -1282,9 +1265,9 @@ The block below creates clean.BivData, which removes ~600 rows with just SC meas
 ```{r mouse.table.HetC.MM, echo=FALSE}
 
 #this mouse level table -- should not have strains without female obs
-#only Mmusculus
+#only Mmusculus  
 
-Mouse.Table_BivData_4MM <- ddply(Curated_BivData, c("mouse"), summarise,
+Mouse.Table_BivData_4MM <- ddply(cleanCurated_BivData, c("mouse"), summarise,
                         Nmice = length(unique(mouse)),
                         Ncells  = length(  unique(fileName) ),
                       tot.biv = length(Obj.ID),
@@ -1517,12 +1500,12 @@ mouse.total.skel <- ddply(.data=Total.SC_DF,
                           ncells = length(unique(Original.Name)),
                           nmice = length(unique(mouse)),
                           mean.MLH1 = mean(nMLH1.foci, na.rm = TRUE),
-                          var.MLH1 = var(nMLH1.foci),
+                          var.MLH1 = var(nMLH1.foci, na.rm = TRUE),
                           
-                          mean.skel = mean(skel_size),
-                          var.skel = var(skel_size),
+                          mean.skel = mean(skel_size, na.rm = TRUE),
+                          var.skel = var(skel_size, na.rm = TRUE),
                           
-                          mean.bin = mean(bin_size)
+                          mean.bin = mean(bin_size, na.rm = TRUE)
 )
 
 mouse.total.skel <- add_strain(mouse.total.skel)
