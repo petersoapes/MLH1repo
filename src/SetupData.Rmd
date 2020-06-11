@@ -30,6 +30,9 @@ meta.data = read.csv( "~./MLH1repo/data/clean.Meta.Data.txt", sep = "\t", header
 #read.csv was breaking things
 MLH1_data = read.xlsx2("~./MLH1repo/data/AnonData_formated.xlsx", header=TRUE, 1)
 
+#remove all X's from MLH1
+#add date imaged
+
 DMC1.DF <- read.csv("~./MLH1repo/data/DMC1newJuviQuant.csv", header = TRUE)
 
 #total SC 
@@ -182,10 +185,6 @@ exclude_mice_list <- c("10mar15_WSB_m2", "8oct14_WSB_f1", "8oct14_WSB_f3", "18no
                   )
 MLH1_data <- MLH1_data[ ! MLH1_data$mouse %in% exclude_mice_list, ]
 
-
-#juvi.mice_DF <- AP_mouse_table_w.Ages[(AP_mouse_table_w.Ages$age.days < 15) & (AP_mouse_table_w.Ages$sex.y == "male"),]
-#juvi.mice_DF <- juvi.mice_DF[!(is.na(juvi.mice_DF$mouse) | juvi.mice_DF$mouse==""), ]
-
 #juvi mice ~ 2 weeks old
 juvi_mice.list <- c(
   "30dec14_WSB_m2","30dec14_WSB_m4","30dec14_WSB_m1","30dec14_WSB_m3","30dec14_WSB_m5",
@@ -201,7 +200,6 @@ juvi.mice_DF <- MLH1_data[(MLH1_data$mouse %in% juvi_mice.list),]
 
 #remove juvi mice from big MLH1 -- but Then i need to remake the mouse_table
 MLH1_data <- MLH1_data[ ! MLH1_data$mouse %in% juvi_mice.list, ]
-
 
 # > 25 weeks
 # I might need to keep some -- espcially outgroups
@@ -293,7 +291,6 @@ Mouse specific plots of CO count and quality were examined for general quality f
 
 ## MLH1 mouse level tables** 
 
-
 ```{r HQ.mouse.table, echo=FALSE}
 #Make a mouse level table 
 
@@ -309,9 +306,6 @@ for(i in MLH1_data$Original.Name){
 }
 #works better if dat is converted out of image
 MLH1_data$date.imaged <- as.Date(MLH1_data$image.string,  format='%d%b%y')
-
-#change name to Mouse.Table_HQ from #AP_mouse_table.MLH1_HQ
-#
 
 Mouse.Table_HQ <- ddply(MLH1_data[MLH1_data$quality < 5,], c("mouse"), summarise,
                         Nmice = length(unique(mouse)),
@@ -335,15 +329,14 @@ Mouse.Table_HQ <- add_sex(Mouse.Table_HQ)
 Mouse.Table_HQ <- add_category(Mouse.Table_HQ)
 Mouse.Table_HQ <- add_species(Mouse.Table_HQ)
 
-#remove juvi mice via the list
-#remove bad ages
-#this is removing female MOLF?
+#there are ~26 old mice 
 
-#this removes everything but males in these categories
-#Mouse.Table_HQ <- Mouse.Table_HQ[ (Mouse.Table_HQ$sex == "female") | ( #(Mouse.Table_HQ$sex == "male") & (Mouse.Table_HQ$age.weeks < 25) & #(Mouse.Table_HQ$age.days != 13) ), ]
+Mouse.Table_HQ.OG <- Mouse.Table_HQ
 
-#i don't understand why so many WSB female are removed..
-# | is.na(Mouse.Table_HQ$age.weeks) | (Mouse.Table_HQ$age.weeks == 0)
+#this doesn't remove
+Mouse.Table_HQ <- Mouse.Table_HQ.OG[ ! Mouse.Table_HQ.OG$mouse %in% old.mice.list, ]
+
+#MLH1_data <- MLH1_data[ ! MLH1_data$mouse %in% juvi_mice.list, ]
 
 ```
 
@@ -367,23 +360,17 @@ meta.data <- add_species(meta.data)
 #add DOB to this table?
 mice.frm.meta <- Mouse.Table_HQ[as.character(Mouse.Table_HQ$mouse) %in% as.character(meta.data$mouse),]
 
-Mouse.Table_HQ.OG <- Mouse.Table_HQ
-
-Mouse.Table_HQ <- Mouse.Table_HQ.OG
+#Mouse.Table_HQ.OG <- Mouse.Table_HQ
 
 #during merging -- try to just merge a few cols: 
-Mouse.Table_HQ <- merge(Mouse.Table_HQ, meta.data)
-#this removes ~28 mice
+#don't merge
+#Mouse.Table_HQ <- merge(Mouse.Table_HQ, meta.data)
 
 old.mice.df <- Mouse.Table_HQ[(Mouse.Table_HQ$age.weeks > 25),]
 #remove the NAs
 old.mice.df <- old.mice.df[!(is.na(old.mice.df$mouse) | old.mice.df$mouse==""), ]
 
-Mouse.Table_HQ <- Mouse.Table_HQ[ ! Mouse.Table_HQ$mouse %in% old.mice.df, ]
-
 ```
-
-
 
 
 Made up the main mouse level table:  
@@ -533,7 +520,9 @@ Testes were collected from mice at various ages. For some poor breeding mice, I 
 Is there a detectable age effect?
 
 
-```{r Age.Hists, echo=FALSE, warning=FALSE}
+```{r Age.Hists, echo=FALSE, warning=FALSE, eval=FALSE}
+#age. weeks was removed from the Mouse.Table.HQ for now
+
 #age.weeks col is missing
 
 male_mouse_table_w.Ages <- Mouse.Table_HQ[(Mouse.Table_HQ$sex == "male") &(Mouse.Table_HQ$category != "other"),]
