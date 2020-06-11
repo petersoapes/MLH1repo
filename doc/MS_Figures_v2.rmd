@@ -636,6 +636,55 @@ X.by.texas <- ggplot(bep, aes(x=mean.skel, y=mean_co, color=strain))+geom_point(
 
 # Supplemental Figures
 
+## Normal Distributions
+
+```{r normal.curve, echo=FALSE, include=FALSE, eval=FALSE}
+
+#this block is throwing an error..not sure why
+#normality of MLH1 distributions
+
+#there are a bunch of strains that should be removed
+#remove grey background
+
+#subsp x sex, color by strain
+
+gaus.curve.remove.strains <- c("F1")
+
+gaus.MLH1 <- MLH1_data
+#gaus.MLH1 <- gaus.MLH1[!gaus.MLH1$strain %in% gaus.curve.remove.strains, ]
+
+gaus.MLH1$strain <-  factor(gaus.MLH1$strain, ordered = TRUE, levels =c( "WSB", "G", "LEW","PERC",
+      "PWD","SKIVE","KAZ", "CZECH", "AST", "TOM",
+      "MSM", "MOLF",
+      "CAST", "HMI",
+      "SPIC","SPRET","CAROLI"))
+
+
+#combine outgroups
+#change subsp for spic, caroli and spret to outgroup
+gaus.MLH1$subsp2[gaus.MLH1$subsp == "Caroli"] <- "Outgroup"
+gaus.MLH1$subsp2[gaus.MLH1$subsp == "Spretus"] <- "Outgroup"
+gaus.MLH1$subsp2[gaus.MLH1$subsp == "Spic"] <- "Outgroup"
+
+gaus.MLH1$subsp2[gaus.MLH1$species == "M.musculus"] <- "M. m. musculus"
+#make seperate curves / plots for outgroups and house mouse
+
+#MLH1_data
+gaussian.curve.out <- ggplot(data = (gaus.MLH1 %>% filter(quality < 5)  %>% filter(subsp2 == "Outgroup") ),
+                         aes(x=nMLH1.foci, fill=strain) ) + geom_histogram( binwidth = 1)+facet_wrap( ~ sex)  +  scale_fill_manual(values=colors_of_strains)+ 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+
+gaussian.curve.Mm <- ggplot(data = (gaus.MLH1 %>% filter(quality < 5)  %>% filter(subsp == "Cast") ),
+                         aes(x=nMLH1.foci, fill=strain) ) + geom_histogram( binwidth = 1)+facet_wrap(subsp ~ sex) +  scale_fill_manual(values=colors_of_strains)+ 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+#aes( alpha = .7)
+
+```
+
 
 ## Fig Chrm Proportion plot
 
