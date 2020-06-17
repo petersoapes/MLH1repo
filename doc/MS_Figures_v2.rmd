@@ -549,7 +549,7 @@ axis.text.x = element_text(size=7),
 legend.position="none",axis.text.y = element_text(size=9), # axis.text.y = element_blank()
 axis.title.y = element_text(size = 10) ) +
   
-  labs(y = "Total SC Length")+ylim(c(1000,2600 ))+ggtitle("")
+  labs(y = "Total SC Length")+ylim(c(1000,5000 ))+ggtitle("")
 
 ggsave("~/MLH1repo/doc/Figure3_Tot.SC_mouse.av_ALL.png")
 
@@ -685,7 +685,7 @@ gaussian.curve.Mm <- ggplot(data = (gaus.MLH1 %>% filter(quality < 5)  %>% filte
 
 ```
 
-
+#Fig 4 Proportions
 ## Fig Chrm Proportion plot
 
 ```{r Chrm.props.plot2, echo=FALSE, fig.width=8, fig.cap="*Figure 3* Chromosome Class Proportions. proportions calculated from pooled single bivalent data by strain."}
@@ -761,7 +761,7 @@ chrm.class.barplot <- ggplot( data = (chrm.class.category_MELT %>% filter(strain
         panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position="top", legend.title = element_blank(),  axis.title.y = element_blank(), axis.text.x = element_text(size=9), axis.title.x = element_blank() )+ scale_fill_discrete(name = "Chromosome Class", labels =c('0CO','1CO','2CO','3CO','4CO') )
 
 chrm.class.barplot.final <- addSmallLegend(chrm.class.barplot)
-
+#this legend is too small and fuzzy in figures
 ```
 
 
@@ -1099,5 +1099,192 @@ Q1.short.biv_scatr_box   <- ggplot( (real.short.bivData %>% filter(hand.foci.cou
 
 
 Q1.long.biv_scatr_box   <- ggplot((real.long.bivData %>% filter(hand.foci.count == 1) ), aes(x=sex, y=PER_Foci_1, color=strain) )+geom_jitter( )+ geom_boxplot(aes(y= PER_Foci_1 ),alpha=.3 ) + scale_color_manual(values=colors_of_strains)+facet_wrap(~subsp, scales = "free")+ylim(c(0,1.1))+ggtitle("Mouse av. \nNormalized 1CO Foci pos \nLong Biv")
+
+```
+
+
+```{r Q1.show.SC.length, echo=FALSE, warning=FALSE, eval=FALSE}
+#switch the cleanCurated_BivData
+
+#nested boxplots, pooled Bivalents
+Q1.SC.length_Nested_boxplots_Dom <- ggplot(cleanCurated_BivData[cleanCurated_BivData$subsp == "Dom",], aes(y = chromosomeLength, x=strain, fill=as.factor(hand.foci.count) ))+geom_boxplot(alpha=0.5)+ggtitle("Bivalent SC Lengths by Chrm Class \n Dom")+facet_wrap(subsp~sex, scales="free")+ylim(c(25,255))+theme(legend.position="none") 
+
+```
+
+
+
+```{r Q1.show.IFD.scatter, echo=FALSE, eval=FALSE, message=FALSE}
+
+#these are the scatter plots
+
+nrm.IFD_KAZ_long <- ggplot( (Q1.IFD.long %>% filter(strain =="KAZ" ) ) , aes(y = meanIFD2CO_norm, x= sex,color=mouse))+geom_point()+ggtitle("Interfocal Distances, ABS KAZ")
+
+nrm.IFD_KAZ_BIV.long <- ggplot( (real.long.bivData %>% filter(strain =="KAZ" ) %>%  filter(hand.foci.count == "2")  ) , aes(y = IFD1_PER, x= sex, color=mouse))+geom_point()+ggtitle("Interfocal Distances, ABS KAZ")
+#11jan18_KAZ_m3, 26jan18_11jan18_KAZ_m3_sp1_8_rev_19
+#looked up image, measures confirmed 
+
+####
+nrm.IFD_KAZ_short <- ggplot( (Q1.IFD.short %>% filter(strain =="KAZ" ) ) , aes(y = meanIFD2CO_norm, x= sex,color=mouse))+geom_point()+ggtitle("Interfocal Distances, ABS KAZ")
+
+nrm.IFD_KAZ_BIV.short <- ggplot( (real.short.bivData %>% filter(strain =="KAZ" ) %>%  filter(hand.foci.count == "2")  ) , aes(y = IFD1_PER, x= sex, color=mouse))+geom_point()+ggtitle("Interfocal Distances, ABS KAZ")
+#21may18_KAZ_m2 -- seems like it might be an outlier
+#5jun18_21may18_KAZ_m2_sp1_19.2_rev_16
+#second foci slightly smaller, kinda fainter -- but also much brighter than background
+
+#check all KAZ males
+
+nrm.IFD_KAZ_BIV.data <- ggplot( (cleanCurated_BivData %>% filter(strain =="KAZ" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Interfocal Distances, ABS KAZ")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
+
+nrm.IFD_KAZ.female_BIV.data <- ggplot( (cleanCurated_BivData %>% filter(strain =="KAZ" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "female")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, female KAZ")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
+nrm.IFD_KAZ.female_BIV.data
+
+
+nrm.IFD_PWD.female_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="PWD" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "female")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, female PWD")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
+nrm.IFD_PWD.female_BIV.data
+
+nrm.IFD_LEW.female_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="LEW" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "female")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, female LEW")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
+nrm.IFD_LEW.female_BIV.data
+
+nrm.IFD_G.female_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="G" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "female")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, female G")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
+nrm.IFD_G.female_BIV.data
+
+nrm.IFD_WSB.female_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="WSB" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "female")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, female WSB")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
+nrm.IFD_WSB.female_BIV.data    #18nov17_WSB_f2 has continuous ifd range
+
+nrm.IFD_LEW_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="LEW" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Interfocal Distances, ABS LEW")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
+
+nrm.IFD_MOLF_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="MOLF" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Interfocal Distances, ABS MOLF")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))+theme(axis.text.x = element_blank())
+
+raw.IFD_MOLF_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="MOLF" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male")  ) , aes(y = IFD1_ABS, x= mouse, color=chromosomeLength))+geom_point()+ggtitle("Interfocal Distances, ABS MOLF")+theme(axis.text.x = element_blank())+ylim(c(0, 100))
+
+raw.IFD_MSM_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="MSM" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male")  ) , aes(y = IFD1_ABS, x= mouse, color=chromosomeLength))+geom_point()+ggtitle("Interfocal Distances, ABS MSM")+theme(axis.text.x = element_blank())+ylim(c(0, 100))
+
+
+
+Fby.F.IFD_MOLF_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="MOLF" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male")  ) , aes(y = Foci1, x=Foci2, color=chromosomeLength))+geom_point()+ggtitle("FOce Pos by Fos Pos MOLF")+facet_wrap(~mouse, scales = "free")+ylim(c(0,75))+xlim(c(0,120))+theme(legend.position="none") 
+
+Fby.F.IFD_MSM_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="MSM" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male")  ) , aes(y = Foci1, x=Foci2, color=chromosomeLength))+geom_point()+ggtitle("Foci Pos by Fos Pos MSM")+facet_wrap(~mouse, scales = "free")+ylim(c(0,75))+xlim(c(0,120))+theme(legend.position="none") 
+
+
+###look at why KAZ males are weird
+nrm.IFD_KAZ_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="KAZ" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, male KAZ")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))+theme(axis.text.x = element_blank(), legend.position = "none")
+
+
+nrm.IFD_LEW_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="LEW" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, male LEW")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
+
+#the difference the the Nrm IFD cut off is striking with these plots
+nrm.IFD_PWD_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="PWD" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male") ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, male PWD")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
+
+
+nrm.IFD_MSM_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="MSM" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, male GMSM")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
+
+nrm.IFD_SKIVE_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="SKIVE" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, male SKIVE")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
+
+nrm.IFD_G_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="G" ) %>%  filter(hand.foci.count == "2") %>%  filter(sex == "male")  ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, male G")+facet_wrap(~mouse, scales = "free")+ylim(c(0,1))
+
+
+nrm.IFD_sex.comp_BIV.data <- ggplot( (Curated_BivData %>% filter(strain =="LEW" ) %>%  filter(hand.foci.count == "2") ) , aes(y = IFD1_PER, x= fileName, color=chromosomeLength))+geom_point()+ggtitle("Normalized Interfocal Distances, ")+facet_wrap(~sex, scales = "free")+ylim(c(0,1))+theme(legend.position="none",axis.text.x = element_blank()) 
+
+```
+
+
+
+```{r Q1.IFD_show.IFD_99, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+
+#first draft of the IFD comparisons
+#make the mouse boxplots -- instead of geom_points
+
+#Only use 2CO bivalents
+Curated_BivData.22 <- Curated_BivData[Curated_BivData$hand.foci.count == 2,]
+Curated_BivData.22 <- Curated_BivData.22[(!is.na(Curated_BivData.22$hand.foci.count)),]
+
+
+P1.by.P2_plot <- ggplot(Curated_BivData.22, aes(y = rev(PER_Foci_2), x= PER_Foci_1, color=strain))+
+  geom_jitter(alpha=.2)+
+  ggtitle("Normalized IFD")+
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")+xlim(c(0,1))+ylim(c(0,1))
+
+#each point is a 2CO, with the F1 and F2 position 
+#based on plot from Dourad et al (Mercier)
+
+P1.by.P2_plot_raw.WSB <- ggplot(Curated_BivData.22 %>% filter(strain == "LEW"),
+    aes(y = Foci2, x= Foci1, color=strain))+
+  geom_jitter(alpha=.5)+
+  ggtitle("Raw IFD WSB")+
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none") + ylim(c(0,160))+xlim(c(0,160))+ theme(  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank() )
+
+#trying to move x axis to top
+#cowplot might be the easier way -- since kinda diffecult in ggplot
+#or ggdraw
+
+P1.by.P2_plot_nrm.PWD.f <- ggplot(Curated_BivData.22 %>% filter(strain == "PWD") %>% filter(sex == "female"),
+    aes(y = PER_Foci_2, x= PER_Foci_1, color=strain))+
+  geom_jitter(alpha=.5)+
+#  scale_x_continuous(position = "top") +
+  scale_x_continuous(sec.axis = dup_axis(), position = "top")+
+    ggtitle("Nrm IFD PWD, female")+scale_color_manual(values=colors_of_strains)+ ylim(c(0,1))+xlim(c(0,1))+ theme(  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank() )
+
+
+P1.by.P2_plot_nrm.PWD.male <- ggplot(Curated_BivData.22 %>% filter(strain == "PWD") %>% filter(sex == "male"),
+    aes(y = PER_Foci_2, x= PER_Foci_1, color=strain))+
+  geom_jitter(alpha=.5)+
+#  scale_x_continuous(position = "top") +
+  scale_x_continuous(sec.axis = dup_axis(), position = "top")+
+    ggtitle("Nrm IFD PWD, male")+scale_color_manual(values=colors_of_strains)+ ylim(c(0,1))+xlim(c(0,1))+ theme(  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank() )
+
+#boxplots
+boxplots_first.IFD.plot_ABS <- ggplot(Curated_BivData.22, aes(y = IFD1_ABS, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
+  geom_jitter(alpha=.2)+
+  ggtitle("Interfocal Distances, ABS")+
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none")
+#order is out of wack, but -- good for now
+
+boxplots_first.IFD.plot_PER <- ggplot(Curated_BivData.22, aes(y = IFD1_PER, x= mouse, color=strain))+geom_boxplot(alpha=.2)+
+  geom_jitter(alpha=.2)+
+  ggtitle("Interfocal Distances, PER")+
+  scale_color_manual(values=colors_of_strains)+  facet_wrap(sex~subsp, scales = "free")+theme(legend.position="none")+ylim(c(0,1))
+
+
+first.IFD.plot_ABS <- ggplot(Curated_BivData.22, aes(y = IFD1_ABS, x= strain, color=mouse))+geom_jitter()+ggtitle("Interfocal Distances, ABS")+facet_wrap(sex~subsp, scales = "free")+ylim(c(20,160))+theme(legend.position="none") #+scale_color_manual(values=colors_of_strains)
+
+
+first.IFD.plot_PER <- ggplot(Curated_BivData.22 %>% filter(chromosomeLength < 150), aes(y = IFD1_PER, x= strain, color=chromosomeLength))+geom_jitter()+ggtitle("Interfocal Distances, PER \ncut off of chrm lengths, 150")+facet_wrap(sex~subsp, scales = "free")+ylim(c(0,1)) 
+
+#+theme(legend.position="none")
+```
+
+
+
+```{r Q2.SC.long.biv_plots, echo=FALSE, eval=FALSE}
+
+#REAL.long_mouse_table
+#REAL.short_mouse_table
+
+#real.long.bivData
+#real.short.bivData
+
+shoo.long.biv <- ggplot( (real.long.bivData %>% filter(sex == "male") ), aes(y=chromosomeLength, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Single Biv \nMale Long Biv SC Lengths")
+
+
+#cell.avlong.biv <- ggplot(cell.av.long.biv.table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Cell av. \nMale Long Biv SC Lengths")
+
+
+mouse.shoo.long.biv <- ggplot( REAL.long_mouse_table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + ggtitle("Mouse av. \nMale Long Biv SC Lengths")
+
+                      
+#cell.avlong.biv <- ggplot( cell.av.long.biv.table, aes(y=mean.sc, x=strain, color=strain))+geom_jitter()+facet_wrap(~subsp, scales = "free")+scale_color_manual(values=colors_of_strains)+ylim(c(75,140))+geom_boxplot(alpha=.2) + #ggtitle("Cell av. \nMale Long Biv SC Lengths")
+
+```
+
+```{r Q2_tot.sc_plot, echo=FALSE, warning=FALSE}
+
+mouse.av_totsc_male <- ggplot(data= mouse.total.skel %>% filter(sex == "male"), aes(y = mean.skel, x=mouse, color=strain))+ geom_point()+scale_color_manual(values=colors_of_strains)+
+  facet_wrap(Rec.group~subsp, scales="free")+
+  theme(axis.title.x=element_blank(),  axis.text.x=element_blank(), axis.text.y = element_text(size=9), axis.ticks.x=element_blank(), legend.position = c(0.8, 0.2) ) + ylim(c(1200,1850 ) )+labs(y="Mouse Mean Total SC")
+
+mouse.av_totsc_male <- addSmallLegend(mouse.av_totsc_male)
 
 ```
