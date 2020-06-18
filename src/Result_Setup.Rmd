@@ -28,46 +28,8 @@ options(digits=2)
 
 #just load the data_setup, since I load most everything else
 
-load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_5.30.20.RData")#added SKIVE_f BiveData
+load(file = "~./MLH1repo/data/MLH1_data_setup_5.30.20.RData")#added SKIVE_f BiveData
 #load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_5.21.20.RData")
-#load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_5.12.20.RData")
-#load(file = "~./MLH1repo/data/MLH1/MLH1_data_setup_2.24.20.RData")
-#load(file = "C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.31.20.RData")
-
-#2.2.20
-#load(file="C:/Users/April/Documents/MLH1repo/data/CleanBivData_1.27.20.RData")
-#load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/CleanBivData_1.27.20.RData")
-
-#load(file="~./MLH1repo/data/CleanBivData_5.12.20.RData") #CleanBivData_5.12.20.RData
-#load(file="~./MLH1repo/data/total_SC_30.12.19.RData")
-
-#skeletonize
-#SC.skel = read.csv("~./MLH1repo/data/SCskel_output_feb20.csv", header = TRUE, strip.white = TRUE)
-#Total.SC_DF = read.xlsx2("~./MLH1repo/data/Total.SC_merge.MLH1.xlsx", header=TRUE, 1)
-#remove X -- this table isn't used
-
-#load(file="~./MLH1repo/data/MLH1_data_setup_1.5.20.RData")
-
-#setwd("~./MLH1repo/doc/")
-#setwd("C:/Users/alpeterson7/Documents/MLH1repo/doc/")
-#setwd("C:/Users/April/Documents/MLH1repo")
-#load(file="data/MLH1/MLH1_data_setup.RData")
-
-#load main data file
-#load(file="C:/Users/April/Documents/MLH1repo/data/MLH1/MLH1_data_setup_1.5.20.RData")#added batch18
-#load(file="C:/Users/April/Documents/MLH1repo/data/CleanBivData_1.28.20.RData")
-#load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/CleanBivData_1.28.20.RData")
-
-#this MLH1 only goes up to batch16!
-#load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#batch18
-#load(file="C:/Users/alpeterson7/Documents/MLH1repo/data/MLH1/MLH1_data_setup_12.20.19.RData")#fixing bugs, formating
-#load(file="data/MLH1/MLH1_data_setup_12.3.19.RData")#removed exclude mice
-#load(file="data/MLH1/MLH1_data_setup_11.12.19.RData")#added batch17
-#load(file="data/MLH1/MLH1_data_setup_11.11.19.RData")#deleted DUP image
-#load(file="data/MLH1/MLH1_data_setup_9.26.19.RData")#added batch16
-#load(file="data/MLH1/MLH1_data_setup_8.29.19.RData") #
-
-#load(file="data/MetaData.RData") #this was replacing most updated data file
 
 #load functions
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
@@ -235,14 +197,14 @@ SKIVE_male <-   male_mouse.avs_for.analysis %>% filter(strain == "SKIVE")
 #remove quality 5 cells
 
 #outgroups
-#SPIC
-HetC.SPIC <- MLH1_data[(MLH1_data$strain == "SPIC")&(MLH1_data$quality < 5),]
-#unique(HetC.SPIC$mouse)
+#SPI
+HetC.SPI <- MLH1_data[(MLH1_data$strain == "SPI")&(MLH1_data$quality < 5),]
+#unique(HetC.SPI$mouse)
 #non-passing mice
-SPIC.remove.mice <- c("30may18_SPIC_f1", "8jun18_SPIC_m2")
-HetC.SPIC <- HetC.SPIC[ ! HetC.SPIC$mouse %in% SPIC.remove.mice, ]
+SPI.remove.mice <- c("30may18_SPIC_f1", "8jun18_SPIC_m2")
+HetC.SPI <- HetC.SPI[ ! HetC.SPI$mouse %in% SPI.remove.mice, ]
 #calq sex mean
-SPIC.mean.MLH1.obs <- ddply(.data=HetC.SPIC, 
+SPI.mean.MLH1.obs <- ddply(.data=HetC.SPI, 
                  .(category),
                  summarize, 
                  ncells = length(unique(Original.Name)),
@@ -250,7 +212,7 @@ SPIC.mean.MLH1.obs <- ddply(.data=HetC.SPIC,
                  mean.MLH1 = mean(nMLH1.foci),
                  var.MLH1 = var(nMLH1.foci)
 )
-SPIC.HETC.val <- SPIC.mean.MLH1.obs$mean.MLH1[1] / SPIC.mean.MLH1.obs$mean.MLH1[2]
+SPI.HETC.val <- SPI.mean.MLH1.obs$mean.MLH1[1] / SPI.mean.MLH1.obs$mean.MLH1[2]
 
 #SPRET
 HetC.SPRET <- MLH1_data[(MLH1_data$strain == "SPRET")&(MLH1_data$quality < 5),]
@@ -656,7 +618,7 @@ DF.HetC.MixedModel.HQ$strain <- factor(DF.HetC.MixedModel.HQ$strain, ordered = F
 DF.HetC.MixedModel.HQ$species <- factor(DF.HetC.MixedModel.HQ$species, ordered = FALSE)
 
 #remove male only data
-remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPIC")
+remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC", "SPI")
 
 DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[! DF.HetC.MixedModel.HQ$strain %in% remove_strains,]
 
@@ -697,6 +659,8 @@ MLH1.MM_strain)
 MLH1.MMlmer_results
 
 write.table(MLH1.MMlmer_results, "~./MLH1repo/MLH1_M1_glm.csv", sep=",",row.names = TRUE)
+#Write to excel?
+
 ```
 
 
@@ -1587,7 +1551,7 @@ tot.SC_old.mice.DF <- Total.SC_DF[Total.SC_DF$mouse  %in% old.mice.list, ]
 
 
 #
-totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain !="F1" & strain !="SPIC" & strain !=  "CAROLI" & strain !="SPRET"& strain !="HMI"& strain !="PERC")
+totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain !="F1" & strain !="SPI" & strain !=  "CAROLI" & strain !="SPRET"& strain !="HMI"& strain !="PERC")
 
 ```
 
