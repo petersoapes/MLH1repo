@@ -136,25 +136,25 @@ add_strain <- function(dat){
                                                                            ifelse(grepl("_PWD_", dframe$mouse), "PWD",
                                                                                   ifelse(grepl("_KAZ_", dframe$mouse), "KAZ",
                                                                                          ifelse(grepl("_TOM_", dframe$mouse), "TOM",
-                                                                                                ifelse(grepl("_AST_", dframe$mouse), "AST",
-                                                                                                       ifelse(grepl("_CZECH_", dframe$mouse), "CZECH",
+                           ifelse(grepl("_AST_", dframe$mouse), "AST",
+              ifelse(grepl("_CZECH_", dframe$mouse), "CZECH",
                                                                                                               
                                                                                                               
-                                                                                                              ifelse(grepl("_CAST_", dframe$mouse), "CAST",
-                                                                                                                     ifelse(grepl("_HMI_", dframe$mouse), "HMI",
-                                                                                                                            ifelse(grepl("_SPRET_", dframe$mouse), "SPRET",
-                                                                                                                                   ifelse(grepl("_SPI_", dframe$mouse), "SPIC",
-                                                                                                                                          ifelse(grepl("_SPIC_", dframe$mouse), "SPIC",
-                                                                                                                                                 ifelse(grepl("_CAROLI_", dframe$mouse), "CAROLI",
+                                                               ifelse(grepl("_CAST_", dframe$mouse), "CAST",
+                                                                    ifelse(grepl("_HMI_", dframe$mouse), "HMI",
+                                                                          ifelse(grepl("_SPRET_", dframe$mouse), "SPRET",
+                                                                             ifelse(grepl("_SPI_", dframe$mouse), "SPI",
+                                                                                 ifelse(grepl("_SPIC_", dframe$mouse), "SPI",
+                                                                                 ifelse(grepl("_CAROLI_", dframe$mouse), "CAROLI",
                                                                                                                                                         
-                                                                                                                                                        ifelse(grepl("F1_", dframe$mouse), "F1",         
+                                                                                ifelse(grepl("F1_", dframe$mouse), "F1",         
                                                                                                                                                                "other"))))))))))))))))))))
   
   #the ordering factor below deletes all strain entries
   dframe$strain<- factor(dframe$strain, ordered = FALSE, levels =c( "WSB", "G", "LEW", "PERC",
                                                                    "PWD", "MSM", "MOLF","SKIVE", "KAZ", "TOM", "AST","CZECH",
                                                                    "CAST", "HMI",
-                                                                   "SPRET", "SPIC", "CAROLI", "F1", "other") )
+                                                                   "SPRET", "SPI", "CAROLI", "F1", "other") )
   return(dframe)
 }
 
@@ -200,14 +200,14 @@ add_category <- function(oldframe){
                                                                                                                                                                                                            ifelse(grepl("_SKIVE_f", dframe$mouse), "SKIVE female",            
                                                                                                                                                                                                                   
                                                                                                                                                                                                                   
-                                                                                                                                                                                                                  ifelse(grepl("_SPRET_f", dframe$mouse), "SPRET female",
-                                                                                                                                                                                                                         ifelse(grepl("_SPRET_m", dframe$mouse), "SPRET male",
-                                                                                                                                                                                                                                ifelse(grepl("_SPI_m", dframe$mouse), "SPIC male",
-                                                                                                                                                                                                                                       ifelse(grepl("_SPI_f", dframe$mouse), "SPIC female",
-                                                                                                                                                                                                                                              ifelse(grepl("_SPIC_f", dframe$mouse), "SPIC female",
-                                                                                                                                                                                                                                                     ifelse(grepl("_SPIC_m", dframe$mouse), "SPIC male",
-                                                                                                                                                                                                                                                            ifelse(grepl("_CAROLI_m", dframe$mouse), "CAROLI male",
-                                                                                                                                                                                                                                                                   ifelse(grepl("_CAROLI_f", dframe$mouse), "CAROLI female",
+                                                                                                                                                                                      ifelse(grepl("_SPRET_f", dframe$mouse), "SPRET female",
+                                                                                                                                                                                      ifelse(grepl("_SPRET_m", dframe$mouse), "SPRET male",
+                                                                                                                                                                                     ifelse(grepl("_SPI_m", dframe$mouse), "SPI male",
+                                                                                                                                                                                       ifelse(grepl("_SPI_f", dframe$mouse), "SPI female",
+                                                                                                                                                                                            ifelse(grepl("_SPIC_f", dframe$mouse), "SPI female",
+                                                                                                                                                                                                  ifelse(grepl("_SPIC_m", dframe$mouse), "SPI male",
+                                                                                                                                                                                                     ifelse(grepl("_CAROLI_m", dframe$mouse), "CAROLI male",
+                                                                                                                                                                                                          ifelse(grepl("_CAROLI_f", dframe$mouse), "CAROLI female",
                                                                                                                                                                                                                                                                           
                                                                                                                                                                                                                                                                           ifelse(grepl("F1_m", dframe$mouse), "F1",     
                                                                                                                                                                                                                                                                                  "other"))))))))))))))))))))))))))))))))))))
@@ -218,7 +218,7 @@ add_category <- function(oldframe){
                                                                      "MOLF male",  "SKIVE female", "SKIVE male", 
                                                                      "KAZ female","KAZ male","CZECH female","CZECH male", "AST male", "TOM male",
                                                                      "CAST female", "CAST male", "HMI female", "HMI male",
-                                                                     "SPRET female", "SPRET male", "SPIC female", "SPIC male","CAROLI female","CAROLI male","F1",
+                                                                     "SPRET female", "SPRET male", "SPI female", "SPI male","CAROLI female","CAROLI male","F1",
                                                                      "other"))
   return(dframe)
 }
@@ -246,31 +246,31 @@ add_subsp <- function(oldframe) {
                                        ifelse(grepl("MSM", dframe$strain), "Mol", #added Mol as distinct subsp class
                                       ifelse(grepl("MOLF", dframe$strain), "Mol",    
                                                                                                
-                                                                                               ifelse(grepl("PWD", dframe$strain), "Musc", 
+                                                  ifelse(grepl("PWD", dframe$strain), "Musc", 
                                                                                                       
-                                                                                                      ifelse(grepl("CZECH", dframe$strain), "Musc", 
+                                                             ifelse(grepl("CZECH", dframe$strain), "Musc", 
                                      ifelse(grepl("AST", dframe$strain), "Musc",     
-                                                                                                                    ifelse(grepl("TOM", dframe$strain), "Musc",  
-                                                                                                                           ifelse(grepl("SKIVE", dframe$strain), "Musc", 
+                                                                      ifelse(grepl("TOM", dframe$strain), "Musc",  
+                                                                       ifelse(grepl("SKIVE", dframe$strain), "Musc", 
                                                                                                                                   
-                                                                                                                                  ifelse(grepl("PWDFemale", dframe$strain), "Musc",
+                                                                         ifelse(grepl("PWDFemale", dframe$strain), "Musc",
                                                                                                                                          ifelse(grepl("KAZ", dframe$strain), "Musc",
                                                                                                                                                 
                                                                                                                                                 
-                                                                                                                                                ifelse(grepl("SPRET", dframe$strain), "Spretus",
-                                                                                                                                                       ifelse(grepl("SPIC", dframe$strain), "Spic",      
-                                                                                                                                                              ifelse(grepl("PANCEVO", dframe$strain), "Spic", 
-                                                                                                                                                                     ifelse(grepl("CAROLI", dframe$strain), "Caroli", 
+                                                           ifelse(grepl("SPRET", dframe$strain), "M.spretus",
+                                                            ifelse(grepl("SPIC", dframe$strain), "M.spicilegus",      
+                                                              ifelse(grepl("PANCEVO", dframe$strain), "M.spicilegus", 
+                                                                 ifelse(grepl("CAROLI", dframe$strain), "M.caroli", 
                                                                                                                                                                             
-                                                                                                                                                                            ifelse(grepl("RAT", dframe$strain), "Outgroup", 
-                                                                                                                                                                                   ifelse(grepl("Peromyscus", dframe$strain), "Outgroup", 
+                                                               ifelse(grepl("RAT", dframe$strain), "Outgroup", 
+                                                                ifelse(grepl("Peromyscus", dframe$strain), "Outgroup", 
                                                                                                                                                                                           ifelse(grepl("Microtus", dframe$strain), "Outgroup", "other")))))))))))))))))))))))))
   
   dframe$subsp <- factor(dframe$subsp, ordered = TRUE,levels =c( "Dom",
                                                                  "Cast",
                                                                  "Musc",
                                                                  "Mol",
-                                                                 "Spretus","Spic","Caroli", "Outgroup",
+                                                                 "M.spretus","M.spicilegus","M.caroli", "Outgroup",
                                                                  "other") )
   
   
@@ -305,16 +305,16 @@ add_species <- function(oldframe) {
                                                                                                                ifelse(grepl("PWDFemale", dframe$strain), "M.musculus",  
                                                                                                                       ifelse(grepl("KAZ", dframe$strain), "M.musculus",
                                                                                                                              
-                                                                                                                             ifelse(grepl("SKIVE", dframe$strain), "M.musculus",            
-                                                                                                                                    ifelse(grepl("MOLF", dframe$strain), "M.musculus",  
-                                                                                                                                           ifelse(grepl("TOM", dframe$strain), "M.musculus",  
-                                                                                                                                                  ifelse(grepl("AST", dframe$strain), "M.musculus",
+                                                                                        ifelse(grepl("SKIVE", dframe$strain), "M.musculus",            
+                                                                                       ifelse(grepl("MOLF", dframe$strain), "M.musculus",  
+                                                                                       ifelse(grepl("TOM", dframe$strain), "M.musculus",  
+                                                                                          ifelse(grepl("AST", dframe$strain), "M.musculus",
                                                                                                                                                          
                                                                                                                                                          
-                                                                                                                                                         ifelse(grepl("SPRET", dframe$strain), "M.spretus",
-                                                                                                                                                                ifelse(grepl("SPIC", dframe$strain), "M.spic",      
-                                                                                                                                                                       ifelse(grepl("PANCEVO", dframe$strain), "M.spic", 
-                                                                                                                                                                              ifelse(grepl("CAROLI", dframe$strain), "M.caroli", 
+                                                                              ifelse(grepl("SPRET", dframe$strain), "M.spretus",
+                                                                              ifelse(grepl("SPIC", dframe$strain), "M.spicilegus",      
+                                                                               ifelse(grepl("PANCEVO", dframe$strain), "M.spicilegus", 
+                                                                              ifelse(grepl("CAROLI", dframe$strain), "M.caroli", 
                                                                                                                                                                                      
                                                                                                                                                                                      ifelse(grepl("RAT", dframe$strain), "R.norv", 
                                                                                                                                                                                             ifelse(grepl("Peromyscus", dframe$strain), "Peromyscus", 
@@ -322,7 +322,7 @@ add_species <- function(oldframe) {
   
   dframe$species <- factor(dframe$species, ordered = TRUE,levels =c( "M.musculus",
                                                                      "M.spretus",
-                                                                     "M.spic",
+                                                                     "M.spicilegus",
                                                                      "M.caroli","R.norv","Peromyscus", "Microtus",
                                                                      "other") )
   
