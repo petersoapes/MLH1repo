@@ -41,25 +41,13 @@ options(digits=2)
 load(file="~./MLH1repo/data/Results_setup_5.30.20.RData")
 #load(file="~./MLH1repo/data/Results_setup_5.21.20.RData") #Results_setup_5.14.20.RData
 
-#load(file="~./MLH1repo/data/CleanBivData_6.3.20.RData")
-
-#
-#load(file="~./MLH1repo/data/total_SC_30.12.19.RData")
-
-#skeletonize - this is the total sc file
-#SC.skel = read.csv("~./MLH1repo/data/SCskel_output_feb20.csv", header = TRUE, strip.white = TRUE)
-
 
 #load functions
 source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 ```
 
 
-
-
 ### Figure 1
-
-
 
 ```{r female.strain.table, echo=FALSE}
 female_mouse.avs_for.analysis <- female_mouse.avs_for.analysis %>% filter(strain != "CAST")
@@ -138,8 +126,6 @@ Mol.male.VAR.plot <- ggplot(Mol.male_mouse.av, aes(color= strain))+geom_jitter(a
 Dom.male.VAR.plot <- ggplot(Dom.male_mouse.av, aes(color= strain))+geom_jitter(aes(x = as.factor(strain), y = var, color= strain, alpha=0.5), width = .2 )+ ggtitle("VAR Dom male ofwithin mouse  MLH1 distributions")+scale_color_manual(values=colors_of_strains)
 
 ```
-
-
 
 
 ```{r FOR.PLOT.organizing.data, echo=FALSE, message=FALSE, warning=FALSE}
@@ -288,6 +274,7 @@ Fig1_v1_strain <- ggplot(strain.table.HQ_Fig, aes(y=mean_co, x=strain, color=str
 
 ```
 
+
 ```{r female.show.plots, echo=FALSE, fig.width = 4, fig.height=2.5, warning=FALSE, message=FALSE}
 
 #MLH1_data  %>% filter(quality < 5)
@@ -319,6 +306,7 @@ female.specific.plot <- ggplot(female_mouse.av, aes(x = as.factor(strain), y = m
 #+theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
+
 ```{r male.show.plots, echo=FALSE, fig.width = 4, fig.height=2.5, warning=FALSE, message=FALSE}
 #try customize the plot size
 
@@ -338,6 +326,7 @@ male.plot <- ggplot( male_mouse.avs_for.analysis, aes(x = as.factor(strain), y =
 #horizontal line = 20
 
 ```
+
 
 ```{r MLH1.cell.examples, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -395,9 +384,16 @@ MLH1.Figure1
 DMC1.DF$strain<- factor(DMC1.DF$strain, levels =c(
                       "WSB","G", "KAZ","PWD","MSM"), order=T )
 
+#aes(x=strain, y=total.count, color=stage
 
-DMC1.boxplot <- ggplot(aes(x=strain, y=total.count, color=stage), data=DMC1.DF[DMC1.DF$stage != "P",])+
-  geom_boxplot(alpha=.5) +geom_jitter() +
+DMC1.boxplot <- ggplot( aes(x=strain, y=total.count, color=stage), data=DMC1.DF[DMC1.DF$stage != "P",])+
+  
+  #stat_boxplot( aes(x=strain, y=total.count, color=stage), 
+ #   geom='errorbar', linetype=1, width=0.5)+
+  
+  geom_boxplot( aes(x=strain, y=total.count),outlier.shape = NA, alpha=.5 )+
+  
+  geom_jitter() +
   
     labs(y = "DMC1 count per Cell")+
   

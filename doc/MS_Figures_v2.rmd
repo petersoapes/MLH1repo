@@ -395,11 +395,17 @@ MLH1.Figure1
 DMC1.DF$strain<- factor(DMC1.DF$strain, levels =c(
                       "WSB","G", "KAZ","PWD","MSM"), order=T )
 
+#remoe outliers, with outlier shape
 
 DMC1.boxplot <- ggplot(aes(x=strain, y=total.count, color=stage), data=DMC1.DF[DMC1.DF$stage != "P",])+
-  geom_boxplot(alpha=.5) +geom_jitter() +
   
-    labs(y = "DMC1 count per Cell")+
+  geom_boxplot(alpha=.5, outlier.shape = NA) +
+  
+  #Yeah, I can dodge the points!!
+  geom_point(pch = 19, position = position_jitterdodge()) +
+  #geom_jitter() +
+  
+    labs(y = "DMC1 Count per Cell")+
   
   scale_x_discrete( labels = c( expression( italic( domesticus^WSB) ), expression(  italic( domesticus^G) ), expression( italic( musculus^KAZ) ),
  
@@ -412,7 +418,6 @@ DMC1.boxplot <- ggplot(aes(x=strain, y=total.count, color=stage), data=DMC1.DF[D
 
 #"#E69F00" orange
 #"#0072B2" darker blue
-
 ```
 
 
