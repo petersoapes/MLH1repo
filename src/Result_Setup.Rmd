@@ -21,6 +21,8 @@ library(nlme)
 library(RLRsim)
 library(ggpubr)
 library(reshape2)
+library(writexl)
+library(xlsx)
 #library(patchwork)
 
 options(digits=2)
@@ -54,7 +56,7 @@ MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
 #use the above line for when order is out of wak
 
 #MLH1_data <- with(MLH1_data, MLH1_data[order(category),])
-AP_mouse_table.HQ$var <- as.numeric(AP_mouse_table.HQ$var)
+#AP_mouse_table.HQ$var <- as.numeric(AP_mouse_table.HQ$var)
 
 AP_category_table <-  ddply(.data=AP_mouse_table.HQ,
                  .(strain,sex),
@@ -114,8 +116,6 @@ raw.gamma_estimates <-  gamma_estimates %>% filter(type.IFD == "raw.IFD") %>% fi
 
 
 ```{r MLH1.FEMALE.TABLE, echo=FALSE, eval=TRUE}
-
-
 female_mouse.avs_for.analysis <-  Mouse.Table_HQ %>% filter(sex== "female") %>% filter(species == "M.musculus")
 
 female_mouse.avs_for.analysis$subsp <- factor(female_mouse.avs_for.analysis$subsp, ordered = FALSE)
@@ -532,10 +532,7 @@ HetC_strain_table$mean_co.y <- as.numeric(HetC_strain_table$mean_co.y)
 #str(HetC_strain_table)
 ```
 
-
-
 cleanCurated_BivData  vs Curated_BivData, clean removed the few rows with bad handmeasure values and removed rows which are missing values for the hand foci count.
-
 
 ```{r strain.curated.biv, echo=FALSE}
 
@@ -624,7 +621,7 @@ DF.HetC.MixedModel.HQ <- DF.HetC.MixedModel.HQ[! DF.HetC.MixedModel.HQ$strain %i
 
 ```
 
-127 mice, 8 strains (correct), 0 MOLF females!
+127 mice, 8 strains (correct), 0 MOLF females! -- this was fixed
 
 comes from Mouse.Table_HQ, this has 0 females, 
 
@@ -661,6 +658,10 @@ MLH1.MMlmer_results
 write.table(MLH1.MMlmer_results, "~./MLH1repo/MLH1_M1_glm.csv", sep=",",row.names = TRUE)
 #Write to excel?
 
+#goal get all the results below to a .tex format
+#write_xlsx(MLH1.MMlmer_results, "~./MLH1repo/MLH1_M1_glm.xlsx", col_names = TRUE)
+
+write.xlsx(MLH1.MMlmer_results, "MLH1_M1_glm.xlsx", col.names = TRUE)
 ```
 
 
@@ -680,20 +681,28 @@ summ.MLH1.M2.glm.strain.fixed.full <- summary(MLH1.M2.glm.strain.fixed.full)
 #table of just coeff anf pvalue
 #round(summ$coefficients[,c(1,4)],5 )
 
-write.table(summ.MLH1.M2.glm.strain.fixed.full$coefficients , "~./MLH1repo/MLH1_M2_glm.csv", sep=",",row.names = TRUE)
+write.table(summ.MLH1.M2.glm.strain.fixed.full$coefficients, "~./MLH1repo/MLH1_M2_glm.csv", sep=",",row.names = TRUE)
+
+summary.glm(MLH1.M2.glm.strain.fixed.full)$coefficients
+
+write.xlsx(as.data.frame(summary.glm(MLH1.M2.glm.strain.fixed.full)$coefficients), "MLH1_M2_glm.xlsx", col.names = TRUE, row.names = TRUE)
+
 ```
 
 
 ```{r MLH1.glm.M3, echo=FALSE, eval=TRUE}
-
 MLH1.M3.strain.fixed <- glm(mean_co ~ sex * strain, data=DF.HetC.MixedModel.HQ )
-
 summ.MLH1.M3.strain.fixed <- summary(MLH1.M3.strain.fixed)
 
 #round(summ.strain.fixed$coefficients[,c(1,4)],5)
 
-write.table(summ.MLH1.M3.strain.fixed$coefficients , "~./MLH1repo/MLH1_M3_glm.csv", sep=",",row.names = TRUE)
+write.table(summ.MLH1.M3.strain.fixed$coefficients, "~./MLH1repo/MLH1_M3_glm.csv", sep=",",row.names = TRUE)
+
+#this table wont write!!
+write.xlsx(as.data.frame(summary(MLH1.M3.strain.fixed)$coefficients), "MLH1_M3_glm.xlsx", col.names = TRUE, row.names = TRUE)
 ```
+
+
 
 
 ```{r Female.specific.glm.M4.M5, echo=FALSE, eval=TRUE}
@@ -705,11 +714,15 @@ summry.female.strain.effects <- summary(glm.female.strain.subsp)
 
 write.table(summry.female.strain.effects$coefficients, "~./MLH1repo/MLH1_M4_female_glm.csv", sep=",",row.names = TRUE)
 
+write.xlsx(as.data.frame( summry.female.strain.effects$coefficients), "MLH1_M4_female_glm.xlsx", col.names = TRUE, row.names = TRUE)
+
 
 MLH1.female.spc.glm.M5 <- glm(mean_co ~ strain, data= (female_mouse.avs_for.analysis %>% filter(subsp != "Cast") ) )
 sum_MLH1.female.spc.glm.M5 <- summary(MLH1.female.spc.glm.M5)
 
 write.table(sum_MLH1.female.spc.glm.M5$coefficients, "~./MLH1repo/MLH1_M5_female_glm.csv", sep=",",row.names = TRUE)
+
+write.xlsx(as.data.frame( sum_MLH1.female.spc.glm.M5$coefficients), "MLH1_M5_female_glm.xlsx", col.names = TRUE, row.names = TRUE)
 ```
 
 
@@ -721,223 +734,25 @@ sum_MLH1.male.glm.M4 <- summary(MLH1.male.glm.M4)
 #PWD, SKIVE, MSM
 #8,9,10
 
-write.table(sum_MLH1.male.glm.M4$coefficients , "~./MLH1repo/MLH1_M4_male_glm.csv", sep=",",row.names = TRUE)
+write.table(sum_MLH1.male.glm.M4$coefficients, "~./MLH1repo/MLH1_M4_male_glm.csv", sep=",",row.names = TRUE)
 
-#M4.2
-MLH1.male.glm.M4.2 <- glm(mean_co ~ strain, data= (male_mouse.avs_for.analysis  %>% filter(subsp != "Cast") ))
-sum_MLH1.male.glm.M4.2 <- summary(MLH1.male.glm.M4.2)
+write.xlsx(as.data.frame(sum_MLH1.male.glm.M4$coefficients), "MLH1_M4_male_glm.xlsx", col.names = TRUE, row.names = TRUE)
+
+#write_xlsx(sum_MLH1.female.spc.glm.M5$coefficients, #"MLH1_M5_female_glm.xlsx", col_names = TRUE)
+
+
+#M5
+MLH1.male.glm.M5 <- glm(mean_co ~ strain, data= (male_mouse.avs_for.analysis  %>% filter(subsp != "Cast") ))
+sum_MLH1.male.glm.M5 <- summary(MLH1.male.glm.M5)
 
 #round(lm.male.strain_sum$coefficients[,c(1,4)], 5)
 
-write.table(sum_MLH1.male.glm.M4.2$coefficients , "~./MLH1repo/MLH1_M5_male_glm.csv", sep=",",row.names = TRUE)
+write.table(sum_MLH1.male.glm.M5$coefficients, "~./MLH1repo/MLH1_M5_male_glm.csv", sep=",",row.names = TRUE)
 
+write.xlsx(as.data.frame( sum_MLH1.male.glm.M5$coefficients), "MLH1_M5_male_glm.xlsx", col.names = TRUE, row.names = TRUE)
+
+#write_xlsx(sum_MLH1.male.glm.M4.2$coefficients, "~./MLH1repo/MLH1_M5_male_glm.xlsx", col_names = TRUE)
 ```
-
-
-
-#MLH1 variance models
-
-**THIS IS BEING MOVED TO CHAPTER 3**
-
-M1 - subsp, sex, (1 | strain)  (lmer)
-M2 - subsp, sex, strain  (glm / lm?)
-M3 - sex, strain
-M4 - strain (sex specific)
-
-
-```{r M1.MLH1.var_cv, echo=FALSE, warning=FALSE, message=FALSE}
-MLH1var_M1 <- lmer( var ~ subsp * sex +(1|strain), data= (DF.HetC.MixedModel.HQ %>% filter(species == "M.musculus"))   )
-MLH1var_M1.reduce.sex <- lmer( var ~ subsp  +(1|strain), data= (DF.HetC.MixedModel.HQ %>% filter(species == "M.musculus")) )
-MLH1var_M1.reduce.subp <- lmer( var ~ sex  +(1|strain), data= (DF.HetC.MixedModel.HQ %>% filter(species == "M.musculus")) )
-
-#summary(MLH1var_M1)
-LmerMLH1_VAR_int <- drop1(MLH1var_M1, test="Chisq")$`Pr(Chi)`[2]
-LmerMLH1_VAR_sex <- anova(MLH1var_M1, MLH1var_M1.reduce.sex)$`Pr(>Chisq)`[2]
-LmerMLH1_VAR_subsp <- anova(MLH1var_M1, MLH1var_M1.reduce.subp)$`Pr(>Chisq)`[2]
-LmerMLH1_VAR_strain <- exactRLRT(MLH1var_M1)$p.value
-
-LmerMLH1_VAR_results <- data.frame(sub.sp = LmerMLH1_VAR_subsp,
-sex.results =  LmerMLH1_VAR_sex, interaction.pval = LmerMLH1_VAR_int,  rand.pval = LmerMLH1_VAR_strain)
-
-#CV
-MLH1cV_M1 <- lmer( cV ~ subsp * sex +(1|strain), data=DF.HetC.MixedModel.HQ )
-MLH1cV_M1.reduce.sex <- lmer( cV ~ subsp  +(1|strain), data=DF.HetC.MixedModel.HQ )
-MLH1cV_M1.reduce.subp <- lmer( cV ~ sex  +(1|strain), data=DF.HetC.MixedModel.HQ )
-
-LmerMLH1_CV_int <- drop1(MLH1cV_M1, test="Chisq")$`Pr(Chi)`[2]
-LmerMLH1_CV_sex <- anova(MLH1cV_M1, MLH1cV_M1.reduce.sex)$`Pr(>Chisq)`[2]
-LmerMLH1_CV_subsp <- anova(MLH1cV_M1, MLH1cV_M1.reduce.subp)$`Pr(>Chisq)`[2]
-LmerMLH1_CV_strain <- exactRLRT(MLH1cV_M1)$p.value
-
-LmerMLH1_CV_results <- data.frame(sub.sp = LmerMLH1_CV_subsp,
-sex.results =  LmerMLH1_CV_sex, interaction.pval = LmerMLH1_CV_int,  rand.pval = LmerMLH1_CV_strain)
-
-#Q12
-Q12_mouse_table_MLH1$subsp <- factor(Q12_mouse_table_MLH1$subsp, ordered = FALSE)
-Q12_mouse_table_MLH1$sex <- factor(Q12_mouse_table_MLH1$sex, ordered = FALSE)
-Q12_mouse_table_MLH1$strain <- factor(Q12_mouse_table_MLH1$strain, ordered = FALSE)
-Q12_mouse_table_MLH1$species <- factor(Q12_mouse_table_MLH1$species, ordered = FALSE)
-
-
-#USE Q12 (Q123) table
-#Q12_mouse_table_w.Ages
-#Q12 var
-MLH1var_M1_Q12 <- lmer( var ~ subsp * sex +(1|strain), data=(Q12_mouse_table_MLH1 %>% filter(species == "M.musculus")) )
-MLH1var_M1_Q12reduce.sex <- lmer( var ~ subsp  +(1|strain), data=(Q12_mouse_table_MLH1 %>% filter(species == "M.musculus")) )
-MLH1var_M1_Q12reduce.subp <- lmer( var ~ sex  +(1|strain), data=(Q12_mouse_table_MLH1 %>% filter(species == "M.musculus")) )
-
-LmerMLH1_M1_Q12VAR_int <- drop1(MLH1var_M1_Q12, test="Chisq")$`Pr(Chi)`[2]
-LmerMLH1_M1_Q12_VAR_sex <- anova(MLH1var_M1_Q12, MLH1var_M1_Q12reduce.sex)$`Pr(>Chisq)`[2]
-LmerMLH1_M1_Q12_VAR_subsp <- anova(MLH1var_M1_Q12, MLH1var_M1_Q12reduce.subp)$`Pr(>Chisq)`[2]
-LmerMLH1_M1_Q12_VAR_strain <- exactRLRT(MLH1var_M1_Q12)$p.value
-
-LmerMLH1_M1_Q12_VAR_results <- data.frame(sub.sp = LmerMLH1_M1_Q12_VAR_subsp,
-sex.results =  LmerMLH1_M1_Q12_VAR_sex, interaction.pval = LmerMLH1_M1_Q12VAR_int,  rand.pval = LmerMLH1_M1_Q12_VAR_strain)
-
-#Q12 cv
-MLH1cv_M1_Q12 <- lmer( cV ~ subsp * sex +(1|strain), data=Q12_mouse_table_w.Ages )
-MLH1cv_M1_Q12reduce.sex <- lmer( cV ~ subsp  +(1|strain), data=Q12_mouse_table_w.Ages )
-MLH1cv_M1_Q12reduce.subp <- lmer( cV ~ sex  +(1|strain), data=Q12_mouse_table_w.Ages )
-
-LmerMLH1_M1_Q12_CV_int <- drop1(MLH1cv_M1_Q12, test="Chisq")$`Pr(Chi)`[2]
-LmerMLH1_M1_Q12_CV_sex <- anova(MLH1cv_M1_Q12, MLH1cv_M1_Q12reduce.sex)$`Pr(>Chisq)`[2]
-LmerMLH1_M1_Q12_CV_subsp <- anova(MLH1cv_M1_Q12, MLH1cv_M1_Q12reduce.subp)$`Pr(>Chisq)`[2]
-LmerMLH1_M1_Q12_CV_strain <- exactRLRT(MLH1cv_M1_Q12)$p.value
-
-LmerMLH1_M1_Q12_VAR_results <- data.frame(sub.sp = LmerMLH1_M1_Q12_CV_subsp,
-sex.results =  LmerMLH1_M1_Q12_CV_sex, interaction.pval = LmerMLH1_M1_Q12_CV_int,  rand.pval = LmerMLH1_M1_Q12_CV_strain)
-```
-
-
-```{r M2.MLH1.var, echo=FALSE, include=FALSE}
-
-MLH1var_M2 <- glm( var ~ subsp * sex * strain,  data= ( DF.HetC.MixedModel.HQ %>% filter(species == "M.musculus") )  )
-MLH1var_M2_sum <- summary(MLH1var_M2)
-
-MLH1var_M2_sum_coE <- as.data.frame( round(summary(MLH1var_M2)$coefficients, 6)) #table of p values for coefficients.
-
-MLH1cv_M2 <- glm(cV ~ subsp*sex*strain, data=DF.HetC.MixedModel.HQ)
-#summary(MLH1cv_M2)
-#anova(MLH1cv_M2)
-#as.data.frame( round(summary(MLH1cv_M2)$coefficients, 6))
-
-#Q12 var
-MLH1var_M2_Q12 <- glm( var ~ subsp*sex*strain,  data= (Q12_mouse_table_MLH1 %>% filter(species == "M.musculus")) )
-sum.MLH1var_M2_Q12 <- summary(MLH1var_M2_Q12)
-sum.MLH1var_M2_Q12.co_eff <- as.data.frame( round(summary(MLH1var_M2_Q12)$coefficients, 6))
-
-#Q12 cv
-MLH1cv_M2_Q12 <- glm( cV ~ subsp*sex*strain, data=Q12_mouse_table_w.Ages )
-#summary(MLH1cv_M2_Q12)
-#anova(MLH1cv_M2_Q12)#sex large F
-#as.data.frame( round(summary(MLH1cv_M2_Q12)$coefficients, 6))
-```
-
-
-```{r M3.MLH1.var, echo=FALSE}
-
-glmMLH1Var_M3 <- glm( var ~ sex * strain,  data= (DF.HetC.MixedModel.HQ %>% filter(species == "M.musculus") ) )
-
-glmMLH1Var_M3_sum <- summary(glmMLH1Var_M3)
-
-glmMLH1Var_M3_sum.Coef <- round(glmMLH1Var_M3_sum$coefficients[,c(1,4)], 5)
-
-
-
-MLH1cv_M3 <- glm(cV ~ sex * strain, data=DF.HetC.MixedModel.HQ)
-#summary(MLH1cv_M4)
-#round(summary(MLH1cv_M3)$coefficients[,c(1,4)], 6)
-
-### Q12 var
-MLH1var_M3_Q12 <- glm( var ~ sex*strain, data=(Q12_mouse_table_MLH1 %>% filter(species == "M.musculus")) )
-MLH1var_M3_Q12_sum <- summary(MLH1var_M3_Q12)
-
-#as.data.frame( round(summary(MLH1var_M3_Q12)$coefficients[,c(1,4)], 6))
-#round(summary(MLH1var_M3_Q12)$coefficients[,c(1,4)], 6)
-
-#Q12 cv
-MLH1cv_M4_Q12 <- glm( cV ~ sex*strain, data=Q12_mouse_table_w.Ages )
-#round(summary(MLH1cv_M4_Q12)$coefficients[,c(1,4)], 6)
-```
-
-
-```{r MLH1.var.M4, echo=FALSE, eval=F}
-#male
-glmMLH1Var_M4.male <- glm( var ~ subsp * strain,  data= (DF.HetC.MixedModel.HQ %>% filter(sex == "male") ) )
-
-
-#female
-glmMLH1Var_M4.female <- glm( var ~ subsp * strain,  data= (DF.HetC.MixedModel.HQ %>% filter(sex == "female") ) )
-sum.glmMLH1Var_M4.female <- summary(glmMLH1Var_M4.female)
-
-glmMLH1Var_M4.femaleQ12 <- glm( var ~ subsp * strain,  data= (Q12_mouse_table_w.Ages %>% filter(sex == "female") ) )
-
-```
-
-
-```{r FEMALE.VAR.MODELS, echo=FALSE, eval=F}
-## within mouse variance models 
-lmVAR.female.strain.subsp <- glm(var ~ subsp * strain, data= female_mouse.avs_for.analysis)
-summry.female.strain.VAReffects <- summary(lmVAR.female.strain.subsp)
-
-lmVAR.female.strain <- glm(var ~ strain, data= female_mouse.avs_for.analysis)
-lmVAR.female.strain_sum <- summary(lmVAR.female.strain)
-
-#round( #round isn't working for this sumary
-#lmVAR.female.strain_sum$coefficients[,c(1,4)]
-#Q12
-Q12_female_table <-  Q12_mouse_table_w.Ages %>% filter(sex == "female")
-
-lm.m1.Q12_female <- glm(var ~ subsp * strain, data= Q12_female_table)
-lm.m1.Q12_female_sum <- summary(lm.m1.Q12_female)
-
-
-lm.m2.Q12_female <- glm(var ~ strain, data= Q12_female_table)
-lm.m2.Q12VAR.female_sum <- summary(lm.m2.Q12_female)#LEW changes to PWD
-
-lm.m2.Q12_female.cv <- glm(cV ~ strain, data= Q12_female_table)
-lm.m2.Q12_female.cv_sum <- summary(lm.m2.Q12_female.cv)
-
-#lm.m2.Q12VAR.female_sum$coefficients[,c(1,4)]
-#LEW sig
-
-```
-
-
-```{r MALE.SPECIFIC.variance.model, echo=FALSE, eval=F}
-## within mouse variance models 
-lmVAR.male.strain.subsp <- glm(var ~ subsp * strain, data= just.male_mouse.av)
-summry.male.strain.VAReffects <- summary(lmVAR.male.strain.subsp)
-#round(summry.male.strain.VAReffects$coefficients[,c(1,4)], 5)
-
-#all p values kinda high, MSM and TOM are slightly sig
-lmVAR.male.strain <- glm(var ~ strain, data= just.male_mouse.av)
-lmVAR.male.strain_sum <- summary(lmVAR.male.strain)
-#round(lmVAR.male.strain_sum$coefficients[,c(1,4)], 5)
-#non sig
-
-lmcv.male.strain <- glm(cV ~ strain, data= just.male_mouse.av)
-lmcv.male.strain_sum <- summary(lmcv.male.strain)
-#round(lmcv.male.strain_sum$coefficients[,c(1,4)], 5)
-#HMI sig for cv model -- in the other model, CAST subsp and TOM strain are slightly significant
-
-#Q12
-Q12_male_table <-  Q12_mouse_table_w.Ages %>% filter(sex == "male")
-
-lm.m1.Q12_male <- glm(var ~ subsp * strain, data= Q12_male_table)
-lm.m1.Q12_male_sum <- summary(lm.m1.Q12_male)
-#round(lm.m1.Q12_male_sum$coefficients[,c(1,4)], 5)
-#NS
-
-lm.m2.Q12_male <- glm(var ~ strain, data= Q12_male_table)
-lm.m2.Q12VAR.male_sum <- summary(lm.m2.Q12_male)
-#round(lm.m2.Q12VAR.male_sum$coefficients[,c(1,4)], 5)
-#NS
-
-```
-
-
-
 
 
 # DMC1 Results
@@ -1612,6 +1427,9 @@ rand.pval = Q1.lmer_totSC_M1_strain)
 
 write.table(Q1.lmer_totSC_M1_results, "~./MLH1repo/TotalSC_Q1_M1.csv", sep=",",row.names = TRUE)
 
+#write_xlsx(Q1.lmer_totSC_M1_results, "~./MLH1repo/TotalSC_Q1_M1.xlsx", col_names = TRUE)
+
+write.xlsx(Q1.lmer_totSC_M1_results, "TotalSC_Q1_M1.xlsx", col.names = TRUE)
 ```
 
 
@@ -1629,15 +1447,16 @@ Q1.glm_totSC_M2 <- glm(mean.skel ~ subsp*strain * sex, data=  (mouse.total.skel 
 sum.Q1.glm_totSC_M2 <- summary(Q1.glm_totSC_M2)
 #sum.Q1.glm_totSC_M2$coefficients[,c(1,4)][8,]
 
-#sex most sig
-#subsp
-
+#sex most sig  #subsp
 #straing G, LEW
 #mol * sex
 #G * sex
 
 write.table(sum.Q1.glm_totSC_M2$coefficients, "~./MLH1repo/TotalSC_Q1_M2.csv", sep=",",row.names = TRUE)
 
+write.xlsx(as.data.frame(summary.glm(Q1.glm_totSC_M2)$coefficients), "TotalSC_Q1_M2.xlsx", col.names = TRUE, row.names = TRUE)
+
+#write_xlsx(sum.Q1.glm_totSC_M2$coefficients, "~./MLH1repo/TotalSC_Q1_M2.xlsx", col_names = TRUE)
 ```
 
 
@@ -1654,6 +1473,12 @@ sum.Q1.glm_totSC_M3 <- summary(Q1.glm_totSC_M3)
 
 #LOT OF SIGNIFICant strain effects in this model
 write.table(sum.Q1.glm_totSC_M3$coefficients, "~./MLH1repo/TotalSC_Q1_M3.csv", sep=",",row.names = TRUE)
+
+
+#not working currently.. might be same 'ol error
+#write.xlsx(  as.data.frame( summary(sum.Q1.glm_totSC_M3)$coefficients ), "TotalSC_Q1_M3.xlsx", col.names = TRUE, row.names = TRUE)
+
+#write_xlsx(sum.Q1.glm_totSC_M3$coefficients, "~./MLH1repo/TotalSC_Q1_M3.xlsx", col_names = TRUE)
 ```
 
 
@@ -1679,6 +1504,11 @@ Q1lmer.MM_SC_short_strain)
 
 #Q1lmer.MM_SC_short_results
 write.table(Q1lmer.MM_SC_short_results, "~./MLH1repo/ShortSC_Q1_M1.csv", sep=",",row.names = TRUE)
+
+#write_xlsx(Q1lmer.MM_SC_short_results, "~./MLH1repo/ShortSC_Q1_M1.xlsx", col_names = TRUE)
+
+write.xlsx(Q1lmer.MM_SC_short_results, "ShortSC_Q1_M1.xlsx", col.names = TRUE)
+
 ```
 
 
@@ -1713,6 +1543,7 @@ rand.pval = Q1.lmer_short_M1_strain)
 
 write.table(Q1.lmer_short_M1_results, "~./MLH1repo/ShortSC_Q1_M1.csv", sep=",",row.names = TRUE)
 
+write_xlsx(Q1.lmer_short_M1_results, "~./MLH1repo/ShortSC_Q1_M1.xlsx", col_names = TRUE)
 ```
 
 
@@ -1731,6 +1562,10 @@ summ.Q1.glm_short.SC_M2 <- summary(Q1.glm_short.SC_M2)
 #skive, slightly sig
 
 write.table(summ.Q1.glm_short.SC_M2$coefficients, "~./MLH1repo/ShortSC_Q1_M2.csv", sep=",",row.names = TRUE)
+
+#write_xlsx(summ.Q1.glm_short.SC_M2$coefficients, "~./MLH1repo/ShortSC_Q1_M2.xlsx", col_names = TRUE)
+
+write.xlsx( as.data.frame( summ.Q1.glm_short.SC_M2$coefficients) , "ShortSC_Q1_M2.xlsx", col.names = TRUE, row.names = TRUE)
 ```
 
 
@@ -1746,6 +1581,9 @@ summ.Q1.glm_short.SC_M3 <- summary(Q1.glm_short.SC_M3)
 #SKIVE * male
 
 write.table(summ.Q1.glm_short.SC_M3$coefficients, "~./MLH1repo/ShortSC_Q1_M3.csv", sep=",",row.names = TRUE)
+
+write.xlsx(as.data.frame( summ.Q1.glm_short.SC_M3$coefficients), "ShortSC_Q1_M3.xlsx", col.names = TRUE, row.names = TRUE)
+
 ```
 
 
@@ -2215,6 +2053,9 @@ sex.results = lmer.Q1.nrm1CO_M1.sex ,
 #lmer.Q1.nrm1CO_M1_results
 write.table(lmer.Q1.nrm1CO_M1_results, "~./MLH1repo/Nrm1CO_Pos_Q1_M1.csv", sep=",",row.names = TRUE)
 
+#write_xlsx(lmer.Q1.nrm1CO_M1_results, "~./MLH1repo/Nrm1CO_Pos_Q1_M1.xlsx", col_names = TRUE)
+
+write.xlsx(lmer.Q1.nrm1CO_M1_results, "Nrm1CO_Pos_Q1_M1.xlsx", col.names = TRUE, row.names = TRUE)
 ```
 
 
@@ -2231,6 +2072,10 @@ summry.Q1.glm_F1pos_M2 <- summary(Q1.glm_F1pos_M2)
 #round(summry.Q1.glm_F1pos_M2$coefficients[,c(1,4)],5)
 
 write.table(summry.Q1.glm_F1pos_M2$coefficients, "~./MLH1repo/Nrm1CO_Pos_Q1_M2.csv", sep=",",row.names = TRUE)
+
+write.xlsx(summry.Q1.glm_F1pos_M2$coefficients, "Nrm1CO_Pos_Q1_M2.xlsx", col.names = TRUE)
+
+#write_xlsx(summry.Q1.glm_F1pos_M2$coefficients, "~./MLH1repo/Nrm1CO_Pos_Q1_M2.xlsx", col_names = TRUE)
 
 
 #DOM
@@ -2260,6 +2105,9 @@ summry.Q1.glm_1CO.pos_M3 <- summary(Q1.glm_1CO.pos_M3)
 
 write.table(summry.Q1.glm_1CO.pos_M3$coefficients, "~./MLH1repo/Nrm1CO_Pos_Q1_M3.csv", sep=",",row.names = TRUE)
 
+write.xlsx(summry.Q1.glm_1CO.pos_M3$coefficients, "Nrm1CO_Pos_Q1_M3.xlsx", col.names = TRUE)
+
+#write_xlsx(summry.Q1.glm_1CO.pos_M3$coefficients, "~./MLH1repo/Nrm1CO_Pos_Q1_M3.xlsx", col_names = TRUE)
 ```
 
 
@@ -2371,6 +2219,9 @@ Q1.IFD.ABS_M1_lmer.results <- data.frame(sub.sp = ABS.IFD_Q1.M1_subsp, sex.resul
 
 write.table(Q1.IFD.ABS_M1_lmer.results, "~./MLH1repo/ABS.IFD_Q1_M1.csv", sep=",",row.names = TRUE)
 
+write_xlsx(Q1.IFD.ABS_M1_lmer.results, "~./MLH1repo/ABS.IFD_Q1_M1.xlsx", col_names = TRUE)
+
+
 
 #M1_IFD_2CO
 lmer.IFD.PER_MM.M1 <- lmer(mean_IFD.2CO_PER ~ subsp * sex + (1|strain), data=( mouse.level.BivData_table %>% filter(strain != "CZECH") ) ) 
@@ -2387,6 +2238,8 @@ Q1.IFD.PER_M1_lmer.results <- data.frame(sub.sp = subsp.pval, sex.results =  sex
 
 write.table(Q1.IFD.PER_M1_lmer.results, "~./MLH1repo/PER.IFD_Q1_M1.csv", sep=",",row.names = TRUE)
 
+write_xlsx(Q1.IFD.PER_M1_lmer.results, "~./MLH1repo/PER.IFD_Q1_M1.xlsx", col_names = TRUE)
+
 ```
 
 
@@ -2399,11 +2252,19 @@ summry.glm.Q1_IFD.ABS.M2 <- summary(glm.Q1_IFD.ABS.M2)
 #write.table(round(summry.glm.Q1_IFD.ABS.M2$coefficients,5), "~./MLH1repo/summry.glm.Q1_IFD.ABS.M2.csv", sep=",",row.names = TRUE)
 write.table(summry.glm.Q1_IFD.ABS.M2$coefficients, "~./MLH1repo/ABS.IFD_Q1_M2.csv", sep=",",row.names = TRUE)
 
+write.xlsx(summry.glm.Q1_IFD.ABS.M2$coefficients, "ABS.IFD_Q1_M2.xlsx", col.names = TRUE)
+
+#write_xlsx(summry.glm.Q1_IFD.ABS.M2$coefficients, "~./MLH1repo/ABS.IFD_Q1_M2.xlsx", col_names = TRUE)
+
 #PER
 glm.Q1_IFD.PER.M2 <- glm(mean_IFD.2CO_PER ~ subsp * sex * strain, data= ( mouse.level.BivData_table %>% filter(strain != "CZECH") ) )
 summry.glm.Q1_IFD.PER.M2 <- summary(glm.Q1_IFD.PER.M2)
 
 write.table(summry.glm.Q1_IFD.PER.M2$coefficients, "~./MLH1repo/PER.IFD_Q1_M2.csv", sep=",",row.names = TRUE)
+
+write.xlsx(summry.glm.Q1_IFD.PER.M2$coefficients, "PER.IFD_Q1_M2.xlsx", col.names = TRUE)
+
+#write_xlsx(summry.glm.Q1_IFD.PER.M2$coefficients, "~./MLH1repo/PER.IFD_Q1_M2.xlsx", col_names = TRUE)
 ```
 
 
@@ -2415,12 +2276,20 @@ summry.glm.Q1_IFD.ABS.M3 <- summary(glm.Q1_IFD.ABS.M3)
 
 write.table(summry.glm.Q1_IFD.ABS.M3$coefficients, "~./MLH1repo/ABS.IFD_Q1_M3.csv", sep=",",row.names = TRUE)
 
+write.xlsx(summry.glm.Q1_IFD.ABS.M3$coefficients, "ABS.IFD_Q1_M3.xlsx", col.names = TRUE)
+
+#write_xlsx(summry.glm.Q1_IFD.ABS.M3$coefficients, "~./MLH1repo/ABS.IFD_Q1_M3.xlsx", col_names = TRUE)
+
 #PER
 glm.Q1_IFD.PER.M3  <- glm(mean_IFD.2CO_PER ~ sex * strain, data=( mouse.level.BivData_table %>% filter(strain != "CZECH") ) )
 summry.glm.Q1_IFD.PER.M3 <- summary(glm.Q1_IFD.PER.M3)
 #round(summry.glm.Q1_IFD.PER.M3$coefficients[,c(1,4)],5)
 
 write.table(summry.glm.Q1_IFD.PER.M3$coefficients, "~./MLH1repo/PER.IFD_Q1_M3.csv", sep=",",row.names = TRUE)
+
+write.xlsx(summry.glm.Q1_IFD.PER.M3$coefficients, "PER.IFD_Q1_M3.xlsx", col.names = TRUE)
+
+#write_xlsx(summry.glm.Q1_IFD.PER.M3$coefficients, "~./MLH1repo/PER.IFD_Q1_M3.xlsx", col_names = TRUE)
 
 ```
 
@@ -2467,8 +2336,6 @@ summry.glm.Q1_IFD.ABS.M5.male  <- summary(glm.Q1_IFD.ABS.M4.male)
 
 glm.Q1_IFD.PER.M5.male  <- glm(mean_IFD.2CO_PER ~  strain, data= (mouse.level.BivData_table %>% filter(sex == "male") ) )
 summry.glm.Q1_IFD.PER.M5.male  <- summary(glm.Q1_IFD.PER.M5.male)
-
-
 ```
 
 
