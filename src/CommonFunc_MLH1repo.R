@@ -448,8 +448,8 @@ addIFD.2 <- function(DF){
 add_umeter <- function(dat){
   #how to convert dat$chrm.length to chrm.length
   #sc unit
-  dat$chrm.length.um  <- dat$chromosomeLength / 9.8152
-  return(dat)
+  chrm.length.um  <- dat / 9.8152
+  return(chrm.length.um)
 }
 
 
