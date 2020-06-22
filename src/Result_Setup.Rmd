@@ -683,7 +683,7 @@ summ.MLH1.M2.glm.strain.fixed.full <- summary(MLH1.M2.glm.strain.fixed.full)
 
 write.table(summ.MLH1.M2.glm.strain.fixed.full$coefficients, "~./MLH1repo/MLH1_M2_glm.csv", sep=",",row.names = TRUE)
 
-summary.glm(MLH1.M2.glm.strain.fixed.full)$coefficients
+#summary.glm(MLH1.M2.glm.strain.fixed.full)$coefficients
 
 write.xlsx(as.data.frame(summary.glm(MLH1.M2.glm.strain.fixed.full)$coefficients), "MLH1_M2_glm.xlsx", col.names = TRUE, row.names = TRUE)
 
@@ -701,8 +701,6 @@ write.table(summ.MLH1.M3.strain.fixed$coefficients, "~./MLH1repo/MLH1_M3_glm.csv
 #this table wont write!!
 write.xlsx(as.data.frame(summary(MLH1.M3.strain.fixed)$coefficients), "MLH1_M3_glm.xlsx", col.names = TRUE, row.names = TRUE)
 ```
-
-
 
 
 ```{r Female.specific.glm.M4.M5, echo=FALSE, eval=TRUE}
@@ -1371,7 +1369,6 @@ totSC.mouse.av.table <- totSC.mouse.av.table %>% filter(strain!="CAST" & strain 
 ```
 
 
-
 ```{r tot.SC_strain.setup, echo = FALSE, eval=FALSE}
 
 #not sure if this is used
@@ -1406,11 +1403,11 @@ mouse.total.skel$strain <- factor(mouse.total.skel$strain, ordered = FALSE)
 mouse.total.skel$species <- factor(mouse.total.skel$species, ordered = FALSE)
 
 #mouse.total.skel
-Q1.lmer_totSC_M1 <- lmer(mean.skel ~ subsp * sex + (1|strain), data= ( mouse.total.skel %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) )  )
+Q1.lmer_totSC_M1 <- lmer(mean.skel ~ subsp * sex + (1|strain), data= ( mouse.total.skel %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ))  )
 
-Q1.lmer_totSC_M1_R.sex <- lmer(mean.skel ~ subsp + (1|strain), data=( mouse.total.skel %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) ))
+Q1.lmer_totSC_M1_R.sex <- lmer(mean.skel ~ subsp + (1|strain), data=( mouse.total.skel %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) ))
 
-Q1.lmer_totSC_M1_R.subsp <- lmer(mean.skel ~ sex + (1|strain), data=( mouse.total.skel %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) )) 
+Q1.lmer_totSC_M1_R.subsp <- lmer(mean.skel ~ sex + (1|strain), data=( mouse.total.skel %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) ) ) 
 
 #as.data.frame(round(summary(Q1.lmer_SCLength_1CO_M1)$coefficients, 6))
 
@@ -1442,7 +1439,7 @@ mouse.total.skel$strain <- factor(mouse.total.skel$strain, ordered = FALSE)
 mouse.total.skel$species <- factor(mouse.total.skel$species, ordered = FALSE)
 
 
-Q1.glm_totSC_M2 <- glm(mean.skel ~ subsp*strain * sex, data=  (mouse.total.skel %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) )  )
+Q1.glm_totSC_M2 <- glm(mean.skel ~ subsp*strain * sex, data=  (mouse.total.skel %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) )  )
 
 sum.Q1.glm_totSC_M2 <- summary(Q1.glm_totSC_M2)
 #sum.Q1.glm_totSC_M2$coefficients[,c(1,4)][8,]
@@ -1462,7 +1459,12 @@ write.xlsx(as.data.frame(summary.glm(Q1.glm_totSC_M2)$coefficients), "TotalSC_Q1
 
 ```{r Q1.glm_totalSC_M3, echo=FALSE, message=FALSE}
 
-Q1.glm_totSC_M3 <- glm(mean.skel ~ strain * sex, data=  (mouse.total.skel %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) ) )
+mouse.total.skel$subsp <- factor(mouse.total.skel$subsp, ordered = FALSE)
+mouse.total.skel$sex <- factor(mouse.total.skel$sex, ordered = FALSE)
+mouse.total.skel$strain <- factor(mouse.total.skel$strain, ordered = FALSE)
+mouse.total.skel$species <- factor(mouse.total.skel$species, ordered = FALSE)
+
+Q1.glm_totSC_M3 <- glm(mean.skel ~ strain * sex, data=  (mouse.total.skel %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) ) )
 
 sum.Q1.glm_totSC_M3 <- summary(Q1.glm_totSC_M3)
 #sex most significant, 
@@ -1478,37 +1480,9 @@ write.table(sum.Q1.glm_totSC_M3$coefficients, "~./MLH1repo/TotalSC_Q1_M3.csv", s
 #not working currently.. might be same 'ol error
 #write.xlsx(  as.data.frame( summary(sum.Q1.glm_totSC_M3)$coefficients ), "TotalSC_Q1_M3.xlsx", col.names = TRUE, row.names = TRUE)
 
+write.xlsx(as.data.frame(summary.glm(Q1.glm_totSC_M3)$coefficients), "TotalSC_Q1_M3.xlsx", col.names = TRUE, row.names = TRUE)
+
 #write_xlsx(sum.Q1.glm_totSC_M3$coefficients, "~./MLH1repo/TotalSC_Q1_M3.xlsx", col_names = TRUE)
-```
-
-
-
-```{r Q1.M1_short_biv_lmer, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
-
-lmer.Q1_SCLength_short_M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data=Short.biv_mouse_table, REML = TRUE) 
-lmer.Q1_SCLength_short_M1_R.sex <- lmer(mean_SC ~ subsp + (1|strain), data=Short.biv_mouse_table, REML = TRUE) 
-lmer.Q1_SCLength_short_M1_R.subsp <- lmer(mean_SC ~ sex + (1|strain), data=Short.biv_mouse_table, REML = TRUE) 
-
-Q1lmer.MM_SC_short_interaction  <-drop1(lmer.Q1_SCLength_short_M1, test="Chisq" )$`Pr(Chi)`[2]
-Q1lmer.MM_SC_short_sex  <-anova(lmer.Q1_SCLength_short_M1, lmer.Q1_SCLength_short_M1_R.sex)$`Pr(>Chisq)`[2]
-Q1lmer.MM_SC_short_subp  <- anova(lmer.Q1_SCLength_short_M1, lmer.Q1_SCLength_short_M1_R.subsp)$`Pr(>Chisq)`[2]
-Q1lmer.MM_SC_short_strain  <- exactRLRT(lmer.Q1_SCLength_short_M1)$p.value 
-
-#as.data.frame(round(summary(lmer.SCLength_all_MM.M1)$coefficients, 6))#these Dont return p values for the fixed effects
-
-Q1lmer.MM_SC_short_results <- data.frame(sub.sp = Q1lmer.MM_SC_short_subp, 
-sex.results =  Q1lmer.MM_SC_short_sex, 
-               interaction.pval = Q1lmer.MM_SC_short_interaction,  rand.pval = 
-Q1lmer.MM_SC_short_strain)
-
-
-#Q1lmer.MM_SC_short_results
-write.table(Q1lmer.MM_SC_short_results, "~./MLH1repo/ShortSC_Q1_M1.csv", sep=",",row.names = TRUE)
-
-#write_xlsx(Q1lmer.MM_SC_short_results, "~./MLH1repo/ShortSC_Q1_M1.xlsx", col_names = TRUE)
-
-write.xlsx(Q1lmer.MM_SC_short_results, "ShortSC_Q1_M1.xlsx", col.names = TRUE)
-
 ```
 
 
@@ -1519,11 +1493,11 @@ Short.biv_mouse_table$sex <- factor(Short.biv_mouse_table$sex, ordered = FALSE)
 Short.biv_mouse_table$strain <- factor(Short.biv_mouse_table$strain, ordered = FALSE)
 Short.biv_mouse_table$species <- factor(Short.biv_mouse_table$species, ordered = FALSE)
 
-Q1.lmer_short_M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data= ( Short.biv_mouse_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) ) )
+Q1.lmer_short_M1 <- lmer(mean_SC ~ subsp * sex + (1|strain), data= ( Short.biv_mouse_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) ) )
 
-Q1.lmer_short_M1_R.sex <- lmer(mean_SC ~ subsp + (1|strain), data= ( Short.biv_mouse_table %>%  filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) ) )
+Q1.lmer_short_M1_R.sex <- lmer(mean_SC ~ subsp + (1|strain), data= ( Short.biv_mouse_table %>%  filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) ) )
 
-Q1.lmer_short_M1_R.subsp <- lmer(mean_SC ~ sex + (1|strain), data= ( Short.biv_mouse_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) )  ) 
+Q1.lmer_short_M1_R.subsp <- lmer(mean_SC ~ sex + (1|strain), data= ( Short.biv_mouse_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" )  %>% filter(strain !=  "TOM" ) )  ) 
 
 
 Q1.lmer_short_M1_sex <- anova(Q1.lmer_short_M1, Q1.lmer_short_M1_R.sex)$`Pr(>Chisq)`[2]
@@ -1543,7 +1517,9 @@ rand.pval = Q1.lmer_short_M1_strain)
 
 write.table(Q1.lmer_short_M1_results, "~./MLH1repo/ShortSC_Q1_M1.csv", sep=",",row.names = TRUE)
 
-write_xlsx(Q1.lmer_short_M1_results, "~./MLH1repo/ShortSC_Q1_M1.xlsx", col_names = TRUE)
+#write_xlsx(Q1.lmer_short_M1_results, "~./MLH1repo/ShortSC_Q1_M1.xlsx", col_names = TRUE)
+write.xlsx(Q1.lmer_short_M1_results, "ShortSC_Q1_M1.xlsx", col.names = TRUE)
+
 ```
 
 
@@ -1553,7 +1529,7 @@ Short.biv_mouse_table$subsp <- factor(Short.biv_mouse_table$subsp, ordered = FAL
 Short.biv_mouse_table$sex <- factor(Short.biv_mouse_table$sex, ordered = FALSE)
 Short.biv_mouse_table$strain <- factor(Short.biv_mouse_table$strain, ordered = FALSE)
 
-Q1.glm_short.SC_M2 <- glm(mean_SC ~ subsp * strain * sex, data= ( Short.biv_mouse_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) ) )
+Q1.glm_short.SC_M2 <- glm(mean_SC ~ subsp * strain * sex, data= ( Short.biv_mouse_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) ) )
 
 summ.Q1.glm_short.SC_M2 <- summary(Q1.glm_short.SC_M2)
 #summ.Q1.glm_short.SC_M2$coefficients[,c(1,4)][8,]
@@ -1570,7 +1546,12 @@ write.xlsx( as.data.frame( summ.Q1.glm_short.SC_M2$coefficients) , "ShortSC_Q1_M
 
 
 ```{r Q1.glm_short.SC_M3, echo=FALSE, message=FALSE}
-Q1.glm_short.SC_M3 <- glm(mean_SC ~ strain * sex, data= ( Short.biv_mouse_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) )  )
+
+Short.biv_mouse_table$subsp <- factor(Short.biv_mouse_table$subsp, ordered = FALSE)
+Short.biv_mouse_table$sex <- factor(Short.biv_mouse_table$sex, ordered = FALSE)
+Short.biv_mouse_table$strain <- factor(Short.biv_mouse_table$strain, ordered = FALSE)
+
+Q1.glm_short.SC_M3 <- glm(mean_SC ~ strain * sex, data= ( Short.biv_mouse_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) )  )
 
 #summary(Q1.glm_short.SC_M3)
 summ.Q1.glm_short.SC_M3 <- summary(Q1.glm_short.SC_M3)
@@ -1713,11 +1694,7 @@ Q12.Tot.SC_mouse.av_Mol <- ggplot(data= totSC_Q12_mouse.av.table %>% filter(subs
   theme(axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank())+  ylim(c(1000,3000 ))+ggtitle("Mouse av. Q12 total SC area")
 ```
 
-
-
-
 need to save this reduced dataset, Q1.real.short_mouse_table.
-
 
 # Proportions
 
@@ -2031,14 +2008,19 @@ Q1_1CO.pos_t.test.MSM <- t.test((mouse.level.BivData_table %>% filter(sex == "ma
 
 
 ```{r Q1.CO1pos_lmer.M1, echo=FALSE, message=FALSE}
+mouse.level.BivData_table$subsp <- factor(mouse.level.BivData_table$subsp, ordered = FALSE)
+mouse.level.BivData_table$sex <- factor(mouse.level.BivData_table$sex, ordered = FALSE)
+mouse.level.BivData_table$strain <- factor(mouse.level.BivData_table$strain, ordered = FALSE)
+mouse.level.BivData_table$species <- factor(mouse.level.BivData_table$species, ordered = FALSE)
+
 
 lmer.Q1.nrm1CO_M1 <- lmer(norm.first.foci.pos ~ subsp * sex + (1|strain), 
-                          data= ( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) ) )
+                          data= ( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) ) )
 
 
-lmer.Q1.nrm1CO_M1reduce.sex <- lmer( norm.first.foci.pos ~ subsp  +(1|strain), data=( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) ) )
+lmer.Q1.nrm1CO_M1reduce.sex <- lmer( norm.first.foci.pos ~ subsp  +(1|strain), data=( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" )%>% filter(strain !=  "TOM" ) ) )
 
-lmer.Q1.nrm1CO_M1reduce.subp <- lmer( norm.first.foci.pos ~ sex  +(1|strain), data=( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) ) )
+lmer.Q1.nrm1CO_M1reduce.subp <- lmer( norm.first.foci.pos ~ sex  +(1|strain), data=( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" )) )
 
 lmer.Q1.nrm1CO_M1.sex <-  anova(lmer.Q1.nrm1CO_M1, lmer.Q1.nrm1CO_M1reduce.sex)$`Pr(>Chisq)`[2]
 lmer.Q1.nrm1CO_M1.subp <-  anova(lmer.Q1.nrm1CO_M1, lmer.Q1.nrm1CO_M1reduce.subp)$`Pr(>Chisq)`[2]
@@ -2066,7 +2048,7 @@ mouse.level.BivData_table$subsp <- factor(mouse.level.BivData_table$subsp, order
 mouse.level.BivData_table$sex <- factor(mouse.level.BivData_table$sex, ordered = FALSE)
 mouse.level.BivData_table$strain <- factor(mouse.level.BivData_table$strain, ordered = FALSE)
 
-Q1.glm_F1pos_M2 <- glm(norm.first.foci.pos ~ subsp * strain * sex, data=( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) ) )
+Q1.glm_F1pos_M2 <- glm(norm.first.foci.pos ~ subsp * strain * sex, data=( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) ) )
 
 summry.Q1.glm_F1pos_M2 <- summary(Q1.glm_F1pos_M2)
 #round(summry.Q1.glm_F1pos_M2$coefficients[,c(1,4)],5)
@@ -2094,10 +2076,13 @@ Q1.glm_nrmF1pos_M2_Mol <- glm(norm.first.foci.pos ~ strain * sex, data=Mouse.Tab
 
 
 ```{r Q1.CO1pos_glm.M3, echo=FALSE, eval=TRUE}
+#in case factors aren't ordered
+mouse.level.BivData_table$subsp <- factor(mouse.level.BivData_table$subsp, ordered = FALSE)
+mouse.level.BivData_table$sex <- factor(mouse.level.BivData_table$sex, ordered = FALSE)
+mouse.level.BivData_table$strain <- factor(mouse.level.BivData_table$strain, ordered = FALSE)
 
-Q1.glm_1CO.pos_M3 <- glm(norm.first.foci.pos ~ strain * sex, data=( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) ))
+Q1.glm_1CO.pos_M3 <- glm(norm.first.foci.pos ~ strain * sex, data=( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) ))
 
-#summary(Q1.glm_1CO.pos_M3)
 
 summry.Q1.glm_1CO.pos_M3 <- summary(Q1.glm_1CO.pos_M3)
 #round(summry.Q1.glm_1CO.pos_M3$coefficients[,c(1,4)],5)
@@ -2109,7 +2094,6 @@ write.xlsx(summry.Q1.glm_1CO.pos_M3$coefficients, "Nrm1CO_Pos_Q1_M3.xlsx", col.n
 
 #write_xlsx(summry.Q1.glm_1CO.pos_M3$coefficients, "~./MLH1repo/Nrm1CO_Pos_Q1_M3.xlsx", col_names = TRUE)
 ```
-
 
 
 # Q1 IFD
@@ -2204,10 +2188,20 @@ Q1.IFD.PER_t.test_SKIVE <- t.test( (mouse.level.BivData_table %>% filter(sex == 
 
 ```{r Q1.IFD.lmer.M1, echo=FALSE, message=FALSE, warning=FALSE}
 
+mouse.level.BivData_table$subsp <- factor(mouse.level.BivData_table$subsp, ordered = FALSE)
+mouse.level.BivData_table$sex <- factor(mouse.level.BivData_table$sex, ordered = FALSE)
+mouse.level.BivData_table$strain <- factor(mouse.level.BivData_table$strain, ordered = FALSE)
+mouse.level.BivData_table$species <- factor(mouse.level.BivData_table$species, ordered = FALSE)
+
+#No MOLF female for curated biv data
+
 #M1_IFD_2CO_ABS
-lmer.IFD.ABS_MM.M1 <- lmer(mean_IFD.2CO_ABS ~ subsp * sex + (1|strain), data= ( mouse.level.BivData_table %>% filter(strain != "CZECH") )) 
-lmer.IFD.ABS_MM.M1.reduce.sex <- lmer( mean_IFD.2CO_ABS ~ subsp  +(1|strain), data=( mouse.level.BivData_table %>% filter(strain != "CZECH") ) )
-lmer.IFD.ABS_MM.M1.reduce.subp <- lmer( mean_IFD.2CO_ABS ~ sex  +(1|strain), data=( mouse.level.BivData_table %>% filter(strain != "CZECH") ) )
+lmer.IFD.ABS_MM.M1 <- lmer(mean_IFD.2CO_ABS ~ subsp * sex + (1|strain), data= ( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) )
+                           )
+
+lmer.IFD.ABS_MM.M1.reduce.sex <- lmer( mean_IFD.2CO_ABS ~ subsp  +(1|strain), data=( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) ) )
+
+lmer.IFD.ABS_MM.M1.reduce.subp <- lmer( mean_IFD.2CO_ABS ~ sex  +(1|strain), data=( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) ) )
 
 ABS.IFD_Q1.M1_sex  <- anova(lmer.IFD.ABS_MM.M1, lmer.IFD.ABS_MM.M1.reduce.sex)$`Pr(>Chisq)`[2]
 ABS.IFD_Q1.M1_subsp  <- anova(lmer.IFD.ABS_MM.M1, lmer.IFD.ABS_MM.M1.reduce.subp)$`Pr(>Chisq)`[2]
@@ -2219,14 +2213,23 @@ Q1.IFD.ABS_M1_lmer.results <- data.frame(sub.sp = ABS.IFD_Q1.M1_subsp, sex.resul
 
 write.table(Q1.IFD.ABS_M1_lmer.results, "~./MLH1repo/ABS.IFD_Q1_M1.csv", sep=",",row.names = TRUE)
 
-write_xlsx(Q1.IFD.ABS_M1_lmer.results, "~./MLH1repo/ABS.IFD_Q1_M1.xlsx", col_names = TRUE)
+#write_xlsx(Q1.IFD.ABS_M1_lmer.results, "~./MLH1repo/ABS.IFD_Q1_M1.xlsx", col_names = TRUE)
+
+write.xlsx(Q1.IFD.ABS_M1_lmer.results, "ABS.IFD_Q1_M1.xlsx", col.names = TRUE)
 
 
+oo <- ( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) )
 
 #M1_IFD_2CO
-lmer.IFD.PER_MM.M1 <- lmer(mean_IFD.2CO_PER ~ subsp * sex + (1|strain), data=( mouse.level.BivData_table %>% filter(strain != "CZECH") ) ) 
-lmer.IFD.PER_MM.M1.reduce.sex <- lmer( mean_IFD.2CO_PER ~ subsp  +(1|strain), data=( mouse.level.BivData_table %>% filter(strain != "CZECH") )  )
-lmer.IFD.PER_MM.M1.reduce.subp <- lmer( mean_IFD.2CO_PER ~ sex  +(1|strain), data=( mouse.level.BivData_table %>% filter(strain != "CZECH") ) )
+lmer.IFD.PER_MM.M1 <- lmer(mean_IFD.2CO_PER ~ subsp * sex + (1|strain), data=
+                           ( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) )
+                           ) 
+
+
+lmer.IFD.PER_MM.M1.reduce.sex <- lmer( mean_IFD.2CO_PER ~ subsp  +(1|strain), data=( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) )  )
+
+lmer.IFD.PER_MM.M1.reduce.subp <- lmer( mean_IFD.2CO_PER ~ sex  +(1|strain), data= ( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) )
+                                        )
 
 sex.pval <- anova(lmer.IFD.PER_MM.M1, lmer.IFD.PER_MM.M1.reduce.sex)$`Pr(>Chisq)`[2]
 subsp.pval <- anova(lmer.IFD.PER_MM.M1, lmer.IFD.PER_MM.M1.reduce.subp)$`Pr(>Chisq)`[2]
@@ -2238,7 +2241,9 @@ Q1.IFD.PER_M1_lmer.results <- data.frame(sub.sp = subsp.pval, sex.results =  sex
 
 write.table(Q1.IFD.PER_M1_lmer.results, "~./MLH1repo/PER.IFD_Q1_M1.csv", sep=",",row.names = TRUE)
 
-write_xlsx(Q1.IFD.PER_M1_lmer.results, "~./MLH1repo/PER.IFD_Q1_M1.xlsx", col_names = TRUE)
+#write_xlsx(Q1.IFD.PER_M1_lmer.results, "~./MLH1repo/PER.IFD_Q1_M1.xlsx", col_names = TRUE)
+
+write.xlsx(Q1.IFD.PER_M1_lmer.results, "PER.IFD_Q1_M1.xlsx", col.names = TRUE)
 
 ```
 
@@ -2246,7 +2251,10 @@ write_xlsx(Q1.IFD.PER_M1_lmer.results, "~./MLH1repo/PER.IFD_Q1_M1.xlsx", col_nam
 ```{r Q1.IFD_glm.M2, echo=FALSE, warning=FALSE, message=FALSE}
 #mouse.avs_4MM -- is also the bivbased mouse average table 
 #Mouse.Table_BivData_4MM #this one is the HetC table (all the Curated BivData)
-glm.Q1_IFD.ABS.M2  <- glm(mean_IFD.2CO_ABS ~ subsp * sex * strain, data= ( mouse.level.BivData_table %>% filter(strain != "CZECH") )  )
+
+glm.Q1_IFD.ABS.M2  <- glm(mean_IFD.2CO_ABS ~ subsp * sex * strain, data= ( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) )
+                          )
+
 summry.glm.Q1_IFD.ABS.M2 <- summary(glm.Q1_IFD.ABS.M2)
 
 #write.table(round(summry.glm.Q1_IFD.ABS.M2$coefficients,5), "~./MLH1repo/summry.glm.Q1_IFD.ABS.M2.csv", sep=",",row.names = TRUE)
@@ -2257,7 +2265,9 @@ write.xlsx(summry.glm.Q1_IFD.ABS.M2$coefficients, "ABS.IFD_Q1_M2.xlsx", col.name
 #write_xlsx(summry.glm.Q1_IFD.ABS.M2$coefficients, "~./MLH1repo/ABS.IFD_Q1_M2.xlsx", col_names = TRUE)
 
 #PER
-glm.Q1_IFD.PER.M2 <- glm(mean_IFD.2CO_PER ~ subsp * sex * strain, data= ( mouse.level.BivData_table %>% filter(strain != "CZECH") ) )
+glm.Q1_IFD.PER.M2 <- glm(mean_IFD.2CO_PER ~ subsp * sex * strain, data= ( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) )
+                         )
+
 summry.glm.Q1_IFD.PER.M2 <- summary(glm.Q1_IFD.PER.M2)
 
 write.table(summry.glm.Q1_IFD.PER.M2$coefficients, "~./MLH1repo/PER.IFD_Q1_M2.csv", sep=",",row.names = TRUE)
@@ -2271,7 +2281,8 @@ write.xlsx(summry.glm.Q1_IFD.PER.M2$coefficients, "PER.IFD_Q1_M2.xlsx", col.name
 
 ```{r Q1.IFD_glmM3, echo=FALSE, warning=FALSE, message=FALSE}
 
-glm.Q1_IFD.ABS.M3  <- glm(mean_IFD.2CO_ABS ~  sex * strain, data=( mouse.level.BivData_table %>% filter(strain != "CZECH") ))
+glm.Q1_IFD.ABS.M3  <- glm(mean_IFD.2CO_ABS ~  sex * strain, data=( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) )
+                          )
 summry.glm.Q1_IFD.ABS.M3 <- summary(glm.Q1_IFD.ABS.M3)
 
 write.table(summry.glm.Q1_IFD.ABS.M3$coefficients, "~./MLH1repo/ABS.IFD_Q1_M3.csv", sep=",",row.names = TRUE)
@@ -2281,7 +2292,8 @@ write.xlsx(summry.glm.Q1_IFD.ABS.M3$coefficients, "ABS.IFD_Q1_M3.xlsx", col.name
 #write_xlsx(summry.glm.Q1_IFD.ABS.M3$coefficients, "~./MLH1repo/ABS.IFD_Q1_M3.xlsx", col_names = TRUE)
 
 #PER
-glm.Q1_IFD.PER.M3  <- glm(mean_IFD.2CO_PER ~ sex * strain, data=( mouse.level.BivData_table %>% filter(strain != "CZECH") ) )
+glm.Q1_IFD.PER.M3  <- glm(mean_IFD.2CO_PER ~ sex * strain, data=( mouse.level.BivData_table %>% filter(species == "M.musculus") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) %>% filter(strain !=  "TOM" ) )
+                          )
 summry.glm.Q1_IFD.PER.M3 <- summary(glm.Q1_IFD.PER.M3)
 #round(summry.glm.Q1_IFD.PER.M3$coefficients[,c(1,4)],5)
 
@@ -2420,8 +2432,6 @@ ifelse(grepl("MSM", Q2mouse.av.short.biv.table$strain), 1,
                                            0)))
 
 ```
-
-
 
 
 ```{r Q2.totSC.ttest, echo=FALSE}
@@ -2681,6 +2691,67 @@ Q2.shortBIV_t.test_DomMol <- t.test((real.short.bivData  %>% filter(subsp == "Do
 ```
 
 
+re-write the blocks for M4 M5 MLH1 to total SC. to check results
+
+```{r Female.specific.glm.M4.M5-temp, echo=FALSE, eval=FALSE}
+#Change MLH1 to mean_skel
+
+#mean.skel
+#mouse.total.skel
+mouse.total.skel$strain <- factor(mouse.total.skel$strain, ordered = F)
+mouse.total.skel$subsp <- factor(mouse.total.skel$subsp, ordered = F)
+
+
+
+glm.female.strain.subsp <- glm(mean_co ~ subsp * strain, data= (female_mouse.avs_for.analysis %>% filter(subsp != "Cast") ) )
+
+summry.female.strain.effects <- summary(glm.female.strain.subsp)
+#round(summry.female.strain.effects$coefficients[,c(1,4)],5)
+
+write.table(summry.female.strain.effects$coefficients, "~./MLH1repo/MLH1_M4_female_glm.csv", sep=",",row.names = TRUE)
+
+write.xlsx(as.data.frame( summry.female.strain.effects$coefficients), "MLH1_M4_female_glm.xlsx", col.names = TRUE, row.names = TRUE)
+
+
+MLH1.female.spc.glm.M5 <- glm(mean_co ~ strain, data= (female_mouse.avs_for.analysis %>% filter(subsp != "Cast") ) )
+sum_MLH1.female.spc.glm.M5 <- summary(MLH1.female.spc.glm.M5)
+
+write.table(sum_MLH1.female.spc.glm.M5$coefficients, "~./MLH1repo/MLH1_M5_female_glm.csv", sep=",",row.names = TRUE)
+
+write.xlsx(as.data.frame( sum_MLH1.female.spc.glm.M5$coefficients), "MLH1_M5_female_glm.xlsx", col.names = TRUE, row.names = TRUE)
+```
+
+
+```{r tot.SC.Male.specific.glm.M4.M5, echo=FALSE, eval=TRUE}
+#mean.skel
+#mouse.total.skel
+
+mouse.total.skel$strain <- factor(mouse.total.skel$strain, ordered = F)
+mouse.total.skel$subsp <- factor(mouse.total.skel$subsp, ordered = F)
+
+#M4
+totSC.male.glm.M4 <- glm(mean.skel ~ subsp * strain, data=(mouse.total.skel %>% filter(sex == "male")  %>% filter(subsp != "Cast") ) %>% filter(species == "M.musculus")   )
+
+sum_totSC.male.glm.M4 <- summary(totSC.male.glm.M4)
+
+#write.table(sum_MLH1.male.glm.M4$coefficients, "~./MLH1repo/MLH1_M4_male_glm.csv", sep=",",row.names = TRUE)
+
+write.xlsx(as.data.frame(sum_totSC.male.glm.M4$coefficients), "TotSC.male.glm.M4.xlsx", col.names = TRUE, row.names = TRUE)
+
+
+#M5
+totSC.male.glm.M5 <- glm(mean.skel ~ strain, data= 
+    (mouse.total.skel %>% filter(sex == "male")  %>% filter(subsp != "Cast") %>% filter(species == "M.musculus")) )                      
+
+sum_totSC.male.glm.M5 <- summary(totSC.male.glm.M5)
+
+#write.table(sum_MLH1.male.glm.M5$coefficients, "~./MLH1repo/MLH1_M5_male_glm.csv", sep=",",row.names = TRUE)
+
+write.xlsx(as.data.frame( sum_totSC.male.glm.M5$coefficients), "TotSC.male.glm.M5.xlsx", col.names = TRUE, row.names = TRUE)
+
+#write_xlsx(sum_MLH1.male.glm.M4.2$coefficients, "~./MLH1repo/MLH1_M5_male_glm.xlsx", col_names = TRUE)
+```
+
 
 ```{r Q2.totSC.glm, echo=FALSE, eval=FALSE}
 #this model shouln't be used -- switch to M4 and M5 males
@@ -2699,6 +2770,7 @@ sum.Q2.glm_mus.av_totSC_M4  <- summary(Q2.glm_mus.av_totSC_M4)$coefficients
 #M4.2? (removed subspecies?)
 
 Q2.glm_mus.av_totSC_M4.2 <- glm(mean.skel ~ strain, data= mouse.total.skel %>% filter(sex == "male") %>% filter(species == "M.musculus") %>% filter(subsp != "Cast"))
+
 sum.Q2.glm_mus.av_totSC_M4.2  <- summary(Q2.glm_mus.av_totSC_M4.2)
 #round(summary(sum.Q2.glm_mus.av_totSC_M2)$coefficients[,c(1,4)], 6)
 
