@@ -1568,6 +1568,46 @@ write.xlsx(as.data.frame( summ.Q1.glm_short.SC_M3$coefficients), "ShortSC_Q1_M3.
 ```
 
 
+M4 and M5 for short bivalent
+
+
+```{r Female.shortBivalent.M4.M5, echo=FALSE}
+#these M4 and M5 could be run for short and Long
+Short.biv_mouse_table$subsp <- factor(Short.biv_mouse_table$subsp, ordered = FALSE)
+Short.biv_mouse_table$sex <- factor(Short.biv_mouse_table$sex, ordered = FALSE)
+Short.biv_mouse_table$strain <- factor(Short.biv_mouse_table$strain, ordered = FALSE)
+#mean_SC
+#Short.biv_mouse_table
+
+#M4
+ShortBiv.female.glm_M4 <- glm(mean_SC ~ subsp * strain, data= (Short.biv_mouse_table %>% filter(subsp != "Cast") %>% filter(species == "M.musculus") %>% filter(sex == "female") ) )
+sum.ShortBiv.female.glm_M4 <- summary(ShortBiv.female.glm_M4)
+write.xlsx(as.data.frame( sum.ShortBiv.female.glm_M4$coefficients), "ShortBiv.female.glm_M4.xlsx", col.names = TRUE, row.names = TRUE)
+
+#M5
+ShortBiv.female.glm_M5 <- glm(mean_SC ~ strain, data= (Short.biv_mouse_table %>% filter(subsp != "Cast") %>% filter(species == "M.musculus") %>% filter(sex == "female") ) )
+sum.ShortBiv.female.glm_M5 <- summary(ShortBiv.female.glm_M5)
+write.xlsx(as.data.frame( sum.ShortBiv.female.glm_M5$coefficients), "ShortBiv.female.glm_M5.xlsx", col.names = TRUE, row.names = TRUE)
+
+```
+
+
+
+```{r male.ShortBiv.M4.M5, echo=FALSE}
+#M4
+ShortBiv.male.glm_M4 <- glm(mean_SC ~ subsp * strain, data= (Short.biv_mouse_table %>% filter(subsp != "Cast") %>% filter(species == "M.musculus") %>% filter(sex == "male") ) )
+sum.ShortBiv.male.glm_M4 <- summary(ShortBiv.male.glm_M4)
+write.xlsx(as.data.frame( sum.ShortBiv.male.glm_M4$coefficients), "ShortBiv.male.glm_M4.xlsx", col.names = TRUE, row.names = TRUE)
+
+#M5
+ShortBiv.male.glm_M5 <- glm(mean_SC ~ strain, data= (Short.biv_mouse_table %>% filter(subsp != "Cast") %>% filter(species == "M.musculus") %>% filter(sex == "male") ) )
+sum.ShortBiv.male.glm_M5 <- summary(ShortBiv.male.glm_M5)
+write.xlsx(as.data.frame( sum.ShortBiv.male.glm_M5$coefficients), "ShortBiv.male.glm_M5.xlsx", col.names = TRUE, row.names = TRUE)
+```
+
+
+
+
 ```{r Q1.SC.M2plot, echo=FALSE, include=FALSE, eval=FALSE}
 
 #removing these plots for space
@@ -2693,7 +2733,7 @@ Q2.shortBIV_t.test_DomMol <- t.test((real.short.bivData  %>% filter(subsp == "Do
 
 re-write the blocks for M4 M5 MLH1 to total SC. to check results
 
-```{r Female.specific.glm.M4.M5-temp, echo=FALSE, eval=FALSE}
+```{r Female.specific.glm.M4.M5-temp, echo=FALSE, eval=TRUE}
 #Change MLH1 to mean_skel
 
 #mean.skel
@@ -2701,24 +2741,19 @@ re-write the blocks for M4 M5 MLH1 to total SC. to check results
 mouse.total.skel$strain <- factor(mouse.total.skel$strain, ordered = F)
 mouse.total.skel$subsp <- factor(mouse.total.skel$subsp, ordered = F)
 
+totSC.female.glm_M4 <- glm(mean.skel ~ subsp * strain, data= (mouse.total.skel %>% filter(subsp != "Cast") %>% filter(species == "M.musculus") %>% filter(sex == "female") ) )
+
+sum.totSC.female.glm_M4 <- summary(totSC.female.glm_M4)
+
+write.xlsx(as.data.frame( sum.totSC.female.glm_M4$coefficients), "totSC.female.glm_M4.xlsx", col.names = TRUE, row.names = TRUE)
 
 
-glm.female.strain.subsp <- glm(mean_co ~ subsp * strain, data= (female_mouse.avs_for.analysis %>% filter(subsp != "Cast") ) )
+totalSC.female.glm.M5 <- glm(mean.skel ~ strain, data= (mouse.total.skel %>% filter(subsp != "Cast")  %>% filter(species == "M.musculus")  %>% filter(sex == "female") ) )
+sum_totalSC.female.glm.M5 <- summary(totalSC.female.glm.M5)
 
-summry.female.strain.effects <- summary(glm.female.strain.subsp)
-#round(summry.female.strain.effects$coefficients[,c(1,4)],5)
+#write.table(sum_MLH1.female.spc.glm.M5$coefficients, "~./MLH1repo/sum_MLH1.female.spc.glm.M5.csv", sep=",",row.names = TRUE)
 
-write.table(summry.female.strain.effects$coefficients, "~./MLH1repo/MLH1_M4_female_glm.csv", sep=",",row.names = TRUE)
-
-write.xlsx(as.data.frame( summry.female.strain.effects$coefficients), "MLH1_M4_female_glm.xlsx", col.names = TRUE, row.names = TRUE)
-
-
-MLH1.female.spc.glm.M5 <- glm(mean_co ~ strain, data= (female_mouse.avs_for.analysis %>% filter(subsp != "Cast") ) )
-sum_MLH1.female.spc.glm.M5 <- summary(MLH1.female.spc.glm.M5)
-
-write.table(sum_MLH1.female.spc.glm.M5$coefficients, "~./MLH1repo/MLH1_M5_female_glm.csv", sep=",",row.names = TRUE)
-
-write.xlsx(as.data.frame( sum_MLH1.female.spc.glm.M5$coefficients), "MLH1_M5_female_glm.xlsx", col.names = TRUE, row.names = TRUE)
+write.xlsx(as.data.frame( sum_totalSC.female.glm.M5$coefficients), "totalSC.female.glm.M5.xlsx", col.names = TRUE, row.names = TRUE)
 ```
 
 
@@ -3369,6 +3404,7 @@ Q2.1COpos.PER_short_ttest_HL <- t.test( (Short.biv_mouse_table %>% filter(sex ==
 
 ```
 
+
 ```{r Q2.1CO.pos_short.long.ttest, echo=FALSE}
 
 #real.long.bivData
@@ -3386,21 +3422,51 @@ Rec.group_BivData_F1post_Ttest <- t.test(
 ```
 
 
+```{r Female.1COpos.M4.M5, echo=FALSE}
+#Change MLH1 to mean_skel
+
+#Pos  PER_Foci_1
+#cleanCurated_BivData
+
+cleanCurated_BivData$strain <- factor(cleanCurated_BivData$strain, ordered = F)
+cleanCurated_BivData$subsp <- factor(cleanCurated_BivData$subsp, ordered = F)
+
+chrm.1CO.pos.female.glm_M4 <- glm(PER_Foci_1 ~ subsp * strain, data= (cleanCurated_BivData %>% filter(subsp != "Cast") %>% filter(species == "M.musculus") %>% filter(sex == "female") ) )
+
+sum.chrm.1CO.pos.female.glm_M4 <- summary(chrm.1CO.pos.female.glm_M4)
+
+write.xlsx(as.data.frame( sum.chrm.1CO.pos.female.glm_M4$coefficients), "chrm.1CO.pos.female.glm_M4.xlsx", col.names = TRUE, row.names = TRUE)
 
 
-```{r Q2.1COpos_mus.av.full_glm, echo=FALSE}
+chrm.1CO.pos.female.glm_M5 <- glm(PER_Foci_1 ~ strain, data= (cleanCurated_BivData %>% filter(subsp != "Cast")  %>% filter(species == "M.musculus")  %>% filter(sex == "female") ) )
+sum_chrm.1CO.pos.female.glm_M5 <- summary(chrm.1CO.pos.female.glm_M5)
 
-Q2.glm_mus.av_1COpos_M4 <- glm(mean_1CO.pos.PER ~ subsp * strain, data = (mouse.level.BivData_table  %>% filter(sex == "male") %>% filter(species == "M.musculus") ) )
+#write.table(sum_MLH1.female.spc.glm.M5$coefficients, "~./MLH1repo/sum_MLH1.female.spc.glm.M5.csv", sep=",",row.names = TRUE)
 
-sum.Q2.glm_mus.av_1COpos_M4  <- summary(Q2.glm_mus.av_1COpos_M4)$coefficients
+write.xlsx(as.data.frame( sum_chrm.1CO.pos.female.glm_M5$coefficients), "chrm.1CO.pos.female.glm_M5.xlsx", col.names = TRUE, row.names = TRUE)
+```
+
+```{r Male.Q2.1COpos_male_M4.M5, echo=FALSE}
+
+#norm.first.foci.pos AND mean_1CO.pos.PER  are the same
+
+male_1COpos.glm_M4 <- glm(norm.first.foci.pos ~ subsp * strain, data = (mouse.level.BivData_table  %>% filter(sex == "male") %>% filter(species == "M.musculus")  ) )
+
+sum.male_1COpos.glm_M4  <- summary(male_1COpos.glm_M4)
 #summary(Q2.glm_mus.av_1COpos_M1)$coefficients[,4]
 
+write.xlsx(as.data.frame( sum.male_1COpos.glm_M4$coefficients), "male_1COpos.glm_M4.xlsx", col.names = TRUE, row.names = TRUE)
 
-#M4.2 (just strain)
-Q2.glm_mus.av_1COpos_M4.2 <- glm(norm.first.foci.pos ~ strain, data= mouse.level.BivData_table %>% filter(sex == "male") %>% filter(species == "M.musculus") )
-sum.Q2.glm_mus.av_1COpos_M4.2 <- summary(Q2.glm_mus.av_1COpos_M4.2)$coefficients
+
+#M5 (just strain)
+male_1COpos.glm_M5 <- glm(norm.first.foci.pos ~ strain, data= mouse.level.BivData_table %>% filter(sex == "male") %>% filter(species == "M.musculus") )
+
+sum.male_1COpos.glm_M5 <- summary(male_1COpos.glm_M5)
+
+write.xlsx(as.data.frame( sum.male_1COpos.glm_M5$coefficients), "male_1COpos.glm_M5.xlsx", col.names = TRUE, row.names = TRUE)
 
 ```
+
 
 
 ```{r Q2.1CO.pos_glm.chrm.Length, echo=FALSE}
@@ -3540,13 +3606,6 @@ single.biv_1COpos.plot_Dom <- ggplot(data= Curated_BivData %>% filter(sex == "ma
 
 
 #Q2 IFD
-
-```{r Q2.IFD.setup, echo=FALSE}
-
-#identify and remove mice with 1 bivalent observation (MSM:  1feb18_MSM_m1)
-#some cells just have 1 cell, but the MSM_m is the only with just 1 bivlent
-
-```
 
 
 
@@ -3705,6 +3764,62 @@ t.test_mouse.av.IFD_PER_MOL <- t.test(  (mouse.level.BivData_table %>% filter(Re
 
 Mol.mus.IFD <- ggplot(data = (mouse.level.BivData_table %>% filter(subsp == "Mol") %>% filter(sex == "male")   ), aes(x = strain, y = mean_IFD_PER, color = mouse) ) + geom_jitter()
 #there is mouse MSM with v low, 1feb18_MSM_m1 -- it only has 1 measure
+
+
+```
+
+
+```{r Female.IFD.M4.M5, echo=FALSE}
+#mean_IFD.2CO_ABS
+#mouse.level.BivData_table
+
+mouse.level.BivData_table$strain <- factor(mouse.level.BivData_table$strain, ordered = F)
+mouse.level.BivData_table$subsp <- factor(mouse.level.BivData_table$subsp, ordered = F)
+
+#RAW IFD
+IFD.raw.female.glm_M4 <- glm(mean_IFD.2CO_ABS ~ subsp * strain, data= (mouse.level.BivData_table %>% filter(subsp != "Cast") %>% filter(species == "M.musculus") %>% filter(sex == "female") ) )
+sum.IFD.raw.female.glm_M4 <- summary(IFD.raw.female.glm_M4)
+write.xlsx(as.data.frame( sum.IFD.raw.female.glm_M4$coefficients), "IFD.raw.female.glm_M4.xlsx", col.names = TRUE, row.names = TRUE)
+
+IFD.raw.female.glm_M5 <- glm(mean_IFD.2CO_ABS ~ strain, data= (mouse.level.BivData_table %>% filter(subsp != "Cast")  %>% filter(species == "M.musculus")  %>% filter(sex == "female") ) )
+sum_IFD.raw.female.glm_M5 <- summary(IFD.raw.female.glm_M5)
+write.xlsx(as.data.frame( sum_IFD.raw.female.glm_M5$coefficients), "IFD.raw.female.glm_M5.xlsx", col.names = TRUE, row.names = TRUE)
+
+#PER IFD
+IFD.PER.female.glm_M4 <- glm(mean_IFD.2CO_PER ~ subsp * strain, data= (mouse.level.BivData_table %>% filter(subsp != "Cast") %>% filter(species == "M.musculus") %>% filter(sex == "female") ) )
+
+sum.IFD.PER.female.glm_M4 <- summary(IFD.PER.female.glm_M4)
+write.xlsx(as.data.frame( sum.IFD.PER.female.glm_M4$coefficients), "IFD.PER.female.glm_M4.xlsx", col.names = TRUE, row.names = TRUE)
+
+
+IFD.PER.female.glm_M5 <- glm(mean_IFD.2CO_PER ~ strain, data= (mouse.level.BivData_table %>% filter(subsp != "Cast")  %>% filter(species == "M.musculus")  %>% filter(sex == "female") ) )
+sum_IFD.PER.female.glm_M5 <- summary(IFD.PER.female.glm_M5)
+
+write.xlsx(as.data.frame( sum_IFD.PER.female.glm_M5$coefficients), "IFD.PER.female.glm_M5.xlsx", col.names = TRUE, row.names = TRUE)
+
+```
+
+
+
+```{r Male.Q2.IFD_male_M4.M5, echo=FALSE}
+
+#RAW IFD
+IFD.raw.male.glm_M4 <- glm(mean_IFD.2CO_ABS ~ subsp * strain, data= (mouse.level.BivData_table %>% filter(subsp != "Cast") %>% filter(species == "M.musculus") %>% filter(sex == "male") ) )
+sum.IFD.raw.male.glm_M4 <- summary(IFD.raw.male.glm_M4)
+write.xlsx(as.data.frame( sum.IFD.raw.male.glm_M4$coefficients), "IFD.raw.male.glm_M4.xlsx", col.names = TRUE, row.names = TRUE)
+
+IFD.raw.male.glm_M5 <- glm(mean_IFD.2CO_ABS ~ strain, data= (mouse.level.BivData_table %>% filter(subsp != "Cast")  %>% filter(species == "M.musculus")  %>% filter(sex == "male") ) )
+sum_IFD.raw.male.glm_M5 <- summary(IFD.raw.male.glm_M5)
+write.xlsx(as.data.frame( sum_IFD.raw.male.glm_M5$coefficients), "IFD.raw.male.glm_M5.xlsx", col.names = TRUE, row.names = TRUE)
+
+#PER IFD
+IFD.PER.male.glm_M4 <- glm(mean_IFD.2CO_PER ~ subsp * strain, data= (mouse.level.BivData_table %>% filter(subsp != "Cast") %>% filter(species == "M.musculus") %>% filter(sex == "male") ) )
+sum.IFD.PER.male.glm_M4 <- summary(IFD.PER.male.glm_M4)
+write.xlsx(as.data.frame( sum.IFD.PER.male.glm_M4$coefficients), "IFD.PER.male.glm_M4.xlsx", col.names = TRUE, row.names = TRUE)
+
+IFD.PER.male.glm_M5 <- glm(mean_IFD.2CO_PER ~ strain, data= (mouse.level.BivData_table %>% filter(subsp != "Cast")  %>% filter(species == "M.musculus")  %>% filter(sex == "male") ) )
+sum_IFD.PER.male.glm_M5 <- summary(IFD.PER.male.glm_M5)
+write.xlsx(as.data.frame( sum_IFD.PER.female.glm_M5$coefficients), "IFD.PER.male.glm_M5.xlsx", col.names = TRUE, row.names = TRUE)
 
 
 ```
