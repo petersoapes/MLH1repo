@@ -547,6 +547,7 @@ strain.BivData.Table <- ddply(mouse.level.BivData_table, c("strain", "sex"), sum
                         av.proportion_1CO = mean(proportion_1CO, na.rm = TRUE),
                         av.proportion_2CO = mean(proportion_2CO, na.rm = TRUE),
                         av.proportion_3CO = mean(proportion_3CO, na.rm = TRUE),
+                       
                         #1CO pos
                         mean.1CO.pos = mean(mean_1CO.pos, na.rm = TRUE),
                         
@@ -703,7 +704,7 @@ write.xlsx(as.data.frame(summary(MLH1.M3.strain.fixed)$coefficients), "MLH1_M3_g
 ```
 
 
-```{r Female.specific.glm.M4.M5, echo=FALSE, eval=TRUE}
+```{r MLH1.Female.specific.glm.M4.M5, echo=FALSE, eval=TRUE}
 
 glm.female.strain.subsp <- glm(mean_co ~ subsp * strain, data= (female_mouse.avs_for.analysis %>% filter(subsp != "Cast") ) )
 
@@ -724,7 +725,7 @@ write.xlsx(as.data.frame( sum_MLH1.female.spc.glm.M5$coefficients), "MLH1_M5_fem
 ```
 
 
-```{r Male.specific.glm.M4.M5, echo=FALSE, eval=TRUE}
+```{r MLH1.Male.specific.glm.M4.M5, echo=FALSE, eval=TRUE}
 #M4
 MLH1.male.glm.M4 <- glm(mean_co ~ subsp * strain, data=(male_mouse.avs_for.analysis  %>% filter(subsp != "Cast") )   )
 
@@ -2016,6 +2017,15 @@ Q1_1CO.pos_t.test.FULL <- t.test( ( mouse.level.BivData_table %>% filter(species
 (mouse.level.BivData_table %>% filter(species == "M.musculus")  %>%  filter(sex == "female") %>% filter(strain !=  "CAST" ) %>% filter(strain !=  "MOLF" ) %>% filter(strain !=  "HMI" ) %>% filter(strain !=  "AST" ) %>% filter(strain !=  "PERC" ) %>% filter(strain !=  "CZECH" ) )$norm.first.foci.pos ) #<2e-16
 
 
+#rerun as strain means
+Q1.strain.F1.Pos <- t.test(
+( strain.BivData.Table %>% filter(species == "M.musculus") %>% filter(sex == "male") %>% filter(strain != "CZECH") %>% filter(strain != "MOLF") )$mean.1CO.pos,
+  
+  ( strain.BivData.Table %>% filter(species == "M.musculus") %>% filter(sex == "female"))$mean.1CO.pos, paired = TRUE  )
+
+
+
+
 #WSB
 Q1_1CO.pos_t.test.WSB <- t.test((mouse.level.BivData_table %>% filter(sex == "male") %>% filter(strain == "WSB") )$norm.first.foci.pos,
                            (mouse.level.BivData_table %>% filter(sex == "female") %>% filter(strain == "WSB") )$norm.first.foci.pos)
@@ -2478,14 +2488,12 @@ ifelse(grepl("MSM", Q2mouse.av.short.biv.table$strain), 1,
 
 #totalSC high and low rec group
 
-Q2tot.sc_t.test_High.Low <- t.test( (mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "0") %>% filter(species == "M.musculus") )$mean.skel,
+Q2tot.sc_t.test_High.Low <- t.test( (mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "0") %>% filter(species == "M.musculus") %>% filter(subsp != "Cast") )$mean.skel,
                 (mouse.total.skel %>% filter(species == "M.musculus") %>% filter(sex == "male") %>% filter(Rec.group == "1") )$mean.skel)
 
 
-#mol -- why is there only 1 MOLF male now?
-#there are 3 MOLF males in bivdata
 Q2tot.sc_t.test_High.Low_Mol <- t.test( (mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "0") %>% filter(subsp == "Mol") )$mean.skel,
-         (mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "1") %>% filter(subsp == "Mol") )$mean.skel)
+         (mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "1") %>% filter(subsp == "Mol") )$mean.skel )
 
 #musc
 Q2tot.sc_t.test_High.Low_Musc <- t.test((mouse.total.skel %>% filter(sex == "male") %>% filter(Rec.group == "0") %>% filter(subsp == "Musc"))$mean.skel,
@@ -2494,16 +2502,13 @@ Q2tot.sc_t.test_High.Low_Musc <- t.test((mouse.total.skel %>% filter(sex == "mal
 ```
 
 
-The molf male t-tests don't work because I only have total Sc measures for 1 MOLF male.
-
-
 ```{r Q2.short.long.ttest, echo=FALSE}
 
 #long and short 
 #mouse.av.short.biv.table
 #Q2mouse.av.short.biv.table
 
-Q2short.biv_t.test_High.Low <- t.test((Q2mouse.av.short.biv.table %>% filter(Rec.group == "0") )$mean.SC,
+Q2short.biv_t.test_High.Low <- t.test((Q2mouse.av.short.biv.table %>% filter(Rec.group == "0") %>% filter(subsp != "Cast") )$mean.SC,
                                       (Q2mouse.av.short.biv.table %>% filter(Rec.group == "1") )$mean.SC)
 
 #p-value = 0.9
@@ -2633,31 +2638,6 @@ Q2.totSC_t.test_MuscMol <- t.test( (mouse.total.skel  %>% filter(subsp == "Musc"
 ```
 
 
-```{r Q2.SC_across.subsp_short.long.mus.av, echo=FALSE, eval=FALSE}
-
-#DOM-musc-long
-Q2.long_t.test_DomMusc <- t.test((Q2mouse.av.long.biv.table  %>% filter(subsp == "Dom") )$mean.SC,
-                          (Q2mouse.av.long.biv.table %>% filter(subsp == "Musc"))$mean.SC)
-#p-value = 0.08
-
-#DOM-musc-short
-Q2.short_t.test_DomMusc <- t.test((Q2mouse.av.short.biv.table  %>% filter(subsp == "Dom") )$mean.SC,
-                          (Q2mouse.av.short.biv.table %>% filter(subsp == "Musc"))$mean.SC)
-#p-value = 0.8
-
-#DOM-mol-long
-Q2.long_t.test_DomMol <- t.test((Q2mouse.av.long.biv.table  %>% filter(subsp == "Dom") )$mean.SC,
-                          (Q2mouse.av.long.biv.table %>% filter(subsp == "Mol"))$mean.SC)
-#p-value = 0.4
-
-#DOM-mol-short
-Q2.short_t.test_DomMol <- t.test((Q2mouse.av.short.biv.table  %>% filter(subsp == "Dom") )$mean.SC,
-                          (Q2mouse.av.short.biv.table %>% filter(subsp == "Mol"))$mean.SC)
-#p-value = 0.09
-
-```
-
-
 ```{r Q2.SC_across.subsp_short.long_biv, echo=FALSE}
 
 #DOM-MUSC-ALL
@@ -2733,7 +2713,7 @@ Q2.shortBIV_t.test_DomMol <- t.test((real.short.bivData  %>% filter(subsp == "Do
 
 re-write the blocks for M4 M5 MLH1 to total SC. to check results
 
-```{r Female.specific.glm.M4.M5-temp, echo=FALSE, eval=TRUE}
+```{r Female.specific.glm.M4.M5, echo=FALSE, eval=TRUE}
 #Change MLH1 to mean_skel
 
 #mean.skel
@@ -2851,42 +2831,22 @@ sum_Q2.total.SC.male.glm.M5 <- summary(Q2.total.SC.male.glm.M5)
 
 
 
-```{r Q2.glm.SC.long, echo=FALSE, eval=FALSE}
+```{r Q2.glm.SC.long, echo=FALSE}
+Q2mouse.av.long.biv.table$strain <- factor(Q2mouse.av.long.biv.table$strain, ordered = F)
+Q2mouse.av.long.biv.table$subsp <- factor(Q2mouse.av.long.biv.table$subsp, ordered = F)
 
 #this dataset is all males
-glmQ2_long.biv_M4 <- glm(mean.SC ~ subsp * strain, data= Q2mouse.av.long.biv.table)
-sum.glmQ2_long.biv_M4 <- summary(glmQ2_long.biv_M4)
+male.Long_M4 <- glm(mean.SC ~ subsp * strain, data= Q2mouse.av.long.biv.table)
+sum.male.Long_M4 <- summary(male.Long_M4)
 
+write.xlsx(as.data.frame( sum.male.Long_M4$coefficients), "male.long.M4.xlsx", col.names = TRUE, row.names = TRUE)
 
-glmQ2_long.biv_M4 <- glm(mean.SC ~ strain, data= Q2mouse.av.long.biv.table)
-sum.glmQ2_long.biv_M4 <- summary(glmQ2_long.biv_M4)
-#round(sum.glmQ2_long.biv_M2$coefficients[,c(1,4)], 6)
+#Q2mouse.av.long.biv.table$um.SC <- add_umeter(Q2mouse.av.long.biv.table$mean.SC)
 
-glmQ2_long.biv_M4.2_DOM <- glm(mean.SC ~ strain, data= ( Q2mouse.av.long.biv.table %>% filter(subsp == "Dom") )  )
-sum.glmQ2_long.biv_M4.2_DOM <- summary(glmQ2_long.biv_M4.2_DOM)
+male.Long_M5 <- glm(mean.SC ~ strain, data= Q2mouse.av.long.biv.table)
+sum.male.Long_M5 <- summary(male.Long_M5)
 
-#MUSC
-glmQ2_long.biv_M4.2_MUSC <- glm(mean.SC ~ strain, data= ( Q2mouse.av.long.biv.table %>% filter(subsp == "Musc") )  )
-sum.glmQ2_long.biv_M4.2_MUSC <- summary(glmQ2_long.biv_M4.2_MUSC)
-
-#MOL can't be done -- only 1 mouse for each MSM and MOLF
-glmQ2_long.biv_M4.2_MOL <- glm(mean.SC ~ strain, data= ( Q2mouse.av.long.biv.table %>% filter(subsp == "Mol") )  )
-sum.glmQ2_long.biv_M4.2_MOL <- summary(glmQ2_long.biv_M4.2_MOL)
-
-
-#Dom
-glm_SC.male_Dom_long.biv <- glm(mean_SC ~ strain, data= Long.biv_mouse_table[Long.biv_mouse_table$subsp == "Dom",])
-#Musc
-glm_SC.male_Musc_long.biv <- glm(mean_SC ~ strain, data= Long.biv_mouse_table[Long.biv_mouse_table$subsp == "Musc",])
-#summary(glm_SC.male_Musc_long.biv)
-#Mol
-glm_SC.male_Mol_long.biv <- glm(mean_SC ~ strain, data= Long.biv_mouse_table[Long.biv_mouse_table$subsp == "Mol",])
-
-#pairwise.t.test( ( Q2mouse.av.long.biv.table %>% filter(subsp == "Dom")%>% filter(subsp == "Dom") )$mean.SC, ( Q2mouse.av.long.biv.table %>% filter(subsp == "Dom") )$strain )
-
-#pairwise.t.test( ( Q2mouse.av.long.biv.table %>% filter(subsp == "Dom") )$mean.SC, ( Q2mouse.av.long.biv.table %>% filter(subsp == "Dom") )$strain, p.adj = "bonf", pool.sd = FALSE)
-
-#pairwise.t.test( ( Q2mouse.av.long.biv.table %>% filter(subsp == "Musc") )$mean.SC, ( Q2mouse.av.long.biv.table %>% filter(subsp == "Musc") )$strain )
+write.xlsx(as.data.frame( sum.male.Long_M5$coefficients), "male.Long_M5.xlsx", col.names = TRUE, row.names = TRUE)
 
 ```
 
