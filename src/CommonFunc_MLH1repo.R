@@ -445,6 +445,7 @@ addIFD.2 <- function(DF){
 }
 
 
+#convert pixel to micrometer. Conversion factor found from image metadata files
 add_umeter <- function(dat){
   #how to convert dat$chrm.length to chrm.length
   #sc unit
