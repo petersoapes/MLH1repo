@@ -39,41 +39,6 @@ source("~./MLH1repo/src/CommonFunc_MLH1repo.R")
 
 <!-- Data Set Up Notes -->
 
-```{r organizing.data, echo=FALSE, eval=FALSE}
-#set the order of another column, based on another variable. consistant order for ploting
-
-#Terminology Note, leptonema, zygonema, and pachynema diplonema diakinesis, are the stage names.
-#-ene endings refer to the cells/units within the cell stage? (I think)
-
-#apply this before ploting
-MLH1_data <- MLH1_data %>%
-  arrange(strain, sex, category, mouse) %>%
-  mutate(Original.Name = factor(Original.Name)) #another category that you want the order to match
-MLH1_data <- with(MLH1_data, MLH1_data[order(sex, strain),])
-
-# sort your dataframe, by the focal categories
-MLH1_data$mouse <- factor(MLH1_data$mouse, levels=unique(MLH1_data$mouse))
-#use the above line for when order is out of wak
-
-#MLH1_data <- with(MLH1_data, MLH1_data[order(category),])
-#AP_mouse_table.HQ$var <- as.numeric(AP_mouse_table.HQ$var)
-
-AP_category_table <-  ddply(.data=AP_mouse_table.HQ,
-                 .(strain,sex),
-                 summarize,
-                 sum.ncells = sum(Ncells),
-                 mean.MLH1 = mean(mean_co),
-                 var.MLH1 = var(mean_co),
-                 AV.var_MLH1 = mean(var, na.rm=TRUE)
-                                  
-)
-
-AP_mouse_table.HQ_target <- AP_mouse_table.HQ[!(is.na(AP_mouse_table.HQ$sex) | AP_mouse_table.HQ$sex==""), ]
-
-remove_strains <- c("TOM","AST","CZECH","CAST","HMI","SPRET","CAROLI", "F1", "PERC")
-AP_mouse_table.HQ_target <- AP_mouse_table.HQ_target[ ! AP_mouse_table.HQ_target$strain %in% remove_strains, ]
-```
-
 
 ```{r Q1.rbar.gamma, echo=FALSE, eval=FALSE}
 
@@ -855,7 +820,9 @@ DMC1table.main$category <- factor(DMC1table.main$category, levels = c("WSB male"
 
 DMC1table.main <- DMC1table.main[order(DMC1table.main$category),]
 
-kable(head(DMC1table.main),  caption = "Table X. DMC1 foci counts per cell summary")
+#kable(head(DMC1table.main),  caption = "Table X. DMC1 foci counts per cell summary")
+
+#write 
 
 
 DMC1.Lratio_t.test <- t.test(  (DMC1table.main %>% filter(  ( category == "G male" | category == "WSB male" | category == "KAZ male" ) ) )$MLH1.L_ratio, 
@@ -932,6 +899,7 @@ DMC1.DF$strain<- factor(DMC1.DF$strain, levels =c("LEW",
                       "WSB","G", "KAZ", "SKIVE","PWD","MSM"), order=T )
 
 ```
+
 
 ```{r plot.stage.ttest, echo=FALSE, warning=FALSE, eval=FALSE}
 
@@ -3779,7 +3747,8 @@ write.xlsx(as.data.frame( sum.IFD.PER.male.glm_M4$coefficients), "IFD.PER.male.g
 
 IFD.PER.male.glm_M5 <- glm(mean_IFD.2CO_PER ~ strain, data= (mouse.level.BivData_table %>% filter(subsp != "Cast")  %>% filter(species == "M.musculus")  %>% filter(sex == "male") ) )
 sum_IFD.PER.male.glm_M5 <- summary(IFD.PER.male.glm_M5)
-write.xlsx(as.data.frame( sum_IFD.PER.female.glm_M5$coefficients), "IFD.PER.male.glm_M5.xlsx", col.names = TRUE, row.names = TRUE)
+
+write.xlsx(as.data.frame( sum_IFD.PER.male.glm_M5$coefficients), "IFD.PER.male.glm_M5.xlsx", col.names = TRUE, row.names = TRUE)
 
 
 ```

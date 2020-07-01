@@ -1,0 +1,112 @@
+---
+title: "MS_Tables"
+author: "April Peterson"
+date: "6/16/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(xlsx)
+library(knitr)
+library(kableExtra)
+#read in excel plates
+Table1 = read.xlsx2("~./MLH1repo/doc/MainTables.xlsx", header=TRUE, 1)
+
+Table2 = read.xlsx2("~./MLH1repo/doc/MainTables.xlsx", header=TRUE, 2)
+
+Table3 = read.xlsx2("~./MLH1repo/doc/MainTables.xlsx", header=TRUE, 3)
+
+Table4 = read.xlsx2("~./MLH1repo/doc/MainTables.xlsx", header=TRUE, 4)
+
+#Supplemental Table
+```
+
+```{r table1, echo=FALSE}
+
+#change the headers
+
+colnames(Table1) <- c("Species","Official name","abbreviation for this paper","Geographic Origin","Source")
+print.tex <- kable(Table1, "latex")
+```
+
+```{r tab2, echo=FALSE}
+print.tex2 <- kable(Table2, "latex")
+```
+
+
+```{r table3, echo=FALSE}
+
+#arg tha numbers are factors!!!!
+Table3$Number.of.Mice <- as.character(Table3$Number.of.Mice)
+Table3$Number.of..Cells <- as.character(Table3$Number.of..Cells)
+Table3$Mean.MLH1.Count <- as.character(Table3$Mean.MLH1.Count)
+Table3$se <- as.character(Table3$se)
+Table3$cV <- as.character(Table3$cV)
+Table3$var <- as.character(Table3$var)
+
+Table3$Number.of.Mice <- as.numeric(Table3$Number.of.Mice)
+Table3$Number.of..Cells <- as.numeric(Table3$Number.of..Cells)
+Table3$Mean.MLH1.Count <- as.numeric(Table3$Mean.MLH1.Count)
+Table3$se <- as.numeric(Table3$se)
+Table3$cV <- as.numeric(Table3$cV)
+Table3$var <- as.numeric(Table3$var)
+
+
+#MLH1 summary stats
+print.tex3 <- kable(Table3, "latex",booktabs = T, digits = 2)
+
+write.table(kable(Table3, "latex",booktabs = T, digits = 2), "~./MLH1repo/Table3.mean.table.tex", sep=",",
+            row.names = FALSE)
+
+```
+
+
+
+```{r table4, echo=FALSE}
+#DMC1 table
+
+colnames(Table4) <- c("Recombination Group","Strain",
+                      "Mean DMC1 Foci per Cell","MLH1:DMC1   ratio","MLH1:DMC1   ratio",
+                     "Mean DMC1 Foci per Cell","MLH1:DMC1   ratio","MLH1:DMC1   ratio")
+
+#DMC1
+print.tex4 <- kable(Table4, "latex", booktabs = T) %>%
+kable_styling() %>%
+add_header_above(c(" " = 2, "Early Zygotene" = 3, "Late Zygotene" = 3) )
+
+write.table(print.tex4, "~./MLH1repo/DMC1.mean.table.tex")
+
+save_kable(print.tex4, "~./MLH1repo/kable.DMC1.mean.table.html", keep_tex = TRUE)
+
+
+#kable(dt, "latex", booktabs = T) %>%
+#kable_styling() %>%
+#add_header_above(c(" " = 1, "Group 1" = 2, "Group 2" = 2, "Group 3" = 2))
+
+#write the kable file
+
+
+```
+
+
+
+
+\begin{tabular}{S l l l r}
+\toprule
+{Speed (mph)} & Driver          & Car                        & Engine    & Date     \\
+\midrule
+407.447     & Craig Breedlove & Spirit of America          & GE J47    & 8/5/63   \\
+413.199     & Tom Green       & Wingfoot Express           & WE J46    & 10/2/64  \\
+434.22      & Art Arfons      & Green Monster              & GE J79    & 10/5/64  \\
+468.719     & Craig Breedlove & Spirit of America          & GE J79    & 10/13/64 \\
+526.277     & Craig Breedlove & Spirit of America          & GE J79    & 10/15/65 \\
+536.712     & Art Arfons      & Green Monster              & GE J79    & 10/27/65 \\
+555.127     & Craig Breedlove & Spirit of America, Sonic 1 & GE J79    & 11/2/65  \\
+576.553     & Art Arfons      & Green Monster              & GE J79    & 11/7/65  \\
+600.601     & Craig Breedlove & Spirit of America, Sonic 1 & GE J79    & 11/15/65 \\
+622.407     & Gary Gabelich   & Blue Flame                 & Rocket    & 10/23/70 \\
+633.468     & Richard Noble   & Thrust 2                   & RR RG 146 & 10/4/83  \\
+763.035     & Andy Green      & Thrust SSC                 & RR Spey   & 10/15/97\\
+\bottomrule
+\end{tabular}

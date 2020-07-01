@@ -454,6 +454,10 @@ add_umeter <- function(dat){
 }
 
 
+scientific_10 <- function(x) {
+  parse(text=gsub("e", " %*% 10^", scales::scientific_format()(x)))
+}
+
 
 #calculate Interchromsomal rbar
 #tested with values from Veller et al 2018
